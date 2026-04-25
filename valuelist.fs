@@ -43,10 +43,12 @@
         \ Deallocate value instances in the list.
         [ ' value-deallocate ] literal over         \ lst0 xt lst0
         list-apply                                  \ lst0
-    then 
 
-    \ Deallocate the list.
-    list-deallocate                                 \    
+        \ Deallocate the list.
+        list-deallocate                             \    
+    else
+        struct-dec-use-count
+    then 
 ;
 
 \ Push a value onto a list.

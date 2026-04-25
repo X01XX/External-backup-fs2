@@ -55,10 +55,12 @@
         \ Deallocate region instances in the list.
         [ ' region-deallocate ] literal over        \ lst0 xt lst0
         list-apply                                  \ lst0
-    then
 
-    \ Deallocate the list.
-    list-deallocate                                 \
+        \ Deallocate the list.
+        list-deallocate                             \
+    else
+        struct-dec-use-count
+    then
 ;
 
 \ Print a region-list

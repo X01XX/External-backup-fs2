@@ -2,13 +2,13 @@
 #61717 constant value-id
     #2 constant value-struct-number-cells
 
-\ Float struct fields.
+\ Value struct fields.
 0                         constant value-header-disp   \ 16 bits, [0] id, [1] use count [2] Number bits.
 value-header-disp cell+   constant value-number-disp
 
 0 value value-mma \ Storage for the value mma instance addr.
 
-1 cells 8 * value max-bits
+1 cells 8 * value cell-bits
 
 \ Init value mma.
 : value-mma-init ( num-items -- ) \ sets value-mma.
@@ -124,7 +124,7 @@ value-header-disp cell+   constant value-number-disp
 
     \ Check number bits.
     dup 1 < abort" Number bits < 1?"
-    dup max-bits > abort" Number bits too large"
+    dup cell-bits > abort" Number bits too large"
 
     \ Check number.
     2dup                    \ num1 nb0 num1 nb0
@@ -132,21 +132,15 @@ value-header-disp cell+   constant value-number-disp
     u> abort" Number too large for number bits given"
 
     \ Allocate a value instance.
-    value-mma mma-allocate   \ lst0 nb val
-
-    \ Set struct id.
-    value-id over            \ lst0 nb val id val
-    struct-set-id            \ lst0 nb val
-
-    \ Set use count
-    0 over                   \ lst0 nb val 0 val
-    struct-set-use-count     \ lst0 nb val
+    value-id value-mma      \ num1 nb0 id mma
+    struct-allocate         \ num1 nb0 val
 
     \ Set number bits.
-    tuck                    \ lst0 val nb val
-    _value-set-number-bits  \ lst0 val
+    tuck                    \ num1 val nb0 val
+    _value-set-number-bits  \ num1 val
 
-    tuck                     \ val lst0 val
+    \ Store number given.
+    tuck                     \ val num1 val
     _value-set-number        \ val
 ;
 

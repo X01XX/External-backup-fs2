@@ -67,12 +67,13 @@ link-next-disp      cell+   constant link-data-disp
 
 \ Return a new link struct instance address, with given data value, zero next-value.
 : link-new ( data-val -- link-addr )
-    link-mma mma-allocate       \ data-val link-addr
-    link-id over struct-set-id  \ data-val link-addr
-    tuck                        \ link-addr data-val link-addr
-    _link-set-data              \ link-addr
-    0 over _link-set-next       \ link-addr
-    0 over struct-set-use-count \ link-addr
+    link-id link-mma            \ data-val id mma
+    struct-allocate             \ data-val link
+
+    tuck                        \ link data-val link
+    _link-set-data              \ link
+
+    0 over _link-set-next       \ link
 ;
 
 \ Print a link in hex.

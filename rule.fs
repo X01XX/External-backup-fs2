@@ -129,24 +129,13 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask.
 
 \ End accessors.
 
-: _rule-allocate ( -- rul0 )    \ Allocate a rule, setting id and use count only, use only in this file.
-    \ Allocate space.
-    rule-mma mma-allocate   \ addr
-
-    \ Store id.
-    rule-id over            \ addr id addr
-    struct-set-id           \ addr
-
-    \ Init use count.
-    0 over struct-set-use-count \ addr
-;
-
 : rule-new ( val-result val-initial -- rul )    \ Create a rule from two values on the stack.
     \ Check args.
     assert-tos-is-value
     assert-nos-is-value
 
-    _rule-allocate          \ v-r v-i rul
+    rule-id rule-mma        \ v-r v-i id mma
+    struct-allocate         \ v-r v-i rul
 
     \ Store fields.
     over value-invert       \ v-r v-i rul v-i-not'

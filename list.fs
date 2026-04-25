@@ -147,13 +147,12 @@ list-header-disp    cell+   constant list-links-disp
 \ Return an new list struct instance address.
 : list-new ( -- addr )
     \ Allocate space.
-    list-mma mma-allocate       \ list-addr
+    list-id list-mma            \ id mma
+    struct-allocate             \ list
 
     \ Init fields.
-    list-id over struct-set-id  \ list-addr
-    0 over _list-set-length     \ list-addr
-    0 over _list-set-links      \ list-addr
-    0 over struct-set-use-count \ list-addr
+    0 over _list-set-length     \ list
+    0 over _list-set-links      \ list
     \ cr ." list-new: " dup hex. cr
 ;
 
