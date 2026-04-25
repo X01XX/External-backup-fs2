@@ -1,0 +1,115 @@
+#17137 constant link-id
+    #3 constant link-struct-number-cells
+
+\ Link struct fields.
+0                           constant link-header-disp   \ 16-bits [0] struct id, [1] use count.
+link-header-disp    cell+   constant link-next-disp
+link-next-disp      cell+   constant link-data-disp
+
+0 value link-mma    \ Storage for the link mma instance addr.
+
+\ Init link mma.
+: link-mma-init ( num-items -- ) \ sets link-mma.
+    dup 1 <
+    abort" link-mma-init: Invalid number items."
+
+    cr ." Initializing Link store."
+    link-struct-number-cells swap mma-new to link-mma
+;
+
+\ Return true if TOS is an allocated link.
+: is-allocated-link ( link -- flag )
+    get-first-word          \ w t | f
+    if
+        link-id =
+    else
+        false
+    then
+;
+
+\ Check TOS for link, unconventional, leaves stack unchanged.
+: assert-tos-is-link ( tos -- tos )
+    dup is-allocated-link
+    0= if
+        s" TOS is not an allocated link."
+       .abort-xt execute
+    then
+;
+
+\ Start accessors.
+
+\ Get link data cell.
+: link-get-data ( link-addr -- link-data-value )
+    \ Check arg.
+    assert-tos-is-link
+
+    link-data-disp + @
+;
+
+\ Set link data cell, use only in this file.
+: _link-set-data ( data-value link-addr -- )
+    link-data-disp + !
+;
+
+\ Get link next cell.
+: link-get-next ( link-addr -- link-next-value )
+    \ Check arg.
+    assert-tos-is-link
+
+    link-next-disp + @
+;
+
+\ Set link next cell, use only in this file, and list.fs.
+: _link-set-next ( next-value link-addr -- )
+    link-next-disp + !
+;
+\ End accessors.
+
+\ Return a new link struct instance address, with given data value, zero next-value.
+: link-new ( data-val -- link-addr )
+    link-mma mma-allocate       \ data-val link-addr
+    link-id over struct-set-id  \ data-val link-addr
+    tuck                        \ link-addr data-val link-addr
+    _link-set-data              \ link-addr
+    0 over _link-set-next       \ link-addr
+    0 over struct-set-use-count \ link-addr
+;
+
+\ Print a link in hex.
+: .link ( link-addr -- )
+    \ Check arg.
+    assert-tos-is-link
+
+    ." Link: "
+    dup hex.
+    ." uc: " dup struct-get-use-count dec.
+    ." data: "
+    link-get-data dup hex.
+    dup get-first-word
+    if
+        swap ." uc: " struct-get-use-count dec.
+        ." id: " dec.
+    else
+        drop
+    then
+;
+
+\ Deallocate a link.
+: link-deallocate ( link-addr -- )
+    \ Check arg.
+    assert-tos-is-link
+
+    dup struct-get-use-count    \ link-addr count
+
+    dup 0 < abort" invalid use count"
+
+    #2 <
+    if
+        \ Clear fields.
+        0 over _link-set-next
+        0 over _link-set-data
+        link-mma mma-deallocate \ Deallocate link.
+    else
+        struct-dec-use-count
+    then
+;
