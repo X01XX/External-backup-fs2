@@ -3,7 +3,7 @@
     #2 constant mask-struct-number-cells
 
 \ Value struct fields.
-0                         constant mask-header-disp   \ 16 bits, [0] id, [1] use count [2] Number bits.
+0                         constant mask-header-disp   \ 16 bits, [0] id, [1] use count [2] Number bits ( 8 bits ).
 mask-header-disp cell+   constant mask-number-disp
 
 0 value mask-mma \ Storage for the mask mma instance addr.
@@ -63,12 +63,12 @@ mask-header-disp cell+   constant mask-number-disp
     \ Check arg.
     assert-tos-is-mask
 
-    2w@
+    4c@
 ;
 
 \ Set the number of bits.
 : _mask-set-number-bits ( nb msk0 -- )
-    2w!
+    4c!
 ;
 
 \ Get mask number.

@@ -3,7 +3,7 @@
     #2 constant state-struct-number-cells
 
 \ Value struct fields.
-0                         constant state-header-disp   \ 16 bits, [0] id, [1] use count [2] Number bits.
+0                         constant state-header-disp   \ 16 bits, [0] id, [1] use count [2] Number bits ( 8 bits ). 
 state-header-disp cell+   constant state-number-disp
 
 0 value state-mma \ Storage for the state mma instance addr.
@@ -61,12 +61,12 @@ state-header-disp cell+   constant state-number-disp
     \ Check arg.
     assert-tos-is-state
 
-    2w@
+    4c@
 ;
 
 \ Set the number of bits.
 : _state-set-number-bits ( nb sta0 -- )
-    2w!
+    4c!
 ;
 
 \ Get state number.
