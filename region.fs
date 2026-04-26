@@ -9,7 +9,7 @@
 \ but the sign bit may be a problem.
 \
 \ The region can do this with any two states/numbers. The states may be the same for a single-state
-\ "region" in a K-Map.
+\ "region" in a K-Map ( extended to allow up to one cell number of bits ).
 \
 \ In the action-incompatible-pairs list, regions are used as a two-state store, the states being not-equal.
 \
@@ -21,8 +21,8 @@
 
 \ Struct fields
 0                           constant region-header-disp   \ 16-bits [0] struct id [1] use count.
-region-header-disp  cell+   constant region-state-0-disp  \ First state value.
-region-state-0-disp cell+   constant region-state-1-disp  \ Second state value.
+region-header-disp  cell+   constant region-state-0-disp  \ First state.
+region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 
 0 value region-mma \ Storage for region mma instance.
 
@@ -121,7 +121,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state value.
 : _region-set-state-0 ( sta1 reg0 -- )
     \ Check arg.
     assert-tos-is-region
-    assert-nos-is-value
+    assert-nos-is-state
 
     region-state-0-disp +   \ Add offset.
     !                       \ Set the field.
@@ -131,7 +131,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state value.
 : _region-set-state-1 ( sta1 reg0 -- )
     \ Check arg.
     assert-tos-is-region
-    assert-nos-is-value
+    assert-nos-is-state
 
     region-state-1-disp +   \ Add offset.
     !                       \ Set the field.
@@ -139,25 +139,25 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state value.
 
 \ End accessors.
 
-\ Create a region from two numbers on the stack.
-\ The numbers may be the same.
-: region-new ( u1 u0 -- reg )
+\ Create a region from two states on the stack.
+\ The states may be the same.
+: region-new ( sta1 sta0 -- reg )
     \ Check args.
-    assert-tos-is-value
-    assert-nos-is-value
-    2dup value-same-num-bits? false? abort" values use a different number of bits?"
+    assert-tos-is-state
+    assert-nos-is-state
+    2dup state-same-num-bits? false? abort" states use a different number of bits?"
 
     \ Allocate space.
-    region-id region-mma        \ u1 u0 id mma
-    struct-allocate             \ u1 u0 reg
+    region-id region-mma        \ sta1 sta0 id mma
+    struct-allocate             \ sta1 sta0 reg
 
     \ Prepare to store states.
-    -rot                        \ reg u1 u0
-    #2 pick                     \ reg u1 u0 reg
-    tuck                        \ reg u1 reg u0 reg
+    -rot                        \ reg sta1 sta0
+    #2 pick                     \ reg sta1 sta0 reg
+    tuck                        \ reg sta1 reg sta0 reg
 
     \ Store states
-    _region-set-state-0         \ reg u1 reg
+    _region-set-state-0         \ reg sta1 reg
     _region-set-state-1         \ reg
 ;
 
@@ -168,46 +168,40 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state value.
 
     \ Setup for trit-position loop.
     dup  region-get-state-1         \ reg0 sta1
-    _value-get-number               \ reg1 num1
-    swap region-get-state-0         \ num1 sta0
-    dup                             \ num1 sta0 sta0
-    _value-get-number               \ num1 sta0 num0
-    swap                            \ num1 num0 sta0
-    value-calc-msb                  \ num1 num0 ms-bit
+    swap region-get-state-0         \ sta1 sta0
+    dup state-get-number-bits       \ sta1 sta0 nb
+    -1 swap                         \ sta1 sta0 -1 nb
+    1-                              \ sta1 sta0 -1 nb-
 
-    \ Process each trit.
-    begin
-      dup
-    while
-        \ Apply msb to state 1.
-        #2 pick                     \ num1 num0 ms-bit num1
-        over                        \ num1 num0 ms-bit num1 ms-bit
-        and                         \ num1 num0 ms-bit num1-bit
+    do
+        \ Process each trit.
+         \ Get state 1 bit.
+         i                           \ sta1 sta0 i
+         #2 pick                     \ sta1 sta0 i sta1
+         state-bit                   \ sta1 sta0 b1
 
-        \ Apply msb to state 0.
-        #2 pick                     \ num1 num0 ms-bit num1-bit num0
-        #2 pick                     \ num1 num0 ms-bit num1-bit num0 ms-bit
-        and                         \ num1 num0 ms-bit num1-bit num0-bit
+         \ Apply msb to state 0.
+         i                           \ sta1 sta0 b1 i
+         #2 pick                     \ sta1 sta0 b1 i sta0
+         state-bit                   \ sta1 sta0 b1 b0
 
 
-        if                          \ num1 num0 ms-bit num1-bit
-            if                      \ num1 num0 ms-bit
-                ." 1"
-            else
-                ." X"
-            then
-        else                        \ num1 num0 ms-bit num1-bit
-            if                      \ num1 num0 ms-bit
-                ." x"
-            else
-                ." 0"
-            then
-        then
-
-        1 rshift                    \ sta1 sta0 ms-bit\2
-    repeat
-                                    \ st2 st1 ms-bit
-    3drop
+         if                          \ sta1 sta0 b1
+             if                      \ sta1 sta0
+                 ." 1"
+             else
+                 ." X"
+             then
+         else                        \ sta1 sta0 b1
+             if                      \ sta1 sta0
+                 ." x"
+             else
+                 ." 0"
+             then
+         then
+    1 -loop
+                                    \ sta2 sta1
+    2drop
 ;
 
 \ Deallocate a region.
@@ -221,8 +215,8 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state value.
     #2 <
     if
         \ Deallocate states.
-        dup region-get-state-0 value-deallocate
-        dup region-get-state-1 value-deallocate
+        dup region-get-state-0 state-deallocate
+        dup region-get-state-1 state-deallocate
 
         \ Deallocate instance.
         region-mma mma-deallocate

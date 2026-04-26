@@ -29,8 +29,8 @@ cs
 #101 link-mma-init
 #102 list-mma-init
 #010 structinfo-mma-init
-#100 mask-mma-init
 #100 state-mma-init
+#100 mask-mma-init
 #100 region-mma-init
 #100 rule-mma-init
 
@@ -42,31 +42,8 @@ list-new to structinfo-list-store
 
 \ The list, link, and StructInfo structs allow for the creation of the structinfo-list-store,
 
-' mask-deallocate ' f. s" Mask" mask-mma mask-id structinfo-new structinfo-list-store structinfo-list-push-end
 ' state-deallocate ' f. s" State" state-mma state-id structinfo-new structinfo-list-store structinfo-list-push-end
+' mask-deallocate ' f. s" Mask" mask-mma mask-id structinfo-new structinfo-list-store structinfo-list-push-end
 ' region-deallocate ' f. s" Region" region-mma region-id structinfo-new structinfo-list-store structinfo-list-push-end
 ' rule-deallocate ' f. s" Rule" rule-mma rule-id structinfo-new structinfo-list-store structinfo-list-push-end
 
-$d #4 state-new             \ msk0'
-$5 #4 state-new             \ msk0' msk1'
-2dup rule-new               \ msk0' msk1' rul0'
-
-cr cr ." rule: " dup .rule cr
-
-\ Finish.
-cr structinfo-list-store structinfo-list-print-memory-use cr
-
-\ Deallocate remaining struct instances.
-cr ." Deallocating ..."
-rule-deallocate
-state-deallocate
-state-deallocate
-
-cr structinfo-list-store structinfo-list-print-memory-use cr
-
-structinfo-list-store structinfo-list-project-deallocated
-
-\ Free heap memory before exiting.
-." Freeing heap memory"
-structinfo-list-store structinfo-list-free-heap
-cr
