@@ -124,53 +124,50 @@ mask-header-disp cell+  constant mask-number-disp
     _mask-set-number        \ msk
 ;
 
-\ Store a string representation of a mask to pad.
-: mask-str ( msk0 -- uc-addr )
+\ Store a string representation of a mask to a given address.
+: mask-str ( addr1 msk0 -- )
     \ Check arg.
     assert-tos-is-mask
 
-    \ Save pad pointer.
-    pad swap                    \ pad msk0
-
     \ Store string length.
-    dup mask-get-number-bits    \ pad msk0 nb
-    #2 pick                     \ pad msk0 nb pad
-    c!                          \ pad msk0
+    dup mask-get-number-bits    \ addr1 msk0 nb
+    #2 pick                     \ addr1 msk0 nb addr1
+    c!                          \ addr1 msk0
 
-    \ Point to next pad char.
-    swap 1+ swap                \ pad msk0
+    \ Point to next addr1 char.
+    swap 1+ swap                \ addr1 msk0
    
     \ Setup for bit-position loop.
-    dup _mask-get-number        \ pad msk0 num
-    swap                        \ pad num msk0
-    mask-get-number-bits        \ pad num nb
-    tuck                        \ pad nb num nb
-    _msb-from-num-bits          \ pad nb num ms-bit
-    rot                         \ pad num ms-bit nb
+    dup _mask-get-number        \ addr1 msk0 num
+    swap                        \ addr1 num msk0
+    mask-get-number-bits        \ addr1 num nb
+    tuck                        \ addr1 nb num nb
+    _msb-from-num-bits          \ addr1 nb num ms-bit
+    rot                         \ addr1 num ms-bit nb
     0
 
     do
         \ Apply msb to mask, to get an isolated bit.
-                                \ pad num ms-bit
-        2dup and                \ pad num ms-bit bit
+                                \ addr1 num ms-bit
+        2dup and                \ addr1 num ms-bit bit
 
         if  
-            [char] 1            \ pad num ms-bit chr
+            [char] 1            \ addr1 num ms-bit chr
         else
-            [char] 0            \ pad num ms-bit chr
+            [char] 0            \ addr1 num ms-bit chr
         then
 
-        \ Store char to pad.
-        #3 pick                 \ pad num ms-bit chr pad
-        c!                      \ pad num ms-bit
+        \ Store char to addr1.
+        #3 pick                 \ addr1 num ms-bit chr addr1
+        c!                      \ addr1 num ms-bit
       
-        \ Point to next pad char.
-        rot 1+ -rot             \ pad num ms-bit
+        \ Point to next addr1 char.
+        rot 1+ -rot             \ addr1 num ms-bit
 
         \ Adjust msb mask.
-        1 rshift                \ pad num ms-bit
+        1 rshift                \ addr1 num ms-bit
     loop
-    2drop drop pad              \ pad
+    2drop drop
 ;
 
 \ Print a mask.
@@ -179,10 +176,10 @@ mask-header-disp cell+  constant mask-number-disp
     assert-tos-is-mask
 
     \ Put mask string into pad.
-    mask-str        \ uc-addr
+    pad swap mask-str   \ uc-addr
 
     \ Move pad string to stack.
-    string@         \ c-adr u
+    pad string@         \ c-addr u
 
     \ Output string.
     type

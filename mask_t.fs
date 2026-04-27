@@ -5,8 +5,8 @@
     #5 #4 mask-new              \ msk
 
     \ Test mask-str.
-    dup mask-str                \ msk uc-addr 
-    string@                     \ msk c-addr cnt
+    pad over mask-str           \ msk
+    pad string@                 \ msk c-addr cnt
     s" 0101"                    \ msk c-addr cnt c-addr cnt
     str=
     false? abort" string not as expected"
