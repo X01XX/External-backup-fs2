@@ -99,7 +99,7 @@ mask-header-disp cell+  constant mask-number-disp
 ;
 
 \ Return a new mask struct instance address, with given data list and number bits.
-: mask-new ( num1 nb0 -- val )
+: mask-new ( num1 nb0 -- msk )
     \ Check args.
 
     \ Check number bits.
@@ -113,45 +113,79 @@ mask-header-disp cell+  constant mask-number-disp
 
     \ Allocate a mask instance.
     mask-id mask-mma        \ num1 nb0 id mma
-    struct-allocate         \ num1 nb0 val
+    struct-allocate         \ num1 nb0 msk
 
     \ Set number bits.
-    tuck                    \ num1 val nb0 val
-    _mask-set-number-bits   \ num1 val
+    tuck                    \ num1 msk nb0 msk
+    _mask-set-number-bits   \ num1 msk
 
     \ Store number given.
-    tuck                    \ val num1 val
-    _mask-set-number        \ val
+    tuck                    \ msk num1 msk
+    _mask-set-number        \ msk
+;
+
+\ Store a string representation of a mask to pad.
+: mask-str ( msk0 -- uc-addr )
+    \ Check arg.
+    assert-tos-is-mask
+
+    \ Save pad pointer.
+    pad swap                    \ pad msk0
+
+    \ Store string length.
+    dup mask-get-number-bits    \ pad msk0 nb
+    #2 pick                     \ pad msk0 nb pad
+    c!                          \ pad msk0
+
+    \ Point to next pad char.
+    swap 1+ swap                \ pad msk0
+   
+    \ Setup for bit-position loop.
+    dup _mask-get-number        \ pad msk0 num
+    swap                        \ pad num msk0
+    mask-get-number-bits        \ pad num nb
+    tuck                        \ pad nb num nb
+    _msb-from-num-bits          \ pad nb num ms-bit
+    rot                         \ pad num ms-bit nb
+    0
+
+    do
+        \ Apply msb to mask, to get an isolated bit.
+                                \ pad num ms-bit
+        2dup and                \ pad num ms-bit bit
+
+        if  
+            [char] 1            \ pad num ms-bit chr
+        else
+            [char] 0            \ pad num ms-bit chr
+        then
+
+        \ Store char to pad.
+        #3 pick                 \ pad num ms-bit chr pad
+        c!                      \ pad num ms-bit
+      
+        \ Point to next pad char.
+        rot 1+ -rot             \ pad num ms-bit
+
+        \ Adjust msb mask.
+        1 rshift                \ pad num ms-bit
+    loop
+    2drop drop pad              \ pad
 ;
 
 \ Print a mask.
-: .mask ( val -- )
-   \ Check arg.
+: .mask ( msk -- )
+    \ Check arg.
     assert-tos-is-mask
 
-    \ Setup for bit-position loop.
-    dup _mask-get-number        \ msk0 num
-    swap                        \ num msk0
-    mask-get-number-bits        \ num nb
-    _msb-from-num-bits          \ num ms-bit
+    \ Put mask string into pad.
+    mask-str        \ uc-addr
 
-    \ Process each bit.
-    begin
-      ?dup
-    while
-      \ Apply msb to mask, to get an isolated bit.
-      2dup
-      and                   \ msk0 ms-bit bit
+    \ Move pad string to stack.
+    string@         \ c-adr u
 
-      if  
-        ." 1"
-      else
-        ." 0"
-      then
-
-      1 rshift              \ msk0 ms-bit
-    repeat
-    drop                    \   
+    \ Output string.
+    type
 ;
 
 \ Return true if two masks are equal.
@@ -164,11 +198,11 @@ mask-header-disp cell+  constant mask-number-disp
 ;
 
 \ Deallocate a mask.
-: mask-deallocate ( val -- )
+: mask-deallocate ( msk -- )
     \ Check arg.
     assert-tos-is-mask
 
-    dup struct-get-use-count    \ val count
+    dup struct-get-use-count    \ msk count
 
     dup 0< abort" invalid use count"
 
@@ -193,7 +227,7 @@ mask-header-disp cell+  constant mask-number-disp
 ;
 
 \ Return a mask inverted.
-: mask-invert ( msk0 -- val )
+: mask-invert ( msk0 -- msk )
     \ Check arg.
     assert-tos-is-mask
 
@@ -208,11 +242,11 @@ mask-header-disp cell+  constant mask-number-disp
 
     swap                        \ invert msk0 
     mask-get-number-bits        \ invert nb
-    mask-new                    \ val
+    mask-new                    \ msk
 ;
 
 \ Return the Boolean and of two masks.
-: mask-and ( msk1 msk0 -- val )
+: mask-and ( msk1 msk0 -- msk )
     \ Check args.
     assert-tos-is-mask
     assert-nos-is-mask
@@ -223,7 +257,7 @@ mask-header-disp cell+  constant mask-number-disp
     and                    \ msk1 num
     swap                   \ num msk1
     mask-get-number-bits   \ num nb
-    mask-new               \ val
+    mask-new               \ msk
 ;
 
 \ Return the mask of a given bit number.

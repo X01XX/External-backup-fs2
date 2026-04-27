@@ -80,7 +80,7 @@ state-header-disp cell+   constant state-number-disp
 ;
 
 \ Return a new state struct instance address, with given data list and number bits.
-: state-new ( num1 nb0 -- val )
+: state-new ( num1 nb0 -- sta )
     \ Check args.
 
     \ Check number bits.
@@ -94,19 +94,19 @@ state-header-disp cell+   constant state-number-disp
 
     \ Allocate a state instance.
     state-id state-mma      \ num1 nb0 id mma
-    struct-allocate         \ num1 nb0 val
+    struct-allocate         \ num1 nb0 sta
 
     \ Set number bits.
-    tuck                    \ num1 val nb0 val
-    _state-set-number-bits  \ num1 val
+    tuck                    \ num1 sta nb0 sta
+    _state-set-number-bits  \ num1 sta
 
     \ Store number given.
-    tuck                     \ val num1 val
-    _state-set-number        \ val
+    tuck                     \ sta num1 sta
+    _state-set-number        \ sta
 ;
 
 \ Print a state struct instance.
-: .state ( val -- )
+: .state ( sta -- )
    \ Check arg.
     assert-tos-is-state
 
@@ -145,11 +145,11 @@ state-header-disp cell+   constant state-number-disp
 ;
 
 \ Deallocate a state.
-: state-deallocate ( val -- )
+: state-deallocate ( sta -- )
     \ Check arg.
     assert-tos-is-state
 
-    dup struct-get-use-count    \ val count
+    dup struct-get-use-count    \ sta count
 
     dup 0< abort" invalid use count"
 

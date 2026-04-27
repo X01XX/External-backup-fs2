@@ -26,6 +26,10 @@ include structinfolist.fs
 include stackprint.fs
 cs
 
+include mask_t.fs
+include state_t.fs
+include region_t.fs
+
 \ Init array-stacks.
 #101 link-mma-init
 #102 list-mma-init
@@ -44,32 +48,42 @@ list-new to structinfo-list-store
 
 \ The list, link, and StructInfo structs allow for the creation of the structinfo-list-store,
 
-' mask-deallocate ' f. s" Mask" mask-mma mask-id structinfo-new structinfo-list-store structinfo-list-push-end
-' state-deallocate ' f. s" State" state-mma state-id structinfo-new structinfo-list-store structinfo-list-push-end
-' region-deallocate ' f. s" Region" region-mma region-id structinfo-new structinfo-list-store structinfo-list-push-end
-' rule-deallocate ' f. s" Rule" rule-mma rule-id structinfo-new structinfo-list-store structinfo-list-push-end
-' sample-deallocate ' f. s" Sample" sample-mma sample-id structinfo-new structinfo-list-store structinfo-list-push-end
+' mask-deallocate '     .mask   s" Mask"    mask-mma    mask-id     structinfo-new structinfo-list-store structinfo-list-push-end
+' state-deallocate '    .state  s" State"   state-mma   state-id    structinfo-new structinfo-list-store structinfo-list-push-end
+' region-deallocate '   .region s" Region"  region-mma  region-id   structinfo-new structinfo-list-store structinfo-list-push-end
+' rule-deallocate '     .rule   s" Rule"    rule-mma    rule-id     structinfo-new structinfo-list-store structinfo-list-push-end
+' sample-deallocate '   .sample s" Sample"  sample-mma  sample-id   structinfo-new structinfo-list-store structinfo-list-push-end
 
-$d #4 state-new             \ msk0'
-$5 #4 state-new             \ msk0' msk1'
-2dup rule-new               \ msk0' msk1' rul0'
+: main
+    $d #4 state-new             \ msk0'
+    $5 #4 state-new             \ msk0' msk1'
+    sample-new                  \ msk0' msk1' smp0'
+ 
+    cr cr ." sample: " dup .sample cr
+ 
+    \ Finish.
+    cr structinfo-list-store structinfo-list-print-memory-use cr
+ 
+    \ Deallocate remaining struct instances.
+    cr ." Deallocating ..."
+    sample-deallocate
+    \ state-deallocate
+    \ state-deallocate
+ 
+    cr structinfo-list-store structinfo-list-print-memory-use cr
+ 
+    structinfo-list-store structinfo-list-project-deallocated
+ 
+    \ Free heap memory before exiting.
+    ." Freeing heap memory"
+    structinfo-list-store structinfo-list-free-heap
+    cr
+;
 
-cr cr ." rule: " dup .rule cr
+: all-tests
+    structinfo-list-store structinfo-list-project-deallocated
+    mask-tests
+    state-tests
+    region-tests
+;
 
-\ Finish.
-cr structinfo-list-store structinfo-list-print-memory-use cr
-
-\ Deallocate remaining struct instances.
-cr ." Deallocating ..."
-rule-deallocate
-state-deallocate
-state-deallocate
-
-cr structinfo-list-store structinfo-list-print-memory-use cr
-
-structinfo-list-store structinfo-list-project-deallocated
-
-\ Free heap memory before exiting.
-." Freeing heap memory"
-structinfo-list-store structinfo-list-free-heap
-cr

@@ -206,14 +206,14 @@
 ;
 
 \ Store a string on the stack to a given address.
-: string! ( string-addr length target-addr -- )
+: string! ( c-addr u target-addr -- )
     2dup c!         \ Store the length at target[0].
     1+              \ Point to target[1].
     swap cmove      \ Move characters to target[1].
 ;
 
 \ Fetch a string from a given address, put on stack.
-: string@ ( string-addr -- string-addr+1 length )
+: string@ ( uc-addr -- c-addr u)
     dup c@          \ addr length
     swap 1+ swap    \ addr+1 length
 ;
