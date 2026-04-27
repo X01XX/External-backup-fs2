@@ -19,6 +19,7 @@ include statelist.fs
 include region.fs
 include regionlist.fs
 include rule.fs
+include sample.fs
 
 include structinfo.fs
 include structinfolist.fs
@@ -33,6 +34,7 @@ cs
 #100 mask-mma-init
 #100 region-mma-init
 #100 rule-mma-init
+#100 sample-mma-init
 
 \ Init structinfo list.
 list-new to structinfo-list-store
@@ -46,4 +48,5 @@ list-new to structinfo-list-store
 ' mask-deallocate ' f. s" Mask" mask-mma mask-id structinfo-new structinfo-list-store structinfo-list-push-end
 ' region-deallocate ' f. s" Region" region-mma region-id structinfo-new structinfo-list-store structinfo-list-push-end
 ' rule-deallocate ' f. s" Rule" rule-mma rule-id structinfo-new structinfo-list-store structinfo-list-push-end
+' sample-deallocate ' f. s" Sample" sample-mma sample-id structinfo-new structinfo-list-store structinfo-list-push-end
 

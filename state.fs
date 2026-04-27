@@ -2,7 +2,7 @@
 #61717 constant state-id
     #2 constant state-struct-number-cells
 
-\ Value struct fields.
+\ State struct fields.
 0                         constant state-header-disp   \ 16 bits, [0] id, [1] use count [2] Number bits ( 8 bits ). 
 state-header-disp cell+   constant state-number-disp
 
@@ -79,25 +79,6 @@ state-header-disp cell+   constant state-number-disp
     state-number-disp + !
 ;
 
-\ Return the msb for a given number of bits.
-\ e.g. 8 for 4 bits.
-: _msb-from-num-bits ( nb0 -- msb )
-    1 swap
-    1-
-    lshift
- ;
-
-\ Return the maximum number for a given number of bits.
-\ e.g. 15 for 4 bits.
-: _max-num-from-num-bits ( nb0 -- num )
-    _msb-from-num-bits
-    1-
-    1 lshift
-    1+
-;
-
-\ Return the maximum number for a given number of bits.
-\ e.g. 15 for 4 bits.
 \ Return a new state struct instance address, with given data list and number bits.
 : state-new ( num1 nb0 -- val )
     \ Check args.
@@ -204,7 +185,6 @@ state-header-disp cell+   constant state-number-disp
     =
 ;
 
-\ Return a state inverted, as a mask.
 \ Return a state inverted, as a mask.
 : state-invert ( sta0 -- mask )
     \ Check arg.

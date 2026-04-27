@@ -2,16 +2,16 @@
 #61719 constant mask-id
     #2 constant mask-struct-number-cells
 
-\ Value struct fields.
-0                         constant mask-header-disp   \ 16 bits, [0] id, [1] use count [2] Number bits ( 8 bits ).
-mask-header-disp cell+   constant mask-number-disp
+\ mask struct fields.
+0                       constant mask-header-disp   \ 16 bits, [0] id, [1] use count [2] Number bits ( 8 bits ).
+mask-header-disp cell+  constant mask-number-disp
 
-0 value mask-mma \ Storage for the mask mma instance addr.
+0 value mask-mma    \ Storage for the mask mma instance addr.
 
 1 cells 8 * value cell-bits
 
 \ Init mask mma.
-: mask-mma-init ( num-items -- ) \ sets mask-mma.
+: mask-mma-init ( num-items -- )    \ sets mask-mma.
     dup 1 <
     if
         ." mask-mma-init: Invalid number items."
@@ -23,7 +23,7 @@ mask-header-disp cell+   constant mask-number-disp
 ;
 
 \ Check instance type.
-: is-allocated-mask ( tos -- flag )
+: is-allocated-mask ( tos -- bool )
     dup mask-mma mma-is-item    \ addr bool
     if
         get-first-word          \ w t | f
@@ -98,8 +98,6 @@ mask-header-disp cell+   constant mask-number-disp
     1+
 ;
 
-\ Return the maximum number for a given number of bits.
-\ e.g. 15 for 4 bits.
 \ Return a new mask struct instance address, with given data list and number bits.
 : mask-new ( num1 nb0 -- val )
     \ Check args.
@@ -126,7 +124,7 @@ mask-header-disp cell+   constant mask-number-disp
     _mask-set-number        \ val
 ;
 
-\ Print a mask struct instance.
+\ Print a mask.
 : .mask ( val -- )
    \ Check arg.
     assert-tos-is-mask

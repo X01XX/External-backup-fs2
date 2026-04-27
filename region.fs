@@ -124,7 +124,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     assert-nos-is-state
 
     region-state-0-disp +   \ Add offset.
-    !                       \ Set the field.
+    !struct                 \ Set the field.
 ;
 
 \ Set the state-1 field from a region instance, use only in this file.
@@ -134,7 +134,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     assert-nos-is-state
 
     region-state-1-disp +   \ Add offset.
-    !                       \ Set the field.
+    !struct                 \ Set the field.
 ;
 
 \ End accessors.
