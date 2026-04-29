@@ -82,11 +82,13 @@ list-new to structinfo-list-store
     cr structinfo-list-store structinfo-list-print-memory-use cr
 
     structinfo-list-store structinfo-list-project-deallocated
+;
 
+: free-heap
     \ Free heap memory before exiting.
     ." Freeing heap memory"
     structinfo-list-store structinfo-list-free-heap
-    cr
+    bye
 ;
 
 : all-tests

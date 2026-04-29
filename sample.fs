@@ -100,6 +100,7 @@ sample-initial-disp cell+   constant sample-result-disp     \ Result state.
     \ Check args.
     assert-tos-is-state
     assert-nos-is-state
+    2dup state-same-num-bits? false? abort" States num bits mismatch?"
 
     \ Allocate space.
     sample-id sample-mma
@@ -110,16 +111,84 @@ sample-initial-disp cell+   constant sample-result-disp     \ Result state.
     tuck _sample-set-result    \ smp
 ;
 
+\ Store a character representation to a given address,
+\ return the number characters stored.
+\ Caller must set, or accumulate, the number bits prefix
+\ of the string.
+: sample-str ( addr1 smpl0 --  nc )
+    \ Check arg.
+    assert-tos-is-sample
+
+    \ init counter.
+    0                       \ addr1 smpl0 cntr
+
+    \ Store the first paren.
+    [char] (                \ addr1 smpl0 cntr chr
+    #3 pick                 \ addr1 smpl0 cntr chr addr1
+    #2 pick                 \ addr1 smpl0 cntr chr addr1 cntr
+    +                       \ addr1 smpl0 cntr chr addr2
+    c! 1+                   \ addr1 smpl0 cntr+
+
+    \ Store the initial state.
+    #2 pick                 \ addr1 smpl0 cntr addr1
+    over                    \ addr1 smpl0 cntr addr1 cntr
+    +                       \ addr1 smpl0 cntr addr2
+    #2 pick                 \ addr1 smpl0 cntr addr2 smpl0
+    sample-get-initial      \ addr1 smpl0 cntr addr2 initial
+    state-str               \ addr1 smpl0 cntr nc
+    +                       \ addr1 smpl0 cntr+
+
+    \ Store ->
+    [char] -                \ addr1 smpl0 cntr chr
+    #3 pick                 \ addr1 smpl0 cntr chr addr1
+    #2 pick                 \ addr1 smpl0 cntr chr addr1 cntr
+    +                       \ addr1 smpl0 cntr chr addr2
+    c! 1+                   \ addr1 smpl0 cntr+
+    
+    [char] >                \ addr1 smpl0 cntr chr
+    #3 pick                 \ addr1 smpl0 cntr chr addr1
+    #2 pick                 \ addr1 smpl0 cntr chr addr1 cntr
+    +                       \ addr1 smpl0 cntr chr addr2
+    c! 1+                   \ addr1 smpl0 cntr+
+    
+    \ Store the result state.
+    #2 pick                 \ addr1 smpl0 cntr addr1
+    over                    \ addr1 smpl0 cntr addr1 cntr
+    +                       \ addr1 smpl0 cntr addr2
+    #2 pick                 \ addr1 smpl0 cntr addr2 smpl0
+    sample-get-result       \ addr1 smpl0 cntr addr2 result
+    state-str               \ addr1 smpl0 cntr nc
+    +                       \ addr1 smpl0 cntr+
+
+    \ Store last pren.
+    [char] )                \ addr1 smpl0 cntr chr
+    #3 pick                 \ addr1 smpl0 cntr chr addr1
+    #2 pick                 \ addr1 smpl0 cntr chr addr1 cntr
+    +                       \ addr1 smpl0 cntr chr addr2
+    c! 1+                   \ addr1 smpl0 cntr+
+    
+    \ Return.
+    nip nip                 \ cntr
+;
+
 \ Print a sample.
 : .sample ( smp0 -- )
     \ Check arg.
     assert-tos-is-sample
 
-    ." ("
-    dup sample-get-initial .state
-   ." ->"
-   sample-get-result .state
-   ." )"
+    \ Point to pad + 1.
+    pad 1+ swap         \ pad+ smpl0
+
+    \ Store string to pad + 1.
+    sample-str          \ nc
+
+    \ Store string length.
+    pad c!
+
+    \ Put pad string onto stack.
+    pad string@         \ c-addr u
+
+    type
 ;
 
 \ Deallocate a sample.
