@@ -71,7 +71,7 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
     \ Check args.
     assert-tos-is-rule
     assert-nos-is-mask
-   
+
     rule-m00-disp + \ Add offset.
     !struct         \ Set the field.
 ;
@@ -88,7 +88,7 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
     \ Check args.
     assert-tos-is-rule
     assert-nos-is-mask
-   
+
     rule-m01-disp + \ Add offset.
     !struct         \ Set the field.
 ;
@@ -105,7 +105,7 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
     \ Check args.
     assert-tos-is-rule
     assert-nos-is-mask
-   
+
     rule-m11-disp + \ Add offset.
     !struct         \ Set the field.
 ;
@@ -122,7 +122,7 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
     \ Check args.
     assert-tos-is-rule
     assert-nos-is-mask
-   
+
     rule-m10-disp + \ Add offset.
     !struct         \ Set the field.
 ;
@@ -176,7 +176,7 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
     dup rule-get-m00 swap   \ m00 rul0
     dup rule-get-m01 swap   \ m00 m01 rul0
     dup rule-get-m11 swap   \ m00 m01 m11 rul0
-    rule-get-m10            \ m00 m01 m11 m10 
+    rule-get-m10            \ m00 m01 m11 m10
 
     \ Prep for loop.
     dup mask-get-number-bits    \ m00 m01 m11 m10 nb

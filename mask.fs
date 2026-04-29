@@ -8,7 +8,7 @@ mask-header-disp cell+  constant mask-number-disp
 
 0 value mask-mma    \ Storage for the mask mma instance addr.
 
-1 cells 8 * value cell-bits
+1 cells #8 * value cell-bits
 
 \ Init mask mma.
 : mask-mma-init ( num-items -- )    \ sets mask-mma.
@@ -124,59 +124,64 @@ mask-header-disp cell+  constant mask-number-disp
     _mask-set-number        \ msk
 ;
 
-\ Store a string representation of a mask to a given address.
-: mask-str ( addr1 msk0 -- )
+\ Store a character representation to a given address,
+\ return the number characters stored.
+\ Caller must set, or accumulate, the number bits prefix
+\ of the string.
+: mask-str ( addr1 msk0 --  nc )
     \ Check arg.
     assert-tos-is-mask
 
-    \ Store string length.
-    dup mask-get-number-bits    \ addr1 msk0 nb
-    #2 pick                     \ addr1 msk0 nb addr1
-    c!                          \ addr1 msk0
+    \ Save string length.
+    dup mask-get-number-bits    \ addr1 msk0 nc
+    -rot                        \ nc addr1 msk0
 
-    \ Point to next addr1 char.
-    swap 1+ swap                \ addr1 msk0
-   
     \ Setup for bit-position loop.
-    dup _mask-get-number        \ addr1 msk0 num
-    swap                        \ addr1 num msk0
-    mask-get-number-bits        \ addr1 num nb
-    tuck                        \ addr1 nb num nb
-    _msb-from-num-bits          \ addr1 nb num ms-bit
-    rot                         \ addr1 num ms-bit nb
+    dup _mask-get-number        \ nc addr1 msk0 num
+    swap                        \ nc addr1 num msk0
+    mask-get-number-bits        \ nc addr1 num nc
+    tuck                        \ nc addr1 nc num nc
+    _msb-from-num-bits          \ nc addr1 nc num ms-bit
+    rot                         \ nc addr1 num ms-bit nc
     0
 
     do
         \ Apply msb to mask, to get an isolated bit.
-                                \ addr1 num ms-bit
-        2dup and                \ addr1 num ms-bit bit
+                                \ nc addr1 num ms-bit
+        2dup and                \ nc addr1 num ms-bit bit
 
-        if  
-            [char] 1            \ addr1 num ms-bit chr
+        if
+            [char] 1            \ nc addr1 num ms-bit chr
         else
-            [char] 0            \ addr1 num ms-bit chr
+            [char] 0            \ nc addr1 num ms-bit chr
         then
 
-        \ Store char to addr1.
-        #3 pick                 \ addr1 num ms-bit chr addr1
-        c!                      \ addr1 num ms-bit
-      
-        \ Point to next addr1 char.
-        rot 1+ -rot             \ addr1 num ms-bit
+        \ Store char to pad.
+        #3 pick                 \ nc addr1 num ms-bit chr pad+
+        c!                      \ nc addr1 num ms-bit
+
+        \ Point to next nc addr1 char.
+        rot 1+ -rot             \ nc addr1 num ms-bit
 
         \ Adjust msb mask.
-        1 rshift                \ addr1 num ms-bit
+        1 rshift                \ nc addr1 num ms-bit
     loop
-    2drop drop
+    2drop drop                  \ nc
 ;
 
 \ Print a mask.
-: .mask ( msk -- )
+: .mask ( msk0 -- )
     \ Check arg.
     assert-tos-is-mask
 
+    \ Calc string target address.
+    pad 1+ swap         \ addr msk0
+
     \ Put mask string into pad.
-    pad swap mask-str   \ uc-addr
+    mask-str            \ nc
+
+    \ Store string length.
+    pad c!              \
 
     \ Move pad string to stack.
     pad string@         \ c-addr u
@@ -230,14 +235,14 @@ mask-header-disp cell+  constant mask-number-disp
 
     dup                         \ msk0 msk0
     mask-get-number-bits        \ msk0 nb
-    _max-num-from-num-bits      \ msk0 max   
+    _max-num-from-num-bits      \ msk0 max
 
     over                        \ msk0 max msk0
     _mask-get-number            \ msk0 max num
 
     xor                         \ msk0 invert
 
-    swap                        \ invert msk0 
+    swap                        \ invert msk0
     mask-get-number-bits        \ invert nb
     mask-new                    \ msk
 ;

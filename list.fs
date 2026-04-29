@@ -321,7 +321,7 @@ list-header-disp    cell+   constant list-links-disp
         dup link-get-data       \ xt item link link-data
 
         \ Check for sub-list.
-        dup is-allocated-list  abort" should use list-member-recursive?" 
+        dup is-allocated-list  abort" should use list-member-recursive?"
 
         #2 pick swap            \ xt item link item link-data
         #4 pick                 \ xt item link item link-data xt

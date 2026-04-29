@@ -161,47 +161,93 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     _region-set-state-1         \ reg
 ;
 
+\ Return the number of bits used for a region.
+: region-get-number-bits ( reg0 -- nb )
+    \ Check arg.
+    assert-tos-is-region
+
+    region-get-state-0          \ sta
+    state-get-number-bits       \ nb
+;
+
+\ Store a character representation to a given address,
+\ return the number characters stored.
+\ Caller must set, or accumulate, the number bits prefix
+\ of the string.
+: region-str ( addr1 reg0 -- nc )
+    \ Check arg.
+    assert-tos-is-region
+
+    \ Store string length.
+    dup region-get-number-bits      \ addr1 reg0 nc
+    -rot                            \ nc addr1 reg0
+
+    \ Setup for bit-position loop. 
+    dup region-get-state-1          \ nc addr1 reg0 sta1
+    -rot                            \ nc sta1 addr1 reg0
+    dup region-get-state-0          \ nc sta1 addr1 reg0 sta0
+    -rot                            \ nc sta1 sta0 addr1 reg0
+    region-get-number-bits          \ nc sta1 sta0 addr1 nb
+    -1 swap                         \ nc sta1 sta0 addr1 -1 nb
+    1-                              \ nc sta1 sta0 addr1 -1 nb-
+
+    do
+        \ Process each trit.        \ nc sta1 sta0 addr1
+        \ Get state bit.
+        i                           \ nc sta1 sta0 addr1 i
+        #3 pick                     \ nc sta1 sta0 addr1 i sta1
+        state-bit                   \ nc sta1 sta0 addr1 b1
+
+        \ Get state bit.
+        i                           \ nc sta1 sta0 addr1 b1 i
+        #3 pick                     \ nc sta1 sta0 addr1 b1 i sta0
+        state-bit                   \ nc sta1 sta0 addr1 b1 b0
+
+        \ Put char on stack.
+        if                          \ nc sta1 sta0 addr1 b1
+            if                      \ nc sta1 sta0 addr1
+                [char] 1
+            else
+                [char] X
+            then
+        else                        \ nc sta1 sta0 addr1 b1
+            if                      \ nc sta1 sta0 addr1
+                [char] x
+            else
+                [char] 0
+            then
+        then
+
+        \ Store char to pad.        \ nc sta1 sta0 addr1 chr
+        over                        \ nc sta1 sta0 addr1 chr addr1
+        c!                          \ nc sta1 sta0 addr1
+                                                                                                                                                             
+        \ Point to next addr1 char.
+        1+                          \ nc sta1 sta0 addr1
+
+    1 -loop
+    2drop drop                      \ nc
+;
+
 \ Print a region.
 : .region ( reg0 -- )
     \ Check arg.
     assert-tos-is-region
 
-    \ Setup for trit-position loop.
-    dup  region-get-state-1         \ reg0 sta1
-    swap region-get-state-0         \ sta1 sta0
-    dup state-get-number-bits       \ sta1 sta0 nb
-    -1 swap                         \ sta1 sta0 -1 nb
-    1-                              \ sta1 sta0 -1 nb-
+    \ Calc string target address.
+    pad 1+ swap         \ addr reg0
 
-    do
-        \ Process each trit.
-         \ Get state 1 bit.
-         i                           \ sta1 sta0 i
-         #2 pick                     \ sta1 sta0 i sta1
-         state-bit                   \ sta1 sta0 b1
+    \ Put mask string into pad.
+    region-str          \ nc
 
-         \ Apply msb to state 0.
-         i                           \ sta1 sta0 b1 i
-         #2 pick                     \ sta1 sta0 b1 i sta0
-         state-bit                   \ sta1 sta0 b1 b0
+    \ Store string length.
+    pad c!              \   
 
+    \ Move pad string to stack.
+    pad string@         \ c-addr u
 
-         if                          \ sta1 sta0 b1
-             if                      \ sta1 sta0
-                 ." 1"
-             else
-                 ." X"
-             then
-         else                        \ sta1 sta0 b1
-             if                      \ sta1 sta0
-                 ." x"
-             else
-                 ." 0"
-             then
-         then
-    1 -loop
-                                    \ sta2 sta1
-    2drop
+    \ Output string.
+    type
 ;
 
 \ Deallocate a region.

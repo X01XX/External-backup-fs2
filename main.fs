@@ -1,3 +1,12 @@
+\ Start a clean vocabulary.
+cr ." Starting vocabulary UES," cr
+vocabulary UES
+
+\ Put new words into the UES vocabulary.
+UES definitions
+
+decimal
+\ #2 base !  \ Test all numbers GT 1, LT -1, have a base prefix.
 
 include xtindirect.fs
 include bool.fs
@@ -58,22 +67,22 @@ list-new to structinfo-list-store
     $d #4 state-new             \ msk0'
     $5 #4 state-new             \ msk0' msk1'
     sample-new                  \ msk0' msk1' smp0'
- 
+
     cr cr ." sample: " dup .sample cr
- 
+
     \ Finish.
     cr structinfo-list-store structinfo-list-print-memory-use cr
- 
+
     \ Deallocate remaining struct instances.
     cr ." Deallocating ..."
     sample-deallocate
     \ state-deallocate
     \ state-deallocate
- 
+
     cr structinfo-list-store structinfo-list-print-memory-use cr
- 
+
     structinfo-list-store structinfo-list-project-deallocated
- 
+
     \ Free heap memory before exiting.
     ." Freeing heap memory"
     structinfo-list-store structinfo-list-free-heap

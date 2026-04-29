@@ -3,7 +3,7 @@
     #2 constant state-struct-number-cells
 
 \ State struct fields.
-0                         constant state-header-disp   \ 16 bits, [0] id, [1] use count [2] Number bits ( 8 bits ). 
+0                         constant state-header-disp   \ 16 bits, [0] id, [1] use count [2] Number bits ( 8 bits ).
 state-header-disp cell+   constant state-number-disp
 
 0 value state-mma \ Storage for the state mma instance addr.
@@ -105,34 +105,70 @@ state-header-disp cell+   constant state-number-disp
     _state-set-number        \ sta
 ;
 
-\ Print a state struct instance.
-: .state ( sta -- )
-   \ Check arg.
+\ Store a character representation to a given address,
+\ return the number characters stored.
+\ Caller must set, or accumulate, the number bits prefix
+\ of the string.
+: state-str (  addr1 sta0 -- nc )
+    \ Check arg.
     assert-tos-is-state
 
+    \ Save string length.
+    dup state-get-number-bits   \ addr1 sta0 nc
+    -rot                        \ nc addr1 sta0
+
     \ Setup for bit-position loop.
-    dup _state-get-number       \ sta0 num
-    swap                        \ num sta0
-    state-get-number-bits       \ num nb
-    _msb-from-num-bits          \ num ms-bit
+    dup _state-get-number       \ nc addr1 sta0 num
+    swap                        \ nc addr1 num sta0
+    state-get-number-bits       \ nc addr1 num nc
+    tuck                        \ nc addr1 nc num nc
+    _msb-from-num-bits          \ nc addr1 nc num ms-bit
+    rot                         \ nc addr1 num ms-bit nc
+    0
 
-    \ Process each bit.
-    begin
-      ?dup
-    while
-      \ Apply msb to state, to get an isolated bit.
-      2dup
-      and                   \ sta0 ms-bit bit
+    do
+        \ Apply msb to state, to get an isolated bit.
+                                \ nc addr1 num ms-bit
+        2dup and                \ nc addr1 num ms-bit bit
 
-      if  
-        ." 1"
-      else
-        ." 0"
-      then
+        if
+            [char] 1            \ nc addr1 num ms-bit chr
+        else
+            [char] 0            \ nc addr1 num ms-bit chr
+        then
 
-      1 rshift              \ sta0 ms-bit
-    repeat
-    drop                    \   
+        \ Store char to pad.
+        #3 pick                 \ nc addr1 num ms-bit chr pad+
+        c!                      \ nc addr1 num ms-bit
+
+        \ Point to next nc addr1 char.
+        rot 1+ -rot             \ nc addr1 num ms-bit
+
+        \ Adjust msb state.
+        1 rshift                \ nc addr1 num ms-bit
+    loop
+    2drop drop                  \ nc
+;
+
+\ Print a state struct instance.
+: .state ( sta0 -- )
+\ Check arg.
+    assert-tos-is-state
+
+    \ Calc string target address.
+    pad 1+ swap         \ pad+ sta0
+
+    \ Put state string into pad.
+    state-str           \ nc
+
+    \ Set string length.
+    pad c!              \
+
+    \ Move pad string to stack.
+    pad string@         \ c-addr u
+
+    \ Output string.
+    type
 ;
 
 \ Return true if two states are equal.
@@ -192,14 +228,14 @@ state-header-disp cell+   constant state-number-disp
 
     dup                         \ sta0 sta0
     state-get-number-bits       \ sta0 nb
-    _max-num-from-num-bits      \ sta0 max   
+    _max-num-from-num-bits      \ sta0 max
 
     over                        \ sta0 max sta0
     _state-get-number           \ sta0 max num
 
     xor                         \ sta0 invert
 
-    swap                        \ invert sta0 
+    swap                        \ invert sta0
     state-get-number-bits       \ invert nb
     mask-new                    \ msk
 ;
