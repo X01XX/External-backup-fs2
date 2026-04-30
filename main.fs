@@ -38,6 +38,7 @@ cs
 include mask_t.fs
 include state_t.fs
 include region_t.fs
+include sample_t.fs
 
 \ Init array-stacks.
 #101 link-mma-init
@@ -96,5 +97,6 @@ list-new to structinfo-list-store
     mask-tests
     state-tests
     region-tests
+    sample-tests
 ;
 

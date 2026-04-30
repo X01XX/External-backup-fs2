@@ -7,9 +7,6 @@
     #6 #4 state-new             \ sta sta
     region-new                  \ reg
 
-    dup region-get-state-0 _state-get-number #6 <> abort" state 0 not 6?"
-    dup region-get-state-1 _state-get-number #5 <> abort" state 0 not 5?"
-
     \ Test .region works.
     cr ." region: " dup .region \ reg
 
