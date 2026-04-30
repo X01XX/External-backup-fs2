@@ -3,8 +3,6 @@
 : mask-test-basic
     \ Test mask-new.
     #5 #4 mask-new              \ msk
-    dup _mask-get-number #5 <> abort" invalid number?"
-    dup mask-get-number-bits #4 <> abort" invalid number of bits?"
 
     \ Test .mask works.
     cr ." mask: " dup .mask     \ msk

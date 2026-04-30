@@ -271,3 +271,78 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     then
 ;
 
+\ Get a region from a string.
+\ Valid chars are 0, 1, X, x, and underscore as separator.
+\ All bit positions must be specified.
+: region-from-string ( c-addr u --  reg t | f)
+    \ Init character counter.
+    0 swap              \ c-addr cnt u
+
+    \ Init state 1, state 0, and do initial value.
+    0 swap              \ c-addr cnt num1 u
+    0 swap              \ c-addr cnt num1 num0 u
+    0                   \ c-addr cnt num1 num0 u 0
+
+    \ For each character...
+    do                  \ c-addr cnt num1 num0
+        \ Get a character.
+        #3 pick         \ c-addr cnt num1 num0 c-addr
+        i +             \ c-addr cnt num1 num0 c-addr+
+        c@              \ c-addr cnt num1 num0 chr
+
+        \ Process character.
+        case
+            [char] 0 of
+                        \ Leave bit positions as 0/0.
+                        \ Update num1
+                        swap 1 lshift
+                        \ Update num0
+                        swap 1 lshift
+                        \ Update char counter.
+                        rot 1+ -rot
+                    endof
+            [char] 1 of
+                        \ Set bit positions to 1/1.
+                        \ Update num1
+                        swap 1 lshift 1+
+                        \ Update num0
+                        swap 1 lshift 1+
+                        \ Update char counter.
+                        rot 1+ -rot
+                    endof
+            [char] X of
+                        \ Set bit positions to 1/0.
+                        \ Update num1
+                        swap 1 lshift 1+
+                        \ Update num0
+                        swap 1 lshift
+                        \ Update char counter.
+                        rot 1+ -rot
+                    endof
+            [char] x of
+                        \ Set bit positions to 0/1.
+                        \ Update num1
+                        swap 1 lshift
+                        \ Update num0
+                        swap 1 lshift 1+
+                        \ Update char counter.
+                        rot 1+ -rot
+                    endof
+            \ Ignore unrecognized characters.
+        endcase
+    loop
+
+    \ Create states.        \ c-addr cnt num1 num0
+    swap                    \ c-addr cnt num0 num1
+    #2 pick                 \ c-addr cnt num0 num1 cnt
+    state-new               \ c-addr cnt num0 sta1 
+    -rot                    \ c-addr sta1 cnt num0
+    swap                    \ c-addr sta1 num0 cnt
+    state-new               \ c-addr sta1 sta0
+
+    \ Make new region, return.
+                            \ c-addr sta1 sta0
+    region-new              \ c-addr reg
+    nip                     \ reg
+    true
+;

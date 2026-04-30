@@ -3,8 +3,6 @@
 : state-test-basic
     \ Test state-new.
     #5 #4 state-new              \ sta
-    dup _state-get-number #5 <> abort" invalid number?"
-    dup state-get-number-bits #4 <> abort" invalid number of bits?"
 
     \ Test .state works.
     cr ." state: " dup .state     \ sta

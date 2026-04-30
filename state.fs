@@ -293,3 +293,47 @@ state-header-disp cell+   constant state-number-disp
     then
 ;
 
+\ Get a state from a string.
+\ Valid chars are 0, 1, and underscore as separator.
+\ All bit positions must be specified.
+: state-from-string ( c-addr u --  reg t | f)
+    \ Init character counter.
+    0 swap              \ c-addr cnt u
+
+    \ Init number
+    0 swap              \ c-addr cnt num u
+    0                   \ c-addr cnt num u 0
+
+    \ For each character...
+    do                  \ c-addr cnt num num0
+        \ Get a character.
+        #2 pick         \ c-addr cnt num c-addr
+        i +             \ c-addr cnt num c-addr+
+        c@              \ c-addr cnt num chr
+
+        \ Process character.
+        case
+            [char] 0 of
+                        \ Update num
+                        1 lshift
+                        \ Update char counter.
+                        swap 1+ swap
+                    endof
+            [char] 1 of
+                        \ Update num
+                        1 lshift 1+
+                        \ Update char counter.
+                        swap 1+ swap
+                    endof
+            \ Ignore unrecognized characters.
+        endcase
+    loop
+
+    \ Create state.         \ c-addr cnt num
+    swap                    \ c-addr num cnt
+    state-new               \ c-addr msk
+
+    nip                     \ msk
+    true
+;
+
