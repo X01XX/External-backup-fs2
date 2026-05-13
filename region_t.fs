@@ -15,7 +15,7 @@
     region-str                  \ reg nc
     pad c!                      \ reg
     pad string@                 \ reg c-addr cnt
-    s" 01Xx"                    \ reg c-addr cnt c-addr cnt
+    s" r01Xx"                   \ reg c-addr cnt c-addr cnt
     str=
     false? abort" string not as expected"
 

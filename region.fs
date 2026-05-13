@@ -182,6 +182,10 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     dup region-get-number-bits      \ addr1 reg0 nc
     -rot                            \ nc addr1 reg0
 
+    \ Store prefix.
+    [char] r #2 pick c!
+    swap 1+ swap
+
     \ Setup for bit-position loop. 
     dup region-get-state-1          \ nc addr1 reg0 sta1
     -rot                            \ nc sta1 addr1 reg0
@@ -227,6 +231,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 
     1 -loop
     2drop drop                      \ nc
+    1+
 ;
 
 \ Print a region.
@@ -275,6 +280,18 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 \ Valid chars are 0, 1, X, x, and underscore as separator.
 \ All bit positions must be specified.
 : region-from-string ( c-addr u --  reg t | f)
+
+    \ Check for prefix.
+    over c@ [char] r <>
+    if  
+        2drop
+        false
+        exit
+    then
+
+    \ Inc address.
+    swap 1+ swap
+
     \ Init character counter.
     0 swap              \ c-addr cnt u
 
@@ -313,18 +330,18 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
             [char] X of
                         \ Set bit positions to 1/0.
                         \ Update num1
-                        swap 1 lshift 1+
-                        \ Update num0
                         swap 1 lshift
+                        \ Update num0
+                        swap 1 lshift 1+
                         \ Update char counter.
                         rot 1+ -rot
                     endof
             [char] x of
                         \ Set bit positions to 0/1.
                         \ Update num1
-                        swap 1 lshift
-                        \ Update num0
                         swap 1 lshift 1+
+                        \ Update num0
+                        swap 1 lshift
                         \ Update char counter.
                         rot 1+ -rot
                     endof

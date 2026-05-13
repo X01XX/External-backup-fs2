@@ -29,6 +29,19 @@
     then
 ;
 
+\ Deallocate a structinfo list recursively.
+: structinfo-list-deallocate-recursive ( structinfo-lst -- )
+    dup struct-get-use-count                        \ structinfo-lst uc
+    #2 < if
+        [ ' structinfo-deallocate ] literal over    \ structinfo-lst xt structinfo-lst
+        list-apply-recursive                        \ Deallocate structinfo instances in the list.
+
+        list-deallocate-recursive                   \ Deallocate list and links.
+    else
+        struct-dec-use-count
+    then
+;
+
 \ Find a structinfo instance in a list, by instance id, if any.
 : structinfo-list-find ( id1 si-lst0 -- si t | f )
     \ Check args.
@@ -504,3 +517,8 @@
 ;
 
 ' structinfo-list-deallocate-struct-list to structinfo-list-deallocate-struct-list-xt
+
+\ Return a struct instance from a string.
+: stackinfolist-interpret-string ( c-addr u -- inst t | f )
+cr ." TODO" cr
+;

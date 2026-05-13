@@ -117,6 +117,10 @@ state-header-disp cell+   constant state-number-disp
     dup state-get-number-bits   \ addr1 sta0 nc
     -rot                        \ nc addr1 sta0
 
+    \ Store prefix.
+    [char] s #2 pick c!
+    swap 1+ swap
+
     \ Setup for bit-position loop.
     dup _state-get-number       \ nc addr1 sta0 num
     swap                        \ nc addr1 num sta0
@@ -148,6 +152,7 @@ state-header-disp cell+   constant state-number-disp
         1 rshift                \ nc addr1 num ms-bit
     loop
     2drop drop                  \ nc
+    1+
 ;
 
 \ Print a state struct instance.
@@ -297,6 +302,18 @@ state-header-disp cell+   constant state-number-disp
 \ Valid chars are 0, 1, and underscore as separator.
 \ All bit positions must be specified.
 : state-from-string ( c-addr u --  reg t | f)
+
+    \ Check for prefix.
+    over c@ [char] s <>
+    if
+        2drop
+        false
+        exit
+    then
+
+    \ Inc address.
+    swap 1+ swap
+
     \ Init character counter.
     0 swap              \ c-addr cnt u
 

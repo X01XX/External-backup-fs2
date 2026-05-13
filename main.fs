@@ -29,10 +29,15 @@ include region.fs
 include regionlist.fs
 include rule.fs
 include sample.fs
+include floatnum.fs
+
+include token.fs
+include tokenlist.fs
 
 include structinfo.fs
 include structinfolist.fs
 include stackprint.fs
+include list2.fs
 cs
 
 include mask_t.fs
@@ -52,17 +57,18 @@ include sample_t.fs
 
 \ Init structinfo list.
 list-new to structinfo-list-store
-' link-deallocate ' .link s" Link" link-mma link-id structinfo-new structinfo-list-store structinfo-list-push
-' structinfo-list-deallocate-struct-list ' structinfo-list-print-struct-list s" List" list-mma list-id structinfo-new structinfo-list-store structinfo-list-push-end
-' structinfo-deallocate ' .structinfo s" StructInfo" structinfo-mma structinfo-id structinfo-new structinfo-list-store structinfo-list-push-end
+' noop ' link-deallocate ' .link s" Link" link-mma link-id structinfo-new structinfo-list-store structinfo-list-push
+' noop ' structinfo-list-deallocate-struct-list ' structinfo-list-print-struct-list s" List" list-mma list-id structinfo-new structinfo-list-store structinfo-list-push-end
+' noop ' structinfo-deallocate ' .structinfo s" StructInfo" structinfo-mma structinfo-id structinfo-new structinfo-list-store structinfo-list-push-end
 
 \ The list, link, and StructInfo structs allow for the creation of the structinfo-list-store,
 
-' mask-deallocate '     .mask   s" Mask"    mask-mma    mask-id     structinfo-new structinfo-list-store structinfo-list-push-end
-' state-deallocate '    .state  s" State"   state-mma   state-id    structinfo-new structinfo-list-store structinfo-list-push-end
-' region-deallocate '   .region s" Region"  region-mma  region-id   structinfo-new structinfo-list-store structinfo-list-push-end
-' rule-deallocate '     .rule   s" Rule"    rule-mma    rule-id     structinfo-new structinfo-list-store structinfo-list-push-end
-' sample-deallocate '   .sample s" Sample"  sample-mma  sample-id   structinfo-new structinfo-list-store structinfo-list-push-end
+' mask-from-string ' mask-deallocate '     .mask   s" Mask"    mask-mma    mask-id     structinfo-new structinfo-list-store structinfo-list-push-end
+' state-from-string ' state-deallocate '    .state  s" State"   state-mma   state-id    structinfo-new structinfo-list-store structinfo-list-push-end
+' region-from-string ' region-deallocate '   .region s" Region"  region-mma  region-id   structinfo-new structinfo-list-store structinfo-list-push-end
+' floatnum-from-string ' floatnum-deallocate '   .floatnum s" FloatNum"  floatnum-mma  floatnum-id   structinfo-new structinfo-list-store structinfo-list-push-end
+' noop ' rule-deallocate '     .rule   s" Rule"    rule-mma    rule-id     structinfo-new structinfo-list-store structinfo-list-push-end
+' noop ' sample-deallocate '   .sample s" Sample"  sample-mma  sample-id   structinfo-new structinfo-list-store structinfo-list-push-end
 
 : main
     $d #4 state-new             \ msk0'

@@ -12,7 +12,7 @@
     mask-str                    \ msk nc
     pad c!                      \ msk
     pad string@                 \ msk c-addr cnt
-    s" 0101"                    \ msk c-addr cnt c-addr cnt
+    s" m0101"                    \ msk c-addr cnt c-addr cnt
     str=
     false? abort" string not as expected"
 

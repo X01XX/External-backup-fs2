@@ -12,7 +12,7 @@
     state-str                   \ sta nc
     pad c!                      \ sta
     pad string@                 \ sta c-addr cnt
-    s" 0101"                    \ sta c-addr cnt c-addr cnt
+    s" s0101"                    \ sta c-addr cnt c-addr cnt
     str=
     false? abort" string not as expected"
 

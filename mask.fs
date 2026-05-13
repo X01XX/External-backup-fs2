@@ -136,6 +136,10 @@ mask-header-disp cell+  constant mask-number-disp
     dup mask-get-number-bits    \ addr1 msk0 nc
     -rot                        \ nc addr1 msk0
 
+    \ Store prefix.
+    [char] m #2 pick c!
+    swap 1+ swap
+
     \ Setup for bit-position loop.
     dup _mask-get-number        \ nc addr1 msk0 num
     swap                        \ nc addr1 num msk0
@@ -167,6 +171,7 @@ mask-header-disp cell+  constant mask-number-disp
         1 rshift                \ nc addr1 num ms-bit
     loop
     2drop drop                  \ nc
+    1+
 ;
 
 \ Print a mask.
@@ -289,6 +294,18 @@ mask-header-disp cell+  constant mask-number-disp
 \ Valid chars are 0, 1, and underscore as separator.
 \ All bit positions must be specified.
 : mask-from-string ( c-addr u --  reg t | f)
+
+    \ Check for prefix.
+    over c@ [char] m <>
+    if
+        2drop
+        false
+        exit
+    then
+
+    \ Inc address.
+    swap 1+ swap
+
     \ Init character counter.
     0 swap              \ c-addr cnt u
 
