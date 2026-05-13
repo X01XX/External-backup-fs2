@@ -116,20 +116,23 @@
 
 \ Return a struct instance, number from a token.
 \ If no conversion can be made, return the token itself.
+\ If string can be converted into a struct, pre inc its use count.
 : list-interpret-string ( c-addr u -- result t | f )
 
-    \ Check for struct instance.
-    2dup stackinfolist-interpret-string     \ c-addr u, instance t | f
+    \ Check for integer.
+    2dup snumber?                           \ c-addr u, n t | f
     if
         nip nip
         true
         exit
     then
 
-    \ Check for integer.
-    2dup snumber?                           \ c-addr u, n t | f
+    \ Check for struct instance.
+    2dup structinfo-list-store          \ c-addr u c-addr u stkinf-lst
+    stackinfolist-interpret-string      \ c-addr u, instance t | f
     if
         nip nip
+        dup struct-inc-use-count
         true
         exit
     then

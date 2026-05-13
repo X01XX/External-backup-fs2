@@ -197,7 +197,7 @@ sample-initial-disp cell+   constant sample-result-disp     \ Result state.
     assert-tos-is-sample
 
     dup struct-get-use-count      \ smp0 count
-    dup 0< abort" invalid use count"
+    dup 0< abort" sample-deallocate: Invalid use count"
 
     #2 <
     if

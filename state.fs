@@ -192,7 +192,7 @@ state-header-disp cell+   constant state-number-disp
 
     dup struct-get-use-count    \ sta count
 
-    dup 0< abort" invalid use count"
+    dup 0< abort" state-deallocate: Invalid use count"
 
     #2 <
     if

@@ -211,7 +211,7 @@ mask-header-disp cell+  constant mask-number-disp
 
     dup struct-get-use-count    \ msk count
 
-    dup 0< abort" invalid use count"
+    dup 0< abort" mask-deallocate: Invalid use count"
 
     #2 <
     if

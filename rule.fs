@@ -253,7 +253,7 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
     assert-tos-is-rule
 
     dup struct-get-use-count      \ rule-addr count
-    dup 0< abort" invalid use count"
+    dup 0< abort" rule-deallocate: Invalid use count"
 
     #2 <
     if

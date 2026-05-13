@@ -102,7 +102,7 @@ link-next-disp      cell+   constant link-data-disp
 
     dup struct-get-use-count    \ link-addr count
 
-    dup 0 < abort" invalid use count"
+    dup 0 < abort" link-deallocate: Invalid use count"
 
     #2 <
     if

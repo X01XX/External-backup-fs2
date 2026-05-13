@@ -115,7 +115,7 @@ floatnum-header-disp cell+   constant floatnum-number-disp
 
     dup struct-get-use-count    \ fnum count
 
-    dup 0< abort" invalid use count"
+    dup 0< abort" floatnum-deallocate: Invalid use count"
 
     #2 <
     if

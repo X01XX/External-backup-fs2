@@ -261,7 +261,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     assert-tos-is-region
 
     dup struct-get-use-count      \ reg0 count
-    dup 0< abort" invalid use count"
+    dup 0< abort" region-deallocate: Invalid use count"
 
     #2 <
     if

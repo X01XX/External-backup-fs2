@@ -77,7 +77,9 @@ token-header-disp cell+ constant token-string-disp
 
 \ Print a token struct instance.
 : .token ( tkn -- )
+    [char] " emit
     token-get-string type
+    [char] " emit
 ;
 
 \ Return true if two tokens are equal.
@@ -100,11 +102,11 @@ token-header-disp cell+ constant token-string-disp
     assert-tos-is-token
 
     dup struct-get-use-count    \ tkn count
-    dup 0< abort" invalid use count"
+    dup 0< abort" token-deallocate: Invalid use count"
 
-    dup 1 <
+    dup 0<
     if
-        ." invalid use count" abort
+        ." token-deallocate: Invalid use count" abort
     else
         #2 <
         if

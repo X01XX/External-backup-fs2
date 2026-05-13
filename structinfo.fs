@@ -173,7 +173,7 @@ structinfo-from-string-xt-disp  cell+   constant structinfo-name-disp           
 ;
 
 \ Print a structinfo struct instance.
-: .structinfo ( structinfo-addr -- )
+: .structinfo ( snf0 -- )
     ." Struct: " dup structinfo-get-name type
     space ." mma: " dup structinfo-get-mma hex.
     space ." inst id: " structinfo-get-inst-id dec.
@@ -193,7 +193,7 @@ structinfo-from-string-xt-disp  cell+   constant structinfo-name-disp           
     assert-tos-is-structinfo
 
     dup struct-get-use-count    \ structinfo-addr count
-    dup 0< abort" invalid use count"
+    dup 0< abort" structinfo-deallocate: Invalid use count"
 
     #2 <
     if

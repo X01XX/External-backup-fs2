@@ -54,6 +54,8 @@ include sample_t.fs
 #100 region-mma-init
 #100 rule-mma-init
 #100 sample-mma-init
+#100 token-mma-init
+#100 floatnum-mma-init
 
 \ Init structinfo list.
 list-new to structinfo-list-store
@@ -67,24 +69,26 @@ list-new to structinfo-list-store
 ' state-from-string ' state-deallocate '    .state  s" State"   state-mma   state-id    structinfo-new structinfo-list-store structinfo-list-push-end
 ' region-from-string ' region-deallocate '   .region s" Region"  region-mma  region-id   structinfo-new structinfo-list-store structinfo-list-push-end
 ' floatnum-from-string ' floatnum-deallocate '   .floatnum s" FloatNum"  floatnum-mma  floatnum-id   structinfo-new structinfo-list-store structinfo-list-push-end
+' noop ' token-deallocate '   .token s" Token"  token-mma  token-id   structinfo-new structinfo-list-store structinfo-list-push-end
 ' noop ' rule-deallocate '     .rule   s" Rule"    rule-mma    rule-id     structinfo-new structinfo-list-store structinfo-list-push-end
 ' noop ' sample-deallocate '   .sample s" Sample"  sample-mma  sample-id   structinfo-new structinfo-list-store structinfo-list-push-end
 
 : main
-    $d #4 state-new             \ msk0'
-    $5 #4 state-new             \ msk0' msk1'
-    sample-new                  \ msk0' msk1' smp0'
-
-    cr cr ." sample: " dup .sample cr
+    s" ( 45 ( 1.2e r00X1 ) s1010 m0100 to )"
+    list-from-string        \ lst t | f
+    if
+        dup structinfo-list-print-struct-list
+    else
+        cr ." list-from-string failed" cr
+        abort
+    then
 
     \ Finish.
     cr structinfo-list-store structinfo-list-print-memory-use cr
 
     \ Deallocate remaining struct instances.
     cr ." Deallocating ..."
-    sample-deallocate
-    \ state-deallocate
-    \ state-deallocate
+    structinfo-list-deallocate-struct-list
 
     cr structinfo-list-store structinfo-list-print-memory-use cr
 

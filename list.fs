@@ -684,14 +684,13 @@ list-header-disp    cell+   constant list-links-disp
 \ e.g. TOS is a list.
 \ dup struct-get-use-count #2 < if [ ' <struct-name>-deallocate ] literal over list-apply then
 \
-\ Abort if sub-lists.
 : list-deallocate ( lst0 -- )
     \ Check arg.
     assert-tos-is-list
 
     dup struct-get-use-count        \ lst0 uc
 
-    dup 0 < abort" invalid use count"
+    dup 0 < abort" list-deallocate: Invalid use count"
 
     #2 <                            \ lst0 bool
     if
@@ -726,7 +725,7 @@ list-header-disp    cell+   constant list-links-disp
 
     dup struct-get-use-count        \ lst0 uc
 
-    dup 0 < abort" invalid use count"
+    dup 0 < abort" list-deallocate-recursive: Invalid use count"
 
     #2 <                            \ lst0 bool
     if
