@@ -49,38 +49,49 @@
                 stack-pop                   \ xt stk tkn-link list
                 drop                        \ xt stk tkn-link
             else
-                \ Process number token.
+                \ Check for number
                 dup link-get-data           \ xt stk tkn-link tkn
                 token-get-string            \ xt stk tkn-link c-addr u
-                #4 pick execute             \ xt stk tkn-link, n t | f
+                snumber?                    \ xt stk tkn-link, num t | f
                 if
-                    \ Add item to list on stack.
-                    #2 pick                 \ xt stk tkn-link n stk
-                    stack-tos               \ xt stk tkn-link n top-list
+                    \ Add integer.          \ xt stk tkn-link num
+                    #2 pick                 \ xt stk tkn-link num stk
+                    stack-tos               \ xt stk tkn-link num top-list
                     list-push-end           \ xt stk tkn-link
                 else
-                    \ Process bad number.
-                    drop                    \ xt stk
+                    \ Process non-integer token.
+                    dup link-get-data           \ xt stk tkn-link tkn
+                    token-get-string            \ xt stk tkn-link c-addr u
+                    #4 pick execute             \ xt stk tkn-link, inst t | f
+                    if
+                        \ Add instance to list on stack.
+                        #2 pick                 \ xt stk tkn-link inst stk
+                        stack-tos               \ xt stk tkn-link inst top-list
+                        list-push-end-struct    \ xt stk tkn-link
+                    else
+                        \ Process bad result.
+                        drop                    \ xt stk
 
-                    \ Get first list put on stack.
-                    dup stack-pop swap      \ xt last-list stk
-                    begin
-                        dup stack-empty? invert
-                    while
-                        dup stack-pop       \ xt last-list stk next-list
-                        rot drop            \ xt stk next-list
-                        swap                \ xt next-list stk
-                    repeat
+                        \ Get first list put on stack.
+                        dup stack-pop swap      \ xt last-list stk
+                        begin
+                            dup stack-empty? invert
+                        while
+                            dup stack-pop       \ xt last-list stk next-list
+                            rot drop            \ xt stk next-list
+                            swap                \ xt next-list stk
+                        repeat
 
-                    \ Free stack.
-                    free                    \ xt last-list flag
-                    0<> abort" stack free failed?"
+                        \ Free stack.
+                        free                    \ xt last-list flag
+                        0<> abort" stack free failed?"
 
-                    structinfo-list-store structinfo-list-deallocate-recursive  \ xt
-                    drop
+                        structinfo-list-store structinfo-list-deallocate-recursive  \ xt
+                        drop
 
-                    false
-                    exit
+                        false
+                        exit
+                    then
                 then
             then
         then
@@ -116,23 +127,13 @@
 
 \ Return a struct instance, number from a token.
 \ If no conversion can be made, return the token itself.
-\ If string can be converted into a struct, pre inc its use count.
 : list-interpret-string ( c-addr u -- result t | f )
-
-    \ Check for integer.
-    2dup snumber?                           \ c-addr u, n t | f
-    if
-        nip nip
-        true
-        exit
-    then
 
     \ Check for struct instance.
     2dup structinfo-list-store          \ c-addr u c-addr u stkinf-lst
     stackinfolist-interpret-string      \ c-addr u, instance t | f
     if
         nip nip
-        dup struct-inc-use-count
         true
         exit
     then
