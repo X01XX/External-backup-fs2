@@ -23,7 +23,6 @@ include globals.fs
 
 include mask.fs
 include state.fs
-include statelist.fs
 
 include region.fs
 include regionlist.fs
@@ -38,7 +37,10 @@ include structinfo.fs
 include structinfolist.fs
 include stackprint.fs
 include list2.fs
-cs
+
+include masklist.fs
+include statelist.fs
+cr
 
 include mask_t.fs
 include state_t.fs
@@ -76,10 +78,11 @@ list-new to structinfo-list-store
 : main
     cr cr
     s" (((1 2) (3 4) (5 6)))"
-    cr 2dup ." list: " type cr
+    cr 2dup ." list string: " type cr
     list-from-string        \ lst t | f
     if
-        dup structinfo-list-print-struct-list
+        cr ." List: " dup structinfo-list-print-struct-list
+        structinfo-list-deallocate-struct-list
     else
         cr ." list-from-string failed" cr
         abort
@@ -87,24 +90,35 @@ list-new to structinfo-list-store
 
     cr cr
     s" ((1 2) (3 4) (5 6))"
-    cr 2dup ." list: " type cr
+    cr 2dup ." list string: " type cr
     list-from-string        \ lst t | f
     if
-        dup structinfo-list-print-struct-list
+        cr ." List: " dup structinfo-list-print-struct-list
+        structinfo-list-deallocate-struct-list
     else
         cr ." list-from-string failed" cr
         abort
+    then
+
+    cr cr
+    s" (r1001 r00000 r101)"
+    cr 2dup ." Region list string: " type cr
+    region-list-from-string        \ lst t | f
+    if
+        cr ." List: " dup structinfo-list-print-struct-list
+        region-list-deallocate
+    else
+        cr ." list-from-string failed" cr
+        \ abort
     then
 
     \ Finish.
     cr structinfo-list-store structinfo-list-print-memory-use cr
 
     \ Deallocate remaining struct instances.
-    cr ." Deallocating ..."
-    structinfo-list-deallocate-struct-list
-    structinfo-list-deallocate-struct-list
+    \ cr ." Deallocating ..."
 
-    cr structinfo-list-store structinfo-list-print-memory-use cr
+    \ cr structinfo-list-store structinfo-list-print-memory-use cr
 
     structinfo-list-store structinfo-list-project-deallocated
 ;

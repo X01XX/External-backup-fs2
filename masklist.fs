@@ -1,59 +1,59 @@
-\ Functions for state lists.
+\ Functions for mask lists.
 
-\ Check if tos is an empty list, or has a state instance as its first item.
-: assert-tos-is-state-list ( tos -- tos )
+\ Check if tos is an empty list, or has a mask instance as its first item.
+: assert-tos-is-mask-list ( tos -- tos )
     assert-tos-is-list
     dup list-is-not-empty?
     if
         dup list-get-links link-get-data
-        assert-tos-is-state
+        assert-tos-is-mask
         drop
     then
 ;
 
-\ Check if nos is an empty list, or has a state instance as its first item.
-: assert-nos-is-state-list ( nos tos -- nos tos )
+\ Check if nos is an empty list, or has a mask instance as its first item.
+: assert-nos-is-mask-list ( nos tos -- nos tos )
     assert-nos-is-list
     over list-is-not-empty?
     if
         over list-get-links link-get-data
-        assert-tos-is-state
+        assert-tos-is-mask
         drop
     then
 ;
 
-\ Check if 3os is a list, if non-empty, with the first item being a state.
-: assert-3os-is-state-list ( 3os nos tos -- 3os nos tos )
+\ Check if 3os is a list, if non-empty, with the first item being a mask.
+: assert-3os-is-mask-list ( 3os nos tos -- 3os nos tos )
     assert-3os-is-list
     #2 pick list-is-not-empty?
     if
         #2 pick list-get-links link-get-data
-        assert-tos-is-state
+        assert-tos-is-mask
         drop
     then
 ;
 
-\ Check if 4os is a list, if non-empty, with the first item being a state.
-: assert-4os-is-state-list ( 4os 3os nos tos -- 4os 3os nos tos )
+\ Check if 4os is a list, if non-empty, with the first item being a mask.
+: assert-4os-is-mask-list ( 4os 3os nos tos -- 4os 3os nos tos )
     assert-4os-is-list
     #3 pick list-is-not-empty?
     if
         #3 pick list-get-links link-get-data
-        assert-tos-is-state
+        assert-tos-is-mask
         drop
     then
 ;
 
-\ Deallocate a state list.
-: state-list-deallocate ( lst0 -- )
+\ Deallocate a mask list.
+: mask-list-deallocate ( lst0 -- )
     \ Check arg.
-    assert-tos-is-state-list
+    assert-tos-is-mask-list
 
     \ Check if the list will be deallocated for the last time.
     dup struct-get-use-count                        \ lst0 uc
     #2 < if
-        \ Deallocate state instances in the list.
-        [ ' state-deallocate ] literal over        \ lst0 xt lst0
+        \ Deallocate mask instances in the list.
+        [ ' mask-deallocate ] literal over        \ lst0 xt lst0
         list-apply                                  \ lst0
 
         \ Deallocate the list.
@@ -63,34 +63,34 @@
     then
 ;
 
-\ Print a state-list
-: .state-list ( list0 -- )
+\ Print a mask-list
+: .mask-list ( list0 -- )
     \ Check arg.
-    assert-tos-is-state-list
+    assert-tos-is-mask-list
 
-    [ ' .state ] literal swap .list
+    [ ' .mask ] literal swap .list
 ;
 
-\ Push a state to a state-list.
-: state-list-push ( reg1 list0 -- )
+\ Push a mask to a mask-list.
+: mask-list-push ( reg1 list0 -- )
     \ Check args.
-    assert-tos-is-state-list
-    assert-nos-is-state
+    assert-tos-is-mask-list
+    assert-nos-is-mask
 
     list-push-struct
 ;
 
-\ Push a state to the end of a state-list.
-: state-list-push-end ( reg1 list0 -- )
+\ Push a mask to the end of a mask-list.
+: mask-list-push-end ( reg1 list0 -- )
     \ Check args.
-    assert-tos-is-state-list
-    assert-nos-is-state
+    assert-tos-is-mask-list
+    assert-nos-is-mask
 
     list-push-end-struct
 ;
 
-\ Return a state-list from a string.
-: state-list-from-string ( c-addr u -- reg-lst t | f )
+\ Return a mask-list from a string.
+: mask-list-from-string ( c-addr u -- reg-lst t | f )
     list-from-string-xt execute \ lst t | f
     if
         \ Check items.
@@ -99,7 +99,7 @@
             ?dup
         while
             dup link-get-data   \ lst lnk dat
-            is-allocated-state \ lst lnk bool
+            is-allocated-mask \ lst lnk bool
             if
             else
                 drop            \ lst
