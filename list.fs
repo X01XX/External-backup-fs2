@@ -690,7 +690,7 @@ list-header-disp    cell+   constant list-links-disp
 
     dup struct-get-use-count        \ lst0 uc
 
-    dup 0 < abort" list-deallocate: Invalid use count"
+    dup 0< abort" list-deallocate: Invalid use count"
 
     #2 <                            \ lst0 bool
     if
@@ -725,7 +725,7 @@ list-header-disp    cell+   constant list-links-disp
 
     dup struct-get-use-count        \ lst0 uc
 
-    dup 0 < abort" list-deallocate-recursive: Invalid use count"
+    dup 0< abort" list-deallocate-recursive: Invalid use count"
 
     #2 <                            \ lst0 bool
     if

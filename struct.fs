@@ -21,7 +21,7 @@
 \ Decrement struct use count.
 : struct-dec-use-count ( struct-addr -- )
     dup struct-get-use-count      \ struct-addr use-count
-    dup 0 <
+    dup 0<
     abort" use count cannot be negative."
 
     1-

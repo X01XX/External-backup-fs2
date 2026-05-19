@@ -487,7 +487,7 @@
     assert-tos-is-list
 
     dup struct-get-use-count                \ lst0 uc
-    dup 0 < abort" structinfo-list-deallocate-struct-list: Invalid use count"
+    dup 0< abort" structinfo-list-deallocate-struct-list: Invalid use count"
 
     #2 <                                    \ lst0 bool
     if

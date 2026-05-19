@@ -48,7 +48,7 @@ include sample_t.fs
 \ Init array-stacks.
 #101 link-mma-init
 #102 list-mma-init
-#010 structinfo-mma-init
+#030 structinfo-mma-init
 #100 mask-mma-init
 #100 state-mma-init
 #100 region-mma-init
@@ -74,7 +74,20 @@ list-new to structinfo-list-store
 ' noop ' sample-deallocate '   .sample s" Sample"  sample-mma  sample-id   structinfo-new structinfo-list-store structinfo-list-push-end
 
 : main
-    s" ( 45 ( 1.2e r00X1 ) s1010 m0100 to )"
+    cr cr
+    s" (((1 2) (3 4) (5 6)))"
+    cr 2dup ." list: " type cr
+    list-from-string        \ lst t | f
+    if
+        dup structinfo-list-print-struct-list
+    else
+        cr ." list-from-string failed" cr
+        abort
+    then
+
+    cr cr
+    s" ((1 2) (3 4) (5 6))"
+    cr 2dup ." list: " type cr
     list-from-string        \ lst t | f
     if
         dup structinfo-list-print-struct-list
@@ -88,6 +101,7 @@ list-new to structinfo-list-store
 
     \ Deallocate remaining struct instances.
     cr ." Deallocating ..."
+    structinfo-list-deallocate-struct-list
     structinfo-list-deallocate-struct-list
 
     cr structinfo-list-store structinfo-list-print-memory-use cr

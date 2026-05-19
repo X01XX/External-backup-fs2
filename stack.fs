@@ -186,7 +186,7 @@ stack-header-disp   cell+   constant stack-items-disp   \ Item on the stack.
    swap                     \ stack-items stack-addr
    stack-get-num-on-stack   \ stack-items num-on-stack
 
-   dup 0 >                  \ stack-items num-on-stack flag
+   dup 0>                   \ stack-items num-on-stack flag
    if
      0 do                   \ stack-items
        dup                  \ stack-items stack-start
@@ -204,7 +204,7 @@ stack-header-disp   cell+   constant stack-items-disp   \ Item on the stack.
    swap                     \ addr stack-start stack
    stack-get-num-on-stack   \ addr stack-start num-on-stack
 
-   dup 0 >                  \ addr stack-start num-on-stack flag
+   dup 0>                   \ addr stack-start num-on-stack flag
    if
      0 do                   \ addr stack-start
        dup                  \ addr stack-start stack-start

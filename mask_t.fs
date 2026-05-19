@@ -103,17 +103,17 @@
     cr ." mask-test-invert - Ok"
 ;
 
-: mask-test-same-num-bits?
+: mask-test-dif-num-bits?
     #5 #4 mask-new              \ msk54
     #4 #4 mask-new              \ msk54 msk44
     #5 #3 mask-new              \ msk54 msk44 msk53
 
-    2dup mask-same-num-bits?    \ msk54 msk44 msk53 bool
-    abort" masks have same num bits?"
+    2dup mask-dif-num-bits?     \ msk54 msk44 msk53 bool
+    invert abort" masks have same num bits?"
 
     #2 pick #2 pick             \ msk54 msk44 msk53 msk54 msk44
-    mask-same-num-bits?         \ msk54 msk44 msk53 bool
-    false? abort" masks don't have the same num bits?"
+    mask-dif-num-bits?          \ msk54 msk44 msk53 bool
+    abort" masks don't have the same num bits?"
 
     \ Clean up.
     mask-deallocate
@@ -132,5 +132,5 @@
     mask-test-bit
     mask-test-and
     mask-test-invert
-    mask-test-same-num-bits?
+    mask-test-dif-num-bits?
 ;

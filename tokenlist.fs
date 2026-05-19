@@ -292,7 +292,7 @@
             swap 1-                 \ ret-lst link cnt-
 
             \ Check counter not LT zero.
-            dup 0 <                 \ ret-lst link cnt- flag
+            dup 0<                  \ ret-lst link cnt- flag
             if
                 2drop
                 token-list-deallocate

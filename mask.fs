@@ -221,8 +221,8 @@ mask-header-disp cell+  constant mask-number-disp
     then
 ;
 
-\ Return true if two masks have the same number bits.
-: mask-same-num-bits? ( msk1 msk0 -- flag )
+\ Return true if two masks have different number bits.
+: mask-dif-num-bits? ( msk1 msk0 -- flag )
     \ Check args.
     assert-tos-is-mask
     assert-nos-is-mask
@@ -230,7 +230,7 @@ mask-header-disp cell+  constant mask-number-disp
     mask-get-number-bits    \ msk1 nb0
     swap                    \ nb0 msk1
     mask-get-number-bits    \ nb0 nb1
-    =
+    <>
 ;
 
 \ Return a mask inverted.
@@ -257,7 +257,7 @@ mask-header-disp cell+  constant mask-number-disp
     \ Check args.
     assert-tos-is-mask
     assert-nos-is-mask
-    2dup mask-same-num-bits? false? abort" masks do not have the same number bits?"
+    2dup mask-dif-num-bits? abort" masks do not have the same number bits?"
 
     over _mask-get-number  \ msk1 msk0 num1
     swap _mask-get-number  \ msk1 num1 num0

@@ -15,7 +15,7 @@
     sample-str                  \ smp nc
     pad c!                      \ smp
     pad string@                 \ smp c-addr cnt
-    s" (0110->0101)"            \ smp c-addr cnt c-addr cnt
+    s" (s0110->s0101)"          \ smp c-addr cnt c-addr cnt
     str=
     false? abort" string not as expected"
 

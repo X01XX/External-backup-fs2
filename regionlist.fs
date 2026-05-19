@@ -89,3 +89,30 @@
     list-push-end-struct
 ;
 
+\ Return a region-list from a string.
+: region-list-from-string ( c-addr u -- reg-lst t | f )
+    list-from-string-xt execute \ lst t | f
+    if
+        \ Check items.
+        dup list-get-links      \ lst lnk
+        begin
+            ?dup
+        while
+            dup link-get-data   \ lst lnk dat
+            is-allocated-region \ lst lnk bool
+            if
+            else
+                drop            \ lst
+                structinfo-list-deallocate-struct-list-xt execute
+                false
+                exit
+            then
+
+            link-get-next       \ lst lnk
+        repeat
+                                \ lst
+        true
+    else
+        false
+    then
+;

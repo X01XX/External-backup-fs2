@@ -51,6 +51,7 @@
             else
                 \ Check for number
                 dup link-get-data           \ xt stk tkn-link tkn
+                \ cr ." token: " dup .token cr
                 token-get-string            \ xt stk tkn-link c-addr u
                 snumber?                    \ xt stk tkn-link, num t | f
                 if
@@ -163,3 +164,6 @@
         false
     then
 ;
+
+' list-from-string to list-from-string-xt
+
