@@ -24,12 +24,8 @@ state-header-disp cell+   constant state-number-disp
 : is-allocated-state ( tos -- flag )
     dup state-mma mma-is-item  \ addr bool
     if
-        get-first-word          \ w t | f
-        if
-            state-id =          \ bool
-        else
-            false               \ f
-        then
+        struct-get-id
+        state-id =              \ bool
     else
         drop
         false                   \ f
@@ -245,7 +241,7 @@ state-header-disp cell+   constant state-number-disp
     mask-new                    \ msk
 ;
 
-\ Return the Boolean and of two states, as a mask.
+\ Return the Boolean AND of two states, as a mask.
 : state-and ( sta1 sta0 -- mask )
     \ Check args.
     assert-tos-is-state
@@ -255,6 +251,21 @@ state-header-disp cell+   constant state-number-disp
     over _state-get-number  \ sta1 sta0 num1
     swap _state-get-number  \ sta1 num1 num0
     and                     \ sta1 num
+    swap                    \ num sta1
+    state-get-number-bits   \ num nb
+    mask-new                \ msk
+;
+
+\ Return the Boolean XOR of two states, as a mask.
+: state-xor ( sta1 sta0 -- mask )
+    \ Check args.
+    assert-tos-is-state
+    assert-nos-is-state
+    2dup state-same-num-bits? false? abort" states do not have the same number bits?"
+
+    over _state-get-number  \ sta1 sta0 num1
+    swap _state-get-number  \ sta1 num1 num0
+    xor                     \ sta1 num
     swap                    \ num sta1
     state-get-number-bits   \ num nb
     mask-new                \ msk

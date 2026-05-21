@@ -29,11 +29,13 @@ structinfo-from-string-xt-disp  cell+   constant structinfo-name-disp           
 
 \ Check instance type.
 : is-allocated-structinfo ( tos -- flag )
-    get-first-word          \ w t | f
+    dup structinfo-mma mma-is-item  \ addr bool
     if
-        structinfo-id =
+        struct-get-id
+        structinfo-id =             \ bool
     else
-        false
+        drop
+        false                       \ f
     then
 ;
 

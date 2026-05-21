@@ -25,11 +25,13 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
 \ Check instance type.
 
 : is-allocated-rule ( addr -- flag )    \ Check if an address is within the rule array.
-    get-first-word          \ w t | f
+    dup rule-mma mma-is-item    \ addr bool
     if
-        rule-id =
+        struct-get-id
+        rule-id =               \ bool
     else
-        false
+        drop
+        false                   \ f
     then
 ;
 

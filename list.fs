@@ -50,11 +50,13 @@ list-header-disp    cell+   constant list-links-disp
 
 \  Return true if TOS is an allocated list.
 : is-allocated-list ( list -- flag )
-    get-first-word          \ w t | f
+    dup list-mma mma-is-item    \ addr bool
     if
-        list-id =
+        struct-get-id
+        list-id =               \ bool
     else
-        false
+        drop
+        false                   \ f
     then
 ;
 
@@ -979,6 +981,63 @@ list-header-disp    cell+   constant list-links-disp
     repeat
                                 \ xt
     drop
+;
+
+\ Apply a function to each item in a list,
+\ return true if all items return true.
+\ xt signature is ( link-data -- bool )
+: list-apply-all-true? ( xt list0 -- bool )
+    \ Check arg.
+    assert-tos-is-list
+
+    list-get-links              \ xt links0
+    begin
+        ?dup
+    while
+        dup link-get-data       \ xt link0 data0
+
+        #2 pick                 \ xt link0 data0 xt
+        execute                 \ xt link0 bool
+        if
+        else
+            2drop
+            false
+            exit
+        then
+
+        link-get-next           \ xt link-next
+    repeat
+                                \ xt
+    drop
+    true
+;
+
+\ Apply a function to each item in a list,
+\ return true if any items return true.
+\ xt signature is ( link-data -- bool )
+: list-apply-any-true? ( xt list0 -- bool )
+    \ Check arg.
+    assert-tos-is-list
+
+    list-get-links              \ xt links0
+    begin
+        ?dup
+    while
+        dup link-get-data       \ xt link0 data0
+
+        #2 pick                 \ xt link0 data0 xt
+        execute                 \ xt link0 bool
+        if
+            2drop
+            true
+            exit
+        then
+
+        link-get-next           \ xt link-next
+    repeat
+                                \ xt
+    drop
+    false
 ;
 
 \ Apply a function to each item in a list, and sub-lists.

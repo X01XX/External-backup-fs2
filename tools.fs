@@ -39,20 +39,22 @@
     then
 ;
 
-\ Isolate LSB from a non-zero number.
-\ Return changed number and a single-bit number.
-: isolate-a-bit ( u1 -- u2 u3 )
-    depth
-    0= abort" isolate-a-bin: no argument on stack"
-
+\ Split lsb from mask.
+: split-lsb ( u1 -- u2 u3 t | f )
     dup 0=
-    abort" isolate-a-bit: argument is zero"
+    if
+        drop
+        false
+        exit
+    then
 
     \ Remove lsb.
     dup 1- over and     \ u u-lsb
 
     \ Isolate lsb.
     tuck xor            \ u-lsb lsb
+
+    true
 ;
 
 : 3drop ( x y z -- )

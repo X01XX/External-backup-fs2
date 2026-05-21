@@ -26,10 +26,9 @@
     \ Check arg.
     assert-tos-is-bool
 
-    false?
     if
-        ." f"
-    else
         ." t"
+    else
+        ." f"
     then
 ;

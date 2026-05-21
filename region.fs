@@ -39,12 +39,8 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 : is-allocated-region ( addr -- flag )
     dup region-mma mma-is-item  \ addr bool
     if
-        get-first-word          \ w t | f
-        if
-            region-id =         \ bool
-        else
-            false               \ f
-        then
+        struct-get-id
+        region-id =             \ bool
     else
         drop
         false                   \ f
@@ -362,4 +358,53 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     region-new              \ c-addr reg
     nip                     \ reg
     true
+;
+
+\ Return a region's x mask.
+: region-calc-x-mask ( reg0 -- x-msk' )
+    \ Check arg.
+    assert-tos-is-region
+
+    \ Get states.
+    dup  region-get-state-0     \ reg0 sta-0
+    swap region-get-state-1     \ sta-0 sta-1
+
+    \ Calc x mask.
+    state-xor                   \ x-msk'
+;
+
+\ Return a region's zeros mask.
+: region-calc-0-mask ( reg0 -- 0-msk' )
+    \ Check arg.
+    assert-tos-is-region
+
+    \ Get states.
+    dup  region-get-state-0     \ reg0 sta-0
+    swap region-get-state-1     \ sta-0 sta-1
+
+    \ Invert states.
+    state-invert                \ sta-0 msk-1'
+    swap                        \ msk-1' sta-0
+    state-invert                \ msk-1' msk-0'
+
+    \ Calc zeros mask.
+    2dup                        \ msk-1' msk-0' msk-1' msk-0'
+    mask-and                    \ msk-1' msk-0' 0-msk'
+
+    \ Clean up.
+    swap mask-deallocate        \ msk-1' 0-msk'
+    swap mask-deallocate        \ 0-msk'
+;
+
+\ Return a region's ones mask.
+: region-calc-1-mask ( reg0 -- 1-msk' )
+    \ Check arg.
+    assert-tos-is-region
+
+    \ Get states.
+    dup  region-get-state-0     \ reg0 sta-0
+    swap region-get-state-1     \ sta-0 sta-1
+
+    \ Calc ones mask.
+    state-and                   \ 1-msk'
 ;

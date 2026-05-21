@@ -24,12 +24,8 @@ floatnum-header-disp cell+   constant floatnum-number-disp
 : is-allocated-floatnum ( addr -- flag )
     dup floatnum-mma mma-is-item  \ addr bool
     if
-        get-first-word          \ w t | f
-        if
-            floatnum-id =         \ bool
-        else
-            false               \ f
-        then
+        struct-get-id
+        floatnum-id =
     else
         drop
         false                   \ f

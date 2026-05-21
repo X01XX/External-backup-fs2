@@ -22,28 +22,6 @@
     then
 ;
 
-\ Check if 3os is a list, if non-empty, with the first item being a mask.
-: assert-3os-is-mask-list ( 3os nos tos -- 3os nos tos )
-    assert-3os-is-list
-    #2 pick list-is-not-empty?
-    if
-        #2 pick list-get-links link-get-data
-        assert-tos-is-mask
-        drop
-    then
-;
-
-\ Check if 4os is a list, if non-empty, with the first item being a mask.
-: assert-4os-is-mask-list ( 4os 3os nos tos -- 4os 3os nos tos )
-    assert-4os-is-list
-    #3 pick list-is-not-empty?
-    if
-        #3 pick list-get-links link-get-data
-        assert-tos-is-mask
-        drop
-    then
-;
-
 \ Deallocate a mask list.
 : mask-list-deallocate ( lst0 -- )
     \ Check arg.
@@ -53,7 +31,7 @@
     dup struct-get-use-count                        \ lst0 uc
     #2 < if
         \ Deallocate mask instances in the list.
-        [ ' mask-deallocate ] literal over        \ lst0 xt lst0
+        [ ' mask-deallocate ] literal over          \ lst0 xt lst0
         list-apply                                  \ lst0
 
         \ Deallocate the list.
@@ -94,24 +72,14 @@
     list-from-string-xt execute \ lst t | f
     if
         \ Check items.
-        dup list-get-links      \ lst lnk
-        begin
-            ?dup
-        while
-            dup link-get-data   \ lst lnk dat
-            is-allocated-mask \ lst lnk bool
-            if
-            else
-                drop            \ lst
-                structinfo-list-deallocate-struct-list-xt execute
-                false
-                exit
-            then
-
-            link-get-next       \ lst lnk
-        repeat
-                                \ lst
-        true
+        [ ' is-allocated-mask ] literal over    \ lst xt lst
+        list-apply-all-true?                    \ lst bool
+        if
+            true
+        else
+            structinfo-list-deallocate-struct-list-xt execute
+            false
+        then
     else
         false
     then

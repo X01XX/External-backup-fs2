@@ -19,11 +19,13 @@ link-next-disp      cell+   constant link-data-disp
 
 \ Return true if TOS is an allocated link.
 : is-allocated-link ( link -- flag )
-    get-first-word          \ w t | f
+    dup link-mma mma-is-item    \ addr bool
     if
-        link-id =
+        struct-get-id
+        link-id =               \ bool
     else
-        false
+        drop
+        false                   \ f
     then
 ;
 

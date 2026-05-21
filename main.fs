@@ -26,6 +26,8 @@ include state.fs
 
 include region.fs
 include regionlist.fs
+include region2.fs
+
 include rule.fs
 include sample.fs
 include floatnum.fs
@@ -109,7 +111,7 @@ list-new to structinfo-list-store
         region-list-deallocate
     else
         cr ." list-from-string failed" cr
-        \ abort
+        abort
     then
 
     \ Finish.

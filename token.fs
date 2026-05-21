@@ -44,11 +44,13 @@ token-header-disp cell+ constant token-string-disp
 
 \ Check instance type.
 : is-allocated-token ( tkn -- flag )
-    get-first-word          \ w t | f
+    dup token-mma mma-is-item  \ addr bool
     if
-        token-id =
+        struct-get-id
+        token-id =             \ bool
     else
-        false
+        drop
+        false                   \ f
     then
 ;
 

@@ -94,24 +94,14 @@
     list-from-string-xt execute \ lst t | f
     if
         \ Check items.
-        dup list-get-links      \ lst lnk
-        begin
-            ?dup
-        while
-            dup link-get-data   \ lst lnk dat
-            is-allocated-region \ lst lnk bool
-            if
-            else
-                drop            \ lst
-                structinfo-list-deallocate-struct-list-xt execute
-                false
-                exit
-            then
-
-            link-get-next       \ lst lnk
-        repeat
-                                \ lst
-        true
+        [ ' is-allocated-region ] literal over  \ lst xt lst
+        list-apply-all-true?                    \ lst bool
+        if
+            true
+        else
+            structinfo-list-deallocate-struct-list-xt execute
+            false
+        then
     else
         false
     then

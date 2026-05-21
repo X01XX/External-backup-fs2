@@ -26,11 +26,13 @@ sample-initial-disp cell+   constant sample-result-disp     \ Result state.
 
 \ Check instance type.
 : is-allocated-sample ( addr -- flag )
-    get-first-word          \ w t | f
+    dup sample-mma mma-is-item  \ addr bool
     if
-        sample-id =
+        struct-get-id
+        sample-id =             \ bool
     else
-        false
+        drop
+        false                   \ f
     then
 ;
 

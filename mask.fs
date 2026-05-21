@@ -26,12 +26,8 @@ mask-header-disp cell+  constant mask-number-disp
 : is-allocated-mask ( tos -- bool )
     dup mask-mma mma-is-item    \ addr bool
     if
-        get-first-word          \ w t | f
-        if
-            mask-id =           \ bool
-        else
-            false               \ f
-        then
+        struct-get-id
+        mask-id =               \ bool
     else
         drop
         false                   \ f
@@ -122,6 +118,39 @@ mask-header-disp cell+  constant mask-number-disp
     \ Store number given.
     tuck                    \ msk num1 msk
     _mask-set-number        \ msk
+;
+
+\ Return a copy of a mask.
+: mask-copy ( msk0 -- msk )
+    \ Check arg.
+    assert-tos-is-mask
+
+    dup _mask-get-number        \ msk0 num1
+    swap mask-get-number-bits   \ num1 nb
+    mask-new
+;
+
+\ Return mask remainder and mask lsb, if mask is non-zero.
+: mask-split-lsb ( msk0 -- msk-rem msk-lsb t | f )
+    \ Check arg.
+    assert-tos-is-mask
+
+    \ Get mask remainder and lsb.
+    dup _mask-get-number        \ msk0 num
+    split-lsb                   \ msk0, rem lsb t | f
+    if
+        rot                     \ rem lsb msk0
+        mask-get-number-bits    \ rem lsb nb
+        tuck                    \ rem nb lsb nb
+        mask-new                \ rem nb msk-lsb
+        -rot                    \ msk-lsb rem nb
+        mask-new                \ msk-lsb msk-rem
+        swap                    \ msk-rem msk-lsb
+        true
+    else                        \ msk0
+        drop
+        false
+    then
 ;
 
 \ Store a character representation to a given address,
@@ -315,7 +344,16 @@ mask-header-disp cell+  constant mask-number-disp
 
     \ For each character...
     do                  \ c-addr cnt num num0
-        \ Get a character.
+        \ Get a character.    \ Check arg.
+    assert-tos-is-mask
+
+    over                \ u1 msk0 u1
+    0< abort" Invalid bit number?"
+    2dup                \ u1 msk0 u1 msk0
+    mask-get-number-bits
+    > abort" Invalid bit number?"
+
+    _mask-get-number    \ u1 num
         #2 pick         \ c-addr cnt num c-addr
         i +             \ c-addr cnt num c-addr+
         c@              \ c-addr cnt num chr
@@ -346,3 +384,11 @@ mask-header-disp cell+  constant mask-number-disp
     true
 ;
 
+\ Return true if mask is zero.
+: mask-zero? ( msk0 -- bool )
+    \ Check arg.
+    assert-tos-is-mask
+
+    _mask-get-number    \ num
+    0=                  \ bool
+;
