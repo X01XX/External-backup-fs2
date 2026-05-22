@@ -109,7 +109,7 @@
 
     \ Check if the result is nothing.
     dup region-calc-x-mask          \ sta1 reg0 | x-msk'
-    dup mask-zero?                  \ sta1 reg0 | x-msk' bool
+    dup mask-is-zero?               \ sta1 reg0 | x-msk' bool
     swap mask-deallocate            \ sta1 reg0 | bool
     if
         2drop                       \
