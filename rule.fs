@@ -140,29 +140,33 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
     struct-allocate         \ s-r s-i rul
 
     \ Store fields.
-    over state-invert       \ s-r s-i rul m-i-not'
-    #3 pick state-invert    \ s-r s-i rul m-i-not' m-r-not'
+    over                    \ s-r s-i rul s-i
+    state-invert-to-mask    \ s-r s-i rul m-i-not'
+    #3 pick                 \ s-r s-i rul m-i-not' s-r
+    state-invert-to-mask    \ s-r s-i rul m-i-not' m-r-not'
     2dup mask-and           \ s-r s-i rul m-i-not' m-r-not' m00
     swap mask-deallocate    \ s-r s-i rul m-i-not' m00
     swap mask-deallocate    \ s-r s-i rul m00
     over _rule-set-m00      \ s-r s-i rul
 
-    over state-invert       \ s-r s-i rul m-i-not'
+    over                    \ s-r s-i rul s-r
+    state-invert-to-mask    \ s-r s-i rul m-i-not'
     #3 pick                 \ s-r s-i rul m-i-not' s-r
     over swap               \ s-r s-i rul m-i-not' m-i-not' s-r
-    state-and-mask          \ s-r s-i rul m-i-not' m01
+    state-and-mask-to-mask  \ s-r s-i rul m-i-not' m01
     swap mask-deallocate    \ s-r s-i rul m01
     over _rule-set-m01      \ s-r s-i rul
 
     over                    \ s-r s-i rul s-i
     #3 pick                 \ s-r s-i rul s-i s-r
-    state-and               \ s-r s-i rul m11
+    state-and-state-to-mask \ s-r s-i rul m11
     over _rule-set-m11      \ s-r s-i rul
 
     over                    \ s-r s-i rul s-i
-    #3 pick state-invert    \ s-r s-i rul s-i m-r-not'
+    #3 pick                 \ s-r s-i rul s-i s-r
+    state-invert-to-mask    \ s-r s-i rul s-i m-r-not'
     tuck swap               \ s-r s-i rul m-r-not' m-r-not' s-i
-    state-and-mask          \ s-r s-i rul m-r-not' m10
+    state-and-mask-to-mask  \ s-r s-i rul m-r-not' m10
     swap mask-deallocate    \ s-r s-i rul m10
     over _rule-set-m10      \ s-r s-i rul
 

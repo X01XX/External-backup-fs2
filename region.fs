@@ -370,7 +370,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     swap region-get-state-1     \ sta-0 sta-1
 
     \ Calc x mask.
-    state-xor                   \ x-msk'
+    state-xor-to-mask           \ x-msk'
 ;
 
 \ Return a region's zeros mask.
@@ -383,9 +383,9 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     swap region-get-state-1     \ sta-0 sta-1
 
     \ Invert states.
-    state-invert                \ sta-0 msk-1'
+    state-invert-to-mask        \ sta-0 msk-1'
     swap                        \ msk-1' sta-0
-    state-invert                \ msk-1' msk-0'
+    state-invert-to-mask        \ msk-1' msk-0'
 
     \ Calc zeros mask.
     2dup                        \ msk-1' msk-0' msk-1' msk-0'
@@ -406,5 +406,224 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     swap region-get-state-1     \ sta-0 sta-1
 
     \ Calc ones mask.
-    state-and                   \ 1-msk'
+    state-and-state-to-mask     \ 1-msk'
+;
+
+\ Return the two states that make a region.
+: region-get-states ( reg0 -- sta1 sta0 )
+    \ Check arg.            
+    assert-tos-is-region
+
+    \ Calc result.
+    dup region-get-state-1  \ reg0 sta1
+    swap                    \ sta1 reg0
+    region-get-state-0      \ sta1 sta0
+;   
+
+\ Return a new region with some X positions set to zero.
+\ Change 1-0 or 0-1 to 0-0. 
+\ Mask will usually have a single bit, called from region-subtract.
+: region-x-to-0 ( to-0-msk reg0 -- reg )
+    \ Check args.
+    assert-tos-is-region
+    assert-nos-is-mask
+
+    region-get-states       \ to-0-msk sta1 sta0
+    rot mask-invert         \ sta1 sta0 keep-msk'
+    tuck swap               \ sta1 keep-msk' keep-msk' sta0
+    state-and-mask          \ sta1 keep sta0-new
+    -rot                    \ sta0-new sta1 keep'
+    and                     \ sta0-new sta1-new
+    swap                    \ sta1-new sta0-new
+    region-new              \ reg
+;
+
+\ Return a new region with some X positions set to one. 
+\ Change 1-0 or 0-1 to 1-1. 
+\ Mask will usually have a single bit, called from region-subtract.
+: region-x-to-1 ( to-1-msk reg0 -- reg )
+    \ Check args.
+    assert-tos-is-region
+    assert-nos-is-mask
+
+    region-get-states       \ to-1-msk sta1 sta0
+    rot                     \ sta1 sta0 to-1-msk
+    tuck                    \ sta1 to-1-msk sta0 to-1-msk
+    or                      \ sta1 to-1-msk sta0-new
+    -rot                    \ sta0-new sta1 to-1-msk
+    or                      \ sta0-new sta1-new
+    swap                    \ sta1-new sta0-new
+    region-new              \ reg
+;
+
+\ Return a regions edge mask,
+\ trits that are 0, or 1.
+: region-edge-mask ( reg0 -- msk )
+    \ Check arg.
+    assert-tos-is-region
+    
+    \ Calc result.
+    region-calc-x-mask      \ x-msk'
+    dup mask-invert         \ x-msk' msk-edg
+    swap mask-deallocate    \ msk-edg
+;
+
+\ Return true if two regions intersect, no corresponding
+\ trits are 0 and 1. 
+: region-intersects? ( reg1 reg0 -- flag )
+    \ Check args.
+    assert-tos-is-region
+    assert-nos-is-region
+    \ cr ." region-intersects: reg1: " over .region space ." reg0: " dup .region cr
+
+    \ Get different bits mask of any pair states from reg1 and reg0.
+    over region-get-state-0     \ reg1 reg0 reg1-sta0
+    over region-get-state-0     \ reg1 reg0 reg1-sta0 reg0-sta0
+    state-xor-to-mask           \ reg1 reg0 dif'
+    -rot                        \ dif' reg1 reg2
+
+    \ Get reg0 edge bits.
+    region-edge-mask            \ dif' reg1 reg0-edg'
+
+    \ Get reg1 edge bits.
+    swap region-edge-mask       \ dif'-msk reg0-edg' reg1-edg'
+
+    \ Get mask of same edge bits in both regions.
+    2dup                        \ dif'-msk reg0-edg' reg1-edg' reg0-edg' reg1-edg'
+    mask-and                    \ dif' reg1-edg' reg0-edg' edge-msk'
+    swap mask-deallocate        \ dif' reg1-edg' edge-msk'
+    swap mask-deallocate        \ dif' edge-msk'
+
+    \ Get different edge bit mask.
+    2dup                        \ dif' edge-msk' dif' edge-msk'
+    mask-and                    \ dif' edge-msk' edge-dif-msk'
+    swap mask-deallocate        \ dif' edge-dif-msk'
+    swap mask-deallocate        \ edge-dif-msk'
+
+    \ Return result
+    dup mask-is-zero?           \ edge-dif-msk' bool
+    swap mask-deallocate        \ bool
+;
+
+\ Return the highest state in a region.
+: region-high-state ( reg0 -- n )
+    \ Check arg.
+    assert-tos-is-region
+
+    dup  region-get-state-0    \ reg0 sta0
+    swap region-get-state-1    \ sta0 sta1
+    state-or                   \ sta-high
+;
+
+\ Return the lowest state in a region.
+: region-low-state ( reg0 -- n )
+    \ Check arg.
+    assert-tos-is-region
+
+    dup  region-get-state-0    \ reg0 sta0
+    swap region-get-state-1    \ sta0 sta1
+    state-and                  \ sta-low
+;
+
+\ Return the region high state and low state.
+: region-high-low ( reg0 -- high low )
+    \ Check arg.
+    assert-tos-is-region 
+    
+    \ Calc result.
+    dup region-high-state   \ reg0 high
+    swap region-low-state   \ high low
+;
+
+\ Return the intersection of two regions, or false if they do not intersect.
+\ Since this must check for intersection first, there may be no need to check
+\ for intersection before calling this.
+: region-intersection ( reg1 reg0 -- reg t | f )
+    \ Check args.
+    assert-tos-is-region
+    assert-nos-is-region
+
+    \ Check that the two regions intersect.
+    2dup region-intersects? \ reg1 reg0 bool
+    if  
+        \ Get high and low state of reg0
+        region-high-low     \ reg1 reg0high reg0low
+                                    
+        \ Get high and low state of reg1
+        rot                 \ reg0high reg0low reg1
+        region-high-low     \ reg0high reg0low reg1high reg1low
+        
+        \ Group high/low states.
+        rot                 \ reg0high reg1ghigh reg1low reg0low
+
+        \ Calc lowest state.
+        or                  \ reg0high reg1ghigh low2
+
+        \ Calc highest state.
+        -rot                \ reg-low2 reg0high reg1ghigh
+        and                 \ reg-low2 high2
+
+        \ Make new region, return.
+        region-new
+        true
+    else                    \ reg1 reg0
+        2drop
+        false
+    then
+;
+
+\ Return true if two regions are equal.
+: regions-eq? ( reg1 reg0 -- flag )
+    \ Check args.
+    assert-tos-is-region
+    assert-nos-is-region
+
+    \ Check address.
+    2dup =                  \ reg1 reg0 bool
+    if
+        2drop   
+        true    
+        exit
+    then    
+
+    over region-high-state  \ reg1 reg0 reg1-h'
+    over region-high-state  \ reg1 reg0 reg1-h' reg0-h'
+    2dup                    \ reg1 reg0 reg1-h' reg0-h' reg1-h' reg0-h'
+    states-eq?              \ reg1 reg0 reg1-h' reg0-h' bool
+    swap state-deallocate   \ reg1 reg0 reg1-h' bool
+    swap state-deallocate   \ reg1 reg0 bool
+    if
+    else
+        2drop   
+        false   
+        exit
+    then
+
+    region-low-state        \ reg1 reg0-low'
+    swap region-low-state   \ reg0-low' reg1-low'
+    2dup                    \ reg0-low' reg1-low' reg0-low' reg1-low'
+    states-eq?              \ reg0-low' reg1-low' bool
+    swap state-deallocate   \ reg0-low' bool
+    swap state-deallocate   \ bool
+;
+
+\ Return true if a TOS region is a superset of the NOS region.
+: region-superset? ( reg1 reg-sup -- flag ) 
+    \ Check args.
+    assert-tos-is-region
+    assert-nos-is-region
+
+    2dup region-intersects?         \ reg1 reg-sup flag
+    if
+        \ Regions intersect.
+        over region-intersection    \ reg1 reg-int flag
+        0= abort" region-superset-of: reg-sup and reg1 should intersect"
+                                    \ reg1 reg-int
+        tuck regions-eq?            \ reg-int flag
+        swap region-deallocate      \ flag
+    else
+        \ Regions do not intersect, return false.
+        2drop
+        false
+    then
 ;

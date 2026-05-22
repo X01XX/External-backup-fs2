@@ -68,7 +68,7 @@ mask-header-disp cell+  constant mask-number-disp
 ;
 
 \ Get mask number.
-: _mask-get-number ( msk0 -- lst0 )
+: mask-get-number ( msk0 -- lst0 )
     mask-number-disp + @
 ;
 
@@ -125,7 +125,7 @@ mask-header-disp cell+  constant mask-number-disp
     \ Check arg.
     assert-tos-is-mask
 
-    dup _mask-get-number        \ msk0 num1
+    dup mask-get-number         \ msk0 num1
     swap mask-get-number-bits   \ num1 nb
     mask-new
 ;
@@ -136,7 +136,7 @@ mask-header-disp cell+  constant mask-number-disp
     assert-tos-is-mask
 
     \ Get mask remainder and lsb.
-    dup _mask-get-number        \ msk0 num
+    dup mask-get-number         \ msk0 num
     split-lsb                   \ msk0, rem lsb t | f
     if
         rot                     \ rem lsb msk0
@@ -170,7 +170,7 @@ mask-header-disp cell+  constant mask-number-disp
     swap 1+ swap
 
     \ Setup for bit-position loop.
-    dup _mask-get-number        \ nc addr1 msk0 num
+    dup mask-get-number         \ nc addr1 msk0 num
     swap                        \ nc addr1 num msk0
     mask-get-number-bits        \ nc addr1 num nc
     tuck                        \ nc addr1 nc num nc
@@ -226,9 +226,9 @@ mask-header-disp cell+  constant mask-number-disp
 
 \ Return true if two masks are equal.
 : mask-eq ( msk1 msk0 -- flag )
-    _mask-get-number    \ msk1 lst0
+    mask-get-number     \ msk1 lst0
     swap                \ lst0 msk1
-    _mask-get-number    \ lst0 lst1
+    mask-get-number     \ lst0 lst1
 
     =
 ;
@@ -272,7 +272,7 @@ mask-header-disp cell+  constant mask-number-disp
     _max-num-from-num-bits      \ msk0 max
 
     over                        \ msk0 max msk0
-    _mask-get-number            \ msk0 max num
+    mask-get-number             \ msk0 max num
 
     xor                         \ msk0 invert
 
@@ -288,8 +288,8 @@ mask-header-disp cell+  constant mask-number-disp
     assert-nos-is-mask
     2dup mask-dif-num-bits? abort" masks do not have the same number bits?"
 
-    over _mask-get-number  \ msk1 msk0 num1
-    swap _mask-get-number  \ msk1 num1 num0
+    over mask-get-number   \ msk1 msk0 num1
+    swap mask-get-number   \ msk1 num1 num0
     and                    \ msk1 num
     swap                   \ num msk1
     mask-get-number-bits   \ num nb
@@ -307,7 +307,7 @@ mask-header-disp cell+  constant mask-number-disp
     mask-get-number-bits
     > abort" Invalid bit number?"
 
-    _mask-get-number    \ u1 num
+    mask-get-number     \ u1 num
     swap                \ num u1
     1 swap              \ num 1 u1
     lshift              \ num msk
@@ -353,7 +353,7 @@ mask-header-disp cell+  constant mask-number-disp
     mask-get-number-bits
     > abort" Invalid bit number?"
 
-    _mask-get-number    \ u1 num
+    mask-get-number     \ u1 num
         #2 pick         \ c-addr cnt num c-addr
         i +             \ c-addr cnt num c-addr+
         c@              \ c-addr cnt num chr
@@ -385,10 +385,10 @@ mask-header-disp cell+  constant mask-number-disp
 ;
 
 \ Return true if mask is zero.
-: mask-zero? ( msk0 -- bool )
+: mask-is-zero? ( msk0 -- bool )
     \ Check arg.
     assert-tos-is-mask
 
-    _mask-get-number    \ num
+    mask-get-number     \ num
     0=                  \ bool
 ;

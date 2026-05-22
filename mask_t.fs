@@ -66,7 +66,8 @@
 : mask-test-and
     #5 #4 mask-new          \ msk5
     #6 #4 mask-new          \ msk5 msk6
-    2dup mask-and           \ msk5 msk6 msk56
+    2dup                    \ msk5 msk6 msk5 msk6
+    mask-and                \ msk5 msk6 msk56
 
     #4 #4 mask-new          \ msk5 msk6 m-k56 msk4
     2dup mask-eq            \ msk5 msk6 m-k56 msk4 bool

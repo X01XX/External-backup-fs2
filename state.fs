@@ -66,7 +66,7 @@ state-header-disp cell+   constant state-number-disp
 ;
 
 \ Get state number.
-: _state-get-number ( sta0 -- lst0 )
+: state-get-number ( sta0 -- lst0 )
     state-number-disp + @
 ;
 
@@ -118,7 +118,7 @@ state-header-disp cell+   constant state-number-disp
     swap 1+ swap
 
     \ Setup for bit-position loop.
-    dup _state-get-number       \ nc addr1 sta0 num
+    dup state-get-number        \ nc addr1 sta0 num
     swap                        \ nc addr1 num sta0
     state-get-number-bits       \ nc addr1 num nc
     tuck                        \ nc addr1 nc num nc
@@ -174,9 +174,9 @@ state-header-disp cell+   constant state-number-disp
 
 \ Return true if two states are equal.
 : state-eq ( sta1 sta0 -- flag )
-    _state-get-number   \ sta1 lst0
+    state-get-number    \ sta1 lst0
     swap                \ lst0 sta1
-    _state-get-number   \ lst0 lst1
+    state-get-number    \ lst0 lst1
 
     =
 ;
@@ -223,7 +223,7 @@ state-header-disp cell+   constant state-number-disp
 ;
 
 \ Return a state inverted, as a mask.
-: state-invert ( sta0 -- mask )
+: state-invert-to-mask ( sta0 -- mask )
     \ Check arg.
     assert-tos-is-state
 
@@ -232,7 +232,7 @@ state-header-disp cell+   constant state-number-disp
     _max-num-from-num-bits      \ sta0 max
 
     over                        \ sta0 max sta0
-    _state-get-number           \ sta0 max num
+    state-get-number            \ sta0 max num
 
     xor                         \ sta0 invert
 
@@ -242,14 +242,14 @@ state-header-disp cell+   constant state-number-disp
 ;
 
 \ Return the Boolean AND of two states, as a mask.
-: state-and ( sta1 sta0 -- mask )
+: state-and-state-to-mask ( sta1 sta0 -- mask )
     \ Check args.
     assert-tos-is-state
     assert-nos-is-state
     2dup state-same-num-bits? false? abort" states do not have the same number bits?"
 
-    over _state-get-number  \ sta1 sta0 num1
-    swap _state-get-number  \ sta1 num1 num0
+    over state-get-number   \ sta1 sta0 num1
+    swap state-get-number   \ sta1 num1 num0
     and                     \ sta1 num
     swap                    \ num sta1
     state-get-number-bits   \ num nb
@@ -257,29 +257,74 @@ state-header-disp cell+   constant state-number-disp
 ;
 
 \ Return the Boolean XOR of two states, as a mask.
-: state-xor ( sta1 sta0 -- mask )
+: state-xor-to-mask ( sta1 sta0 -- mask )
     \ Check args.
     assert-tos-is-state
     assert-nos-is-state
     2dup state-same-num-bits? false? abort" states do not have the same number bits?"
 
-    over _state-get-number  \ sta1 sta0 num1
-    swap _state-get-number  \ sta1 num1 num0
+    over state-get-number   \ sta1 sta0 num1
+    swap state-get-number   \ sta1 num1 num0
     xor                     \ sta1 num
     swap                    \ num sta1
     state-get-number-bits   \ num nb
     mask-new                \ msk
 ;
 
-\ Return the Boolean and of two states, as a mask.
-: state-and-mask ( msk1 sta0 -- mask )
+\ Return the Boolean OR of two states, as a state
+: state-or ( sta1 sta0 -- mask )
+    \ Check args.
+    assert-tos-is-state
+    assert-nos-is-state
+    2dup state-same-num-bits? false? abort" states do not have the same number bits?"
+
+    over state-get-number   \ sta1 sta0 num1
+    swap state-get-number   \ sta1 num1 num0
+    or                      \ sta1 num
+    swap                    \ num sta1
+    state-get-number-bits   \ num nb
+    state-new               \ msk
+;
+
+\ Return the Boolean and of two states, as a state.
+: state-and ( sta1 sta0 -- sta )
+    \ Check args.
+    assert-tos-is-state
+    assert-nos-is-state
+    2dup state-same-num-bits? false? abort" states do not have the same number bits?"
+
+    over state-get-number   \ sta1 sta0 num1
+    swap state-get-number   \ sta1 num1 num0
+    and                     \ sta1 num
+    swap                    \ num sta1
+    state-get-number-bits   \ num nb
+    state-new               \ sta
+;
+
+\ Return the Boolean and of two states, as a state.
+: state-and-mask ( msk1 sta0 -- sta )
     \ Check args.
     assert-tos-is-state
     assert-nos-is-mask
     2dup state-same-num-bits-as-mask? false? abort" state and mask do not have the same number bits?"
 
-    over _mask-get-number   \ msk1 sta0 num1
-    swap _state-get-number  \ msk1 num1 num0
+    over mask-get-number    \ msk1 sta0 num1
+    swap state-get-number   \ msk1 num1 num0
+    and                     \ msk1 num
+    swap                    \ num msk1
+    mask-get-number-bits    \ num nb
+    state-new               \ sta
+;
+
+\ Return the Boolean and of two states, as a mask.
+: state-and-mask-to-mask ( msk1 sta0 -- mask )
+    \ Check args.
+    assert-tos-is-state
+    assert-nos-is-mask
+    2dup state-same-num-bits-as-mask? false? abort" state and mask do not have the same number bits?"
+
+    over mask-get-number    \ msk1 sta0 num1
+    swap state-get-number   \ msk1 num1 num0
     and                     \ msk1 num
     swap                    \ num msk1
     mask-get-number-bits    \ num nb
@@ -297,7 +342,7 @@ state-header-disp cell+   constant state-number-disp
     state-get-number-bits
     > abort" Invalid bit number?"
 
-    _state-get-number   \ u1 num
+    state-get-number    \ u1 num
     swap                \ num u1
     1 swap              \ num 1 u1
     lshift              \ num msk
@@ -365,3 +410,9 @@ state-header-disp cell+   constant state-number-disp
     true
 ;
 
+\ Return true if two states are equal.
+: states-eq? ( sta1 sta0 -- bool )
+    state-get-number        \ sta1 num0
+    swap state-get-number   \ num0 num1
+    =
+;

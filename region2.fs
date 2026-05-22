@@ -16,7 +16,7 @@
         rot mask-deallocate         \ x0-msk reg0 ret-lst | x1-msk-rem' x1-lsb'
         dup                         \ x0-msk reg0 ret-lst | x1-msk-rem' x1-lsb' x1-lsb'
         #4 pick                     \ x0-msk reg0 ret-lst | x1-msk-rem' x1-lsb' x1-lsb' reg0
-\        region-x-to-0               \ x0-msk reg0 ret-lst | x1-msk-rem' x1-lsb' reg0'
+        region-x-to-0               \ x0-msk reg0 ret-lst | x1-msk-rem' x1-lsb' reg0'
         swap mask-deallocate        \ x0-msk reg0 ret-lst | x1-msk-rem' reg0'
         #2 pick region-list-push    \ x0-msk reg0 ret-lst | x1-msk-rem'
     repeat
@@ -31,7 +31,7 @@
         rot mask-deallocate         \ reg0 ret-lst | x0-rem' x0-lsb'
         dup                         \ reg0 ret-lst | x0-rem' x0-lsb' x0-lsb'
         #4 pick                     \ reg0 ret-lst | x0-rem' x0-lsb' x0-lsb' reg0
-\        region-x-to-1               \ reg0 ret-lst | x0-rem' x0-lsb' reg0'
+        region-x-to-1               \ reg0 ret-lst | x0-rem' x0-lsb' reg0'
         swap mask-deallocate        \ reg0 ret-lst | x0-rem' reg0'
         #2 pick region-list-push    \ reg0 ret-lst | x0-rem'
     repeat
@@ -47,7 +47,7 @@
     assert-nos-is-region
 
     \ Check if any subtraction is needed.
-\    2dup region-intersects?         \ reg1 reg0 flag
+    2dup region-intersects?         \ reg1 reg0 flag
     if
     else
         list-new tuck               \ reg1 ret-lst reg0 ret-lst
@@ -58,7 +58,7 @@
 
     \ Check if the result is nothing.
     2dup swap                       \ reg1 reg0 reg0 reg1
-\    region-superset?                \ reg1 reg0 flag
+    region-superset?                \ reg1 reg0 flag
     if
         2drop
         list-new
@@ -66,12 +66,29 @@
     then
 
     \ Get X-over-0 mask.
-    dup region-calc-x-mask
+    dup region-calc-x-mask      \ reg1 reg0 x-msk'
+    rot                         \ reg0 x-msk' reg1
+    dup region-calc-0-mask dup  \ reg0 x-msk' reg1 0-msk' 0-msk'
+    #3 pick                     \ reg0 x-msk' reg1 0-msk'
+    mask-and                    \ reg0 x-msk' reg1 0-msk' x0-msk'
+    swap mask-deallocate        \ reg0 x-msk' reg1 x0-msk'
 
     \ Get X-over-1 mask.
+    swap region-calc-1-mask dup \ reg0 x-msk' x0-msk' 1-msk' 1-msk'
+    #3 pick                     \ reg0 x-msk' x0-msk' 1-msk' 1-msk' x-msk'
+    mask-and                    \ reg0 x-msk' x0-msk' 1-msk' x1-msk'
+    swap mask-deallocate        \ reg0 x-msk' x0-msk' x1-msk'
+    rot mask-deallocate         \ reg0 x0-msk' x1-msk'
 
+    \ Do subtraction.
+    2dup                        \ reg0 x0-msk' x1-msk' x0-msk' x1-msk'
+    #4 pick                     \ reg0 x0-msk' x1-msk' x0-msk' x1-msk' reg0
+    _region-subtract            \ reg0 x0-msk' x1-msk' reg-lst
 
-    _region-subtract                \ reg-lst
+    \ Clean up.
+    swap mask-deallocate        \ reg0 x0-msk' reg-lst
+    swap mask-deallocate        \ reg0 reg-lst
+    nip                         \ reg-lst
 ;
 
 \ Return a region-list from a TOS region minus the NOS state.
@@ -81,7 +98,7 @@
     assert-nos-is-state
 
     \ Check if any subtraction is needed.
-\   2dup region-superset-of-state?  \ sta1 reg0 | flag
+   2dup region-superset-of-state?  \ sta1 reg0 | flag
     if
     else
         nip                         \ reg0
@@ -101,15 +118,16 @@
     then
 
     \ Get X-over-0 mask.
-    #2 pick state-invert            \ sta1 reg0 | x-msk' 0-msk'
-    2dup mask-and                   \ sta1 reg0 | x-msk' 0-msk' x0-msk'
+    #2 pick state-invert-to-mask    \ sta1 reg0 | x-msk' 0-msk'
+    2dup                            \ sta1 reg0 | x-msk' 0-msk' x-msk' 0-msk'
+    mask-and                        \ sta1 reg0 | x-msk' 0-msk' x0-msk'
     swap mask-deallocate            \ sta1 reg0 | x-msk' x0-msk'
 
     \ Get X-over-1 mask.
     swap                            \ sta1 reg0 | x0-msk' x-msk'
     dup                             \ sta1 reg0 | x0-msk' x-msk' x-msk'
     #4 pick                         \ sta1 reg0 | x0-msk' x-msk' x-msk' sta1
-    state-and-mask                  \ sta1 reg0 | x0-msk' x-msk' x1-msk'
+    state-and-mask-to-mask          \ sta1 reg0 | x0-msk' x-msk' x1-msk'
     swap mask-deallocate            \ sta1 reg0 | x0-msk' x1-msk'
 
     \ Subtract.

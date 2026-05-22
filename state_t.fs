@@ -66,7 +66,8 @@
 : state-test-and
     #5 #4 state-new         \ sta5
     #6 #4 state-new         \ sta5 sta6
-    2dup state-and          \ sta5 sta6 msk56
+    2dup                    \ sta5 sta6 sta5 sta6
+    state-and-state-to-mask \ sta5 sta6 msk56
 
     #4 #4 mask-new          \ sta5 sta6 msk56 msk4
     2dup mask-eq            \ sta5 sta6 msk56 msk4 bool
@@ -87,7 +88,8 @@
 : state-test-and-mask
     #6 #4 mask-new          \ msk6
     #5 #4 state-new         \ msk6 sta5
-    2dup state-and-mask     \ msk6 sta5 msk56
+    2dup                    \ msk6 sta5 msk6 sta5
+    state-and-mask-to-mask  \ msk6 sta5 msk56
 
     #4 #4 mask-new          \ msk6 sta5 msk56 msk4
     2dup mask-eq            \ msk6 sta5 msk56 msk4 bool
@@ -106,9 +108,10 @@
 ;
 
 : state-test-invert
-    #5 #4 state-new          \ sta5
-    dup state-invert         \ sta5 msk~5
-    #10 #4 mask-new          \ sta5 msk~5 msk10
+    #5 #4 state-new         \ sta5
+    dup                     \ sta5 sta5
+    state-invert-to-mask    \ sta5 msk~5
+    #10 #4 mask-new         \ sta5 msk~5 msk10
 
     2dup state-eq            \ sta5 msk~5 msk10 bool
     false? abort" state ne 10?"
