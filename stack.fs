@@ -53,7 +53,8 @@ stack-header-disp   cell+   constant stack-items-disp   \ Item on the stack.
     tuck                    \ stack-addr num-cells stack-addr
 
     _stack-set-capacity     \ stack-addr
-
+       ." stack-pop stack is empty, one leaked address: "
+        dup stack-items-disp + @ hex. cr
     0                       \ stack-addr 0
     over                    \ stack-addr 0 stack-addr
     _stack-set-num-on-stack \ stack-addr
@@ -75,7 +76,8 @@ stack-header-disp   cell+   constant stack-items-disp   \ Item on the stack.
 \ Run before removing a value from an stack
 : stack-empty? ( stack-addr -- flag )
     stack-get-num-on-stack  \ n
-
+       ." stack-pop stack is empty, one leaked address: "
+        dup stack-items-disp + @ hex. cr
     0=                      \ flag
 ;
 
@@ -130,7 +132,8 @@ stack-header-disp   cell+   constant stack-items-disp   \ Item on the stack.
 
     if
         cr
-        ." stack-pop stack is empty"
+        ." stack-pop stack is empty, one leaked address: "
+        dup stack-items-disp + @ hex. cr
         #-24 throw
     then                        \ stack-addr
 
