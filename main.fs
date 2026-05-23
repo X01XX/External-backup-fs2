@@ -114,13 +114,24 @@ list-new to structinfo-list-store
         abort
     then
 
+    s" r1001" region-from-string
+    invert abort" region-from-string: failed"
+    s" rX0X1" region-from-string
+    invert abort" region-from-string: failed"
+    2dup region-subtract            \ reg2 reg1 reg-lst
+    cr ." rX0X1 - r1001 = " dup .region-list cr
+
     \ Finish.
     cr structinfo-list-store structinfo-list-print-memory-use cr
 
     \ Deallocate remaining struct instances.
-    \ cr ." Deallocating ..."
+    cr ." Deallocating ..."
 
-    \ cr structinfo-list-store structinfo-list-print-memory-use cr
+    region-list-deallocate
+    region-deallocate
+    region-deallocate
+
+    cr structinfo-list-store structinfo-list-print-memory-use cr
 
     structinfo-list-store structinfo-list-project-deallocated
 ;

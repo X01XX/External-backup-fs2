@@ -281,7 +281,7 @@ mask-header-disp cell+  constant mask-number-disp
     mask-new                    \ msk
 ;
 
-\ Return the Boolean and of two masks.
+\ Return the Boolean AND of two masks.
 : mask-and ( msk1 msk0 -- msk )
     \ Check args.
     assert-tos-is-mask
@@ -291,6 +291,21 @@ mask-header-disp cell+  constant mask-number-disp
     over mask-get-number   \ msk1 msk0 num1
     swap mask-get-number   \ msk1 num1 num0
     and                    \ msk1 num
+    swap                   \ num msk1
+    mask-get-number-bits   \ num nb
+    mask-new               \ msk
+;
+
+\ Return the Boolean OR of two masks.
+: mask-or ( msk1 msk0 -- msk )
+    \ Check args.
+    assert-tos-is-mask
+    assert-nos-is-mask
+    2dup mask-dif-num-bits? abort" masks do not have the same number bits?"
+
+    over mask-get-number   \ msk1 msk0 num1
+    swap mask-get-number   \ msk1 num1 num0
+    or                     \ msk1 num
     swap                   \ num msk1
     mask-get-number-bits   \ num nb
     mask-new               \ msk

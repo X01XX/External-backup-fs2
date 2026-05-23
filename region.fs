@@ -431,9 +431,11 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     region-get-states       \ to-0-msk sta1 sta0
     rot mask-invert         \ sta1 sta0 keep-msk'
     tuck swap               \ sta1 keep-msk' keep-msk' sta0
-    state-and-mask          \ sta1 keep sta0-new
-    -rot                    \ sta0-new sta1 keep'
-    and                     \ sta0-new sta1-new
+    state-and-mask          \ sta1 keep-msk' sta0-new
+    -rot                    \ sta0-new sta1 keep-msk'
+    tuck swap               \ sta0-new keep-msk' keep-msk' sta1
+    state-and-mask          \ sta0-new keep-msk' sta1-new
+    swap mask-deallocate    \ sta0-new sta1-new
     swap                    \ sta1-new sta0-new
     region-new              \ reg
 ;
@@ -447,11 +449,10 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     assert-nos-is-mask
 
     region-get-states       \ to-1-msk sta1 sta0
-    rot                     \ sta1 sta0 to-1-msk
-    tuck                    \ sta1 to-1-msk sta0 to-1-msk
-    or                      \ sta1 to-1-msk sta0-new
-    -rot                    \ sta0-new sta1 to-1-msk
-    or                      \ sta0-new sta1-new
+    #2 pick swap            \ to-1-msk sta1 to-1-msk sta0
+    state-or-mask           \ to-1-msk sta1 sta0-new
+    -rot                    \ sta0-new to-1-msk sta1
+    state-or-mask           \ sta0-new sta1-new
     swap                    \ sta1-new sta0-new
     region-new              \ reg
 ;
@@ -544,29 +545,35 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     assert-nos-is-region
 
     \ Check that the two regions intersect.
-    2dup region-intersects? \ reg1 reg0 bool
+    2dup region-intersects?     \ reg1 reg0 bool
     if  
         \ Get high and low state of reg0
-        region-high-low     \ reg1 reg0high reg0low
+        region-high-low         \ reg1 reg0high' reg0low'
                                     
         \ Get high and low state of reg1
-        rot                 \ reg0high reg0low reg1
-        region-high-low     \ reg0high reg0low reg1high reg1low
+        rot                     \ reg0high' reg0low' reg1
+        region-high-low         \ reg0high' reg0low' reg1high' reg1low'
         
         \ Group high/low states.
-        rot                 \ reg0high reg1ghigh reg1low reg0low
+        rot                     \ reg0high' reg1high' reg1low' reg0low'
 
         \ Calc lowest state.
-        or                  \ reg0high reg1ghigh low2
+        2dup                    \ reg0high' reg1high' reg1low' reg0low' reg1low' reg0low'
+        state-or                \ reg0high' reg1high' reg1low' reg0low' low2'
+        swap state-deallocate   \ reg0high' reg1high' reg1low' low2'
+        swap state-deallocate   \ reg0high' reg1high' low2'
 
         \ Calc highest state.
-        -rot                \ reg-low2 reg0high reg1ghigh
-        and                 \ reg-low2 high2
+        -rot                    \ reg-low2' reg0high' reg1high'
+        2dup                    \ reg-low2' reg0high' reg1high' reg0high' reg1high' 
+        state-and               \ reg-low2' reg0high' reg1high' high2'
+        swap state-deallocate   \ reg-low2' reg0high' high2'
+        swap state-deallocate   \ reg-low2' high2'
 
         \ Make new region, return.
         region-new
         true
-    else                    \ reg1 reg0
+    else                        \ reg1 reg0
         2drop
         false
     then

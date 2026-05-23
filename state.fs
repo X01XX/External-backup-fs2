@@ -286,7 +286,22 @@ state-header-disp cell+   constant state-number-disp
     state-new               \ msk
 ;
 
-\ Return the Boolean and of two states, as a state.
+\ Return the Boolean OR of two states, as a state.
+: state-or-mask ( msk1 sta0 -- sta )
+    \ Check args.
+    assert-tos-is-state
+    assert-nos-is-mask
+    2dup state-same-num-bits-as-mask? false? abort" state and mask do not have the same number bits?"
+
+    over mask-get-number    \ msk1 sta0 num1
+    swap state-get-number   \ msk1 num1 num0
+    or                      \ msk1 num
+    swap                    \ num msk1
+    mask-get-number-bits    \ num nb
+    state-new               \ sta
+;
+
+\ Return the Boolean AND of two states, as a state.
 : state-and ( sta1 sta0 -- sta )
     \ Check args.
     assert-tos-is-state
@@ -301,7 +316,7 @@ state-header-disp cell+   constant state-number-disp
     state-new               \ sta
 ;
 
-\ Return the Boolean and of two states, as a state.
+\ Return the Boolean AND of two states, as a state.
 : state-and-mask ( msk1 sta0 -- sta )
     \ Check args.
     assert-tos-is-state
