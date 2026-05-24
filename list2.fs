@@ -146,11 +146,10 @@
 
 \ Produce a list from a string.
 : list-from-string ( c-addr u -- lst t | f )
-    [ ' list-interpret-string ] literal -rot            \ xt c-addr u
-    token-list-from-string                              \ xt, tkn-lst t | f
+    token-list-from-string                              \ tkn-lst t | f
 
     if
-        tuck                                            \ tkn-lst xt tkn-lst
+        [ ' list-interpret-string ] literal over        \ txs-lst xt tkn-lst
         list-from-token-list                            \ tkn-lst, lst t | f
         if  
             swap token-list-deallocate                  \ lst
@@ -159,8 +158,7 @@
             token-list-deallocate                       \
             false
         then
-    else                                                \ xt
-        drop
+    else                                                \
         false
     then
 ;
