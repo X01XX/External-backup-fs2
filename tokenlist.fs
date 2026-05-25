@@ -108,6 +108,7 @@
     dup 0= if                       \ c-addr 0
         2drop
         list-new
+        true
         exit
     then
 
