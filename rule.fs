@@ -185,7 +185,7 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
     rule-get-m10            \ m00 m01 m11 m10
 
     \ Prep for loop.
-    dup mask-get-number-bits    \ m00 m01 m11 m10 nb
+    dup mask-get-num-bits    \ m00 m01 m11 m10 nb
     -1 swap                     \ m00 m01 m11 m10 -1 nb
     1-                          \ m00 m01 m11 m10 -1 nb-
 

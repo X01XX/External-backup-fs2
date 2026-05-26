@@ -102,7 +102,7 @@ sample-initial-disp cell+   constant sample-result-disp     \ Result state.
     \ Check args.
     assert-tos-is-state
     assert-nos-is-state
-    2dup state-same-num-bits? false? abort" States num bits mismatch?"
+    2dup states-dif-num-bits? abort" States num bits mismatch?"
 
     \ Allocate space.
     sample-id sample-mma

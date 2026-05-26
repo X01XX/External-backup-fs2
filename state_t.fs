@@ -30,10 +30,10 @@
     #4 #6 state-new              \ sta5 sta4
     #5 #6 state-new              \ sta5 sta4 sta5b
 
-    #2 pick over state-eq        \ sta5 sta4 sta5b bool
+    #2 pick over states-eq?      \ sta5 sta4 sta5b bool
     false? abort" states not eq?"
 
-    2dup state-eq                \ sta5 sta4 sta5b bool
+    2dup states-eq?              \ sta5 sta4 sta5b bool
     abort" states  eq?"
 
     \ Clean up.
@@ -70,7 +70,7 @@
     state-and-state-to-mask \ sta5 sta6 msk56
 
     #4 #4 mask-new          \ sta5 sta6 msk56 msk4
-    2dup mask-eq            \ sta5 sta6 msk56 msk4 bool
+    2dup masks-eq?          \ sta5 sta6 msk56 msk4 bool
     false? abort" state and ne 4?"
 
     \ Clean up.
@@ -92,7 +92,7 @@
     state-and-mask-to-mask  \ msk6 sta5 msk56
 
     #4 #4 mask-new          \ msk6 sta5 msk56 msk4
-    2dup mask-eq            \ msk6 sta5 msk56 msk4 bool
+    2dup masks-eq?          \ msk6 sta5 msk56 msk4 bool
     false? abort" state and ne 4?"
 
     \ Clean up.
@@ -113,7 +113,7 @@
     state-invert-to-mask    \ sta5 msk~5
     #10 #4 mask-new         \ sta5 msk~5 msk10
 
-    2dup state-eq            \ sta5 msk~5 msk10 bool
+    2dup states-eq?         \ sta5 msk~5 msk10 bool
     false? abort" state ne 10?"
 
     \ Clean up.
@@ -132,12 +132,12 @@
     #4 #4 state-new              \ sta54 sta44
     #5 #3 state-new              \ sta54 sta44 sta53
 
-    2dup state-same-num-bits?    \ sta54 sta44 sta53 bool
-    abort" states have same num bits?"
+    2dup states-dif-num-bits?    \ sta54 sta44 sta53 bool
+    invert abort" states have same num bits?"
 
     #2 pick #2 pick             \ sta54 sta44 sta53 sta54 sta44
-    state-same-num-bits?        \ sta54 sta44 sta53 bool
-    false? abort" states don't have the same num bits?"
+    states-dif-num-bits?        \ sta54 sta44 sta53 bool
+    invert abort" states don't have the same num bits?"
 
     \ Clean up.
     state-deallocate

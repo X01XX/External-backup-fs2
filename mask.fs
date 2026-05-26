@@ -55,7 +55,7 @@ mask-header-disp cell+  constant mask-number-disp
 \ Start accessors.
 
 \ Get the number of bits.
-: mask-get-number-bits ( msk0 -- nb )
+: mask-get-num-bits ( msk0 -- nb )
     \ Check arg.
     assert-tos-is-mask
 
@@ -63,7 +63,7 @@ mask-header-disp cell+  constant mask-number-disp
 ;
 
 \ Set the number of bits.
-: _mask-set-number-bits ( nb msk0 -- )
+: _mask-set-num-bits ( nb msk0 -- )
     4c!
 ;
 
@@ -113,7 +113,7 @@ mask-header-disp cell+  constant mask-number-disp
 
     \ Set number bits.
     tuck                    \ num1 msk nb0 msk
-    _mask-set-number-bits   \ num1 msk
+    _mask-set-num-bits   \ num1 msk
 
     \ Store number given.
     tuck                    \ msk num1 msk
@@ -126,7 +126,7 @@ mask-header-disp cell+  constant mask-number-disp
     assert-tos-is-mask
 
     dup mask-get-number         \ msk0 num1
-    swap mask-get-number-bits   \ num1 nb
+    swap mask-get-num-bits   \ num1 nb
     mask-new
 ;
 
@@ -140,7 +140,7 @@ mask-header-disp cell+  constant mask-number-disp
     split-lsb                   \ msk0, rem lsb t | f
     if
         rot                     \ rem lsb msk0
-        mask-get-number-bits    \ rem lsb nb
+        mask-get-num-bits    \ rem lsb nb
         tuck                    \ rem nb lsb nb
         mask-new                \ rem nb msk-lsb
         -rot                    \ msk-lsb rem nb
@@ -162,7 +162,7 @@ mask-header-disp cell+  constant mask-number-disp
     assert-tos-is-mask
 
     \ Save string length.
-    dup mask-get-number-bits    \ addr1 msk0 nc
+    dup mask-get-num-bits    \ addr1 msk0 nc
     -rot                        \ nc addr1 msk0
 
     \ Store prefix.
@@ -172,7 +172,7 @@ mask-header-disp cell+  constant mask-number-disp
     \ Setup for bit-position loop.
     dup mask-get-number         \ nc addr1 msk0 num
     swap                        \ nc addr1 num msk0
-    mask-get-number-bits        \ nc addr1 num nc
+    mask-get-num-bits        \ nc addr1 num nc
     tuck                        \ nc addr1 nc num nc
     _msb-from-num-bits          \ nc addr1 nc num ms-bit
     rot                         \ nc addr1 num ms-bit nc
@@ -224,15 +224,6 @@ mask-header-disp cell+  constant mask-number-disp
     type
 ;
 
-\ Return true if two masks are equal.
-: mask-eq ( msk1 msk0 -- flag )
-    mask-get-number     \ msk1 lst0
-    swap                \ lst0 msk1
-    mask-get-number     \ lst0 lst1
-
-    =
-;
-
 \ Deallocate a mask.
 : mask-deallocate ( msk -- )
     \ Check arg.
@@ -250,16 +241,30 @@ mask-header-disp cell+  constant mask-number-disp
     then
 ;
 
-\ Return true if two masks have different number bits.
-: mask-dif-num-bits? ( msk1 msk0 -- flag )
+\ Return true if two masks have a different number of bits.
+: masks-dif-num-bits? ( msk1 msk0 -- flag )
     \ Check args.
     assert-tos-is-mask
     assert-nos-is-mask
 
-    mask-get-number-bits    \ msk1 nb0
+    mask-get-num-bits    \ msk1 nb0
     swap                    \ nb0 msk1
-    mask-get-number-bits    \ nb0 nb1
+    mask-get-num-bits    \ nb0 nb1
     <>
+;
+
+\ Return true if two masks are equal.
+: masks-eq? ( msk1 msk0 -- flag )
+    \ Check args.
+    assert-tos-is-mask
+    assert-nos-is-mask
+    2dup masks-dif-num-bits? abort" masks do not have the same number of bits?"
+
+    mask-get-number     \ msk1 lst0
+    swap                \ lst0 msk1
+    mask-get-number     \ lst0 lst1
+
+    =
 ;
 
 \ Return a mask inverted.
@@ -268,7 +273,7 @@ mask-header-disp cell+  constant mask-number-disp
     assert-tos-is-mask
 
     dup                         \ msk0 msk0
-    mask-get-number-bits        \ msk0 nb
+    mask-get-num-bits        \ msk0 nb
     _max-num-from-num-bits      \ msk0 max
 
     over                        \ msk0 max msk0
@@ -277,7 +282,7 @@ mask-header-disp cell+  constant mask-number-disp
     xor                         \ msk0 invert
 
     swap                        \ invert msk0
-    mask-get-number-bits        \ invert nb
+    mask-get-num-bits        \ invert nb
     mask-new                    \ msk
 ;
 
@@ -286,13 +291,13 @@ mask-header-disp cell+  constant mask-number-disp
     \ Check args.
     assert-tos-is-mask
     assert-nos-is-mask
-    2dup mask-dif-num-bits? abort" masks do not have the same number bits?"
+    2dup masks-dif-num-bits? abort" masks do not have the same number of bits?"
 
     over mask-get-number   \ msk1 msk0 num1
     swap mask-get-number   \ msk1 num1 num0
     and                    \ msk1 num
     swap                   \ num msk1
-    mask-get-number-bits   \ num nb
+    mask-get-num-bits   \ num nb
     mask-new               \ msk
 ;
 
@@ -301,13 +306,13 @@ mask-header-disp cell+  constant mask-number-disp
     \ Check args.
     assert-tos-is-mask
     assert-nos-is-mask
-    2dup mask-dif-num-bits? abort" masks do not have the same number bits?"
+    2dup masks-dif-num-bits? abort" masks do not have the same number of bits?"
 
     over mask-get-number   \ msk1 msk0 num1
     swap mask-get-number   \ msk1 num1 num0
     or                     \ msk1 num
     swap                   \ num msk1
-    mask-get-number-bits   \ num nb
+    mask-get-num-bits   \ num nb
     mask-new               \ msk
 ;
 
@@ -319,7 +324,7 @@ mask-header-disp cell+  constant mask-number-disp
     over                \ u1 msk0 u1
     0< abort" Invalid bit number?"
     2dup                \ u1 msk0 u1 msk0
-    mask-get-number-bits
+    mask-get-num-bits
     > abort" Invalid bit number?"
 
     mask-get-number     \ u1 num
@@ -365,7 +370,7 @@ mask-header-disp cell+  constant mask-number-disp
     over                \ u1 msk0 u1
     0< abort" Invalid bit number?"
     2dup                \ u1 msk0 u1 msk0
-    mask-get-number-bits
+    mask-get-num-bits
     > abort" Invalid bit number?"
 
     mask-get-number     \ u1 num

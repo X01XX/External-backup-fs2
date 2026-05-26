@@ -141,7 +141,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     \ Check args.
     assert-tos-is-state
     assert-nos-is-state
-    2dup state-same-num-bits? false? abort" states use a different number of bits?"
+    2dup states-dif-num-bits? abort" states use a different number of bits?"
 
     \ Allocate space.
     region-id region-mma        \ sta1 sta0 id mma
@@ -158,12 +158,12 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 ;
 
 \ Return the number of bits used for a region.
-: region-get-number-bits ( reg0 -- nb )
+: region-get-num-bits ( reg0 -- nb )
     \ Check arg.
     assert-tos-is-region
 
     region-get-state-0          \ sta
-    state-get-number-bits       \ nb
+    state-get-num-bits       \ nb
 ;
 
 \ Store a character representation to a given address,
@@ -175,7 +175,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     assert-tos-is-region
 
     \ Store string length.
-    dup region-get-number-bits      \ addr1 reg0 nc
+    dup region-get-num-bits      \ addr1 reg0 nc
     -rot                            \ nc addr1 reg0
 
     \ Store prefix.
@@ -187,7 +187,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     -rot                            \ nc sta1 addr1 reg0
     dup region-get-state-0          \ nc sta1 addr1 reg0 sta0
     -rot                            \ nc sta1 sta0 addr1 reg0
-    region-get-number-bits          \ nc sta1 sta0 addr1 nb
+    region-get-num-bits          \ nc sta1 sta0 addr1 nb
     -1 swap                         \ nc sta1 sta0 addr1 -1 nb
     1-                              \ nc sta1 sta0 addr1 -1 nb-
 
@@ -469,12 +469,25 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     swap mask-deallocate    \ msk-edg
 ;
 
+\ Return true if two regions have a differant number of bits.
+: regions-dif-num-bits? ( reg1 reg0 -- flag )
+    \ Check args.
+    assert-tos-is-region
+    assert-nos-is-region
+
+    region-get-num-bits  \ sta1 nb0
+    swap                    \ nb0 sta1
+    region-get-num-bits  \ nb0 nb1
+    <>
+;
+
 \ Return true if two regions intersect, no corresponding
 \ trits are 0 and 1. 
 : region-intersects? ( reg1 reg0 -- flag )
     \ Check args.
     assert-tos-is-region
     assert-nos-is-region
+    2dup regions-dif-num-bits? abort" regions do not have the same number bits?"
     \ cr ." region-intersects: reg1: " over .region space ." reg0: " dup .region cr
 
     \ Get different bits mask of any pair states from reg1 and reg0.
@@ -543,6 +556,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     \ Check args.
     assert-tos-is-region
     assert-nos-is-region
+    2dup regions-dif-num-bits? abort" regions do not have the same number bits?"
 
     \ Check that the two regions intersect.
     2dup region-intersects?     \ reg1 reg0 bool
@@ -584,6 +598,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     \ Check args.
     assert-tos-is-region
     assert-nos-is-region
+    2dup regions-dif-num-bits? abort" regions do not have the same number bits?"
 
     \ Check address.
     2dup =                  \ reg1 reg0 bool
@@ -619,6 +634,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     \ Check args.
     assert-tos-is-region
     assert-nos-is-region
+    2dup regions-dif-num-bits? abort" regions do not have the same number bits?"
 
     2dup region-intersects?         \ reg1 reg-sup flag
     if
@@ -640,6 +656,9 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     \ Check args.           
     assert-tos-is-region
     assert-nos-is-state
+    over state-get-num-bits
+    over region-get-num-bits
+    <> abort" state and region do not have the same number bits?"
         
     region-get-states           \ sta1 reg-sta1 reg-sta0
 

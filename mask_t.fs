@@ -30,10 +30,10 @@
     #4 #6 mask-new              \ msk5 msk4
     #5 #6 mask-new              \ msk5 msk4 msk5b
 
-    #2 pick over mask-eq        \ msk5 msk4 msk5b bool
+    #2 pick over masks-eq?      \ msk5 msk4 msk5b bool
     false? abort" masks not eq?"
 
-    2dup mask-eq                \ msk5 msk4 msk5b bool
+    2dup masks-eq?              \ msk5 msk4 msk5b bool
     abort" masks  eq?"
 
     \ Clean up.
@@ -70,7 +70,7 @@
     mask-and                \ msk5 msk6 msk56
 
     #4 #4 mask-new          \ msk5 msk6 m-k56 msk4
-    2dup mask-eq            \ msk5 msk6 m-k56 msk4 bool
+    2dup masks-eq?          \ msk5 msk6 m-k56 msk4 bool
     false? abort" mask and ne 4?"
 
     \ Clean up.
@@ -90,7 +90,7 @@
     dup mask-invert         \ msk5 msk~5
     #10 #4 mask-new         \ msk5 msk~5 msk10
 
-    2dup mask-eq            \ msk5 msk~5 msk10 bool
+    2dup masks-eq?          \ msk5 msk~5 msk10 bool
     false? abort" mask ne 10?"
 
     \ Clean up.
@@ -109,11 +109,11 @@
     #4 #4 mask-new              \ msk54 msk44
     #5 #3 mask-new              \ msk54 msk44 msk53
 
-    2dup mask-dif-num-bits?     \ msk54 msk44 msk53 bool
+    2dup masks-dif-num-bits?    \ msk54 msk44 msk53 bool
     invert abort" masks have same num bits?"
 
     #2 pick #2 pick             \ msk54 msk44 msk53 msk54 msk44
-    mask-dif-num-bits?          \ msk54 msk44 msk53 bool
+    masks-dif-num-bits?         \ msk54 msk44 msk53 bool
     abort" masks don't have the same num bits?"
 
     \ Clean up.

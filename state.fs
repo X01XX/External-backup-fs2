@@ -53,7 +53,7 @@ state-header-disp cell+   constant state-number-disp
 \ Start accessors.
 
 \ Get the number of bits.
-: state-get-number-bits ( sta0 -- nb )
+: state-get-num-bits ( sta0 -- nb )
     \ Check arg.
     assert-tos-is-state
 
@@ -61,7 +61,7 @@ state-header-disp cell+   constant state-number-disp
 ;
 
 \ Set the number of bits.
-: _state-set-number-bits ( nb sta0 -- )
+: _state-set-num-bits ( nb sta0 -- )
     4c!
 ;
 
@@ -94,7 +94,7 @@ state-header-disp cell+   constant state-number-disp
 
     \ Set number bits.
     tuck                    \ num1 sta nb0 sta
-    _state-set-number-bits  \ num1 sta
+    _state-set-num-bits  \ num1 sta
 
     \ Store number given.
     tuck                     \ sta num1 sta
@@ -110,7 +110,7 @@ state-header-disp cell+   constant state-number-disp
     assert-tos-is-state
 
     \ Save string length.
-    dup state-get-number-bits   \ addr1 sta0 nc
+    dup state-get-num-bits   \ addr1 sta0 nc
     -rot                        \ nc addr1 sta0
 
     \ Store prefix.
@@ -120,7 +120,7 @@ state-header-disp cell+   constant state-number-disp
     \ Setup for bit-position loop.
     dup state-get-number        \ nc addr1 sta0 num
     swap                        \ nc addr1 num sta0
-    state-get-number-bits       \ nc addr1 num nc
+    state-get-num-bits       \ nc addr1 num nc
     tuck                        \ nc addr1 nc num nc
     _msb-from-num-bits          \ nc addr1 nc num ms-bit
     rot                         \ nc addr1 num ms-bit nc
@@ -172,15 +172,6 @@ state-header-disp cell+   constant state-number-disp
     type
 ;
 
-\ Return true if two states are equal.
-: state-eq ( sta1 sta0 -- flag )
-    state-get-number    \ sta1 lst0
-    swap                \ lst0 sta1
-    state-get-number    \ lst0 lst1
-
-    =
-;
-
 \ Deallocate a state.
 : state-deallocate ( sta -- )
     \ Check arg.
@@ -198,28 +189,16 @@ state-header-disp cell+   constant state-number-disp
     then
 ;
 
-\ Return true if two states have the same number bits.
-: state-same-num-bits? ( sta1 sta0 -- flag )
+\ Return true if two states have a different number of bits.
+: states-dif-num-bits? ( sta1 sta0 -- flag )
     \ Check args.
     assert-tos-is-state
     assert-nos-is-state
 
-    state-get-number-bits   \ sta1 nb0
+    state-get-num-bits   \ sta1 nb0
     swap                    \ nb0 sta1
-    state-get-number-bits   \ nb0 nb1
-    =
-;
-
-\ Return true if a state and a mask have the same number bits.
-: state-same-num-bits-as-mask? ( msk1 sta0 -- flag )
-    \ Check args.
-    assert-tos-is-state
-    assert-nos-is-mask
-
-    state-get-number-bits   \ msk1 nb0
-    swap                    \ nb0 Rmsksta1
-    mask-get-number-bits    \ nb0 nb1
-    =
+    state-get-num-bits   \ nb0 nb1
+    <>
 ;
 
 \ Return a state inverted, as a mask.
@@ -228,7 +207,7 @@ state-header-disp cell+   constant state-number-disp
     assert-tos-is-state
 
     dup                         \ sta0 sta0
-    state-get-number-bits       \ sta0 nb
+    state-get-num-bits       \ sta0 nb
     _max-num-from-num-bits      \ sta0 max
 
     over                        \ sta0 max sta0
@@ -237,7 +216,7 @@ state-header-disp cell+   constant state-number-disp
     xor                         \ sta0 invert
 
     swap                        \ invert sta0
-    state-get-number-bits       \ invert nb
+    state-get-num-bits       \ invert nb
     mask-new                    \ msk
 ;
 
@@ -246,13 +225,13 @@ state-header-disp cell+   constant state-number-disp
     \ Check args.
     assert-tos-is-state
     assert-nos-is-state
-    2dup state-same-num-bits? false? abort" states do not have the same number bits?"
+    2dup states-dif-num-bits? abort" states do not have the same number of bits?"
 
     over state-get-number   \ sta1 sta0 num1
     swap state-get-number   \ sta1 num1 num0
     and                     \ sta1 num
     swap                    \ num sta1
-    state-get-number-bits   \ num nb
+    state-get-num-bits   \ num nb
     mask-new                \ msk
 ;
 
@@ -261,13 +240,13 @@ state-header-disp cell+   constant state-number-disp
     \ Check args.
     assert-tos-is-state
     assert-nos-is-state
-    2dup state-same-num-bits? false? abort" states do not have the same number bits?"
+    2dup states-dif-num-bits? abort" states do not have the same number of bits?"
 
     over state-get-number   \ sta1 sta0 num1
     swap state-get-number   \ sta1 num1 num0
     xor                     \ sta1 num
     swap                    \ num sta1
-    state-get-number-bits   \ num nb
+    state-get-num-bits   \ num nb
     mask-new                \ msk
 ;
 
@@ -276,13 +255,13 @@ state-header-disp cell+   constant state-number-disp
     \ Check args.
     assert-tos-is-state
     assert-nos-is-state
-    2dup state-same-num-bits? false? abort" states do not have the same number bits?"
+    2dup states-dif-num-bits? abort" states do not have the same number of bits?"
 
     over state-get-number   \ sta1 sta0 num1
     swap state-get-number   \ sta1 num1 num0
     or                      \ sta1 num
     swap                    \ num sta1
-    state-get-number-bits   \ num nb
+    state-get-num-bits   \ num nb
     state-new               \ msk
 ;
 
@@ -291,13 +270,15 @@ state-header-disp cell+   constant state-number-disp
     \ Check args.
     assert-tos-is-state
     assert-nos-is-mask
-    2dup state-same-num-bits-as-mask? false? abort" state and mask do not have the same number bits?"
+    over mask-get-num-bits
+    over state-get-num-bits
+    <> abort" state and mask do not have the same number of bits?"
 
     over mask-get-number    \ msk1 sta0 num1
     swap state-get-number   \ msk1 num1 num0
     or                      \ msk1 num
     swap                    \ num msk1
-    mask-get-number-bits    \ num nb
+    mask-get-num-bits    \ num nb
     state-new               \ sta
 ;
 
@@ -306,13 +287,13 @@ state-header-disp cell+   constant state-number-disp
     \ Check args.
     assert-tos-is-state
     assert-nos-is-state
-    2dup state-same-num-bits? false? abort" states do not have the same number bits?"
+    2dup states-dif-num-bits? abort" states do not have the same number of bits?"
 
     over state-get-number   \ sta1 sta0 num1
     swap state-get-number   \ sta1 num1 num0
     and                     \ sta1 num
     swap                    \ num sta1
-    state-get-number-bits   \ num nb
+    state-get-num-bits   \ num nb
     state-new               \ sta
 ;
 
@@ -321,13 +302,15 @@ state-header-disp cell+   constant state-number-disp
     \ Check args.
     assert-tos-is-state
     assert-nos-is-mask
-    2dup state-same-num-bits-as-mask? false? abort" state and mask do not have the same number bits?"
+    over mask-get-num-bits
+    over state-get-num-bits
+    <> abort" state and mask do not have the same number of bits?"
 
     over mask-get-number    \ msk1 sta0 num1
     swap state-get-number   \ msk1 num1 num0
     and                     \ msk1 num
     swap                    \ num msk1
-    mask-get-number-bits    \ num nb
+    mask-get-num-bits    \ num nb
     state-new               \ sta
 ;
 
@@ -336,13 +319,15 @@ state-header-disp cell+   constant state-number-disp
     \ Check args.
     assert-tos-is-state
     assert-nos-is-mask
-    2dup state-same-num-bits-as-mask? false? abort" state and mask do not have the same number bits?"
+    over mask-get-num-bits
+    over state-get-num-bits
+    <> abort" state and mask do not have the same number of bits?"
 
     over mask-get-number    \ msk1 sta0 num1
     swap state-get-number   \ msk1 num1 num0
     and                     \ msk1 num
     swap                    \ num msk1
-    mask-get-number-bits    \ num nb
+    mask-get-num-bits    \ num nb
     mask-new                \ msk
 ;
 
@@ -354,7 +339,7 @@ state-header-disp cell+   constant state-number-disp
     over                \ u1 sta0 u1
     0< abort" Invalid bit number?"
     2dup                \ u1 sta0 u1 sta0
-    state-get-number-bits
+    state-get-num-bits
     > abort" Invalid bit number?"
 
     state-get-number    \ u1 num
@@ -427,6 +412,11 @@ state-header-disp cell+   constant state-number-disp
 
 \ Return true if two states are equal.
 : states-eq? ( sta1 sta0 -- bool )
+    \ Check args.
+    assert-tos-is-state
+    assert-nos-is-state
+    2dup states-dif-num-bits? abort" states do not have the same number of bits?"
+
     state-get-number        \ sta1 num0
     swap state-get-number   \ num0 num1
     =

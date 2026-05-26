@@ -28,7 +28,7 @@
 : one-bit-set ( n -- flag )
     dup 0>
     if
-      dup 1 - and
+      dup 1- and
       0=
     else              \ Not GT 0
       dup 0<
@@ -232,7 +232,7 @@
     ms-bit
     1-
     1 lshift
-    1 +
+    1+
 ;
 
 \ The reverse of 2rot.

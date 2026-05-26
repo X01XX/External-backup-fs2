@@ -1185,7 +1185,7 @@ list-header-disp    cell+   constant list-links-disp
     assert-tos-is-list
 
     dup list-get-length     \ list len
-    1 -                     \ list inx
+    1-                      \ list inx
     swap list-get-item
 ;
 
