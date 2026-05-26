@@ -354,9 +354,12 @@ state-header-disp cell+   constant state-number-disp
     then
 ;
 
-\ Get a state from a string.
+\ Return false if a string is not a representation of a state.
+\
+\ Otherwise, generate a state from the string.
 \ Valid chars are 0, 1, and underscore as separator.
 \ All bit positions must be specified.
+\ Like s" s1010" state-from-string
 : state-from-string ( c-addr u --  reg t | f)
 
     \ Check length GT 1.

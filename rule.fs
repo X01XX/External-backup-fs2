@@ -276,10 +276,10 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
     then
 ;
 
-\ Return false if the string is not a representation of a rule,
-\ or a flawed representation.
+\ Return false if a string is not a representation of a rule.
 \
-\ Otherwise, return a rule and true.
+\ Otherwise, generate a rule from the string.
+\ Like s" 00/01/11/10/X0/x0/X1/x1/XX/xx/Xx/xX/" rule-from-string
 : rule-from-string ( c-addr u -- rul t | f )
 
     \ Try early exit, if possible.

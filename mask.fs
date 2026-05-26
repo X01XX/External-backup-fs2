@@ -339,9 +339,12 @@ mask-header-disp cell+  constant mask-number-disp
     then
 ;
 
-\ Get a mask from a string.
+\ Return false if a string is not a representation of a mask.
+\
+\ Otherwise, generate a mask from the string.
 \ Valid chars are 0, 1, and underscore as separator.
 \ All bit positions must be specified.
+\ Like s" m1010" mask-from-string
 : mask-from-string ( c-addr u --  reg t | f)
 
     \ Check length GT 1.

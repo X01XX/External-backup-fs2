@@ -272,9 +272,12 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     then
 ;
 
-\ Get a region from a string.
+\ Return false if a string is not a representation of a region.
+\
+\ Otherwise, generate a region from the string.
 \ Valid chars are 0, 1, X, x, and underscore as separator.
 \ All bit positions must be specified.
+\ Like s" r01Xx" region-from-string
 : region-from-string ( c-addr u --  reg t | f)
 
     \ Check length GT 1.
