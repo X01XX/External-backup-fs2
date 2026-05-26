@@ -151,7 +151,7 @@
     if
         [ ' list-interpret-string ] literal over        \ txs-lst xt tkn-lst
         list-from-token-list                            \ tkn-lst, lst t | f
-        if  
+        if
             swap token-list-deallocate                  \ lst
             true
         else

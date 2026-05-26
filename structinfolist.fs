@@ -523,7 +523,7 @@
 : stackinfolist-interpret-string ( c-addr u lst0 -- inst t | f )
     \ Check args.
     assert-tos-is-structinfo-list
-    \ cr ." stackinfolist-interpret-string: " #2 pick #2 pick type cr 
+    \ cr ." stackinfolist-interpret-string: " #2 pick #2 pick type cr
 
     list-get-links                      \ c-addr u link
 

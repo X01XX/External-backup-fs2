@@ -359,6 +359,14 @@ state-header-disp cell+   constant state-number-disp
 \ All bit positions must be specified.
 : state-from-string ( c-addr u --  reg t | f)
 
+    \ Check length GT 1.
+    dup #2 <
+    if
+        2drop
+        false
+        exit
+    then
+
     \ Check for prefix.
     over c@ [char] s <>
     if
@@ -369,6 +377,9 @@ state-header-disp cell+   constant state-number-disp
 
     \ Inc address.
     swap 1+ swap
+
+    \ Dec len.
+    1-
 
     \ Init character counter.
     0 swap              \ c-addr cnt u
@@ -398,7 +409,22 @@ state-header-disp cell+   constant state-number-disp
                         \ Update char counter.
                         swap 1+ swap
                     endof
-            \ Ignore unrecognized characters.
+            [char] _ of
+                    endof
+            \ Unrecognized character, return false.
+
+            \ Drop stack items.
+            2drop
+            2drop
+
+            \ Set return bool.
+            false
+
+            \ Cancel do loop.
+            unloop
+
+            \ Return.
+            exit
         endcase
     loop
 

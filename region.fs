@@ -182,7 +182,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     [char] r #2 pick c!
     swap 1+ swap
 
-    \ Setup for bit-position loop. 
+    \ Setup for bit-position loop.
     dup region-get-state-1          \ nc addr1 reg0 sta1
     -rot                            \ nc sta1 addr1 reg0
     dup region-get-state-0          \ nc sta1 addr1 reg0 sta0
@@ -221,7 +221,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
         \ Store char to pad.        \ nc sta1 sta0 addr1 chr
         over                        \ nc sta1 sta0 addr1 chr addr1
         c!                          \ nc sta1 sta0 addr1
-                                                                                                                                                             
+
         \ Point to next addr1 char.
         1+                          \ nc sta1 sta0 addr1
 
@@ -242,7 +242,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     region-str          \ nc
 
     \ Store string length.
-    pad c!              \   
+    pad c!              \
 
     \ Move pad string to stack.
     pad string@         \ c-addr u
@@ -277,9 +277,17 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 \ All bit positions must be specified.
 : region-from-string ( c-addr u --  reg t | f)
 
-    \ Check for prefix.
+    \ Check length GT 1.
+    dup #2 <
+    if
+        2drop
+        false
+        exit
+    then
+
+    \ Check for prefix char.
     over c@ [char] r <>
-    if  
+    if
         2drop
         false
         exit
@@ -287,6 +295,9 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 
     \ Inc address.
     swap 1+ swap
+
+    \ Dec len.
+    1-
 
     \ Init character counter.
     0 swap              \ c-addr cnt u
@@ -341,14 +352,30 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
                         \ Update char counter.
                         rot 1+ -rot
                     endof
-            \ Ignore unrecognized characters.
+            [char] _ of
+                    endof
+            \ Unrecognized character, return false.
+
+            \ Drop stack items.
+            2drop
+            2drop
+            drop
+
+            \ Set return bool.
+            false
+
+            \ Cancel do loop.
+            unloop
+
+            \ Return.
+            exit
         endcase
     loop
 
     \ Create states.        \ c-addr cnt num1 num0
     swap                    \ c-addr cnt num0 num1
     #2 pick                 \ c-addr cnt num0 num1 cnt
-    state-new               \ c-addr cnt num0 sta1 
+    state-new               \ c-addr cnt num0 sta1
     -rot                    \ c-addr sta1 cnt num0
     swap                    \ c-addr sta1 num0 cnt
     state-new               \ c-addr sta1 sta0
@@ -411,17 +438,17 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 
 \ Return the two states that make a region.
 : region-get-states ( reg0 -- sta1 sta0 )
-    \ Check arg.            
+    \ Check arg.
     assert-tos-is-region
 
     \ Calc result.
     dup region-get-state-1  \ reg0 sta1
     swap                    \ sta1 reg0
     region-get-state-0      \ sta1 sta0
-;   
+;
 
 \ Return a new region with some X positions set to zero.
-\ Change 1-0 or 0-1 to 0-0. 
+\ Change 1-0 or 0-1 to 0-0.
 \ Mask will usually have a single bit, called from region-subtract.
 : region-x-to-0 ( to-0-msk reg0 -- reg )
     \ Check args.
@@ -440,8 +467,8 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     region-new              \ reg
 ;
 
-\ Return a new region with some X positions set to one. 
-\ Change 1-0 or 0-1 to 1-1. 
+\ Return a new region with some X positions set to one.
+\ Change 1-0 or 0-1 to 1-1.
 \ Mask will usually have a single bit, called from region-subtract.
 : region-x-to-1 ( to-1-msk reg0 -- reg )
     \ Check args.
@@ -462,7 +489,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 : region-edge-mask ( reg0 -- msk )
     \ Check arg.
     assert-tos-is-region
-    
+
     \ Calc result.
     region-calc-x-mask      \ x-msk'
     dup mask-invert         \ x-msk' msk-edg
@@ -482,7 +509,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 ;
 
 \ Return true if two regions intersect, no corresponding
-\ trits are 0 and 1. 
+\ trits are 0 and 1.
 : region-intersects? ( reg1 reg0 -- flag )
     \ Check args.
     assert-tos-is-region
@@ -542,8 +569,8 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 \ Return the region high state and low state.
 : region-high-low ( reg0 -- high low )
     \ Check arg.
-    assert-tos-is-region 
-    
+    assert-tos-is-region
+
     \ Calc result.
     dup region-high-state   \ reg0 high
     swap region-low-state   \ high low
@@ -560,14 +587,14 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 
     \ Check that the two regions intersect.
     2dup region-intersects?     \ reg1 reg0 bool
-    if  
+    if
         \ Get high and low state of reg0
         region-high-low         \ reg1 reg0high' reg0low'
-                                    
+
         \ Get high and low state of reg1
         rot                     \ reg0high' reg0low' reg1
         region-high-low         \ reg0high' reg0low' reg1high' reg1low'
-        
+
         \ Group high/low states.
         rot                     \ reg0high' reg1high' reg1low' reg0low'
 
@@ -579,7 +606,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 
         \ Calc highest state.
         -rot                    \ reg-low2' reg0high' reg1high'
-        2dup                    \ reg-low2' reg0high' reg1high' reg0high' reg1high' 
+        2dup                    \ reg-low2' reg0high' reg1high' reg0high' reg1high'
         state-and               \ reg-low2' reg0high' reg1high' high2'
         swap state-deallocate   \ reg-low2' reg0high' high2'
         swap state-deallocate   \ reg-low2' high2'
@@ -603,10 +630,10 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     \ Check address.
     2dup =                  \ reg1 reg0 bool
     if
-        2drop   
-        true    
+        2drop
+        true
         exit
-    then    
+    then
 
     over region-high-state  \ reg1 reg0 reg1-h'
     over region-high-state  \ reg1 reg0 reg1-h' reg0-h'
@@ -616,8 +643,8 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     swap state-deallocate   \ reg1 reg0 bool
     if
     else
-        2drop   
-        false   
+        2drop
+        false
         exit
     then
 
@@ -630,7 +657,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 ;
 
 \ Return true if a TOS region is a superset of the NOS region.
-: region-superset? ( reg1 reg-sup -- flag ) 
+: region-superset? ( reg1 reg-sup -- flag )
     \ Check args.
     assert-tos-is-region
     assert-nos-is-region
@@ -653,16 +680,16 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 
 \ Return true if a TOS region is a superset of the NOS state.
 : region-superset-of-state? ( sta1 reg0 -- flag )
-    \ Check args.           
+    \ Check args.
     assert-tos-is-region
     assert-nos-is-state
     over state-get-num-bits
     over region-get-num-bits
     <> abort" state and region do not have the same number bits?"
-        
+
     region-get-states           \ sta1 reg-sta1 reg-sta0
 
-    \ Get sta1 dif reg-sta0 
+    \ Get sta1 dif reg-sta0
     rot                         \ reg-sta1 reg-sta0 sta1
     tuck                        \ reg-sta1 sta1 reg-sta0 sta1
     state-xor-to-mask           \ reg-sta1 sta1 dif0'
@@ -681,4 +708,4 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     dup                         \ both-dif' both-dif'
     mask-is-zero?               \ both-dif' bool
     swap mask-deallocate        \ bool
-; 
+;

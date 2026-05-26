@@ -146,13 +146,13 @@ sample-initial-disp cell+   constant sample-result-disp     \ Result state.
     #2 pick                 \ addr1 smpl0 cntr chr addr1 cntr
     +                       \ addr1 smpl0 cntr chr addr2
     c! 1+                   \ addr1 smpl0 cntr+
-    
+
     [char] >                \ addr1 smpl0 cntr chr
     #3 pick                 \ addr1 smpl0 cntr chr addr1
     #2 pick                 \ addr1 smpl0 cntr chr addr1 cntr
     +                       \ addr1 smpl0 cntr chr addr2
     c! 1+                   \ addr1 smpl0 cntr+
-    
+
     \ Store the result state.
     #2 pick                 \ addr1 smpl0 cntr addr1
     over                    \ addr1 smpl0 cntr addr1 cntr
@@ -168,7 +168,7 @@ sample-initial-disp cell+   constant sample-result-disp     \ Result state.
     #2 pick                 \ addr1 smpl0 cntr chr addr1 cntr
     +                       \ addr1 smpl0 cntr chr addr2
     c! 1+                   \ addr1 smpl0 cntr+
-    
+
     \ Return.
     nip nip                 \ cntr
 ;

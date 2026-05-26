@@ -90,7 +90,7 @@ list-new to structinfo-list-store
     then
 
     cr cr
-    s" ((1 2) (3 4) (5 6))"
+    s" ((1 2) (3 4) (5 6) ())"
     cr 2dup ." list string: " type cr
     list-from-string        \ lst t | f
     if
