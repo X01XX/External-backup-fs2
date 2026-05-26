@@ -74,7 +74,7 @@ list-new to structinfo-list-store
 ' region-from-string ' region-deallocate '   .region s" Region"  region-mma  region-id   structinfo-new structinfo-list-store structinfo-list-push-end
 ' floatnum-from-string ' floatnum-deallocate '   .floatnum s" FloatNum"  floatnum-mma  floatnum-id   structinfo-new structinfo-list-store structinfo-list-push-end
 ' noop ' token-deallocate '   .token s" Token"  token-mma  token-id   structinfo-new structinfo-list-store structinfo-list-push-end
-' noop ' rule-deallocate '     .rule   s" Rule"    rule-mma    rule-id     structinfo-new structinfo-list-store structinfo-list-push-end
+' rule-from-string ' rule-deallocate '     .rule   s" Rule"    rule-mma    rule-id     structinfo-new structinfo-list-store structinfo-list-push-end
 ' noop ' sample-deallocate '   .sample s" Sample"  sample-mma  sample-id   structinfo-new structinfo-list-store structinfo-list-push-end
 
 : main
@@ -101,7 +101,7 @@ list-new to structinfo-list-store
     then
 
     cr cr
-    s" ((1 rX001) (3 m1010) (5 s1000))"
+    s" ((1 rX001) (3 m1010) (5 s1000) 01/10/XX/Xx/)"
     cr 2dup ." list string: " type cr
     list-from-string        \ lst t | f
     if
