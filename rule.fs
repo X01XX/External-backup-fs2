@@ -276,3 +276,227 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
     then
 ;
 
+\ Shift a mask 1 bit to the left.
+: mask-lshift-1 ( msk0 -- )
+    \ Check arg.
+    assert-tos-is-mask
+
+    dup mask-get-number     \ msk0 num
+    1 lshift                \ msk0 num<
+    swap _mask-set-number   \
+;
+
+\ Add one to a mask.
+: mask-add-1 ( msk0 -- )
+    \ Check arg.
+    assert-tos-is-mask
+
+    dup mask-get-number     \ msk0 num
+    1+                      \ msk0 num+
+    swap _mask-set-number   \
+;
+
+: rule-from-string ( c-addr u -- rul t | f )
+    \ Check min length.
+    dup #3 <
+    if
+        2drop
+        false
+        exit
+    then
+
+    \ Check length is a multiple of 3.
+    dup #3 mod 0<>
+    if
+        2drop
+        false
+        exit
+    then
+
+    \ Check first separator.
+    over #2 + c@
+    [char] / <>
+    if
+        over #2 + c@
+        [char] _ <>
+        if
+            2drop
+            false
+            exit
+        then
+    then
+
+    \ Get number rule bits.
+    3 /                 \ c-addr rb
+    cr ." num rule bits = " dup . cr
+
+    \ init rule masks.
+    0 over mask-new -rot    \ m00 c-addr rb
+    0 over mask-new -rot    \ m00 m01 c-addr rb
+    0 over mask-new -rot    \ m00 m01 m11 c-addr rb
+    0 over mask-new -rot    \ m00 m01 m11 m10 c-addr rb
+
+    0 do
+                            \ m00 m01 m11 m10 c-addr
+        \ Shift masks left 1 bit.
+        #1 pick mask-lshift-1
+        #2 pick mask-lshift-1
+        #3 pick mask-lshift-1
+        #4 pick mask-lshift-1
+        dup c@
+        case
+            [char] 0 of     \ m00 m01 m11 m10 c-addr
+                1+ dup c@
+                case
+                    [char] 0 of
+                        cr ."     00 found" cr
+                        #4 pick mask-add-1
+                    endof
+                    [char] 1 of
+                        cr ."     01 found" cr
+                        #3 pick mask-add-1
+                    endof
+                    \ Unrecognized char, or 0X, exit with false.
+                    2drop
+                    mask-deallocate
+                    mask-deallocate
+                    mask-deallocate
+                    mask-deallocate
+                    unloop
+                    false
+                    exit
+                endcase
+            endof
+            [char] 1 of     \ m00 m01 m11 m10 c-addr
+                1+ dup c@
+                case
+                    [char] 0 of
+                        cr ."     10 found" cr
+                        #1 pick mask-add-1
+                    endof
+                    [char] 1 of
+                        cr ."     11 found" cr
+                        #2 pick mask-add-1
+                    endof
+                    \ Unrecognized char, or 1X, exit with false.
+                    2drop
+                    mask-deallocate
+                    mask-deallocate
+                    mask-deallocate
+                    mask-deallocate
+                    unloop
+                    false
+                    exit
+                endcase
+            endof
+            [char] X of     \ m00 m01 m11 m10 c-addr
+                1+ dup c@
+                case
+                    [char] 0 of
+                        cr ."     X0 found" cr
+                        #4 pick mask-add-1  \ m00
+                        #1 pick mask-add-1  \ m10
+                    endof
+                    [char] 1 of
+                        cr ."     X1 found" cr
+                        #3 pick mask-add-1  \ m01
+                        #2 pick mask-add-1  \ m11
+                    endof
+                    [char] X of
+                        cr ."     XX found" cr
+                        #4 pick mask-add-1  \ m00
+                        #2 pick mask-add-1  \ m11
+                    endof
+                    [char] x of
+                        cr ."     Xx found" cr
+                        #3 pick mask-add-1  \ m01
+                        #1 pick mask-add-1  \ m10
+                    endof
+                    \ Unrecognized char, exit with false.
+                    2drop
+                    mask-deallocate
+                    mask-deallocate
+                    mask-deallocate
+                    mask-deallocate
+                    unloop
+                    false
+                    exit
+                endcase
+            endof
+            [char] x of     \ m00 m01 m11 m10 c-addr
+                1+ dup c@
+                case
+                    [char] 0 of
+                        cr ."     x0 found" cr
+                        #4 pick mask-add-1  \ m00
+                        #1 pick mask-add-1  \ m10
+                    endof
+                    [char] 1 of
+                        cr ."     x1 found" cr
+                        #3 pick mask-add-1  \ m01
+                        #2 pick mask-add-1  \ m11
+                    endof
+                    [char] X of
+                        cr ."     xX found" cr
+                        #3 pick mask-add-1  \ m01
+                        #1 pick mask-add-1  \ m10
+                    endof
+                    [char] x of
+                        cr ."     xx found" cr
+                        #4 pick mask-add-1  \ m00
+                        #2 pick mask-add-1  \ m11
+                    endof
+                    \ Unrecognized char, exit with false.
+                    2drop
+                    mask-deallocate
+                    mask-deallocate
+                    mask-deallocate
+                    mask-deallocate
+                    unloop
+                    false
+                    exit
+                endcase
+            endof
+            \ Unrecognized char.
+            2drop
+            mask-deallocate
+            mask-deallocate
+            mask-deallocate
+            mask-deallocate
+            unloop
+            false
+            exit
+        endcase
+
+        \ Check separator.
+        1+ dup c@
+        case
+            [char] / of
+            endof
+            [char] _ of
+            endof
+            \ Unrecognized char, exit with false.
+            2drop
+            mask-deallocate
+            mask-deallocate
+            mask-deallocate
+            mask-deallocate
+            unloop
+            false
+            exit
+        endcase
+
+        \ Point to next rule bit.
+        1+
+
+    loop
+                                \ c-addr+
+    drop
+    cr ." m10: " dup .mask mask-deallocate
+    cr ." m11: " dup .mask mask-deallocate
+    cr ." m01: " dup .mask mask-deallocate
+    cr ." m00: " dup .mask mask-deallocate
+    cr
+
+    true
+;
