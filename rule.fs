@@ -276,33 +276,13 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
     then
 ;
 
-\ Shift a mask 1 bit to the left.
-: mask-lshift-1 ( msk0 -- )
-    \ Check arg.
-    assert-tos-is-mask
-
-    dup mask-get-number     \ msk0 num
-    1 lshift                \ msk0 num<
-    swap _mask-set-number   \
-;
-
-\ Add one to a mask.
-: mask-add-1 ( msk0 -- )
-    \ Check arg.
-    assert-tos-is-mask
-
-    dup mask-get-number     \ msk0 num
-    1+                      \ msk0 num+
-    swap _mask-set-number   \
-;
-
 \ Return false if the string is not a representation of a rule,
 \ or a flawed representation.
 \
 \ Otherwise, return a rule and true.
 : rule-from-string ( c-addr u -- rul t | f )
 
-    \ Try to exit before allocating masks, if possible.
+    \ Try early exit, if possible.
 
     \ Check min length.
     dup #3 <
@@ -356,11 +336,11 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
                 1+ dup c@
                 case
                     [char] 0 of
-                        cr ."     00 found" cr
+                        \ 00 found
                         #4 pick mask-add-1
                     endof
                     [char] 1 of
-                        cr ."     01 found" cr
+                        \ 01 found
                         #3 pick mask-add-1
                     endof
                     \ Unrecognized char, or 0X, exit with false.
@@ -378,11 +358,11 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
                 1+ dup c@
                 case
                     [char] 0 of
-                        cr ."     10 found" cr
+                        \ 10 found
                         #1 pick mask-add-1
                     endof
                     [char] 1 of
-                        cr ."     11 found" cr
+                        \ 11 found
                         #2 pick mask-add-1
                     endof
                     \ Unrecognized char, or 1X, exit with false.
@@ -400,22 +380,22 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
                 1+ dup c@
                 case
                     [char] 0 of
-                        cr ."     X0 found" cr
+                        \ X0 found
                         #4 pick mask-add-1  \ m00
                         #1 pick mask-add-1  \ m10
                     endof
                     [char] 1 of
-                        cr ."     X1 found" cr
+                        \ X1 found
                         #3 pick mask-add-1  \ m01
                         #2 pick mask-add-1  \ m11
                     endof
                     [char] X of
-                        cr ."     XX found" cr
+                        \ XX found
                         #4 pick mask-add-1  \ m00
                         #2 pick mask-add-1  \ m11
                     endof
                     [char] x of
-                        cr ."     Xx found" cr
+                        \ Xx found
                         #3 pick mask-add-1  \ m01
                         #1 pick mask-add-1  \ m10
                     endof
@@ -434,22 +414,22 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
                 1+ dup c@
                 case
                     [char] 0 of
-                        cr ."     x0 found" cr
+                        \ x0 found
                         #4 pick mask-add-1  \ m00
                         #1 pick mask-add-1  \ m10
                     endof
                     [char] 1 of
-                        cr ."     x1 found" cr
+                        \ x1 found
                         #3 pick mask-add-1  \ m01
                         #2 pick mask-add-1  \ m11
                     endof
                     [char] X of
-                        cr ."     xX found" cr
+                        \ xX found
                         #3 pick mask-add-1  \ m01
                         #1 pick mask-add-1  \ m10
                     endof
                     [char] x of
-                        cr ."     xx found" cr
+                        \ xx found
                         #4 pick mask-add-1  \ m00
                         #2 pick mask-add-1  \ m11
                     endof
@@ -497,13 +477,18 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
         1+
 
     loop
-                                \ c-addr+
-    drop
-    cr ." m10: " dup .mask mask-deallocate
-    cr ." m11: " dup .mask mask-deallocate
-    cr ." m01: " dup .mask mask-deallocate
-    cr ." m00: " dup .mask mask-deallocate
-    cr
+                                \ m00 m01 m11 m10 c-addr+
+    drop                        \ m00 m01 m11 m10 
+
+    \ Allocate a new rule.
+    rule-id rule-mma
+    struct-allocate             \ m00 m01 m11 m10 rul
+
+    \ Load masks.
+    tuck _rule-set-m10             \ m00 m01 m11 rul
+    tuck _rule-set-m11             \ m00 m01 rul
+    tuck _rule-set-m01             \ m00 rul
+    tuck _rule-set-m00             \ rul
 
     true
 ;

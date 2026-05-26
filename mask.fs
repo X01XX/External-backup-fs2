@@ -429,3 +429,23 @@ mask-header-disp cell+  constant mask-number-disp
     mask-get-number     \ num
     0=                  \ bool
 ;
+
+\ Shift a mask 1 bit to the left.
+: mask-lshift-1 ( msk0 -- )
+    \ Check arg.
+    assert-tos-is-mask
+
+    dup mask-get-number     \ msk0 num
+    1 lshift                \ msk0 num<
+    swap _mask-set-number   \
+;
+
+\ Add one to a mask.
+: mask-add-1 ( msk0 -- )
+    \ Check arg.
+    assert-tos-is-mask
+
+    dup mask-get-number     \ msk0 num
+    1+                      \ msk0 num+
+    swap _mask-set-number   \
+;
