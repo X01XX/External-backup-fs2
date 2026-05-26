@@ -296,7 +296,14 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
     swap _mask-set-number   \
 ;
 
+\ Return false if the string is not a representation of a rule,
+\ or a flawed representation.
+\
+\ Otherwise, return a rule and true.
 : rule-from-string ( c-addr u -- rul t | f )
+
+    \ Try to exit before allocating masks, if possible.
+
     \ Check min length.
     dup #3 <
     if
@@ -313,7 +320,7 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
         exit
     then
 
-    \ Check first separator.
+    \ Check the first separator character.
     over #2 + c@
     [char] / <>
     if
@@ -328,7 +335,6 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
 
     \ Get number rule bits.
     3 /                 \ c-addr rb
-    cr ." num rule bits = " dup . cr
 
     \ init rule masks.
     0 over mask-new -rot    \ m00 c-addr rb
@@ -337,7 +343,8 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
     0 over mask-new -rot    \ m00 m01 m11 m10 c-addr rb
 
     0 do
-                            \ m00 m01 m11 m10 c-addr
+        \ For each set of 3 characters, left to right.
+
         \ Shift masks left 1 bit.
         #1 pick mask-lshift-1
         #2 pick mask-lshift-1
