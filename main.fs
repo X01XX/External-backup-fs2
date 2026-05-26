@@ -84,7 +84,6 @@ list-new to structinfo-list-store
     list-from-string        \ lst t | f
     if
         cr ." List: " dup structinfo-list-print-struct-list
-        structinfo-list-deallocate-struct-list
     else
         cr ." list-from-string failed" cr
         abort
@@ -96,7 +95,17 @@ list-new to structinfo-list-store
     list-from-string        \ lst t | f
     if
         cr ." List: " dup structinfo-list-print-struct-list
-        structinfo-list-deallocate-struct-list
+    else
+        cr ." list-from-string failed" cr
+        abort
+    then
+
+    cr cr
+    s" ((1 rX001) (3 m1010) (5 s1000))"
+    cr 2dup ." list string: " type cr
+    list-from-string        \ lst t | f
+    if
+        cr ." List: " dup structinfo-list-print-struct-list
     else
         cr ." list-from-string failed" cr
         abort
@@ -108,7 +117,6 @@ list-new to structinfo-list-store
     region-list-from-string        \ lst t | f
     if
         cr ." List: " dup structinfo-list-print-struct-list
-        region-list-deallocate
     else
         cr ." list-from-string failed" cr
         abort
@@ -119,7 +127,7 @@ list-new to structinfo-list-store
     s" rX0X1" region-from-string
     invert abort" region-from-string: failed"
     2dup region-subtract            \ reg2 reg1 reg-lst
-    cr ." rX0X1 - r1001 = " dup .region-list cr
+    cr cr ." rX0X1 - r1001 = " dup .region-list cr
 
     \ Finish.
     cr structinfo-list-store structinfo-list-print-memory-use cr
@@ -130,6 +138,10 @@ list-new to structinfo-list-store
     region-list-deallocate
     region-deallocate
     region-deallocate
+    region-list-deallocate
+    structinfo-list-deallocate-struct-list
+    structinfo-list-deallocate-struct-list
+    structinfo-list-deallocate-struct-list
 
     cr structinfo-list-store structinfo-list-print-memory-use cr
 

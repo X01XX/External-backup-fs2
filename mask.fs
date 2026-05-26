@@ -346,7 +346,7 @@ mask-header-disp cell+  constant mask-number-disp
 
     \ Check for prefix.
     over c@ [char] m <>
-    if
+    if  
         2drop
         false
         exit
@@ -364,16 +364,7 @@ mask-header-disp cell+  constant mask-number-disp
 
     \ For each character...
     do                  \ c-addr cnt num num0
-        \ Get a character.    \ Check arg.
-    assert-tos-is-mask
-
-    over                \ u1 msk0 u1
-    0< abort" Invalid bit number?"
-    2dup                \ u1 msk0 u1 msk0
-    mask-get-num-bits
-    > abort" Invalid bit number?"
-
-    mask-get-number     \ u1 num
+        \ Get a character.
         #2 pick         \ c-addr cnt num c-addr
         i +             \ c-addr cnt num c-addr+
         c@              \ c-addr cnt num chr
@@ -400,7 +391,7 @@ mask-header-disp cell+  constant mask-number-disp
     swap                    \ c-addr num cnt
     mask-new                \ c-addr msk
 
-    nip                     \ msk
+    nip                     \ sta
     true
 ;
 
