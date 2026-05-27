@@ -314,7 +314,7 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
     then
 
     \ Get number rule bits.
-    3 /                 \ c-addr rb
+    #3 /                    \ c-addr rb
 
     \ init rule masks.
     0 over mask-new -rot    \ m00 c-addr rb
@@ -322,7 +322,8 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
     0 over mask-new -rot    \ m00 m01 m11 c-addr rb
     0 over mask-new -rot    \ m00 m01 m11 m10 c-addr rb
 
-    0 do
+    0 do                    \ m00 m01 m11 m10 c-addr
+
         \ For each set of 3 characters, left to right.
 
         \ Shift masks left 1 bit.
@@ -478,7 +479,7 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
 
     loop
                                 \ m00 m01 m11 m10 c-addr+
-    drop                        \ m00 m01 m11 m10 
+    drop                        \ m00 m01 m11 m10
 
     \ Allocate a new rule.
     rule-id rule-mma
@@ -492,3 +493,25 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
 
     true
 ;
+
+\ Return the number of bits used for a rule.
+: rule-get-num-bits ( rul0 -- nb )
+    \ Check arg.
+    assert-tos-is-rule
+
+    rule-get-m00            \ m00
+    mask-get-num-bits       \ nb
+;
+
+\ Return true if two rules have a differant number of bits.
+: rules-dif-num-bits? ( rul1 rul0 -- flag )
+    \ Check args.
+    assert-tos-is-rule
+    assert-nos-is-rule
+
+    rule-get-num-bits  \ rul1 nb0
+    swap               \ nb0 rul1
+    rule-get-num-bits  \ nb0 nb1
+    <>
+;
+

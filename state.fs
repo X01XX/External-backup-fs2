@@ -196,7 +196,7 @@ state-header-disp cell+   constant state-number-disp
     assert-nos-is-state
 
     state-get-num-bits   \ sta1 nb0
-    swap                    \ nb0 sta1
+    swap                 \ nb0 sta1
     state-get-num-bits   \ nb0 nb1
     <>
 ;

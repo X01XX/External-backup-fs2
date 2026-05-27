@@ -375,10 +375,12 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
         endcase
     loop
 
-    \ Create states.        \ c-addr cnt num1 num0
+    \ Create state 1.       \ c-addr cnt num1 num0
     swap                    \ c-addr cnt num0 num1
     #2 pick                 \ c-addr cnt num0 num1 cnt
     state-new               \ c-addr cnt num0 sta1
+
+    \ Create state 0.
     -rot                    \ c-addr sta1 cnt num0
     swap                    \ c-addr sta1 num0 cnt
     state-new               \ c-addr sta1 sta0
@@ -505,8 +507,8 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     assert-tos-is-region
     assert-nos-is-region
 
-    region-get-num-bits  \ sta1 nb0
-    swap                    \ nb0 sta1
+    region-get-num-bits  \ reg1 nb0
+    swap                 \ nb0 reg1
     region-get-num-bits  \ nb0 nb1
     <>
 ;

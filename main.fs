@@ -80,7 +80,7 @@ list-new to structinfo-list-store
 : main
     cr cr
     s" (((1 2) (3 4) (5 6)))"
-    cr 2dup ." list string: " type cr
+    cr 2dup ." list string: " [char] " emit type [char] " emit cr
     list-from-string        \ lst t | f
     if
         cr ." List: " dup structinfo-list-print-struct-list
@@ -90,8 +90,8 @@ list-new to structinfo-list-store
     then
 
     cr cr
-    s" ((1 2) (3 4) (5 6) ())"
-    cr 2dup ." list string: " type cr
+    s" ((1 2) (3 4) (5 6) () 1.3e)"
+    cr 2dup ." list string: " [char] " emit type [char] " emit cr
     list-from-string        \ lst t | f
     if
         cr ." List: " dup structinfo-list-print-struct-list
@@ -102,7 +102,7 @@ list-new to structinfo-list-store
 
     cr cr
     s" ((1 rX001) (3 m1010) (5 s1000) 01/10/XX/Xx/)"
-    cr 2dup ." list string: " type cr
+    cr 2dup ." list string: " [char] " emit type [char] " emit cr
     list-from-string        \ lst t | f
     if
         cr ." List: " dup structinfo-list-print-struct-list
@@ -113,7 +113,7 @@ list-new to structinfo-list-store
 
     cr cr
     s" (r1001 r00000 r101)"
-    cr 2dup ." Region list string: " type cr
+    cr 2dup ." Region list string: " [char] " emit type [char] " emit cr
     region-list-from-string        \ lst t | f
     if
         cr ." List: " dup structinfo-list-print-struct-list

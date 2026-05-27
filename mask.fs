@@ -248,7 +248,7 @@ mask-header-disp cell+  constant mask-number-disp
     assert-nos-is-mask
 
     mask-get-num-bits    \ msk1 nb0
-    swap                    \ nb0 msk1
+    swap                 \ nb0 msk1
     mask-get-num-bits    \ nb0 nb1
     <>
 ;
@@ -273,7 +273,7 @@ mask-header-disp cell+  constant mask-number-disp
     assert-tos-is-mask
 
     dup                         \ msk0 msk0
-    mask-get-num-bits        \ msk0 nb
+    mask-get-num-bits           \ msk0 nb
     _max-num-from-num-bits      \ msk0 max
 
     over                        \ msk0 max msk0
@@ -282,7 +282,7 @@ mask-header-disp cell+  constant mask-number-disp
     xor                         \ msk0 invert
 
     swap                        \ invert msk0
-    mask-get-num-bits        \ invert nb
+    mask-get-num-bits           \ invert nb
     mask-new                    \ msk
 ;
 
@@ -438,8 +438,16 @@ mask-header-disp cell+  constant mask-number-disp
     \ Check arg.
     assert-tos-is-mask
 
+    \ Shift 1.
     dup mask-get-number     \ msk0 num
     1 lshift                \ msk0 num<
+
+    \ Mask off excess bits, if any.
+    over mask-get-num-bits  \ msk0 num< nb
+    _max-num-from-num-bits  \ msk0 num< max
+    and                     \ msk0 num<
+
+    \ Finish.
     swap _mask-set-number   \
 ;
 
@@ -450,5 +458,12 @@ mask-header-disp cell+  constant mask-number-disp
 
     dup mask-get-number     \ msk0 num
     1+                      \ msk0 num+
+
+    \ Mask off excess bits, if any.
+    over mask-get-num-bits  \ msk0 num+ nb
+    _max-num-from-num-bits  \ msk0 num+ max
+    and                     \ msk0 num+
+
+    \ Finish.
     swap _mask-set-number   \
 ;
