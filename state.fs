@@ -439,6 +439,12 @@ state-header-disp cell+   constant state-number-disp
     true
 ;
 
+\ Return a state from a string, or abart.
+: state-from-string-a ( c-addr u -- sta )
+    state-from-string   \ sta t | f
+    invert abort" Invalid state string"
+;
+
 \ Return true if two states are equal.
 : states-eq? ( sta1 sta0 -- bool )
     \ Check args.

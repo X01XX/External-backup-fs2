@@ -2,17 +2,17 @@
 
 : mask-test-basic
     \ Test mask-new.
-    #5 #4 mask-new              \ msk
+    s" m0101" mask-from-string-a    \ msk
 
     \ Test .mask works.
-    cr ." mask: " dup .mask     \ msk
+    cr ." mask: " dup .mask         \ msk
 
     \ Test mask-str produces the expected output.
-    pad 1+ over                 \ msk pad+ msk
-    mask-str                    \ msk nc
-    pad c!                      \ msk
-    pad string@                 \ msk c-addr cnt
-    s" m0101"                    \ msk c-addr cnt c-addr cnt
+    pad 1+ over                     \ msk pad+ msk
+    mask-str                        \ msk nc
+    pad c!                          \ msk
+    pad string@                     \ msk c-addr cnt
+    s" m0101"                       \ msk c-addr cnt c-addr cnt
     str=
     false? abort" string not as expected"
 
@@ -26,14 +26,14 @@
 ;
 
 : mask-test-eq
-    #5 #6 mask-new              \ msk5
-    #4 #6 mask-new              \ msk5 msk4
-    #5 #6 mask-new              \ msk5 msk4 msk5b
+    s" m000101" mask-from-string-a  \ msk5
+    s" m000100" mask-from-string-a  \ msk5 msk4
+    s" m000101" mask-from-string-a  \ msk5 msk4 msk5b
 
-    #2 pick over masks-eq?      \ msk5 msk4 msk5b bool
+    #2 pick over masks-eq?          \ msk5 msk4 msk5b bool
     false? abort" masks not eq?"
 
-    2dup masks-eq?              \ msk5 msk4 msk5b bool
+    2dup masks-eq?                  \ msk5 msk4 msk5b bool
     abort" masks  eq?"
 
     \ Clean up.
@@ -48,7 +48,7 @@
 ;
 
 : mask-test-bit
-    #5 #4 mask-new              \ msk5
+    s" m0101" mask-from-string-a    \ msk5
     #3 over mask-bit 0<> abort" Isvalid bit value?"
     #2 over mask-bit 1 <> abort" Isvalid bit value?"
     1 over mask-bit 0<> abort" Isvalid bit value?"
@@ -64,13 +64,13 @@
 ;
 
 : mask-test-and
-    #5 #4 mask-new          \ msk5
-    #6 #4 mask-new          \ msk5 msk6
-    2dup                    \ msk5 msk6 msk5 msk6
-    mask-and                \ msk5 msk6 msk56
+    s" m0101" mask-from-string-a    \ msk5
+    s" m0110" mask-from-string-a    \ msk5 msk6
+    2dup                            \ msk5 msk6 msk5 msk6
+    mask-and                        \ msk5 msk6 msk56
 
-    #4 #4 mask-new          \ msk5 msk6 m-k56 msk4
-    2dup masks-eq?          \ msk5 msk6 m-k56 msk4 bool
+    s" m0100" mask-from-string-a    \ msk5 msk6 m-k56 msk4
+    2dup masks-eq?                  \ msk5 msk6 m-k56 msk4 bool
     false? abort" mask and ne 4?"
 
     \ Clean up.
@@ -86,11 +86,11 @@
 ;
 
 : mask-test-invert
-    #5 #4 mask-new          \ msk5
-    dup mask-invert         \ msk5 msk~5
-    #10 #4 mask-new         \ msk5 msk~5 msk10
+    s" m0101" mask-from-string-a    \ msk5
+    dup mask-invert                 \ msk5 msk~5
+    s" m1010" mask-from-string-a    \ msk5 msk~5 msk10
 
-    2dup masks-eq?          \ msk5 msk~5 msk10 bool
+    2dup masks-eq?                  \ msk5 msk~5 msk10 bool
     false? abort" mask ne 10?"
 
     \ Clean up.
@@ -105,15 +105,15 @@
 ;
 
 : mask-test-dif-num-bits?
-    #5 #4 mask-new              \ msk54
-    #4 #4 mask-new              \ msk54 msk44
-    #5 #3 mask-new              \ msk54 msk44 msk53
+    s" m0101" mask-from-string-a    \ msk54
+    s" m0100" mask-from-string-a    \ msk54 msk44
+    s" m101" mask-from-string-a     \ msk54 msk44 msk53
 
-    2dup masks-dif-num-bits?    \ msk54 msk44 msk53 bool
+    2dup masks-dif-num-bits?        \ msk54 msk44 msk53 bool
     invert abort" masks have same num bits?"
 
-    #2 pick #2 pick             \ msk54 msk44 msk53 msk54 msk44
-    masks-dif-num-bits?         \ msk54 msk44 msk53 bool
+    #2 pick #2 pick                 \ msk54 msk44 msk53 msk54 msk44
+    masks-dif-num-bits?             \ msk54 msk44 msk53 bool
     abort" masks don't have the same num bits?"
 
     \ Clean up.

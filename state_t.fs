@@ -2,17 +2,17 @@
 
 : state-test-basic
     \ Test state-new.
-    #5 #4 state-new              \ sta
+    s" s0101" state-from-string-a   \ sta
 
     \ Test .state works.
-    cr ." state: " dup .state     \ sta
+    cr ." state: " dup .state       \ sta
 
     \ Test state-str produces the expected output.
-    pad 1+ over                 \ sta pad+ sta
-    state-str                   \ sta nc
-    pad c!                      \ sta
-    pad string@                 \ sta c-addr cnt
-    s" s0101"                    \ sta c-addr cnt c-addr cnt
+    pad 1+ over                     \ sta pad+ sta
+    state-str                       \ sta nc
+    pad c!                          \ sta
+    pad string@                     \ sta c-addr cnt
+    s" s0101"                       \ sta c-addr cnt c-addr cnt
     str=
     false? abort" string not as expected"
 
@@ -26,14 +26,14 @@
 ;
 
 : state-test-eq
-    #5 #6 state-new              \ sta5
-    #4 #6 state-new              \ sta5 sta4
-    #5 #6 state-new              \ sta5 sta4 sta5b
+    s" s000101" state-from-string-a \ sta5
+    s" s000100" state-from-string-a \ sta5 sta4
+    s" s000101" state-from-string-a \ sta5 sta4 sta5b
 
-    #2 pick over states-eq?      \ sta5 sta4 sta5b bool
+    #2 pick over states-eq?         \ sta5 sta4 sta5b bool
     false? abort" states not eq?"
 
-    2dup states-eq?              \ sta5 sta4 sta5b bool
+    2dup states-eq?                 \ sta5 sta4 sta5b bool
     abort" states  eq?"
 
     \ Clean up.
@@ -48,7 +48,7 @@
 ;
 
 : state-test-bit
-    #5 #4 state-new              \ sta5
+    s" s0101" state-from-string-a   \ sta5
     #3 over state-bit 0<> abort" Isvalid bit value?"
     #2 over state-bit 1 <> abort" Isvalid bit value?"
     1 over state-bit 0<> abort" Isvalid bit value?"
@@ -64,13 +64,13 @@
 ;
 
 : state-test-and
-    #5 #4 state-new         \ sta5
-    #6 #4 state-new         \ sta5 sta6
-    2dup                    \ sta5 sta6 sta5 sta6
-    state-and-state-to-mask \ sta5 sta6 msk56
+    s" s0101" state-from-string-a   \ sta5
+    s" s0110" state-from-string-a   \ sta5 sta6
+    2dup                            \ sta5 sta6 sta5 sta6
+    state-and-state-to-mask         \ sta5 sta6 msk56
 
-    #4 #4 mask-new          \ sta5 sta6 msk56 msk4
-    2dup masks-eq?          \ sta5 sta6 msk56 msk4 bool
+    s" m0100" mask-from-string-a    \ sta5 sta6 msk56 msk4
+    2dup masks-eq?                  \ sta5 sta6 msk56 msk4 bool
     false? abort" state and ne 4?"
 
     \ Clean up.
@@ -86,13 +86,13 @@
 ;
 
 : state-test-and-mask
-    #6 #4 mask-new          \ msk6
-    #5 #4 state-new         \ msk6 sta5
-    2dup                    \ msk6 sta5 msk6 sta5
-    state-and-mask-to-mask  \ msk6 sta5 msk56
+    s" m0110" mask-from-string-a    \ msk6
+    s" s0101" state-from-string-a   \ msk6 sta5
+    2dup                            \ msk6 sta5 msk6 sta5
+    state-and-mask-to-mask          \ msk6 sta5 msk56
 
-    #4 #4 mask-new          \ msk6 sta5 msk56 msk4
-    2dup masks-eq?          \ msk6 sta5 msk56 msk4 bool
+    s" m0100" mask-from-string-a    \ msk6 sta5 msk56 msk4
+    2dup masks-eq?                  \ msk6 sta5 msk56 msk4 bool
     false? abort" state and ne 4?"
 
     \ Clean up.
@@ -107,13 +107,13 @@
     cr ." state-test-and-mask - Ok"
 ;
 
-: state-test-invert
-    #5 #4 state-new         \ sta5
-    dup                     \ sta5 sta5
-    state-invert-to-mask    \ sta5 msk~5
-    #10 #4 mask-new         \ sta5 msk~5 msk10
+: state-test-invert-to-mask
+    s" s0101" state-from-string-a   \ sta5
+    dup                             \ sta5 sta5
+    state-invert-to-mask            \ sta5 msk~5
+    s" m1010" mask-from-string-a    \ sta5 msk~5 msk10
 
-    2dup states-eq?         \ sta5 msk~5 msk10 bool
+    2dup masks-eq?                  \ sta5 msk~5 msk10 bool
     false? abort" state ne 10?"
 
     \ Clean up.
@@ -128,16 +128,16 @@
 ;
 
 : state-test-same-num-bits?
-    #5 #4 state-new              \ sta54
-    #4 #4 state-new              \ sta54 sta44
-    #5 #3 state-new              \ sta54 sta44 sta53
+    s" s0101" state-from-string-a   \ sta54
+    s" s0100" state-from-string-a   \ sta54 sta44
+    s" s101"  state-from-string-a   \ sta54 sta44 sta53
 
-    2dup states-dif-num-bits?    \ sta54 sta44 sta53 bool
+    2dup states-dif-num-bits?       \ sta54 sta44 sta53 bool
     invert abort" states have same num bits?"
 
-    #2 pick #2 pick             \ sta54 sta44 sta53 sta54 sta44
-    states-dif-num-bits?        \ sta54 sta44 sta53 bool
-    invert abort" states don't have the same num bits?"
+    #2 pick #2 pick                 \ sta54 sta44 sta53 sta54 sta44
+    states-dif-num-bits?            \ sta54 sta44 sta53 bool
+    abort" states don't have the same num bits?"
 
     \ Clean up.
     state-deallocate
@@ -156,6 +156,6 @@
     state-test-bit
     state-test-and
     state-test-and-mask
-    state-test-invert
+    state-test-invert-to-mask
     state-test-same-num-bits?
 ;

@@ -424,6 +424,12 @@ mask-header-disp cell+  constant mask-number-disp
     true
 ;
 
+\ Return a mask from a string, or abart.
+: mask-from-string-a ( c-addr u -- sta )
+    mask-from-string    \ sta t | f
+    invert abort" Invalid mask string"
+;
+
 \ Return true if mask is zero.
 : mask-is-zero? ( msk0 -- bool )
     \ Check arg.
