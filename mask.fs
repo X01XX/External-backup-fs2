@@ -473,3 +473,14 @@ mask-header-disp cell+  constant mask-number-disp
     \ Finish.
     swap _mask-set-number   \
 ;
+
+\ Return true if a mask has all bits set.
+: mask-all-bits? ( msk0 -- bool )
+    \ Check arg.
+    assert-tos-is-mask
+
+    dup mask-get-num-bits   \ msk0 nb
+    all-bits                \ msk0 all
+    swap mask-get-number    \ all num
+    =
+;

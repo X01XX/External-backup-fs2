@@ -47,6 +47,7 @@ cr
 include mask_t.fs
 include state_t.fs
 include region_t.fs
+include rule_t.fs
 include sample_t.fs
 
 \ Init array-stacks.
@@ -160,6 +161,7 @@ list-new to structinfo-list-store
     mask-tests
     state-tests
     region-tests
+    rule-tests
     sample-tests
 ;
 

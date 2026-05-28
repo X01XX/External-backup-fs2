@@ -494,6 +494,15 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
     true
 ;
 
+\ Return a rule from a string, or abort.
+: rule-from-string-a ( c-addr u -- rul )
+    rule-from-string    \ rul t | f
+    if
+    else
+        true abort" rule-from-string failed."
+    then
+;
+
 \ Return the number of bits used for a rule.
 : rule-get-num-bits ( rul0 -- nb )
     \ Check arg.
@@ -515,3 +524,159 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
     <>
 ;
 
+\ Return true if a rule is valid after a union.
+: rule-valid-union? ( rul0 -- bool )
+    \ Check arg.
+    assert-tos-is-rule
+
+    \ Check for 1X.
+    dup rule-get-m11        \ rul0 m11
+    over rule-get-m10       \ rul0 m11 m10
+    mask-and                \ rul0 m1x
+    dup mask-is-zero?       \ rul0 m1x bool
+    if
+        mask-deallocate
+    else
+        mask-deallocate
+        drop
+        false
+        exit
+    then
+
+    \ Check for 0X.
+    dup rule-get-m00        \ rul0 m00
+    over rule-get-m01       \ rul0 m00 m01
+    mask-and                \ rul0 m0x
+    dup mask-is-zero?       \ rul0 m0x bool
+    swap mask-deallocate    \ rul0 bool
+    nip                     \ bool
+;
+
+\ Return true if a rule is valid after an intersection.
+: rule-valid-intersection? ( rul0 -- bool )
+    \ Check arg.
+    assert-tos-is-rule
+
+    \ Get mask for 0X.
+    dup rule-get-m00        \ rul0 m00
+    over rule-get-m01       \ rul0 m00 m01
+    mask-or                 \ rul0 msk0x'
+
+    \ Get mask for 1X.
+    over rule-get-m11       \ rul0 msk0x' m11
+    #2 pick rule-get-m10    \ rul0 msk0x' m11 m10
+    mask-or                 \ rul0 msk0x' msk1x'
+
+    \ Or both masks.
+    2dup mask-or            \ rul0 msk0x' msk1x' mskxx'
+    swap mask-deallocate    \ rul0 msk0x' mskxx'
+    swap mask-deallocate    \ rul0 mskxx'
+
+    \ Check results cover all bit positions.
+    dup mask-all-bits?      \ rul0 mskxx' bool
+
+    \ Clean up, return.
+    swap mask-deallocate    \ rul0 bool
+    nip                     \ bool
+;
+
+\ Return the union of two rules.
+: rule-union ( rul1 rul0 -- rul t | f )
+    \ Check args.
+    assert-tos-is-rule
+    assert-nos-is-rule
+    2dup rules-dif-num-bits? abort" Rules have different bits?"
+
+    \ Get union m00.
+    over rule-get-m00
+    over rule-get-m00
+    mask-or -rot            \ m00' rul1 rul0
+
+    \ Get union m01.
+    over rule-get-m01
+    over rule-get-m01
+    mask-or -rot            \ m00' m01' rul1 rul0
+
+    \ Get union m11.
+    over rule-get-m11
+    over rule-get-m11
+    mask-or -rot            \ m00' m01' m11' rul1 rul0
+
+    \ Get union m10.
+    over rule-get-m10
+    over rule-get-m10
+    mask-or -rot            \ m00' m01' m11' m10' rul1 rul0
+
+    \ Make new rule.
+    2drop                   \ m00' m01' m11' m10'
+
+    \ Init rule.
+    rule-id rule-mma        \ m00' m01' m11' m10' id mma
+    struct-allocate         \ m00' m01' m11' m10' rul
+
+    \ Load rule.
+    tuck _rule-set-m10      \ m00' m01' m11' rul
+    tuck _rule-set-m11      \ m00' m01' rul
+    tuck _rule-set-m01      \ m00' rul
+    tuck _rule-set-m00      \ rul
+
+    \ Return
+    dup rule-valid-union?   \ rul bool
+    if
+        true
+    else
+        rule-deallocate
+        false
+    then
+;
+
+\ Return the intersection of two rules.
+: rule-intersection ( rul1 rul0 -- rul t | f )
+    \ Check args.
+    assert-tos-is-rule
+    assert-nos-is-rule
+    2dup rules-dif-num-bits? abort" Rules have different bits?"
+
+    \ Get intersection m00.
+    over rule-get-m00
+    over rule-get-m00
+    mask-and -rot           \ m00' rul1 rul0
+
+    \ Get intersection m01.
+    over rule-get-m01
+    over rule-get-m01
+    mask-and -rot           \ m00' m01' rul1 rul0
+
+    \ Get intersection m11.
+    over rule-get-m11
+    over rule-get-m11
+    mask-and -rot           \ m00' m01' m11' rul1 rul0
+
+    \ Get intersection m10.
+    over rule-get-m10
+    over rule-get-m10
+    mask-and -rot           \ m00' m01' m11' m10' rul1 rul0
+
+    \ Make new rule.
+    2drop                   \ m00' m01' m11' m10'
+
+    \ Init rule.
+    rule-id rule-mma        \ m00' m01' m11' m10' id mma
+    struct-allocate         \ m00' m01' m11' m10' rul
+
+    \ Load rule.
+    tuck _rule-set-m10      \ m00' m01' m11' rul
+    tuck _rule-set-m11      \ m00' m01' rul
+    tuck _rule-set-m01      \ m00' rul
+    tuck _rule-set-m00      \ rul
+
+    \ Return.
+    dup rule-valid-intersection?    \ rul bool
+    if
+        true
+    else
+        rule-deallocate
+        false
+    then
+;
+ 
