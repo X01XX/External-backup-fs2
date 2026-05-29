@@ -679,4 +679,41 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
         false
     then
 ;
- 
+
+\ Return true if two rules are equal.
+: rules-eq? ( rul1 rul0 -- bool )
+    \ Check args.
+    assert-tos-is-rule
+    assert-nos-is-rule
+    2dup rules-dif-num-bits? abort" Rules have different bits?"
+
+    \ Check m00.
+    over rule-get-m00 over rule-get-m00 masks-eq?   \ rul1 rul0 bool
+    if
+    else
+        2drop
+        false
+        exit
+    then
+
+    \ Check m01
+    over rule-get-m01 over rule-get-m01 masks-eq?   \ rul1 rul0 bool
+    if
+    else
+        2drop
+        false
+        exit
+    then
+
+    \ Check m11
+    over rule-get-m11 over rule-get-m11 masks-eq?   \ rul1 rul0 bool
+    if
+    else
+        2drop
+        false
+        exit
+    then
+
+    \ Check m10
+    rule-get-m10 swap rule-get-m10 masks-eq?   \ bool
+;

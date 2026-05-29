@@ -392,6 +392,15 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     true
 ;
 
+\ Return a region from a string, or abort.
+: region-from-string-a ( c-addr u -- reg )
+    region-from-string    \ reg t | f
+    if
+    else
+        true abort" region-from-string failed."
+    then
+;
+
 \ Return a region's x mask.
 : region-calc-x-mask ( reg0 -- x-msk' )
     \ Check arg.
