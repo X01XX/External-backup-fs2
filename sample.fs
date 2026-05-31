@@ -85,7 +85,7 @@ sample-initial-disp cell+   constant sample-result-disp     \ Result state.
 ;
 
 \ Set the result field of a sample instance, use only in this file.
-: _sample-set-result ( sta1 smp0 -- )
+: _sample-set-result ( sta1 smpl0 -- )
     \ Check args.
     assert-tos-is-sample
     assert-nos-is-state
@@ -98,7 +98,7 @@ sample-initial-disp cell+   constant sample-result-disp     \ Result state.
 
 \ Create a sample from two numbers on the stack.
 \ The numbers may be the same.
-: sample-new ( rslt1 init0 -- smp)
+: sample-new ( rslt1 init0 -- smpl )
     \ Check args.
     assert-tos-is-state
     assert-nos-is-state
@@ -106,10 +106,10 @@ sample-initial-disp cell+   constant sample-result-disp     \ Result state.
 
     \ Allocate space.
     sample-id sample-mma
-    struct-allocate             \ u1 u2 smp
+    struct-allocate             \ u1 u2 smpl
 
     \ Store states
-    tuck _sample-set-initial   \ u1  smp
+    tuck _sample-set-initial   \ u1  smpl
     tuck _sample-set-result    \ smp
 ;
 
@@ -123,13 +123,6 @@ sample-initial-disp cell+   constant sample-result-disp     \ Result state.
 
     \ init counter.
     0                       \ addr1 smpl0 cntr
-
-    \ Store the first paren.
-    [char] (                \ addr1 smpl0 cntr chr
-    #3 pick                 \ addr1 smpl0 cntr chr addr1
-    #2 pick                 \ addr1 smpl0 cntr chr addr1 cntr
-    +                       \ addr1 smpl0 cntr chr addr2
-    c! 1+                   \ addr1 smpl0 cntr+
 
     \ Store the initial state.
     #2 pick                 \ addr1 smpl0 cntr addr1
@@ -162,19 +155,12 @@ sample-initial-disp cell+   constant sample-result-disp     \ Result state.
     state-str               \ addr1 smpl0 cntr nc
     +                       \ addr1 smpl0 cntr+
 
-    \ Store last pren.
-    [char] )                \ addr1 smpl0 cntr chr
-    #3 pick                 \ addr1 smpl0 cntr chr addr1
-    #2 pick                 \ addr1 smpl0 cntr chr addr1 cntr
-    +                       \ addr1 smpl0 cntr chr addr2
-    c! 1+                   \ addr1 smpl0 cntr+
-
     \ Return.
     nip nip                 \ cntr
 ;
 
 \ Print a sample.
-: .sample ( smp0 -- )
+: .sample ( smpl0 -- )
     \ Check arg.
     assert-tos-is-sample
 
@@ -194,7 +180,7 @@ sample-initial-disp cell+   constant sample-result-disp     \ Result state.
 ;
 
 \ Deallocate a sample.
-: sample-deallocate ( smp0 -- )
+: sample-deallocate ( smpl0 -- )
     \ Check arg.
     assert-tos-is-sample
 
@@ -212,4 +198,99 @@ sample-initial-disp cell+   constant sample-result-disp     \ Result state.
     else
         struct-dec-use-count
     then
+;
+
+\ Return false if a string is not a sample representation.
+\
+\ Otherwise, return a sample.
+: sample-from-string ( c-addr u -- smpl t | f )
+    \ Check length GT 4.
+    dup #6 <
+    if
+        2drop
+        false
+        exit
+    then
+
+    \ Check length is an even number.
+    dup 2 mod 0=
+    if
+    else
+        2drop
+        false
+        exit
+    then
+
+    \ Check for prefix.
+    over c@ [char] s <>
+    if
+        2drop
+        false
+        exit
+    then
+
+    \ Check for - char.
+    dup 2 /         \ c-addr u u2
+    #2 pick + 1-    \ c-addr u c-addr2 
+    c@              \ c-addr u chr
+    [char] - <>     \ c-addr u bool
+    if
+        2drop
+        false
+        exit
+    then
+
+    \ Check for > char.
+    dup 2 /         \ c-addr u u2
+    #2 pick +       \ c-addr u c-addr2 
+    c@              \ c-addr u chr
+    [char] > <>     \ c-addr u bool
+    if
+        2drop
+        false
+        exit
+    then
+
+    \ Get state length.
+    dup 2 / 1-
+
+    \ Parse initial state.  \ c-addr u l
+    nip                     \ c-addr l
+    2dup                    \ c-addr l c-addr l
+    state-from-string       \ c-addr l, sta-i t | f
+    if
+    else
+        2drop
+        false
+        exit
+    then
+
+    \ Save initial state.
+    -rot                    \ sta-i c-addr l
+
+    \ Parse result state.   \ sta-i c-addr l
+    tuck                    \ sta-i l c-addr l
+    +                       \ sta-i l c-addr+
+    2 +                     \ sta-i l c-addr+
+    swap                    \ sta-i c-addr+ l
+    state-from-string       \ sta-i, sta-r t | f
+    if
+    else
+        state-deallocate
+        false
+        exit
+    then
+
+    \ Make sample to return.
+    swap                \ sta-r sta-i
+    sample-new          \ smpl
+    cr ." sample: " dup .sample cr
+
+    true
+;
+
+\ Return a sample from a string, or abort.
+: sample-from-string-a ( c-addr u -- smpl )
+    sample-from-string      \ sta t | f
+    invert abort" Invalid sample string"
 ;

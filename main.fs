@@ -61,6 +61,7 @@ include sample_t.fs
 #100 sample-mma-init
 #100 token-mma-init
 #100 floatnum-mma-init
+cr cr
 
 \ Init structinfo list.
 list-new to structinfo-list-store
@@ -76,33 +77,12 @@ list-new to structinfo-list-store
 ' floatnum-from-string ' floatnum-deallocate '   .floatnum s" FloatNum"  floatnum-mma  floatnum-id   structinfo-new structinfo-list-store structinfo-list-push-end
 ' noop ' token-deallocate '   .token s" Token"  token-mma  token-id   structinfo-new structinfo-list-store structinfo-list-push-end
 ' rule-from-string ' rule-deallocate '     .rule   s" Rule"    rule-mma    rule-id     structinfo-new structinfo-list-store structinfo-list-push-end
-' noop ' sample-deallocate '   .sample s" Sample"  sample-mma  sample-id   structinfo-new structinfo-list-store structinfo-list-push-end
+' sample-from-string ' sample-deallocate ' .sample s" Sample"  sample-mma  sample-id   structinfo-new structinfo-list-store structinfo-list-push-end
 
 : main
-    cr cr
-    s" (((1 2) (3 4) (5 6)))"
-    cr 2dup ." list string: " [char] " emit type [char] " emit cr
-    list-from-string        \ lst t | f
-    if
-        cr ." List: " dup structinfo-list-print-struct-list
-    else
-        cr ." list-from-string failed" cr
-        abort
-    then
 
     cr cr
-    s" ((1 2) (3 4) (5 6) () 1.3e)"
-    cr 2dup ." list string: " [char] " emit type [char] " emit cr
-    list-from-string        \ lst t | f
-    if
-        cr ." List: " dup structinfo-list-print-struct-list
-    else
-        cr ." list-from-string failed" cr
-        abort
-    then
-
-    cr cr
-    s" ((1 rX001) (3 m1010) (5 s1000) 01/10/XX/Xx/)"
+    s" (s1010->s0111 (1 rX001) (3 m1010) (5 s1000) 01/10/XX/Xx/ 4.2e)"
     cr 2dup ." list string: " [char] " emit type [char] " emit cr
     list-from-string        \ lst t | f
     if
@@ -140,8 +120,6 @@ list-new to structinfo-list-store
     region-deallocate
     region-deallocate
     region-list-deallocate
-    structinfo-list-deallocate-struct-list
-    structinfo-list-deallocate-struct-list
     structinfo-list-deallocate-struct-list
 
     cr structinfo-list-store structinfo-list-print-memory-use cr

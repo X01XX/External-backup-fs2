@@ -456,3 +456,17 @@ state-header-disp cell+   constant state-number-disp
     swap state-get-number   \ num0 num1
     =
 ;
+
+\ Return true if two states are adjacent.
+: states-adjacent? ( sta1 sta0 -- bool )
+    \ Check args.
+    assert-tos-is-state
+    assert-nos-is-state
+    2dup states-dif-num-bits? abort" states do not have the same number of bits?"
+
+    state-get-number        \ sta1 num0
+    swap state-get-number   \ num0 num1
+    xor                     \ x
+    only-one-bit-set?       \ bool
+;
+
