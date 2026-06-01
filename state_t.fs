@@ -174,6 +174,63 @@
     cr ." state-test-complement - Ok"
 ;
 
+: state-test-~a+~b
+
+    \ Init two states.
+    s" s1101" state-from-string-a   \ stad'
+    s" s0101" state-from-string-a   \ sta5'
+    s" s0111" state-from-string-a   \ stad' sta5' sta6'
+
+    \ Get ~5 + ~7.
+    2dup                            \ stad' sta5' sta6' sta5' sta6'
+    state-~a+~b                     \ stad' sta5' sta6' reg-lst'
+    cr ." ~5 + ~7: " dup .region-list
+
+    \ Check results.
+    s" (rxx0x rxxx0 rx0xx rxx1x r1xxx)"
+    region-list-from-string-a       \ stad' sta5' sta6' 57-lst' tst-lst'
+    2dup region-lists-eq?           \ stad' sta5' sta6' 57-lst' tst-lst' bool
+    invert abort" region lists ne?"
+    region-list-deallocate          \ stad' sta5' sta6' 57-lst'
+
+    \ Get ~5 + ~D
+    #2 pick                         \ stad' sta5' sta6' 57-lst' sta5'
+    #4 pick                         \ stad' sta5' sta6' 57-lst' sta5' stad'
+    state-~a+~b                     \ stad' sta5' sta6' 57-lst' 5d-lst'
+    cr ." ~5 + ~D: " dup .region-list
+
+    \ Check results.
+    s" (r0xxx rxxx0 rx0xx rxx1x r1xxx)"
+    region-list-from-string-a       \ stad' sta5' sta6' 57-lst' 5d-lst' tst-lst'
+    2dup region-lists-eq?           \ stad' sta5' sta6' 57-lst' 5d-lst' tst-lst' bool
+    invert abort" region lists ne?"
+    region-list-deallocate          \ stad' sta5' sta6' 57-lst' 5d-lst
+
+    \ Get intersections of 57-lst and 5d-lst.
+    2dup region-list-intersections-nosubs   \ stad' sta5' sta6' 57-lst' 5d-lst' 57d-lst'
+    cr ." (~5 + ~7) & (~5 + ~D): " dup .region-list
+
+    \ Check results.
+    s" (r1XXX rXX1X rX0XX rXXX0 r0X0X)"
+    region-list-from-string-a       \ stad' sta5' sta6' 57-lst' 5d-lst' 57d-lst' tst-lst
+    2dup region-lists-eq?           \ stad' sta5' sta6' 57-lst' 5d-lst' 57d-lst' tst-lst' bool
+    invert abort" region lists ne?"
+    region-list-deallocate          \ stad' sta5' sta6' 57-lst' 5d-lst' 57d-lst'
+
+    \ Clean up.
+    region-list-deallocate
+    region-list-deallocate
+    region-list-deallocate
+    state-deallocate
+    state-deallocate
+    state-deallocate
+
+    \ Check for memory leaks.
+    structinfo-list-store structinfo-list-project-deallocated
+
+    cr ." state-test-~a+~b - Ok"
+;
+
 : state-tests
     state-test-basic
     states-test-eq?
@@ -183,5 +240,6 @@
     state-test-invert-to-mask
     state-test-same-num-bits?
     state-test-complement
+    state-test-~a+~b
     cr
 ;

@@ -26,3 +26,25 @@
     \ Clean up.
     swap region-deallocate      \ reg-lst
 ;
+
+\ Return the union of, the complements of, two states.
+: state-~a+~b ( sta1 sta0 -- reg-lst )
+    \ Check arg.
+    assert-tos-is-state
+    assert-nos-is-state
+
+    \ Get state 0 complement.
+    state-complement            \ sta1 reg-lst0'
+
+    \ Get state 1 complement.
+    swap                        \ reg-lst0' sta1
+    state-complement            \ reg-lst0' reg-lst1'
+
+    \ Get union of complements.
+    2dup                        \ reg-lst0' reg-lst1' reg-lst0' reg-lst1'
+    region-list-union-nosubs    \ reg-lst0' reg-lst1' ret-lst
+
+    \ Clean up.
+    swap region-list-deallocate \ reg-lst0' ret-lst
+    swap region-list-deallocate \ ret-lst
+;
