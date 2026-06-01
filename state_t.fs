@@ -25,7 +25,7 @@
     cr ." state-test-basic - Ok"
 ;
 
-: state-test-eq
+: states-test-eq?
     s" s000101" state-from-string-a \ sta5
     s" s000100" state-from-string-a \ sta5 sta4
     s" s000101" state-from-string-a \ sta5 sta4 sta5b
@@ -44,7 +44,7 @@
     \ Check for memory leaks.
     structinfo-list-store structinfo-list-project-deallocated
 
-    cr ." state-test-eq - Ok"
+    cr ." states-test-eq? - Ok"
 ;
 
 : state-test-bit
@@ -147,15 +147,41 @@
     \ Check for memory leaks.
     structinfo-list-store structinfo-list-project-deallocated
 
-    cr ." state-test-same-num-bits - Ok"
+    cr ." state-test-same-num-bits? - Ok"
+;
+
+: state-test-complement
+    \ Init state.
+    s" s1010" state-from-string-a   \ sta0'
+    
+    \ Get complement.
+    dup state-complement            \ sta0' reg-lst'
+
+    \ Check results.
+    s" (rx1xx rxxx1 r0xxx rxx0x)" region-list-from-string-a
+
+    2dup region-lists-eq?           \ sta0' reg-lst' reg-lst2' bool
+    invert abort" region lists ne?"
+
+    \ Clean up.
+    region-list-deallocate
+    region-list-deallocate
+    state-deallocate
+
+    \ Check for memory leaks.
+    structinfo-list-store structinfo-list-project-deallocated
+
+    cr ." state-test-complement - Ok"
 ;
 
 : state-tests
     state-test-basic
-    state-test-eq
+    states-test-eq?
     state-test-bit
     state-test-and
     state-test-and-mask
     state-test-invert-to-mask
     state-test-same-num-bits?
+    state-test-complement
+    cr
 ;

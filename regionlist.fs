@@ -106,3 +106,171 @@
         false
     then
 ;
+
+\ Return a region-list from a string, or abort.
+: region-list-from-string-a ( c-addr u -- reg-lst )
+    region-list-from-string \ reg-list t | f
+    invert abort" region-list-from-string failed."
+;
+
+\ Return true if two region lists are equal.
+: region-lists-eq? ( reg-lst1 reg-lst0 -- bool )
+    \ Check args.
+    assert-tos-is-region-list
+    assert-nos-is-region-list
+
+    list-get-links                  \ reg-lst1 lnk
+    begin
+        ?dup
+    while
+        [ ' regions-eq? ] literal   \ reg-lst1 lnk xt
+        over link-get-data          \ reg-lst1 lnk xt regx
+        #3 pick                     \ reg-lst1 lnk xt regx reg-lst1
+        list-member                 \ reg-lst1 lnk bool
+        if
+        else
+            2drop
+            false
+            exit
+        then
+
+        link-get-next
+    repeat
+    drop
+    true
+;
+
+\ Remove the first subset region from a region-list, and deallocate.
+\ xt signature is ( item list-data -- flag )
+\ Return true if a region was removed.
+: region-list-remove-subset ( reg list -- bool )
+    \ Check args.
+    assert-tos-is-region-list
+    assert-nos-is-region
+
+    [ ' region-subset? ] literal        \ reg1 list0  xt
+    -rot                                \ xt reg1 list0
+
+    list-remove                         \ reg2 t | f
+    if
+        region-deallocate
+        true
+    else
+        false
+    then
+;
+
+\ Push a region onto a list, if there are no supersets in the list.
+\ If there are no supersets in the list, delete any subsets and push the region.
+\ Return true if the region is added to the list.
+: region-list-push-nosubs ( reg1 list0 -- flag )
+    \ Check args.
+    assert-tos-is-region-list
+    assert-nos-is-region
+
+    \ Return if any region in the list is a superset of reg1.
+    2dup                                    \ reg1 list0 reg1 list0
+    [ ' region-superset? ] literal          \ reg1 list0 reg1 list0 xt
+    -rot                                    \ reg1 list0 xt reg1 list0
+    list-member                             \ reg1 list0 flag
+    if
+        2drop
+        false
+        exit
+    then
+                                            \ reg1 list0
+
+    \ Remove all subsets.
+    begin
+        2dup                                \ reg1 list0 reg1 list0
+        region-list-remove-subset           \ reg1 list0 | flag
+    while
+    repeat
+
+    \ Add region to list.                   \ reg1 list0
+    region-list-push
+    true
+;
+
+\ Return a list of region intersections with a region-list, no subsets.
+: region-list-intersections-nosubs ( list1 list0 -- list-result )
+    \ Check args.
+    assert-tos-is-region-list
+    assert-nos-is-region-list
+
+    \ list1 list0
+    list-get-links                  \ list1 link0
+    list-new -rot                   \ ret-list list1 link0
+    begin
+        ?dup
+    while
+                                    \ ret-list list1 link0
+        dup link-get-data           \ ret-list list1 link0 data0
+        #2 pick list-get-links      \ ret-list list1 link0 data0 link1
+
+        begin
+            ?dup
+        while
+            dup link-get-data       \ ret-list list1 link0 data0 link1 data1
+            #2 pick                 \ ret-list list1 link0 data0 link1 data1 data0
+            region-intersection     \ ret-list list1 link0 data0 link1, reg-int t | f
+            if
+                                        \ ret-list list1 link0 data0 link1 reg-int
+                dup                     \ ret-list list1 link0 data0 link1 reg-int reg-int
+                #6 pick                 \ ret-list list1 link0 data0 link1 reg-int reg-int ret-list
+                region-list-push-nosubs \ ret-list list1 link0 data0 link1 reg-int flag
+                if
+                    drop
+                else
+                    region-deallocate
+                then
+            then
+                                    \ ret-list list1 link0 data0 link1
+            link-get-next
+        repeat
+        drop                        \ ret-list list1 link0
+
+        link-get-next
+    repeat
+                                    \ ret-list list1
+    drop
+;
+
+\ Combine two reigion-lists, deleting subsets.
+: region-list-union-nosubs ( reg-lst1 reg-lst0 -- reg-lst )
+    \ Check args.
+    assert-tos-is-region-list
+    assert-nos-is-region-list
+
+    \ Inti return list.
+    list-new                \ reg-lst1 reg-lst0 ret-lst
+
+    \ Prep for loop 1.
+    swap list-get-links     \ reg-lst1 ret-lst link0
+
+    begin
+        ?dup
+    while
+        dup link-get-data       \ reg-lst1 ret-lst link0 reg0x
+        #2 pick                 \ reg-lst1 ret-lst link0 reg0x ret-lst
+        region-list-push-nosubs \ reg-lst1 ret-lst link0 bool
+        drop
+
+        link-get-next
+    repeat
+                                \ reg-lst1 ret-lst
+    \ Prep for loop 2.
+    swap list-get-links         \ ret-lst link1
+
+    begin
+        ?dup
+    while
+        dup link-get-data       \ ret-lst link1 reg1x
+        #2 pick                 \ ret-lst link1 reg1x ret-lst
+        region-list-push-nosubs \ ret-lst link1 bool
+        drop
+
+        link-get-next
+    repeat
+                                \ ret-lst
+;

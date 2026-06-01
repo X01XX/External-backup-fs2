@@ -84,3 +84,71 @@
         false
     then
 ;
+
+\ Return a state-list from a string.
+: state-list-from-string-a ( c-addr u -- reg-lst )
+    state-list-from-string  \ lst t | f
+    invert abort" Invalid state-list?"
+;
+ 
+\ Return the Boolean OR of all states, in a non-empty state-list.
+: state-list-or-items ( sta-lst0 -- sta )
+    \ Check args.
+    assert-tos-is-state-list
+    dup list-get-length 0= abort" empty list?"
+
+    list-get-links          \ lnk
+    dup link-get-data       \ lnk stax'
+    state-copy swap         \ stax' lnk
+    link-get-next           \ stax' lnk-nxt
+
+    begin
+        ?dup
+    while
+        dup link-get-data   \ stax' lnk stay
+        rot tuck            \ lnk stax' stay stax'
+        state-or            \ lnk stax' staz'
+        swap                \ lnk staz' stax'
+        state-deallocate    \ lnk staz'
+        swap                \ staz' lnk
+
+        link-get-next
+    repeat
+;
+
+\ Return the Boolean AND of all states, in a non-empty state-list.
+: state-list-and-items ( sta-lst0 -- sta )
+    \ Check args.
+    assert-tos-is-state-list
+    dup list-get-length 0= abort" empty list?"
+
+    list-get-links          \ lnk
+    dup link-get-data       \ lnk stax'
+    state-copy swap         \ stax' lnk
+    link-get-next           \ stax' lnk-nxt
+
+    begin
+        ?dup
+    while
+        dup link-get-data   \ stax' lnk stay
+        rot tuck            \ lnk stax' stay stax'
+        state-and           \ lnk stax' staz'
+        swap                \ lnk staz' stax'
+        state-deallocate    \ lnk staz'
+        swap                \ staz' lnk
+
+        link-get-next
+    repeat
+;
+
+\ Return a region that holnds all states in a given, non-empty, state-list.
+: state-list-region ( sta-lst0 -- reg )
+    \ Check args.
+    assert-tos-is-state-list
+    dup list-get-length 0= abort" empty list?"
+
+    dup state-list-or-items     \ sta-lst0 sta-max-1s
+    swap state-list-and-items   \ sta-max-1s sta-max-0s
+    region-new                  \ reg
+;
+

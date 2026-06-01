@@ -470,3 +470,13 @@ state-header-disp cell+   constant state-number-disp
     only-one-bit-set?       \ bool
 ;
 
+\ Return the copy of a state.
+: state-copy ( sta0 -- sta )
+    \ Check arg.
+    assert-tos-is-state
+
+    dup state-get-number    \ sta0 num
+    swap state-get-num-bits \ num nb
+    state-new
+;
+

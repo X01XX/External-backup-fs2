@@ -497,10 +497,7 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
 \ Return a rule from a string, or abort.
 : rule-from-string-a ( c-addr u -- rul )
     rule-from-string    \ rul t | f
-    if
-    else
-        true abort" rule-from-string failed."
-    then
+    invert abort" rule-from-string failed."
 ;
 
 \ Return the number of bits used for a rule.

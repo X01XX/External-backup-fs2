@@ -31,7 +31,7 @@
 
 : region-test-intersection
 
-    \ Test intersection.
+    \ Test all possible valid intersections, and the reverse order.
     s" r001101X_001101X" region-from-string-a   \ reg1
     s" r0011XXX_0X1X01X" region-from-string-a   \ reg1 reg2
     s" r0X1X01X_0011XXX" region-from-string-a   \ reg1 reg2 reg3
@@ -55,7 +55,7 @@
         abort
     then
 
-    \ Test non-intersection.
+    \ Test non-intersections, and the reverse order.
     s" r0" region-from-string-a         \ reg1
     s" r1" region-from-string-a         \ reg1 reg2
     2dup                                \ reg1 reg2 | reg1 reg2
@@ -65,8 +65,7 @@
         abort
     then
 
-    2dup swap                           \ reg1 reg2 | reg2 reg1
-        region-intersection             \ reg1 reg2 | reg3 t | f
+    2dup swap region-intersection       \ reg1 reg2 | reg3 t | f
     if
         ." regions intersect?"
         abort

@@ -98,7 +98,7 @@
     assert-nos-is-state
 
     \ Check if any subtraction is needed.
-   2dup region-superset-of-state?  \ sta1 reg0 | flag
+    2dup region-superset-of-state?  \ sta1 reg0 | flag
     if
     else
         nip                         \ reg0
@@ -110,8 +110,8 @@
     \ Check if the result is nothing.
     dup region-calc-x-mask          \ sta1 reg0 | x-msk'
     dup mask-is-zero?               \ sta1 reg0 | x-msk' bool
-    swap mask-deallocate            \ sta1 reg0 | bool
     if
+        mask-deallocate             \ sta1 reg0
         2drop                       \
         list-new                    \ ret-lst
         exit
@@ -140,4 +140,3 @@
     swap mask-deallocate            \ sta1 reg0 | ret-lst
     nip nip                         \ ret-lst
 ;
-

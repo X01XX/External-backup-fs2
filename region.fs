@@ -395,10 +395,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 \ Return a region from a string, or abort.
 : region-from-string-a ( c-addr u -- reg )
     region-from-string    \ reg t | f
-    if
-    else
-        true abort" region-from-string failed."
-    then
+    invert abort" region-from-string failed."
 ;
 
 \ Return a region's x mask.
@@ -722,4 +719,26 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     dup                         \ both-dif' both-dif'
     mask-is-zero?               \ both-dif' bool
     swap mask-deallocate        \ bool
+;
+
+\ Return true if a TOS region is a subset of the NOS region.
+: region-subset? ( reg1 reg-sub -- flag )                                                                                                                   
+    \ Check args.
+    assert-tos-is-region
+    assert-nos-is-region
+
+    2dup region-intersects?         \ reg1 reg-sub flag
+    if  
+        \ Regions intersect.
+        tuck                        \ reg-sub reg1 reg-sub
+        region-intersection         \ reg-sub reg-int flag
+        0= abort" region-subset-of: reg-sub and reg1 should intersect"
+                                    \ reg-sub reg-int'
+        tuck regions-eq?            \ reg-int' flag
+        swap region-deallocate      \ flag
+    else
+        \ Regions do not intersect, return false.
+        2drop
+        false
+    then
 ;

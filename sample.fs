@@ -284,7 +284,6 @@ sample-initial-disp cell+   constant sample-result-disp     \ Result state.
     \ Make sample to return.
     swap                \ sta-r sta-i
     sample-new          \ smpl
-    cr ." sample: " dup .sample cr
 
     true
 ;
