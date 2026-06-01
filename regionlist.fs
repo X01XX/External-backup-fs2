@@ -285,3 +285,198 @@
     repeat
                                 \ ret-lst
 ;
+
+\ Return a copy of a list, except for any regions equal to a given region.
+: region-list-copy-except ( reg1 reg-lst0 -- lst )
+    \ Check args.
+    assert-tos-is-region-list
+    assert-nos-is-region
+
+    \ Init return list.
+    list-new                \ reg1 reg-lst0 ret-lst
+
+    \ For each region in reg-lst0.
+    over list-get-links     \ reg1 reg-lst0 ret-lst lnk
+
+    begin
+        ?dup
+    while
+        dup link-get-data   \ reg1 reg-lst0 ret-lst lnk regx
+        #4 pick             \ reg1 reg-lst0 ret-lst lnk regx reg1
+        regions-eq?         \ reg1 reg-lst0 ret-lst lnk bool
+        if
+        else
+            dup link-get-data       \ reg1 reg-lst0 ret-lst lnk regx
+            #2 pick                 \ reg1 reg-lst0 ret-lst lnk regx ret-lst
+            region-list-push-end    \ reg1 reg-lst0 ret-lst lnk
+        then
+
+        link-get-next
+    repeat
+                            \ reg1 reg-lst0 ret-lst
+    over list-get-length    \ reg1 reg-lst0 ret-lst len1
+    over list-get-length    \ reg1 reg-lst0 ret-lst len1 len2
+    = abort" region not found in list?"
+
+    nip nip                 \ ret-lst
+;
+
+\ Return a TOS region-list minus the NOS region.
+: region-list-subtract-region ( reg1 lst0 -- lst )
+    \ Check args.egion-list-state-in-region
+    assert-tos-is-region-list
+    assert-nos-is-region
+
+    \ Init return list.
+    list-new -rot                   \ ret-lst reg1 lst0
+
+    \ Scan through the given list.
+    list-get-links                  \ ret-lst reg1 link
+    begin
+        ?dup
+    while
+        over                        \ ret-lst reg1 link reg1
+        over link-get-data          \ ret-lst reg1 link reg1 reg2
+
+        \ Test if equal
+        2dup region-subset?         \ ret-lst reg1 link reg1 reg2 flag
+        if
+            \ Skip, region does not appear in the result.
+            2drop
+        else
+            \ Check if they intersect
+            2dup region-intersects?         \ ret-lst reg1 link reg1 reg2 flag
+            if
+                \ They intersect, there will be some remainder.
+                region-subtract-xt execute  \ ret-lst reg1 link remainder-lstegion-list-state-in-region
+
+                \ Add remainders to the return list
+                dup list-get-links          \ ret-lst reg1 link r-lst link
+                begin
+                    ?dup
+                while
+                    dup link-get-data       \ ret-lst reg1 link r-lst link reg2
+                    #5 pick                 \ ret-lst reg1 link r-lst link reg2 ret-lst
+                    region-list-push-nosubs \ ret-lst reg1 link r-lst link flag
+                    drop                    \ ret-lst reg1 link r-lst link
+
+                    link-get-next
+                repeat
+                                            \ ret-lst reg1 link r-lst
+                region-list-deallocate      \ ret-lst reg1 link
+            else
+                \ Add whole region to the result.
+                nip                         \ ret-lst reg1 link reg2
+                #3 pick                     \ ret-lst reg1 link reg2 ret-lst
+                region-list-push-nosubs     \ ret-lst reg1 link flag
+                drop                        \ ret-lst reg1 link
+            then
+        then
+
+        link-get-next
+    repeat
+                                \ ret-lst reg1
+    drop                        \ ret-lst
+;
+
+\ Return a copy of a region-list.
+: region-list-copy ( lst0 -- lst-copy )
+    \ Check arg.
+    assert-tos-is-region-list
+
+    list-new swap           \ lst-n lst0
+
+    list-get-links          \ lst-n link
+
+    begin
+        ?dup
+    while
+        dup link-get-data       \ lst-n link region
+        #2 pick                 \ lst-n link region lst-n
+        region-list-push-end    \ lst-n link
+
+        link-get-next       \ lst-n link
+    repeat
+                            \ lst-n
+;
+\ From the TOS region-list, subtract the NOS region-list.
+: region-list-subtract ( lst1 lst0 -- lst )
+    \ Check args.
+    assert-tos-is-region-list
+    assert-nos-is-region-list
+
+    \ Make a list that way be returned empty, or deallocated.
+    region-list-copy                \ lst1 lst0
+
+    swap                            \ lst0 lst1
+
+    \ Process each region in lst1.
+    list-get-links                  \ lst0 link
+    begin
+        ?dup
+    while
+        dup link-get-data           \ lst0 link region
+        rot                         \ link region lst0
+        swap                        \ link lst0 region
+        over                        \ link lst0 region lst0
+        region-list-subtract-region \ link lst0 lst0-new
+        -rot                        \ lst0-new link lst0
+        region-list-deallocate      \ lst0-new link
+        link-get-next
+    repeat
+                                    \ lst0-new
+;
+
+\ Return defining region info from a given region list.
+\ Returns a list of (defining-region (defining-parts))
+: region-list-defining-regions ( reg-lst0 -- defining-parts )
+    \ Check arg.
+    assert-tos-is-region-list
+
+    \ Init return list.
+    list-new swap               \ ret-lst reg-lst0
+
+    \ For each region.
+    dup list-get-links          \ ret-lst reg-lst0 lnk
+    begin
+        ?dup
+    while
+        \ Get a region.
+        dup link-get-data           \ ret-lst reg-lst0 lnk regx
+
+        \ Get region list, except regx.
+        dup                         \ ret-lst reg-lst0 lnk regx regx
+        #3 pick                     \ ret-lst reg-lst0 lnk regx regx reg-lst0
+        region-list-copy-except     \ ret-lst reg-lst0 lnk regx reg-lst-tmp'
+
+        \ Get regx minus region list.
+        swap                        \ ret-lst reg-lst0 lnk reg-lst-tmp' regx
+        list-new                    \ ret-lst reg-lst0 lnk reg-lst-tmp' regx regx-lst'
+        tuck region-list-push       \ ret-lst reg-lst0 lnk reg-lst-tmp' regx-lst'
+        2dup                        \ ret-lst reg-lst0 lnk reg-lst-tmp' regx-lst' reg-lst-tmp' regx-lst'
+        region-list-subtract        \ ret-lst reg-lst0 lnk reg-lst-tmp' regx-lst' regx-parts'
+        swap region-list-deallocate \ ret-lst reg-lst0 lnk reg-lst-tmp' regx-parts'
+        swap region-list-deallocate \ ret-lst reg-lst0 lnk regx-parts'
+
+        \ Check subtraction results.
+        dup list-get-length         \ ret-lst reg-lst0 lnk regx-parts' len
+        0=
+        if
+            list-deallocate         \ ret-lst reg-lst0 lnk
+        else
+            \ Build ( reg reg-parts ) list.
+            list-new                \ ret-lst reg-lst0 lnk regx-parts' lstx'
+            tuck list-push-struct   \ ret-lst reg-lst0 lnk lstx'
+            over link-get-data      \ ret-lst reg-lst0 lnk lstx' regx
+            over list-push-struct   \ ret-lst reg-lst0 lnk lstx'
+
+            \ Add list to return list.
+            #3 pick                 \ ret-lst reg-lst0 lnk lstx' ret-lst
+            list-push-struct        \ ret-lst reg-lst0 lnk
+        then
+
+        link-get-next
+    repeat
+                                \ ret-lst reg-lst0
+    drop                        \ ret-lst
+;

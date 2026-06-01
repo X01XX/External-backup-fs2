@@ -91,6 +91,8 @@
     nip                         \ reg-lst
 ;
 
+' region-subtract to region-subtract-xt
+
 \ Return a region-list from a TOS region minus the NOS state.
 : region-subtract-state ( sta1 reg0 -- region-list )
     \ Check args.
