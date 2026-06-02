@@ -520,10 +520,10 @@
 ' structinfo-list-deallocate-struct-list to structinfo-list-deallocate-struct-list-xt
 
 \ Return a struct instance from a string.
-: stackinfolist-interpret-string ( c-addr u lst0 -- inst t | f )
+: structinfolist-interpret-string ( c-addr u lst0 -- inst t | f )
     \ Check args.
     assert-tos-is-structinfo-list
-    \ cr ." stackinfolist-interpret-string: " #2 pick #2 pick type cr
+    \ cr ." structinfolist-interpret-string: " #2 pick #2 pick type cr
 
     list-get-links                      \ c-addr u link
 
@@ -553,4 +553,62 @@
                                         \ c-addr u
     2drop
     false
+;
+
+\ Return true if two items are equal.
+: structinfo-list-items-eq? ( itm1 itm0 -- bool )
+
+    \ Handle the possibility of integers instead of structs.
+
+    \ Check numeric equality, works for integers and struct addresses.
+    2dup =
+    if
+        2drop true exit
+    then
+
+    \ Get first word of itm1.
+    over get-first-word         \ itm1 itm0, id1 t | f ( could be an integer )
+    if
+    else
+        \ If its an integer, it already failed the numeric test, else I don't know what it is.
+        2drop false exit
+    then
+
+    \ Get first word of itm0.
+    over get-first-word         \ itm1 itm0 id1, id0 t | f ( could be an integer )
+    if
+    else
+        \ If its an integer, it already failed the numeric test, else I don't know what it is.
+        2drop false exit
+    then
+
+    \ We should be dealing with structs at this point.
+
+    \ Check kind of structs.    \ itm1 itm0 id1 id0
+    over =                      \ itm1 itm0 id1 bool
+    if
+    else
+        drop 2drop false exit
+    then
+
+    \ Check <struct>s-eq?
+    structinfo-list-store       \ itm1 itm0 id1 snf-lst
+    structinfo-list-find        \ itm1 itm0, snfx t | f
+    if
+    else
+        \ Can't find info on an id.
+        2drop false exit
+    then
+
+    \ Get <struct>s-eq? xt.
+    structinfo-get-eq-xt        \ itm1 itm0 eq-xt
+
+    \ Check for noop xt.
+    dup [ ' noop ] literal =    \ itm1 itm0 eq-xt bool
+    if
+        drop 2drop false exit
+    then
+
+    \ Test the two structs.
+    execute                     \ bool
 ;

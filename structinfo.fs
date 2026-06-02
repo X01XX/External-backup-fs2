@@ -229,4 +229,3 @@ structinfo-eq-xt-disp           cell+   constant structinfo-name-disp           
     structinfo-get-inst-id
     =
 ;
-

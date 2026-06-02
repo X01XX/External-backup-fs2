@@ -132,7 +132,7 @@
 
     \ Check for struct instance.
     2dup structinfo-list-store          \ c-addr u c-addr u stkinf-lst
-    stackinfolist-interpret-string      \ c-addr u, instance t | f
+    structinfolist-interpret-string     \ c-addr u, instance t | f
     if
         nip nip
         true
@@ -177,71 +177,20 @@
 
 \ Return true if two, possibly complex, lists are equal.
 : lists-eq? ( lst1 lst0 -- bool )
-    list-get-links          \ lst1 lnk0
-    swap list-get-links     \ lnk0 lnk1
+    list-get-links                  \ lst1 lnk0
+    swap list-get-links             \ lnk0 lnk1
 
     begin
         ?dup
     while
-        over link-get-data  \ lnk0 lnk1 stc0
-        over link-get-data  \ lnk0 lnk1 stc0 stc1
+        \ Get next two items from both lists.
+        over link-get-data          \ lnk0 lnk1 stc0
+        over link-get-data          \ lnk0 lnk1 stc0 stc1
 
-        \ Check if numerically equal. Works for integers and structs.
-        2dup =
+        structinfo-list-items-eq?   \ lnk0 lnk1 bool
         if
-            2drop
         else
-            over get-first-word         \ lnk0 lnk1 stc0 stc1, id0 t | f, could be an integer.
-            if
-                over get-first-word     \ lnk0 lnk1 stc0 stc1 id0, id1 t | f, could be an integer.
-                if                      \ lnk0 lnk1 stc0 stc1 id0 id1
-                    over =              \ lnk0 lnk1 stc0 stc1 id0 bool, could be different types of structs.
-                    if
-                        \ Check structs.
-                        structinfo-list-store       \ lnk0 lnk1 stc0 stc1 id1 snf-lst
-                        structinfo-list-find        \ lnk0 lnk1 stc0 stc1, snfx t | f
-                        if
-                            structinfo-get-eq-xt    \ lnk0 lnk1 stc0 stc1 xt
-                            dup [ ' noop ] literal  \ lnk0 lnk1 stc0 stc1 xt xt xt
-
-                            =                       \ lnk0 lnk1 stc0 stc1 xt bool
-                            if
-                                drop                \ lnk0 lnk1 stc0 stc1
-                                struct-get-id       \ lnk0 lnk1 stc0 id
-                                cr ." invalid struct: " dec. cr
-                                abort
-                            then
-                            execute                 \ lnk0 lnk1 bool
-                            if
-                            else
-                                2drop
-                                false
-                                exit
-                            then
-                        else
-                            cr ." structinfo instance not found?" cr
-                            abort
-                        then
-                    else
-                        drop
-                        2drop
-                        2drop
-                        false
-                        exit
-                    then
-                else
-                    drop
-                    2drop
-                    2drop
-                    false
-                    exit
-                then
-            else
-                2drop
-                2drop
-                false
-                exit
-            then
+            2drop false exit
         then
 
         swap link-get-next
