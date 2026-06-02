@@ -186,42 +186,62 @@
         over link-get-data  \ lnk0 lnk1 stc0
         over link-get-data  \ lnk0 lnk1 stc0 stc1
 
-        \ Check ids.
-        over struct-get-id  \ lnk0 lnk1 stc0 stc1 id0
-        over struct-get-id  \ lnk0 lnk1 stc0 stc1 id0 id1
-        =                   \ lnk0 lnk1 stc0 stc1 bool
+        \ Check if numerically equal. Works for integers and structs.
+        2dup =
         if
+            2drop
         else
-            2drop
-            2drop
-            false
-            exit
-        then
-
-        \ Check structs.
-        dup struct-get-id           \ lnk0 lnk1 stc0 stc1 id1
-        structinfo-list-store       \ lnk0 lnk1 stc0 stc1 id1 snf-lst
-        structinfo-list-find        \ lnk0 lnk1 stc0 stc1, snfx t | f
-        if
-            structinfo-get-eq-xt    \ lnk0 lnk1 stc0 stc1 xt
-            dup [ ' noop ] literal  \ lnk0 lnk1 stc0 stc1 xt xt xt
-
-            =                       \ lnk0 lnk1 stc0 stc1 xt bool
+            over get-first-word         \ lnk0 lnk1 stc0 stc1, id0 t | f, could be an integer.
             if
-                drop                \ lnk0 lnk1 stc0 stc1
-                struct-get-id       \ lnk0 lnk1 stc0 id
-                abort
-            then
-            execute                 \ lnk0 lnk1 bool
-            if
+                over get-first-word     \ lnk0 lnk1 stc0 stc1 id0, id1 t | f, could be an integer.
+                if                      \ lnk0 lnk1 stc0 stc1 id0 id1
+                    over =              \ lnk0 lnk1 stc0 stc1 id0 bool, could be different types of structs.
+                    if
+                        \ Check structs.
+                        structinfo-list-store       \ lnk0 lnk1 stc0 stc1 id1 snf-lst
+                        structinfo-list-find        \ lnk0 lnk1 stc0 stc1, snfx t | f
+                        if
+                            structinfo-get-eq-xt    \ lnk0 lnk1 stc0 stc1 xt
+                            dup [ ' noop ] literal  \ lnk0 lnk1 stc0 stc1 xt xt xt
+
+                            =                       \ lnk0 lnk1 stc0 stc1 xt bool
+                            if
+                                drop                \ lnk0 lnk1 stc0 stc1
+                                struct-get-id       \ lnk0 lnk1 stc0 id
+                                cr ." invalid struct: " dec. cr
+                                abort
+                            then
+                            execute                 \ lnk0 lnk1 bool
+                            if
+                            else
+                                2drop
+                                false
+                                exit
+                            then
+                        else
+                            cr ." structinfo instance not found?" cr
+                            abort
+                        then
+                    else
+                        drop
+                        2drop
+                        2drop
+                        false
+                        exit
+                    then
+                else
+                    drop
+                    2drop
+                    2drop
+                    false
+                    exit
+                then
             else
+                2drop
                 2drop
                 false
                 exit
             then
-        else
-            cr ." structinfo instance not found?" cr
-            abort
         then
 
         swap link-get-next

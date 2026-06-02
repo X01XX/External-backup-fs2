@@ -8,7 +8,7 @@
 
     dup
     region-list-defining-regions            \ reg-lst' def-lst'
-    \cr ." results: " dup structinfo-list-print-struct-list cr
+    \ cr ." results: " dup structinfo-list-print-struct-list cr
 
     \ Check results.
     s" ((r0X0X (r0101)) (rXX1X (r0111)) (r1XXX (r1101)))" list-from-string-a  \ reg-lst' def-lst' tst-list'
