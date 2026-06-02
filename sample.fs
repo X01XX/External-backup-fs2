@@ -293,3 +293,21 @@ sample-initial-disp cell+   constant sample-result-disp     \ Result state.
     sample-from-string      \ sta t | f
     invert abort" Invalid sample string"
 ;
+
+\ Return true if two samples are equal.
+: samples-eq? ( smpl1 smpl0 -- bool )
+    over sample-get-initial
+    over sample-get-initial
+    states-eq?
+    if
+    else
+        2drop
+        false
+        exit
+    then
+
+    sample-get-result
+    swap
+    sample-get-result
+    states-eq?
+;

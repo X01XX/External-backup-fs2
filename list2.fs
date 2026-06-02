@@ -144,7 +144,7 @@
     true
 ;
 
-\ Produce a list from a string.
+\ Produce a, possibly complex, list from a string.
 : list-from-string ( c-addr u -- lst t | f )
     token-list-from-string                              \ tkn-lst t | f
 
@@ -165,3 +165,70 @@
 
 ' list-from-string to list-from-string-xt
 
+\ Return a, possibly complex, list from a string, or abort.
+: list-from-string-a ( c-addr u -- lst )
+    list-from-string    \ lst t | f
+    if
+    else
+        cr ." list-from-string failed?" cr
+        abort
+    then
+;
+
+\ Return true if two, possibly complex, lists are equal.
+: lists-eq? ( lst1 lst0 -- bool )
+    list-get-links          \ lst1 lnk0
+    swap list-get-links     \ lnk0 lnk1
+
+    begin
+        ?dup
+    while
+        over link-get-data  \ lnk0 lnk1 stc0
+        over link-get-data  \ lnk0 lnk1 stc0 stc1
+
+        \ Check ids.
+        over struct-get-id  \ lnk0 lnk1 stc0 stc1 id0
+        over struct-get-id  \ lnk0 lnk1 stc0 stc1 id0 id1
+        =                   \ lnk0 lnk1 stc0 stc1 bool
+        if
+        else
+            2drop
+            2drop
+            false
+            exit
+        then
+
+        \ Check structs.
+        dup struct-get-id           \ lnk0 lnk1 stc0 stc1 id1
+        structinfo-list-store       \ lnk0 lnk1 stc0 stc1 id1 snf-lst
+        structinfo-list-find        \ lnk0 lnk1 stc0 stc1, snfx t | f
+        if
+            structinfo-get-eq-xt    \ lnk0 lnk1 stc0 stc1 xt
+            dup [ ' noop ] literal  \ lnk0 lnk1 stc0 stc1 xt xt xt
+
+            =                       \ lnk0 lnk1 stc0 stc1 xt bool
+            if
+                drop                \ lnk0 lnk1 stc0 stc1
+                struct-get-id       \ lnk0 lnk1 stc0 id
+                abort
+            then
+            execute                 \ lnk0 lnk1 bool
+            if
+            else
+                2drop
+                false
+                exit
+            then
+        else
+            cr ." structinfo instance not found?" cr
+            abort
+        then
+
+        swap link-get-next
+        swap link-get-next
+    repeat
+
+                                \ lnk0
+    drop
+    true
+;

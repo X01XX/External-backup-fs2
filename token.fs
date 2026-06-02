@@ -100,7 +100,7 @@ token-header-disp cell+ constant token-string-disp
 ;
 
 \ Return true if two tokens are equal.
-: token-eq ( tkn1 tkn2 -- flag )
+: tokens-eq? ( tkn1 tkn2 -- flag )
     \ Check args.
     assert-tos-is-token
     assert-nos-is-token
@@ -108,8 +108,7 @@ token-header-disp cell+ constant token-string-disp
     token-get-string        \ tkn1 c-addr2 u2
     rot                     \ c-addr2 u2 tkn1
     token-get-string        \ c-addr2 u2 c-addr1 u1
-    compare                 \ result
-    0=                      \ return true if the result is 0.
+    str=                    \ result
 ;
 
 \ Return true if a token is equal to a string.
@@ -142,4 +141,3 @@ token-header-disp cell+ constant token-string-disp
         then
     then
 ;
-

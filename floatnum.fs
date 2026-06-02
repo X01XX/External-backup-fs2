@@ -144,3 +144,15 @@ floatnum-header-disp cell+   constant floatnum-number-disp
         false
     then
 ;
+
+\ Return true if two floatnums are equal.
+: floatnums-eq? ( fltn1 fltn0 -- bool )
+    
+    \ Check arguments.
+    assert-tos-is-floatnum
+    assert-nos-is-floatnum
+
+    floatnum-get-number      \ F: r0 fnum-1
+    floatnum-get-number      \ F: r0 r1
+    0.0e f~
+;

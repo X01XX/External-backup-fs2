@@ -68,19 +68,19 @@ cr cr
 
 \ Init structinfo list.
 list-new to structinfo-list-store
-' noop ' link-deallocate ' .link s" Link" link-mma link-id structinfo-new structinfo-list-store structinfo-list-push
-' noop ' structinfo-list-deallocate-struct-list ' structinfo-list-print-struct-list s" List" list-mma list-id structinfo-new structinfo-list-store structinfo-list-push-end
-' noop ' structinfo-deallocate ' .structinfo s" StructInfo" structinfo-mma structinfo-id structinfo-new structinfo-list-store structinfo-list-push-end
+' noop          ' noop                  ' link-deallocate       ' .link     s" Link"        link-mma        link-id structinfo-new structinfo-list-store structinfo-list-push
+' lists-eq?     ' noop                  ' structinfo-list-deallocate-struct-list ' structinfo-list-print-struct-list s" List" list-mma list-id structinfo-new structinfo-list-store structinfo-list-push-end
+' noop          ' noop                  ' structinfo-deallocate ' .structinfo s" StructInfo" structinfo-mma structinfo-id structinfo-new structinfo-list-store structinfo-list-push-end
 
 \ The list, link, and StructInfo structs allow for the creation of the structinfo-list-store,
 
-' mask-from-string ' mask-deallocate '     .mask   s" Mask"    mask-mma    mask-id     structinfo-new structinfo-list-store structinfo-list-push-end
-' state-from-string ' state-deallocate '    .state  s" State"   state-mma   state-id    structinfo-new structinfo-list-store structinfo-list-push-end
-' region-from-string ' region-deallocate '   .region s" Region"  region-mma  region-id   structinfo-new structinfo-list-store structinfo-list-push-end
-' floatnum-from-string ' floatnum-deallocate '   .floatnum s" FloatNum"  floatnum-mma  floatnum-id   structinfo-new structinfo-list-store structinfo-list-push-end
-' noop ' token-deallocate '   .token s" Token"  token-mma  token-id   structinfo-new structinfo-list-store structinfo-list-push-end
-' rule-from-string ' rule-deallocate '     .rule   s" Rule"    rule-mma    rule-id     structinfo-new structinfo-list-store structinfo-list-push-end
-' sample-from-string ' sample-deallocate ' .sample s" Sample"  sample-mma  sample-id   structinfo-new structinfo-list-store structinfo-list-push-end
+' masks-eq?     ' mask-from-string      ' mask-deallocate       ' .mask     s" Mask"        mask-mma        mask-id     structinfo-new structinfo-list-store structinfo-list-push-end
+' states-eq?    ' state-from-string     ' state-deallocate      ' .state    s" State"       state-mma       state-id    structinfo-new structinfo-list-store structinfo-list-push-end
+' regions-eq?   ' region-from-string    ' region-deallocate     ' .region   s" Region"      region-mma      region-id   structinfo-new structinfo-list-store structinfo-list-push-end
+' floatnums-eq? ' floatnum-from-string  ' floatnum-deallocate   ' .floatnum s" FloatNum"    floatnum-mma    floatnum-id structinfo-new structinfo-list-store structinfo-list-push-end
+' tokens-eq?    ' noop                  ' token-deallocate      ' .token    s" Token"       token-mma       token-id    structinfo-new structinfo-list-store structinfo-list-push-end
+' rules-eq?     ' rule-from-string      ' rule-deallocate       ' .rule     s" Rule"        rule-mma        rule-id     structinfo-new structinfo-list-store structinfo-list-push-end
+' samples-eq?   ' sample-from-string    ' sample-deallocate     ' .sample   s" Sample"      sample-mma      sample-id   structinfo-new structinfo-list-store structinfo-list-push-end
 
 : main
 

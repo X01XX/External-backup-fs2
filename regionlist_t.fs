@@ -8,14 +8,16 @@
 
     dup
     region-list-defining-regions            \ reg-lst' def-lst'
+    \cr ." results: " dup structinfo-list-print-struct-list cr
 
-    cr ." results: " dup structinfo-list-print-struct-list cr
+    \ Check results.
+    s" ((r0X0X (r0101)) (rXX1X (r0111)) (r1XXX (r1101)))" list-from-string-a  \ reg-lst' def-lst' tst-list'
+    \ cr ." test lt: " dup structinfo-list-print-struct-list cr
 
-    s" ((r0X0X (r0101)) (rXX1X (r0111)) (r1XXX (r1101)))" list-from-string  \ reg-lst' def-lst' tst-list' bool
+    2dup lists-eq?
     if
-        cr ." test lt: " dup structinfo-list-print-struct-list cr
     else
-        cr ." list-from-string: failed?" cr
+        cr ." lists ne?" cr
         abort
     then
 
