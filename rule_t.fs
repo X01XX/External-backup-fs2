@@ -1,6 +1,8 @@
 
 : rule-test-union
-    s" 00/XX/X0/01/X1/Xx/11/XX/X1/10/X0/Xx/00/XX/X0/01/X1/Xx/11/XX/X1/10/X0/Xx/" rule-from-string-a \ rul1
+
+    \ Test all possible valid unions, and the reverse order.
+    s" 00/XX/X0/01/X1/Xx/11/XX/X1/10/X0/Xx_00/XX/X0/01/X1/Xx/11/XX/X1/10/X0/Xx/" rule-from-string-a \ rul1
     s" 00/00/00/01/01/01/11/11/11/10/10/10_00/11/10/01/11/10/11/00/01/10/00/01/" rule-from-string-a \ rul1 rul2
     s" 00/11/10/01/11/10/11/00/01/10/00/01_00/00/00/01/01/01/11/11/11/10/10/10/" rule-from-string-a \ rul1 rul2 rul3
     2dup rule-union                     \ rul1 rul2 rul3, rul-u t | f
@@ -20,6 +22,7 @@
         true abort" Rule union 1 failed?"
     then
 
+    \ Test non-unions, and the reverse order.
     s" 00/" rule-from-string-a  \ rul1
     s" 01/" rule-from-string-a  \ rul1 rul2
     2dup rule-union             \ rul1 rul2, rul-u t | f
@@ -49,6 +52,7 @@
 ;
 
 : rule-test-intersection
+    \ Test all possible valid intersections, and the reverse order.
     s" 10/01/00/11_10/01/00/11/" rule-from-string-a \ rul1
     s" Xx/Xx/XX/XX_X0/X1/X0/X1/" rule-from-string-a \ rul1 rul2
     s" X0/X1/X0/X1_Xx/Xx/XX/XX/" rule-from-string-a \ rul1 rul2 rul3
@@ -64,11 +68,12 @@
             abort
         then
         rule-deallocate                 \ rul1
-        rule-deallocate                 \ 
+        rule-deallocate                 \
     else
         true abort" rule-intersection 1 failed?"
     then
 
+    \ Test non-intersections, and the reverse order.
     s" Xx/" rule-from-string-a  \ rul1
     s" XX/" rule-from-string-a  \ rul1 rul2
     2dup rule-intersection      \ rul1 rul2, rul-u t | f
@@ -85,7 +90,7 @@
     abort" rule-intersection 4 succeded?"
 
     2dup swap rule-intersection \ rul1 rul2, rul-u t | f
-    abort" rule-intersection 4 succeded?"
+    abort" rule-intersection 5 succeded?"
 
     rule-deallocate             \ rul1
     rule-deallocate

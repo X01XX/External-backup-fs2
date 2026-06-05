@@ -509,7 +509,7 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
     mask-get-num-bits       \ nb
 ;
 
-\ Return true if two rules have a differant number of bits.
+\ Return true if two rules have a different number of bits.
 : rules-dif-num-bits? ( rul1 rul0 -- flag )
     \ Check args.
     assert-tos-is-rule

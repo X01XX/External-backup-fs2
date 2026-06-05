@@ -288,3 +288,31 @@
     true
 ;
 
+\ Return true if only one bit is set to one.
+: only-one-bit-set? ( u - bool )
+    dup 0=
+    if
+        drop
+        false
+        exit
+    then
+
+    dup 1- and 0=
+;
+
+\ Return the numbur of bits set to one.
+: num-bits-set ( u0 -- u )
+    \ Init counter.
+    0 swap          \ cnt u0
+
+    begin
+        ?dup
+    while
+        \ Remove lsb.
+        dup 1- and
+
+        \ Inc counter.
+        swap 1+ swap
+    repeat
+                    \ cnt
+;

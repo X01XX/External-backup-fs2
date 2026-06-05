@@ -7,14 +7,9 @@
     \ Test .mask works.
     cr ." mask: " dup .mask         \ msk
 
-    \ Test mask-str produces the expected output.
-    pad 1+ over                     \ msk pad+ msk
-    mask-str                        \ msk nc
-    pad c!                          \ msk
-    pad string@                     \ msk c-addr cnt
-    s" m0101"                       \ msk c-addr cnt c-addr cnt
-    str=
-    false? abort" string not as expected"
+    \ Test result.
+    dup mask-get-number #5 =
+    false? abort" result not as expected"
 
     \ Test mask-deallocate.
     mask-deallocate

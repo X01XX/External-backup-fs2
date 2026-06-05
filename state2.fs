@@ -15,7 +15,7 @@
     #2 pick                     \ sta0 sta-all 0 sta0
     state-get-num-bits          \ sta0 sta-all 0 nb
     state-new                   \ sta0 sta-all sta-0
-    
+
     \ Make region of all x.
     region-new                  \ sta0 reg-x'
 

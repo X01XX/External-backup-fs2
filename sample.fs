@@ -113,70 +113,21 @@ sample-initial-disp cell+   constant sample-result-disp     \ Result state.
     tuck _sample-set-result    \ smp
 ;
 
-\ Store a character representation to a given address,
-\ return the number characters stored.
-\ Caller must set, or accumulate, the number bits prefix
-\ of the string.
-: sample-str ( addr1 smpl0 --  nc )
-    \ Check arg.
-    assert-tos-is-sample
-
-    \ init counter.
-    0                       \ addr1 smpl0 cntr
-
-    \ Store the initial state.
-    #2 pick                 \ addr1 smpl0 cntr addr1
-    over                    \ addr1 smpl0 cntr addr1 cntr
-    +                       \ addr1 smpl0 cntr addr2
-    #2 pick                 \ addr1 smpl0 cntr addr2 smpl0
-    sample-get-initial      \ addr1 smpl0 cntr addr2 initial
-    state-str               \ addr1 smpl0 cntr nc
-    +                       \ addr1 smpl0 cntr+
-
-    \ Store ->
-    [char] -                \ addr1 smpl0 cntr chr
-    #3 pick                 \ addr1 smpl0 cntr chr addr1
-    #2 pick                 \ addr1 smpl0 cntr chr addr1 cntr
-    +                       \ addr1 smpl0 cntr chr addr2
-    c! 1+                   \ addr1 smpl0 cntr+
-
-    [char] >                \ addr1 smpl0 cntr chr
-    #3 pick                 \ addr1 smpl0 cntr chr addr1
-    #2 pick                 \ addr1 smpl0 cntr chr addr1 cntr
-    +                       \ addr1 smpl0 cntr chr addr2
-    c! 1+                   \ addr1 smpl0 cntr+
-
-    \ Store the result state.
-    #2 pick                 \ addr1 smpl0 cntr addr1
-    over                    \ addr1 smpl0 cntr addr1 cntr
-    +                       \ addr1 smpl0 cntr addr2
-    #2 pick                 \ addr1 smpl0 cntr addr2 smpl0
-    sample-get-result       \ addr1 smpl0 cntr addr2 result
-    state-str               \ addr1 smpl0 cntr nc
-    +                       \ addr1 smpl0 cntr+
-
-    \ Return.
-    nip nip                 \ cntr
-;
-
 \ Print a sample.
 : .sample ( smpl0 -- )
     \ Check arg.
     assert-tos-is-sample
 
-    \ Point to pad + 1.
-    pad 1+ swap         \ pad+ smpl0
+    \ Print the initial state.
+    dup sample-get-initial  \ smpl0 initial
+    .state                  \ smpl0
 
-    \ Store string to pad + 1.
-    sample-str          \ nc
+    \ Print ->
+    s" ->" type
 
-    \ Store string length.
-    pad c!
-
-    \ Put pad string onto stack.
-    pad string@         \ c-addr u
-
-    type
+    \ Print the result state.
+    sample-get-result       \ result
+    .state
 ;
 
 \ Deallocate a sample.
@@ -213,7 +164,7 @@ sample-initial-disp cell+   constant sample-result-disp     \ Result state.
     then
 
     \ Check length is an even number.
-    dup 2 mod 0=
+    dup #2 mod 0=
     if
     else
         2drop
@@ -230,8 +181,8 @@ sample-initial-disp cell+   constant sample-result-disp     \ Result state.
     then
 
     \ Check for - char.
-    dup 2 /         \ c-addr u u2
-    #2 pick + 1-    \ c-addr u c-addr2 
+    dup #2 /        \ c-addr u u2
+    #2 pick + 1-    \ c-addr u c-addr2
     c@              \ c-addr u chr
     [char] - <>     \ c-addr u bool
     if
@@ -241,8 +192,8 @@ sample-initial-disp cell+   constant sample-result-disp     \ Result state.
     then
 
     \ Check for > char.
-    dup 2 /         \ c-addr u u2
-    #2 pick +       \ c-addr u c-addr2 
+    dup #2 /        \ c-addr u u2
+    #2 pick +       \ c-addr u c-addr2
     c@              \ c-addr u chr
     [char] > <>     \ c-addr u bool
     if
@@ -252,7 +203,7 @@ sample-initial-disp cell+   constant sample-result-disp     \ Result state.
     then
 
     \ Get state length.
-    dup 2 / 1-
+    dup #2 / 1-
 
     \ Parse initial state.  \ c-addr u l
     nip                     \ c-addr l
@@ -271,7 +222,7 @@ sample-initial-disp cell+   constant sample-result-disp     \ Result state.
     \ Parse result state.   \ sta-i c-addr l
     tuck                    \ sta-i l c-addr l
     +                       \ sta-i l c-addr+
-    2 +                     \ sta-i l c-addr+
+    #2 +                    \ sta-i l c-addr+
     swap                    \ sta-i c-addr+ l
     state-from-string       \ sta-i, sta-r t | f
     if

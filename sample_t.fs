@@ -10,14 +10,17 @@
     \ Test .sample works.
     cr ." sample: " dup .sample     \ smp
 
-    \ Test sample-str produces the expected output.
-    pad 1+ over                     \ smp pad+ smp
-    sample-str                      \ smp nc
-    pad c!                          \ smp
-    pad string@                     \ smp c-addr cnt
-    s" s0110->s0101"                \ smp c-addr cnt c-addr cnt
-    str=
-    false? abort" string not as expected"
+    \ Test initial.
+    dup sample-get-initial          \ smp initial
+    state-get-number                \ smp num
+    #6 =
+    false? abort" Result not as expected"
+
+    \ Test result.
+    dup sample-get-result           \ smp result
+    state-get-number                \ smp num
+    #5 =
+    false? abort" Result not as expected"
 
     \ Test sample-deallocate.
     sample-deallocate

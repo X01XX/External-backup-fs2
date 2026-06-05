@@ -431,6 +431,8 @@ list-header-disp    cell+   constant list-links-disp
     false
 ;
 
+\ Return true if an item is found anywhere in a list that
+\ contains sublists.
 : list-find-recursive ( xt item list -- cell t | f )
     \ Check arg.
     assert-tos-is-list

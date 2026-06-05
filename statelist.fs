@@ -90,7 +90,7 @@
     state-list-from-string  \ lst t | f
     invert abort" Invalid state-list?"
 ;
- 
+
 \ Return the Boolean OR of all states, in a non-empty state-list.
 : state-list-or-items ( sta-lst0 -- sta )
     \ Check args.

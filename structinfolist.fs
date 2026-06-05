@@ -563,7 +563,9 @@
     \ Check numeric equality, works for integers and struct addresses.
     2dup =
     if
-        2drop true exit
+        2drop true
+        \ cr ." exit 1" cr
+        exit
     then
 
     \ Get first word of itm1.
@@ -571,7 +573,9 @@
     if
     else
         \ If its an integer, it already failed the numeric test, else I don't know what it is.
-        2drop false exit
+        2drop false
+        \ cr ." exit 2" cr
+        exit
     then
 
     \ Get first word of itm0.
@@ -579,7 +583,9 @@
     if
     else
         \ If its an integer, it already failed the numeric test, else I don't know what it is.
-        2drop false exit
+        2drop drop false
+        \ cr ." exit 3" cr
+        exit
     then
 
     \ We should be dealing with structs at this point.
@@ -588,7 +594,9 @@
     over =                      \ itm1 itm0 id1 bool
     if
     else
-        drop 2drop false exit
+        drop 2drop false
+        \ cr ." exit 4" cr
+        exit
     then
 
     \ Check <struct>s-eq?
@@ -597,7 +605,9 @@
     if
     else
         \ Can't find info on an id.
-        2drop false exit
+        2drop false
+        \ cr ." exit 5" cr
+        exit
     then
 
     \ Get <struct>s-eq? xt.
@@ -606,9 +616,58 @@
     \ Check for noop xt.
     dup [ ' noop ] literal =    \ itm1 itm0 eq-xt bool
     if
-        drop 2drop false exit
+        drop 2drop false
+        \ cr ." exit 6" cr
+        exit
     then
 
     \ Test the two structs.
     execute                     \ bool
+    \ cr ." exit 7" cr
 ;
+
+\ Return true if an item is in a list, order does not matter.
+\ Hopefully, this will work for lists within lists.
+: structinfo-list-member? ( item list -- flag )
+    \ Check arg.
+    assert-tos-is-list
+    \ cr ." structinfo-list-member?: "
+    \ over structinfo-list-print-struct
+    \ space
+    \ dup structinfo-list-print-struct-list
+    \ cr
+
+    list-get-links                  \ item link
+    begin
+        ?dup
+    while                           \ item link
+        \ Look for link item match.
+        over                        \ item link item
+        over link-get-data          \ item link item link-data
+        structinfo-list-items-eq?   \ item link bool
+        if
+            2drop
+            true
+            exit
+        then
+
+        link-get-next
+    repeat
+
+    \ Cleanup, return.              \ item
+    drop
+    false
+;
+
+: structinfo-list-print-struct ( stc -- )
+    dup get-structinfo              \ lst-link data, snf t | f
+    if                              \ lst-link data snf
+        \ Print a struct instance.
+        structinfo-get-print-xt     \ lst-link data xt
+        execute                     \ lst-link
+    else                            \ lst-link data
+        \ Print a number.
+        .
+    then
+;
+

@@ -7,14 +7,9 @@
     \ Test .state works.
     cr ." state: " dup .state       \ sta
 
-    \ Test state-str produces the expected output.
-    pad 1+ over                     \ sta pad+ sta
-    state-str                       \ sta nc
-    pad c!                          \ sta
-    pad string@                     \ sta c-addr cnt
-    s" s0101"                       \ sta c-addr cnt c-addr cnt
-    str=
-    false? abort" string not as expected"
+    \ Test result.
+    dup state-get-number #5 =
+    false? abort" result not as expected"
 
     \ Test state-deallocate.
     state-deallocate
@@ -153,7 +148,7 @@
 : state-test-complement
     \ Init state.
     s" s1010" state-from-string-a   \ sta0'
-    
+
     \ Get complement.
     dup state-complement            \ sta0' reg-lst'
 

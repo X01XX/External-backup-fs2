@@ -166,89 +166,52 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     state-get-num-bits       \ nb
 ;
 
-\ Store a character representation to a given address,
-\ return the number characters stored.
-\ Caller must set, or accumulate, the number bits prefix
-\ of the string.
-: region-str ( addr1 reg0 -- nc )
-    \ Check arg.
-    assert-tos-is-region
-
-    \ Store string length.
-    dup region-get-num-bits      \ addr1 reg0 nc
-    -rot                            \ nc addr1 reg0
-
-    \ Store prefix.
-    [char] r #2 pick c!
-    swap 1+ swap
-
-    \ Setup for bit-position loop.
-    dup region-get-state-1          \ nc addr1 reg0 sta1
-    -rot                            \ nc sta1 addr1 reg0
-    dup region-get-state-0          \ nc sta1 addr1 reg0 sta0
-    -rot                            \ nc sta1 sta0 addr1 reg0
-    region-get-num-bits          \ nc sta1 sta0 addr1 nb
-    -1 swap                         \ nc sta1 sta0 addr1 -1 nb
-    1-                              \ nc sta1 sta0 addr1 -1 nb-
-
-    do
-        \ Process each trit.        \ nc sta1 sta0 addr1
-        \ Get state bit.
-        i                           \ nc sta1 sta0 addr1 i
-        #3 pick                     \ nc sta1 sta0 addr1 i sta1
-        state-bit                   \ nc sta1 sta0 addr1 b1
-
-        \ Get state bit.
-        i                           \ nc sta1 sta0 addr1 b1 i
-        #3 pick                     \ nc sta1 sta0 addr1 b1 i sta0
-        state-bit                   \ nc sta1 sta0 addr1 b1 b0
-
-        \ Put char on stack.
-        if                          \ nc sta1 sta0 addr1 b1
-            if                      \ nc sta1 sta0 addr1
-                [char] 1
-            else
-                [char] X
-            then
-        else                        \ nc sta1 sta0 addr1 b1
-            if                      \ nc sta1 sta0 addr1
-                [char] x
-            else
-                [char] 0
-            then
-        then
-
-        \ Store char to pad.        \ nc sta1 sta0 addr1 chr
-        over                        \ nc sta1 sta0 addr1 chr addr1
-        c!                          \ nc sta1 sta0 addr1
-
-        \ Point to next addr1 char.
-        1+                          \ nc sta1 sta0 addr1
-
-    1 -loop
-    2drop drop                      \ nc
-    1+
-;
-
 \ Print a region.
 : .region ( reg0 -- )
     \ Check arg.
     assert-tos-is-region
 
-    \ Calc string target address.
-    pad 1+ swap         \ addr reg0
+    \ Print prefix.
+    [char] r emit
 
-    \ Put mask string into pad.
-    region-str          \ nc
+    \ Setup for bit-position loop.
+    dup region-get-state-1          \ reg0 sta1
+    swap                            \ sta1 reg0
+    dup region-get-state-0          \ sta1 reg0 sta0
+    swap                            \ sta1 sta0 reg0
+    region-get-num-bits             \ sta1 sta0 nb
+    -1 swap                         \ sta1 sta0 -1 nb
+    1-                              \ sta1 sta0 -1 nb-
 
-    \ Store string length.
-    pad c!              \
+    do
+        \ Process each trit.        \ sta1 sta0 
+        \ Get state bit.
+        i                           \ sta1 sta0 i
+        #2 pick                     \ sta1 sta0 i sta1
+        state-bit                   \ sta1 sta0 b1
 
-    \ Move pad string to stack.
-    pad string@         \ c-addr u
+        \ Get state bit.
+        i                           \ sta1 sta0 b1 i
+        #2 pick                     \ sta1 sta0 b1 i sta0
+        state-bit                   \ sta1 sta0 b1 b0
 
-    \ Output string.
-    type
+        \ Put char on stack.
+        if                          \ sta1 sta0 b1
+            if                      \ sta1 sta0 
+                [char] 1 emit
+            else
+                [char] X emit
+            then
+        else                        \ sta1 sta0 b1
+            if                      \ sta1 sta0 
+                [char] x emit
+            else
+                [char] 0 emit
+            then
+        then
+
+    1 -loop
+    2drop
 ;
 
 \ Deallocate a region.
@@ -507,7 +470,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     swap mask-deallocate    \ msk-edg
 ;
 
-\ Return true if two regions have a differant number of bits.
+\ Return true if two regions have a different number of bits.
 : regions-dif-num-bits? ( reg1 reg0 -- flag )
     \ Check args.
     assert-tos-is-region
@@ -722,13 +685,13 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 ;
 
 \ Return true if a TOS region is a subset of the NOS region.
-: region-subset? ( reg1 reg-sub -- flag )                                                                                                                   
+: region-subset? ( reg1 reg-sub -- flag )
     \ Check args.
     assert-tos-is-region
     assert-nos-is-region
 
     2dup region-intersects?         \ reg1 reg-sub flag
-    if  
+    if
         \ Regions intersect.
         tuck                        \ reg-sub reg1 reg-sub
         region-intersection         \ reg-sub reg-int flag

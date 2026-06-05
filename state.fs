@@ -101,75 +101,37 @@ state-header-disp cell+   constant state-number-disp
     _state-set-number        \ sta
 ;
 
-\ Store a character representation to a given address,
-\ return the number characters stored.
-\ Caller must set, or accumulate, the number bits prefix
-\ of the string.
-: state-str (  addr1 sta0 -- nc )
+\ Print a state struct instance.
+: .state (  sta0 -- )
     \ Check arg.
     assert-tos-is-state
 
-    \ Save string length.
-    dup state-get-num-bits   \ addr1 sta0 nc
-    -rot                        \ nc addr1 sta0
-
-    \ Store prefix.
-    [char] s #2 pick c!
-    swap 1+ swap
+    \ Print prefix.
+    [char] s emit
 
     \ Setup for bit-position loop.
-    dup state-get-number        \ nc addr1 sta0 num
-    swap                        \ nc addr1 num sta0
-    state-get-num-bits       \ nc addr1 num nc
-    tuck                        \ nc addr1 nc num nc
-    _msb-from-num-bits          \ nc addr1 nc num ms-bit
-    rot                         \ nc addr1 num ms-bit nc
+    dup state-get-number        \ sta0 num
+    swap                        \ num sta0
+    state-get-num-bits          \ num nb
+    dup _msb-from-num-bits      \ num nb ms-bit
+    swap                        \ num ms-bit nb
     0
 
     do
         \ Apply msb to state, to get an isolated bit.
-                                \ nc addr1 num ms-bit
-        2dup and                \ nc addr1 num ms-bit bit
+                                \ num ms-bit
+        2dup and                \ num ms-bit bit
 
         if
-            [char] 1            \ nc addr1 num ms-bit chr
+            [char] 1 emit
         else
-            [char] 0            \ nc addr1 num ms-bit chr
+            [char] 0 emit
         then
 
-        \ Store char to pad.
-        #3 pick                 \ nc addr1 num ms-bit chr pad+
-        c!                      \ nc addr1 num ms-bit
-
-        \ Point to next nc addr1 char.
-        rot 1+ -rot             \ nc addr1 num ms-bit
-
         \ Adjust msb state.
-        1 rshift                \ nc addr1 num ms-bit
+        1 rshift                \ num ms-bit
     loop
-    2drop drop                  \ nc
-    1+
-;
-
-\ Print a state struct instance.
-: .state ( sta0 -- )
-\ Check arg.
-    assert-tos-is-state
-
-    \ Calc string target address.
-    pad 1+ swap         \ pad+ sta0
-
-    \ Put state string into pad.
-    state-str           \ nc
-
-    \ Set string length.
-    pad c!              \
-
-    \ Move pad string to stack.
-    pad string@         \ c-addr u
-
-    \ Output string.
-    type
+    2drop
 ;
 
 \ Deallocate a state.

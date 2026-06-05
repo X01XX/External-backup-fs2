@@ -175,29 +175,52 @@
     then
 ;
 
-\ Return true if two, possibly complex, lists are equal.
+\ Return true if two lists are equal, that is
+\ having the same members, order does not matter.
+\ Sub-lists are Ok.
 : lists-eq? ( lst1 lst0 -- bool )
+    \ Check args.
+    assert-tos-is-list
+    assert-nos-is-list
+
+    \ cr ." lists-eq?: "
+    \ over structinfo-list-print-struct-list-xt execute
+    \ space
+    \ over structinfo-list-print-struct-list-xt execute
+    \ cr
+
+    \ Check lengths.
+    over list-get-length            \ lst1 lst0 len1
+    over list-get-length            \ lst1 lst0 len1 len0
+    <> if
+        2drop
+        false
+        exit
+    then
+
+    \ Prep for loop.
     list-get-links                  \ lst1 lnk0
-    swap list-get-links             \ lnk0 lnk1
 
     begin
         ?dup
     while
-        \ Get next two items from both lists.
-        over link-get-data          \ lnk0 lnk1 stc0
-        over link-get-data          \ lnk0 lnk1 stc0 stc1
+        \ Get next item to check.
+        over                        \ lst0 lnk1 lst0
+        over link-get-data          \ lst0 lnk1 lst0 stc0
+        swap                        \ lst0 lnk1 stc0 lst0
 
-        structinfo-list-items-eq?   \ lnk0 lnk1 bool
+        \ Check item.
+        structinfo-list-member?     \ lnk0 lnk1 bool
         if
         else
             2drop false exit
         then
 
-        swap link-get-next
-        swap link-get-next
+        link-get-next
     repeat
 
-                                \ lnk0
+                                \ lst0
     drop
     true
 ;
+
