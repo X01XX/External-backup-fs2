@@ -77,8 +77,47 @@
     swap region-list-deallocate         \ reg-lst2
     cr ." (~5 + ~6) & (~5 + ~9): " dup .region-list
 
+    \ Calc one pair.
+    dup                                 \ reg-lst' reg-lst'
+    s" s0101" state-from-string-a tuck  \ reg-lst' sta5' reg-lst' sta5'
+    s" s0011" state-from-string-a -rot  \ reg-lst' sta5' sta3' reg-lst' sta5'
+    #2 pick                             \ reg-lst' sta5' sta3' reg-lst' sta5' sta3'
+    regionlist-cumulative-~a+~b         \ reg-lst' sta5' sta3' reg-lst2'
+    swap state-deallocate
+    swap state-deallocate
+    swap region-list-deallocate         \ reg-lst2
+    cr ." (~5 + ~6) & (~5 + ~9) & (~5 + ~3): " dup .region-list
+
+    \ Calc one pair.
+    dup                                 \ reg-lst' reg-lst'
+    s" s0101" state-from-string-a tuck  \ reg-lst' sta5' reg-lst' sta5'
+    s" s1100" state-from-string-a -rot  \ reg-lst' sta5' stac' reg-lst' sta5'
+    #2 pick                             \ reg-lst' sta5' stac' reg-lst' sta5' stac'
+    regionlist-cumulative-~a+~b         \ reg-lst' sta5' stac' reg-lst2'
+    swap state-deallocate
+    swap state-deallocate
+    swap region-list-deallocate         \ reg-lst2
+    cr ." (~5 + ~6) & (~5 + ~9) & (~5 + ~3) (~5 + ~C): " dup .region-list
+
+    \ Calc one pair.
+    dup                                 \ reg-lst' reg-lst'
+    s" s0101" state-from-string-a tuck  \ reg-lst' sta5' reg-lst' sta5'
+    s" s1111" state-from-string-a -rot  \ reg-lst' sta5' staf' reg-lst' sta5'
+    #2 pick                             \ reg-lst' sta5' staf' reg-lst' sta5' staf'
+    regionlist-cumulative-~a+~b         \ reg-lst' sta5' staf' reg-lst2'
+    swap state-deallocate
+    swap state-deallocate
+    swap region-list-deallocate         \ reg-lst2
+    cr ." (~5 + ~6) & (~5 + ~9) & (~5 + ~3) & (~5 + ~C) & (~5 + ~F): " dup .region-list
+
+    \ Get defining regions info.
+    dup
+    region-list-defining-regions            \ reg-lst' def-lst'
+    cr ." defining: " dup structinfo-list-print-struct-list
+
     \ Clean up.
     structinfo-list-deallocate-struct-list
+    region-list-deallocate
 
     \ Check for memory leaks.
     structinfo-list-store structinfo-list-project-deallocated
