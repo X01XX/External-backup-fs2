@@ -236,5 +236,4 @@
     state-test-same-num-bits?
     state-test-complement
     state-test-~a+~b
-    cr
 ;

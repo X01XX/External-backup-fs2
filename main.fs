@@ -144,5 +144,8 @@ list-new to structinfo-list-store
     region-tests
     rule-tests
     sample-tests
+    state-list-tests
+    region-list-tests
+    cr
 ;
 

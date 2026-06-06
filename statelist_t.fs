@@ -53,7 +53,6 @@
 : state-list-tests
     state-list-test-or-items
     state-list-test-and-items
-    cr
 ;
 
 \ s10101

@@ -9,11 +9,11 @@
     \ Get defining regions info.
     dup
     region-list-defining-regions            \ reg-lst' def-lst'
-    \ cr ." defining: " dup structinfo-list-print-struct-list cr
+    cr ." defining: " dup structinfo-list-print-struct-list
 
     \ Check results.
     s" ((r0X0X (r0101)) (rXX1X (r0111)) (r1XXX (r1101)))" list-from-string-a  \ reg-lst' def-lst' tst-list'
-    \ cr ." test lt: " dup structinfo-list-print-struct-list cr
+    \ cr ." test lt: " dup structinfo-list-print-struct-list
 
     2dup lists-eq?
     if
@@ -39,16 +39,16 @@
     s" s0110" state-from-string-a       \ sta5 sta6
     s" s1001" state-from-string-a       \ sta5 sta6 sta9
     #2 pick #2 pick state-~a+~b         \ sta5 sta6 sta9 reg-56-lst
-    cr ." ~5 + ~6: " dup .region-list cr
+    cr ." ~5 + ~6: " dup .region-list
 
     #3 pick #2 pick state-~a+~b         \ sta5 sta6 sta9 reg-56-lst reg-59-lst
-    cr ." ~5 + ~9: " dup .region-list cr
+    cr ." ~5 + ~9: " dup .region-list
 
     2dup region-list-intersections-nosubs   \ sta5 sta6 sta9 reg-56-lst reg-59-lst reg-569-lst
-    cr ." (~5 + ~6) & (~5 + ~9): " dup .region-list cr
+    cr ." (~5 + ~6) & (~5 + ~9): " dup .region-list
 
     dup region-list-defining-regions    \ sta5 sta6 sta9 reg-56-lst reg-59-lst reg-569-lst def-lst
-    cr ." defining: " dup structinfo-list-print-struct-list cr
+    cr ." defining: " dup structinfo-list-print-struct-list
 
     \ Clean up.
     structinfo-list-deallocate-struct-list
@@ -68,5 +68,4 @@
 : region-list-tests
     region-list-test-defining-regions
     region-list-test-defining-regions2
-    cr
 ;

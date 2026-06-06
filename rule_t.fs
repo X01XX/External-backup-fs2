@@ -44,7 +44,6 @@
     rule-deallocate            \ rul1 rul-u
     rule-deallocate            \ rul-u
 
-    cr
     \ Check for memory leaks.
     structinfo-list-store structinfo-list-project-deallocated
 
@@ -60,7 +59,7 @@
     if
         swap rule-deallocate            \ rul1 rul2 rul-i
         swap rule-deallocate            \ rul1 rul-i
-        cr ." rule-intersection: " dup .rule cr
+        cr ." rule-intersection: " dup .rule
         2dup rules-eq?                  \ rul1 rul-i bool
         if
         else
