@@ -184,7 +184,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     1-                              \ sta1 sta0 -1 nb-
 
     do
-        \ Process each trit.        \ sta1 sta0 
+        \ Process each trit.        \ sta1 sta0
         \ Get state bit.
         i                           \ sta1 sta0 i
         #2 pick                     \ sta1 sta0 i sta1
@@ -197,13 +197,13 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 
         \ Put char on stack.
         if                          \ sta1 sta0 b1
-            if                      \ sta1 sta0 
+            if                      \ sta1 sta0
                 [char] 1 emit
             else
                 [char] X emit
             then
         else                        \ sta1 sta0 b1
-            if                      \ sta1 sta0 
+            if                      \ sta1 sta0
                 [char] x emit
             else
                 [char] 0 emit

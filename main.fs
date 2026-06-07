@@ -28,6 +28,7 @@ include region.fs
 include regionlist.fs
 include region2.fs
 include state2.fs
+include regionlist2.fs
 
 include rule.fs
 include sample.fs
