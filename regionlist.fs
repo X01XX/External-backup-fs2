@@ -481,6 +481,86 @@
     drop                        \ ret-lst
 ;
 
+\ Return a list of regions a state is in.
+: region-list-regions-state-in ( sta1 lst0 -- reg-lst )
+    \ Check args.
+    assert-tos-is-region-list
+    assert-nos-is-state
+
+    \ Init return list.
+    list-new -rot                       \ ret-lst sta lst0
+
+    \ Prep for loop.
+    list-get-links                      \ ret-lst sta link
+
+    \ Check each region.
+    begin
+        ?dup
+    while
+        \ Check the current region.
+        over                            \ ret-lst sta link sta1
+        over link-get-data              \ ret-lst sta link sta1 regx
+        region-superset-of-state?       \ ret-lst sta link flag
+        if
+            \ Add the region to the return list.
+            dup link-get-data           \ ret-lst sta link regx
+            #3 pick                     \ ret-lst sta link regx ret-lst
+            list-push-struct            \ ret-lst sta link
+        then
+
+        link-get-next
+    repeat
+
+    drop                                \ ret-lst
+;
+
+\ Calc a list of (state (regions-state-in)).
+: state-list-regions-states-in ( reg-lst1 sta-lst0 -- lst )
+    \ Check args.
+    assert-tos-is-state-list
+    assert-nos-is-region-list
+
+    \ Init return list.
+    list-new -rot                       \ ret-lst reg-lst1 sta-lst0
+
+    \ Prep for loop.
+    list-get-links                      \ ret-lst reg-lst1 sta-lnk
+
+    begin
+        ?dup
+    while
+        dup link-get-data               \ ret-lst reg-lst1 sta-lnk stax
+        #2 pick                         \ ret-lst reg-lst1 sta-lnk stax reg-lst1
+        region-list-regions-state-in    \ ret-lst reg-lst1 sta-lnk regs-sta-in
+
+        \ Init sub-list
+        list-new                        \ ret-lst reg-lst1 sta-lnk regs-sta-in sub-lst
+        tuck list-push-struct           \ ret-lst reg-lst1 sta-lnk sub-lst
+        over link-get-data              \ ret-lst reg-lst1 sta-lnk sub-lst stax
+        over list-push-struct           \ ret-lst reg-lst1 sta-lnk sub-lst
+
+        \ Add sub-list to return list.
+        #3 pick                         \ ret-lst reg-lst1 sta-lnk sub-lst ret-lst
+        list-push-struct                \ ret-lst reg-lst1 sta-lnk
+
+        link-get-next
+    repeat
+                                        \ ret-lst reg-lst1
+    drop
+;
+
+
+: state-num-sort-xt ( sta-num1 sta-num0 -- bool )
+    \ Check args.
+    assert-tos-is-state-list
+    assert-nos-is-state-list
+
+    list-get-second-item        \ sta-num1 num0
+    swap list-get-second-item   \ num0 num1
+
+    <
+;
+
 \ Given a list of states and region, evaluate for corners and needs.
 : region-list-evaluate-for-corners ( sta-lst1 reg-lst0 -- )
     \ Check args.
@@ -489,5 +569,45 @@
 
     cr ." region-list-evaluate-for-corners: " over .state-list space dup .region-list cr
 
-   2drop
+    \ Calc a list of (state (regions-state-in)).
+    2dup swap state-list-regions-states-in  \ sta-lst1 reg-lst0 sta-regs-lst
+    
+
+    \ Calc a list of (state number-regions-state-in).
+    list-new                                \ sta-lst1 reg-lst0 sta-regs-lst sta-num-lst
+    over list-get-links                     \ sta-lst1 reg-lst0 sta-regs-lst sta-num-lst sta-regs-lnk
+
+    begin
+        ?dup
+    while
+        dup link-get-data                   \ sta-lst1 reg-lst0 sta-regs-lst sta-num-lst sta-regs-lnk (sta (regs))
+
+        \ Make sub-list.
+        list-new                            \ sta-lst1 reg-lst0 sta-regs-lst sta-num-lst sta-regs-lnk (sta (regs)) sub-lst
+
+        \ Store number regions.
+        over list-get-second-item           \ sta-lst1 reg-lst0 sta-regs-lst sta-num-lst sta-regs-lnk (sta (regs)) sub-lst (regs)
+        list-get-length                     \ sta-lst1 reg-lst0 sta-regs-lst sta-num-lst sta-regs-lnk (sta (regs)) sub-lst num
+        over list-push                      \ sta-lst1 reg-lst0 sta-regs-lst sta-num-lst sta-regs-lnk (sta (regs)) sub-lst
+
+        \ Store state.
+        swap list-get-first-item            \ sta-lst1 reg-lst0 sta-regs-lst sta-num-lst sta-regs-lnk sub-lst sta
+        over list-push-struct               \ sta-lst1 reg-lst0 sta-regs-lst sta-num-lst sta-regs-lnk sub-lst
+
+        \ Store sub-list.
+        #2 pick                             \ sta-lst1 reg-lst0 sta-regs-lst sta-num-lst sta-regs-lnk sub-lst sta-num-lst
+        list-push-struct                    \ sta-lst1 reg-lst0 sta-regs-lst sta-num-lst sta-regs-lnk
+
+        link-get-next
+    repeat
+    cr ." state-num: " dup structinfo-list-print-struct-list-xt execute cr
+
+    \ Sort list.
+    [ ' state-num-sort-xt ] literal over list-sort
+    cr ." state-num sorted: " dup structinfo-list-print-struct-list-xt execute cr
+
+    structinfo-list-deallocate-struct-list-xt execute
+    structinfo-list-deallocate-struct-list-xt execute
+
+    2drop
 ;
