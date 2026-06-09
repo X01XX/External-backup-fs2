@@ -555,10 +555,9 @@
     assert-tos-is-state-list
     assert-nos-is-state-list
 
-    list-get-second-item        \ sta-num1 num0
-    swap list-get-second-item   \ num0 num1
-
-    <
+    swap list-get-second-item   \ sta-num0 num1
+    swap list-get-second-item   \ num1 num0
+    >
 ;
 
 \ Given a list of states and region, evaluate for corners and needs.
@@ -571,8 +570,13 @@
 
     \ Calc a list of (state (regions-state-in)).
     2dup swap state-list-regions-states-in  \ sta-lst1 reg-lst0 sta-regs-lst
-    
+    cr ." state-regions: " dup structinfo-list-print-struct-list-xt execute cr
 
+
+    \ Massage sta-regs to remove states in GT one region and in a defining region.
+
+    cr ." todo" cr
+    
     \ Calc a list of (state number-regions-state-in).
     list-new                                \ sta-lst1 reg-lst0 sta-regs-lst sta-num-lst
     over list-get-links                     \ sta-lst1 reg-lst0 sta-regs-lst sta-num-lst sta-regs-lnk

@@ -120,6 +120,10 @@
     structinfo-list-deallocate-struct-list                  \ sta-lst' reg-lst' def-lst'
     structinfo-list-deallocate-struct-list                  \ sta-lst' reg-lst'
 
+    \ Add 9, in  GT one regions, one a defining region.
+    s" s1001" state-from-string-a                           \ sta-lst' reg-lst' sta9'
+    #2 pick state-list-push                                 \ sta-lst' reg-lst'
+
     \ Evaluate.
     2dup region-list-evaluate-for-corners                   \ sta-lst' reg-lst'
 
