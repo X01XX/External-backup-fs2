@@ -481,3 +481,13 @@
     drop                        \ ret-lst
 ;
 
+\ Given a list of states and region, evaluate for corners and needs.
+: region-list-evaluate-for-corners ( sta-lst1 reg-lst0 -- )
+    \ Check args.
+    assert-tos-is-region-list
+    assert-nos-is-state-list
+
+    cr ." region-list-evaluate-for-corners: " over .state-list space dup .region-list cr
+
+   2drop
+;

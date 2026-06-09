@@ -22,9 +22,13 @@ include structlist.fs
 include globals.fs
 
 include mask.fs
+include masklist.fs
+
 include state.fs
 
+
 include region.fs
+include statelist.fs
 include regionlist.fs
 include region2.fs
 include state2.fs
@@ -42,8 +46,6 @@ include structinfolist.fs
 include stackprint.fs
 include list2.fs
 
-include masklist.fs
-include statelist.fs
 cr
 
 include mask_t.fs
