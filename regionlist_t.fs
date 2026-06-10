@@ -20,9 +20,9 @@
 
     \ Get defining regions info.
     dup
-    region-list-defining-regions            \ reg-lst' def-lst'
+    region-list-defining-regions-parts          \ reg-lst' def-lst'
     cr ." defining: " dup structinfo-list-print-struct-list
-    structinfo-list-deallocate-struct-list          \ reg-lst' def-lst'
+    structinfo-list-deallocate-struct-list      \ reg-lst' def-lst'
     cr
     \ Calc one pair.
     s" s0101" state-from-string-a       \ reg-lst' sta5'
@@ -36,7 +36,7 @@
 
     \ Get defining regions info.
     dup
-    region-list-defining-regions            \ reg-lst' def-lst'
+    region-list-defining-regions-parts      \ reg-lst' def-lst'
     cr ." defining: " dup structinfo-list-print-struct-list
 
     \ Check results.
@@ -86,7 +86,7 @@
 
     \ Get defining regions info.
     dup
-    region-list-defining-regions            \ sta-lst' reg-lst' def-lst'
+    region-list-defining-regions-parts              \ sta-lst' reg-lst' def-lst'
     cr ." defining: " dup structinfo-list-print-struct-list
     structinfo-list-deallocate-struct-list          \ reg-lst' def-lst'
     cr
@@ -104,7 +104,7 @@
 
     \ Get defining regions info.
     dup
-    region-list-defining-regions            \ sta-lst' reg-lst' def-lst'
+    region-list-defining-regions-parts  \ sta-lst' reg-lst' def-lst'
     cr ." defining: " dup structinfo-list-print-struct-list
 
     \ Check results.

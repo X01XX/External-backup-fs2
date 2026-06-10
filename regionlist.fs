@@ -429,7 +429,7 @@
 
 \ Return defining region info from a given region list.
 \ Returns a list of (defining-region (defining-parts))
-: region-list-defining-regions ( reg-lst0 -- defining-parts )
+: region-list-defining-regions-parts ( reg-lst0 -- defining-parts )
     \ Check arg.
     assert-tos-is-region-list
 
@@ -479,6 +479,54 @@
     repeat
                                 \ ret-lst reg-lst0
     drop                        \ ret-lst
+;
+
+\ Return defining region info from a given region list.
+\ Returns a list of defining-regions.
+: region-list-defining-regions ( reg-lst0 -- dreg-lst )
+    \ Check arg.
+    assert-tos-is-region-list
+
+    \ Init return list.
+    list-new swap               \ ret-lst reg-lst0
+
+    \ For each region.
+    dup list-get-links          \ ret-lst reg-lst0 lnk
+    begin
+        ?dup
+    while
+        \ Get a region.
+        dup link-get-data           \ ret-lst reg-lst0 lnk regx
+
+        \ Get region list, except regx.
+        dup                         \ ret-lst reg-lst0 lnk regx regx
+        #3 pick                     \ ret-lst reg-lst0 lnk regx regx reg-lst0
+        region-list-copy-except     \ ret-lst reg-lst0 lnk regx reg-lst-tmp'
+
+        \ Get regx minus region list.
+        swap                        \ ret-lst reg-lst0 lnk reg-lst-tmp' regx
+        list-new                    \ ret-lst reg-lst0 lnk reg-lst-tmp' regx regx-lst'
+        tuck region-list-push       \ ret-lst reg-lst0 lnk reg-lst-tmp' regx-lst'
+        2dup                        \ ret-lst reg-lst0 lnk reg-lst-tmp' regx-lst' reg-lst-tmp' regx-lst'
+        region-list-subtract        \ ret-lst reg-lst0 lnk reg-lst-tmp' regx-lst' regx-parts'
+        swap region-list-deallocate \ ret-lst reg-lst0 lnk reg-lst-tmp' regx-parts'
+        swap region-list-deallocate \ ret-lst reg-lst0 lnk regx-parts'
+
+        \ Check subtraction results.
+        dup list-is-empty?          \ ret-lst reg-lst0 lnk regx-parts' bool
+        swap list-deallocate        \ ret-lst reg-lst0 lnk bool
+        if
+        else
+            \ region to list.
+            over link-get-data      \ ret-lst reg-lst0 lnk regx
+            #3 pick                 \ ret-lst reg-lst0 lnk regx ret-lst
+            list-push-struct        \ ret-lst reg-lst0 lnk
+        then
+
+        link-get-next
+    repeat
+                                    \ ret-lst reg-lst0
+    drop                            \ ret-lst
 ;
 
 \ Return a list of regions a state is in.
@@ -560,58 +608,40 @@
     >
 ;
 
-\ Given a list of states and region, evaluate for corners and needs.
-: region-list-evaluate-for-corners ( sta-lst1 reg-lst0 -- )
+\ Given a list of states and a list of possible region, evaluate for corners and needs.
+: region-list-evaluate-for-corners ( sta-lst1 pos-reg-lst0 -- )
     \ Check args.
     assert-tos-is-region-list
     assert-nos-is-state-list
 
     cr ." region-list-evaluate-for-corners: " over .state-list space dup .region-list cr
 
-    \ Calc a list of (state (regions-state-in)).
-    2dup swap state-list-regions-states-in  \ sta-lst1 reg-lst0 sta-regs-lst
-    cr ." state-regions: " dup structinfo-list-print-struct-list-xt execute cr
+    \ Get states in only one region.
+    2dup region-list-states-in-only-one         \ sta-lst1 pos-reg-lst0 stas-in-one
+    cr ." States in only one region: " dup .state-list cr
 
+    \ Get defining regions, based on states given.
+    2dup swap region-list-defining-by-state     \ sta-lst1 pos-reg-lst0 stas-in-one def-regs
+    cr ." Defining regions: " dup .region-list cr
 
-    \ Massage sta-regs to remove states in GT one region and in a defining region.
+    \ Get states not in defining regions.
+    #2 pick                                     \ sta-lst1 pos-reg-lst0 stas-in-one def-regs sta-lst1
+    over region-list-states-not-in              \ sta-lst1 pos-reg-lst0 stas-in-one def-regs stas-not-in
+    cr ." States not in defining regions: " dup .state-list cr
 
-    cr ." todo" cr
-    
-    \ Calc a list of (state number-regions-state-in).
-    list-new                                \ sta-lst1 reg-lst0 sta-regs-lst sta-num-lst
-    over list-get-links                     \ sta-lst1 reg-lst0 sta-regs-lst sta-num-lst sta-regs-lnk
+    \ Get list of (states-not-in (regions in)), sorted in ascending order by number regions in.
+    #2 pick                                     \ sta-lst1 pos-reg-lst0 stas-in-one def-regs stas-not-in pos-reg-lst0
+    over state-list-regions-states-in           \ sta-lst1 pos-reg-lst0 stas-in-one def-regs stas-not-in stas-reg
+    cr ." State-regs list: " dup structinfo-list-print-struct-list-xt execute cr
 
-    begin
-        ?dup
-    while
-        dup link-get-data                   \ sta-lst1 reg-lst0 sta-regs-lst sta-num-lst sta-regs-lnk (sta (regs))
+    \ Check for corners.
 
-        \ Make sub-list.
-        list-new                            \ sta-lst1 reg-lst0 sta-regs-lst sta-num-lst sta-regs-lnk (sta (regs)) sub-lst
+    \ Check for new anchors.
 
-        \ Store number regions.
-        over list-get-second-item           \ sta-lst1 reg-lst0 sta-regs-lst sta-num-lst sta-regs-lnk (sta (regs)) sub-lst (regs)
-        list-get-length                     \ sta-lst1 reg-lst0 sta-regs-lst sta-num-lst sta-regs-lnk (sta (regs)) sub-lst num
-        over list-push                      \ sta-lst1 reg-lst0 sta-regs-lst sta-num-lst sta-regs-lnk (sta (regs)) sub-lst
-
-        \ Store state.
-        swap list-get-first-item            \ sta-lst1 reg-lst0 sta-regs-lst sta-num-lst sta-regs-lnk sub-lst sta
-        over list-push-struct               \ sta-lst1 reg-lst0 sta-regs-lst sta-num-lst sta-regs-lnk sub-lst
-
-        \ Store sub-list.
-        #2 pick                             \ sta-lst1 reg-lst0 sta-regs-lst sta-num-lst sta-regs-lnk sub-lst sta-num-lst
-        list-push-struct                    \ sta-lst1 reg-lst0 sta-regs-lst sta-num-lst sta-regs-lnk
-
-        link-get-next
-    repeat
-    cr ." state-num: " dup structinfo-list-print-struct-list-xt execute cr
-
-    \ Sort list.
-    [ ' state-num-sort-xt ] literal over list-sort
-    cr ." state-num sorted: " dup structinfo-list-print-struct-list-xt execute cr
-
-    structinfo-list-deallocate-struct-list-xt execute
-    structinfo-list-deallocate-struct-list-xt execute
-
+                                                        \ sta-lst1 pos-reg-lst0 stas-in-one def-regs stas-not-in stas-reg
+    structinfo-list-deallocate-struct-list-xt execute   \ sta-lst1 pos-reg-lst0 stas-in-one def-regs stas-not-in
+    state-list-deallocate                               \ sta-lst1 pos-reg-lst0 stas-in-one def-regs
+    region-list-deallocate                              \ sta-lst1 pos-reg-lst0 stas-in-one
+    state-list-deallocate                               \ sta-lst1 pos-reg-lst0
     2drop
 ;
