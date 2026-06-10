@@ -762,6 +762,9 @@
     over state-list-regions-states-in           \ sta-lst1 pos-reg-lst0 stas-in-one def-regs stas-not-in stas-reg
     cr ." State-regs list: " dup structinfo-list-print-struct-list-xt execute cr
     \ cr ." at 5: " .stack-gbl cr
+    [ ' state-regs-sort-xt ] literal over        \ sta-lst1 pos-reg-lst0 stas-in-one def-regs stas-not-in stas-reg xt stas-reg
+    list-sort                                   \ sta-lst1 pos-reg-lst0 stas-in-one def-regs stas-not-in stas-reg
+    cr ." State-regs list sorted: " dup structinfo-list-print-struct-list-xt execute cr
 
     \ Check for corners.
 
