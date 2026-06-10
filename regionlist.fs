@@ -597,15 +597,139 @@
     drop
 ;
 
-
-: state-num-sort-xt ( sta-num1 sta-num0 -- bool )
+\ Function to help sort a list of ( state region-list ),
+\ by ascending number of regions.
+: state-regs-sort-xt ( sta-regs1 sta-regs0 -- bool )
     \ Check args.
     assert-tos-is-state-list
     assert-nos-is-state-list
 
-    swap list-get-second-item   \ sta-num0 num1
-    swap list-get-second-item   \ num1 num0
-    >
+    list-get-second-item list-get-length        \ sta-num1 len0
+    swap list-get-second-item list-get-length   \ len0 len1
+    <
+;
+
+\ Return the number of regions a state is in.
+: region-list-num-state-in ( sta1 reg-lst0 -- u )
+    \ Check args.
+    assert-tos-is-region-list
+    assert-nos-is-state
+
+    \ Init count.
+    0 swap                          \ sta1 cnt reg-lst0
+    list-get-links                  \ sta1 cnt lnk
+    begin
+        ?dup
+    while
+        #2 pick                     \ sta1 cnt lnk sta1
+        over link-get-data          \ sta1 cnt lnk sta1 regx
+        region-superset-of-state?   \ sta1 cnt lnk bool
+        if
+            \ Inc count.
+            swap 1+ swap
+        then
+
+        link-get-next
+    repeat
+                                    \ sta1 cnt
+    nip
+;
+
+\ Return a list of states that are in only one region.
+: region-list-states-in-only-one ( sta-lst1 reg-lst0 -- sta-lst )
+    \ Check args.
+    assert-tos-is-region-list
+    assert-nos-is-state-list
+
+    \ Init return list.
+    list-new -rot                   \ ret-lst sta-lst1 reg-lst0
+
+    swap list-get-links             \ ret-lst reg-lst0 sta-lnk
+    begin
+        ?dup
+    while
+        dup link-get-data               \ ret-lst reg-lst0 sta-lnk stax
+        #2 pick                         \ ret-lst reg-lst0 sta-lnk stax reg-lst0
+        region-list-num-state-in        \ ret-lst reg-lst0 sta-lnk u
+        1 =                             \ ret-lst reg-lst0 sta-lnk bool
+        if
+            \ Add state to list.
+            dup link-get-data           \ ret-lst reg-lst0 sta-lnk stax
+            #3 pick                     \ ret-lst reg-lst0 sta-lnk stax ret-lst
+            list-push-struct            \ ret-lst reg-lst0 sta-lnk
+        then
+
+        link-get-next
+    repeat
+                                        \ ret-lst reg-lst0
+    drop
+;
+
+: region-list-states-in ( sta-lst1 reg-lst0 -- reg-lst )
+    \ Check args.
+    assert-tos-is-region-list
+    assert-nos-is-state-list
+    \ cr ." region-list-states-in: start: " .stack-gbl cr
+
+    \ Init return list.
+    list-new -rot                   \ ret-lst sta-lst1 reg-lst0
+
+    swap list-get-links             \ ret-lst reg-lst0 sta-lnk
+    begin
+        ?dup
+    while
+        dup link-get-data               \ ret-lst reg-lst0 sta-lnk stax
+        #2 pick                         \ ret-lst reg-lst0 sta-lnk stax reg-lst0
+        region-list-regions-state-in    \ ret-lst reg-lst0 sta-lnk sta-reg-lst'
+        dup list-get-links              \ ret-lst reg-lst0 sta-lnk sta-reg-lst' sta-reg-lnk
+        begin
+            ?dup
+        while
+            dup link-get-data           \ ret-lst reg-lst0 sta-lnk sta-reg-lst' sta-reg-lnk regx
+            #5 pick                     \ ret-lst reg-lst0 sta-lnk sta-reg-lst' sta-reg-lnk regx ret-lst
+            region-list-push-nosubs     \ ret-lst reg-lst0 sta-lnk sta-reg-lst' sta-reg-lnk bool
+            drop
+
+            link-get-next
+        repeat
+                                        \ ret-lst reg-lst0 sta-lnk sta-reg-lst'
+        region-list-deallocate          \ ret-lst reg-lst0 sta-lnk
+
+        link-get-next
+    repeat
+                                        \ ret-lst reg-lst0
+    drop
+    \ cr ." region-list-states-in: end: " .stack-gbl cr
+;
+
+: region-list-states-not-in ( sta-lst1 reg-lst0 -- sta-lst )
+    \ Check args.
+    cr ." region-list-states-not-in: start: " .stack-gbl cr
+    assert-tos-is-region-list
+    assert-nos-is-state-list
+
+    \ Init return list.
+    list-new -rot                   \ ret-lst sta-lst1 reg-lst0
+
+    swap list-get-links             \ ret-lst reg-lst0 sta-lnk
+    begin
+        ?dup
+    while
+        dup link-get-data               \ ret-lst reg-lst0 sta-lnk stax
+        #2 pick                         \ ret-lst reg-lst0 sta-lnk stax reg-lst0
+        region-list-num-state-in        \ ret-lst reg-lst0 sta-lnk u
+        0=                              \ ret-lst reg-lst0 sta-lnk bool
+        if
+            \ Add state to list.
+            dup link-get-data           \ ret-lst reg-lst0 sta-lnk stax
+            #3 pick                     \ ret-lst reg-lst0 sta-lnk stax ret-lst
+            list-push-struct            \ ret-lst reg-lst0 sta-lnk
+        then
+
+        link-get-next
+    repeat
+                                        \ ret-lst reg-lst0
+    drop
 ;
 
 \ Given a list of states and a list of possible region, evaluate for corners and needs.
@@ -615,29 +739,33 @@
     assert-nos-is-state-list
 
     cr ." region-list-evaluate-for-corners: " over .state-list space dup .region-list cr
+    \ cr ." at 1: " .stack-gbl cr
 
     \ Get states in only one region.
     2dup region-list-states-in-only-one         \ sta-lst1 pos-reg-lst0 stas-in-one
     cr ." States in only one region: " dup .state-list cr
+    \ cr ." at 2: " .stack-gbl cr
 
     \ Get defining regions, based on states given.
-    2dup swap region-list-defining-by-state     \ sta-lst1 pos-reg-lst0 stas-in-one def-regs
+    2dup swap region-list-states-in             \ sta-lst1 pos-reg-lst0 stas-in-one def-regs
     cr ." Defining regions: " dup .region-list cr
+    \ cr ." at 3: " .stack-gbl cr
 
     \ Get states not in defining regions.
-    #2 pick                                     \ sta-lst1 pos-reg-lst0 stas-in-one def-regs sta-lst1
+    #3 pick                                     \ sta-lst1 pos-reg-lst0 stas-in-one def-regs sta-lst1
     over region-list-states-not-in              \ sta-lst1 pos-reg-lst0 stas-in-one def-regs stas-not-in
     cr ." States not in defining regions: " dup .state-list cr
+    \ cr ." at 4: " .stack-gbl cr
 
     \ Get list of (states-not-in (regions in)), sorted in ascending order by number regions in.
-    #2 pick                                     \ sta-lst1 pos-reg-lst0 stas-in-one def-regs stas-not-in pos-reg-lst0
+    #3 pick                                     \ sta-lst1 pos-reg-lst0 stas-in-one def-regs stas-not-in pos-reg-lst0
     over state-list-regions-states-in           \ sta-lst1 pos-reg-lst0 stas-in-one def-regs stas-not-in stas-reg
     cr ." State-regs list: " dup structinfo-list-print-struct-list-xt execute cr
+    \ cr ." at 5: " .stack-gbl cr
 
     \ Check for corners.
 
     \ Check for new anchors.
-
                                                         \ sta-lst1 pos-reg-lst0 stas-in-one def-regs stas-not-in stas-reg
     structinfo-list-deallocate-struct-list-xt execute   \ sta-lst1 pos-reg-lst0 stas-in-one def-regs stas-not-in
     state-list-deallocate                               \ sta-lst1 pos-reg-lst0 stas-in-one def-regs

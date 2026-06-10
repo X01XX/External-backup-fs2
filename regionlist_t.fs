@@ -134,7 +134,7 @@
     \ Check for memory leaks.
     structinfo-list-store structinfo-list-project-deallocated
 
-    cr ." region-list-test-defining-regions2 - Ok"
+    cr ." region-list-test-evaluate-for-corners - Ok"
 ;
 
 : region-list-tests
