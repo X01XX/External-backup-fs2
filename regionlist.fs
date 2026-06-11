@@ -704,7 +704,7 @@
 
 : region-list-states-not-in ( sta-lst1 reg-lst0 -- sta-lst )
     \ Check args.
-    cr ." region-list-states-not-in: start: " .stack-gbl cr
+    \ cr ." region-list-states-not-in: start: " .stack-gbl cr
     assert-tos-is-region-list
     assert-nos-is-state-list
 
@@ -762,13 +762,32 @@
     over state-list-regions-states-in           \ sta-lst1 pos-reg-lst0 stas-in-one def-regs stas-not-in stas-reg
     cr ." State-regs list: " dup structinfo-list-print-struct-list-xt execute cr
     \ cr ." at 5: " .stack-gbl cr
-    [ ' state-regs-sort-xt ] literal over        \ sta-lst1 pos-reg-lst0 stas-in-one def-regs stas-not-in stas-reg xt stas-reg
+    [ ' state-regs-sort-xt ] literal over       \ sta-lst1 pos-reg-lst0 stas-in-one def-regs stas-not-in stas-reg xt stas-reg
     list-sort                                   \ sta-lst1 pos-reg-lst0 stas-in-one def-regs stas-not-in stas-reg
     cr ." State-regs list sorted: " dup structinfo-list-print-struct-list-xt execute cr
 
     \ Check for corners.
+    #2 pick                                     \ sta-lst1 pos-reg-lst0 stas-in-one def-regs stas-not-in stas-reg def-regs
+    list-get-links                              \ sta-lst1 pos-reg-lst0 stas-in-one def-regs stas-not-in stas-reg def-lnk
+    begin
+        ?dup
+    while
+        dup link-get-data                       \ sta-lst1 pos-reg-lst0 stas-in-one def-regs stas-not-in stas-reg def-lnk def-regx
+        cr ." def reg: " .region cr
+
+        link-get-next
+    repeat
 
     \ Check for new anchors.
+    dup list-get-links                          \ sta-lst1 pos-reg-lst0 stas-in-one def-regs stas-not-in stas-reg stas-reg-lnk
+    begin
+        ?dup
+    while
+        dup link-get-data                       \ sta-lst1 pos-reg-lst0 stas-in-one def-regs stas-not-in stas-reg stas-reg-lnk sta-regx
+        cr ." sta-regs: " structinfo-list-print-struct-list-xt execute cr
+
+        link-get-next                           \ sta-lst1 pos-reg-lst0 stas-in-one def-regs stas-not-in stas-reg stas-reg-lsk
+    repeat
                                                         \ sta-lst1 pos-reg-lst0 stas-in-one def-regs stas-not-in stas-reg
     structinfo-list-deallocate-struct-list-xt execute   \ sta-lst1 pos-reg-lst0 stas-in-one def-regs stas-not-in
     state-list-deallocate                               \ sta-lst1 pos-reg-lst0 stas-in-one def-regs
