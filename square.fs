@@ -123,7 +123,7 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
     6c!
 ;
 
-: square-get-samples ( sqr0 -- smpl-lst )
+: _square-get-samples ( sqr0 -- smpl-lst )
     \ Check arg.
     assert-tos-is-square
 
@@ -165,9 +165,7 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
     assert-tos-is-sample
 
     \ Calc rule.
-    dup sample-get-result           \ smpl rslt
-    over sample-get-initial         \ smpl rslt initl
-    rule-new                        \ smpl rul
+    dup rule-new-from-sample        \ smpl rule
 
     \ Make rule list.
     list-new tuck                   \ smpl rul-lst rul rul-lst
@@ -226,43 +224,168 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
     then
 ;
 
-: _square-calc-pn ( sqr0 -- )
+\ Update the rules of a square.
+: _square-update-rules ( rul-lst1 sqr0 -- )
     \ Check args.
     assert-tos-is-square
+    assert-nos-is-rule-list
+    over list-get-length #2 > abort" rule list too long?"
 
+    dup square-get-rules    \ rul-lst1 sqr0 rul-lst-old
+    -rot                    \ rul-lst-old rul-lst1 sqr0
+    _square-set-rules       \ rul-lst-old
+    rule-list-deallocate
 ;
 
+\ Calculate, and update, the square pn value.
+: _square-calc-pn ( sqr0 -- )
+    \ Check arg.
+    assert-tos-is-square
+
+    dup _square-get-samples     \ sqr0 smpl-lst
+
+    \ Check for samples length LT 2.
+    dup list-get-length #2 <
+    if
+        cr ." square number samples LT 2" cr
+        2drop
+        exit
+    then
+
+    \ Check for samples length too long.
+    dup list-get-length #4 >
+    abort" square number samples GT 4?"
+    
+    \ Check for length GT 2.
+    dup list-get-length         \ sqr0 smpl-lst len
+    #2 > if
+        \ Check first and third sample results are equal.
+        dup list-get-first-item sample-get-result   \ sqr0 smpl-lst r1
+        over list-get-third-item sample-get-result  \ sqr0 smpl-lst r1 r3
+        states-eq?                                  \ sqr0 smpl-lst bool
+        if
+        else
+            drop                                    \ sqr0
+            0 swap _square-update-pn
+            exit
+        then
+    then
+
+    \ Check fof length GT 3.
+    dup list-get-length         \ sqr0 smpl-lst len
+    #3 > if
+        \ Check second and fourth sample results are equal.
+        dup list-get-second-item sample-get-result   \ sqr0 smpl-lst r2
+        over list-get-fourth-item sample-get-result  \ sqr0 smpl-lst r2 r4
+        states-eq?                                  \ sqr0 smpl-lst bool
+        if
+        else
+            drop                                    \ sqr0
+            0 swap _square-update-pn
+            exit
+        then
+    then
+
+    \ Check if first and second sample results are equal.
+    dup list-get-first-item sample-get-result   \ sqr0 smpl-lst r0
+    swap list-get-second-item sample-get-result \ sqr0 r0 r1
+    states-eq?
+    if
+        1 swap _square-update-pn
+    else
+        #2 swap _square-update-pn
+    then
+;
+
+\ Calculate, and update, square pnc value.
+\ Run after _square-calc-pn.
 : _square-calc-pnc ( sqr0 -- )
     \ Check args.
     assert-tos-is-square
 
+    \ Check for pn 0.
+    dup square-get-pn       \ sqr0 pn
+    0=
+    if
+        true swap _square-update-pnc
+        exit
+    then
+
+    dup _square-get-samples \ sqr0 smpl-lst
+    list-get-length         \ sqr0 len
+    #3 >                    \ sqr0 bool
+    swap _square-update-pnc
 ;
 
+\ Calculate, and update, square rules.
 : _square-calc-rules ( sqr0 -- )
     \ Check args.
     assert-tos-is-square
 
+    dup square-get-pn       \ sqr0 pn
+    case
+        0 of
+            list-new                    \ sqr0 rul-lst
+            swap _square-update-rules
+        endof
+        1 of
+            dup _square-get-samples     \ sqr0 smpl-lst
+            list-get-first-item         \ sqr0 smpl
+            rule-new-from-sample        \ sqr0 rul
+            list-new tuck               \ sqr0 rul-lst rul rul-lst
+            list-push-struct            \ sqr0 rul-lst
+            swap _square-update-rules
+        endof
+        #2 of
+            dup _square-get-samples     \ sqr0 smpl-lst
+            list-get-second-item        \ sqr0 smpl2
+            rule-new-from-sample        \ sqr0 rul2
+            list-new tuck               \ sqr0 rul-lst rul2 rul-lst
+            list-push-struct            \ sqr0 rul-lst
+
+            over _square-get-samples    \ sqr0 rul-lst smpl-lst
+            list-get-first-item         \ sqr0 rul-lst smpl1
+            rule-new-from-sample        \ sqr0 rul-lst rul1
+            over list-push-end
+
+            swap _square-update-rules
+        endof
+        cr ." invalid pn value: " dec. abort
+    endcase
+;
+
+: square-get-state ( sqr0 -- sta )
+    _square-get-samples     \ smpl-lst
+    list-get-first-item     \ smpl
+    sample-get-initial      \ sta
 ;
 
 : square-add-sample ( smpl sqr0 -- bool )
     \ Check args.
     assert-tos-is-square
     assert-nos-is-sample
+    dup square-get-state        \ smpl sqr0 sta1
+    #2 pick sample-get-initial  \ smpl sqr0 sta1 sta2
+    states-eq?                  \ smpl sqr0 bool
+    if
+    else
+        cr ." sample initial does sot match square state" cr abort
+    then
 
     \ Init changed flag for the following process.
     false over _square-set-changed
 
     \ Add sample.
     swap                        \ sqr0 smpl
-    over square-get-samples     \ sqr0 smpl smpl-lst
+    over _square-get-samples    \ sqr0 smpl smpl-lst
     list-push-struct            \ sqr0
 
     \ Check for sample list too long.
-    dup square-get-samples      \ sqr0 smpl-lst
+    dup _square-get-samples     \ sqr0 smpl-lst
     list-get-length             \ sqr0 len
     square-number-samples >
     if
-        dup square-get-samples  \ sqr0 smpl-lst
+        dup _square-get-samples \ sqr0 smpl-lst
         list-pop                \ sqr0, data t | f
         drop
         sample-deallocate       \ sqr0
