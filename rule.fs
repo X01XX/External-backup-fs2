@@ -174,6 +174,16 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
     nip nip                 \ rul
 ;
 
+\ Return a rule from a sample.
+: rule-new-from-sample ( smpl0 -- rul )
+    \ Check arg.
+    assert-tos-is-sample
+
+    dup sample-get-result       \ rslt smpl0
+    sample-get-initial          \ rslt smpl
+    rule-new                    \ rul
+;
+
 : .rule ( rul0 -- ) \ Print a rule.
     \ Check arg.
     assert-tos-is-rule

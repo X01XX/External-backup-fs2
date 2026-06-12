@@ -46,6 +46,8 @@ include structinfolist.fs
 include stackprint.fs
 include list2.fs
 
+include square.fs
+
 cr
 
 include mask_t.fs
@@ -67,6 +69,7 @@ include regionlist_t.fs
 #100 sample-mma-init
 #100 token-mma-init
 #100 floatnum-mma-init
+#100 square-mma-init
 cr cr
 
 \ Init structinfo list.
