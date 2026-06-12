@@ -404,3 +404,36 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
     \ then
     cr ." TODO" cr
 ;
+
+\ Deallocate a square.
+: square-deallocate ( sqr0 -- )
+    \ Check arg.
+    assert-tos-is-square
+
+    dup struct-get-use-count      \ sqr0 count
+    dup 0< abort" square-deallocate: Invalid use count"
+
+    #2 <
+    if
+        \ Deallocate states.
+        dup _square-get-samples sample-list-deallocate
+        dup square-get-rules   rule-list-deallocate
+
+        \ Deallocate instance.
+        square-mma mma-deallocate
+    else
+        struct-dec-use-count
+    then
+;
+
+\ Print a square.
+: .square ( sqr0 -- )
+    \ Check arg.
+    assert-tos-is-square
+
+    s" (" type
+    dup square-get-state .state
+    space
+    square-get-rules .rule-list
+    s" )" type
+;
