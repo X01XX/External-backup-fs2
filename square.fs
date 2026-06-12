@@ -226,6 +226,24 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
     then
 ;
 
+: _square-calc-pn ( sqr0 -- )
+    \ Check args.
+    assert-tos-is-square
+
+;
+
+: _square-calc-pnc ( sqr0 -- )
+    \ Check args.
+    assert-tos-is-square
+
+;
+
+: _square-calc-rules ( sqr0 -- )
+    \ Check args.
+    assert-tos-is-square
+
+;
+
 : square-add-sample ( smpl sqr0 -- bool )
     \ Check args.
     assert-tos-is-square
@@ -234,5 +252,32 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
     \ Init changed flag for the following process.
     false over _square-set-changed
 
+    \ Add sample.
+    swap                        \ sqr0 smpl
+    over square-get-samples     \ sqr0 smpl smpl-lst
+    list-push-struct            \ sqr0
+
+    \ Check for sample list too long.
+    dup square-get-samples      \ sqr0 smpl-lst
+    list-get-length             \ sqr0 len
+    square-number-samples >
+    if
+        dup square-get-samples  \ sqr0 smpl-lst
+        list-pop                \ sqr0, data t | f
+        drop
+        sample-deallocate       \ sqr0
+    then
+
+    \ dup _square-calc-pn
+
+    \ dup _square-calc-pnc
+
+    \ dup square-get-changed
+    \ if
+    \    _square-calc-rules
+    \    true
+    \ else
+    \    false
+    \ then
     cr ." TODO" cr
 ;
