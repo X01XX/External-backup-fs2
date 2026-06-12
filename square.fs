@@ -22,14 +22,14 @@
                                                                 \    1 if the most recent sample addition changed PR or PNC.
                                                                 \    8 bits.
 square-header-disp      cell+   constant square-samples-disp    \ A list of square-number-samples samples, earliest sample first.
-square-sample-list-disp cell+   constant square-rules-disp      \ A list of 0, 1 or 2 rules. Matches PN value of 0, 1 o 2.
+square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1 or 2 rules. Matches PN value of 0, 1 o 2.
                                                                 \    If 2 - Order does not matter.
 
 0 value square-mma \ Storage for square mma instance.
 
 \ Init square mma, return the addr of allocated memory.
 : square-mma-init ( num-items -- ) \ sets square-mma.
-    dup 1 < 
+    dup 1 <
     abort" square-mma-init: Invalid number of items."
 
     cr ." Initializing Square store."
@@ -39,7 +39,7 @@ square-sample-list-disp cell+   constant square-rules-disp      \ A list of 0, 1
 \ Check instance type.
 : is-allocated-square? ( addr -- bool )
     dup square-mma mma-is-item  \ addr bool
-    if  
+    if
         struct-get-id
         square-id =             \ bool
     else

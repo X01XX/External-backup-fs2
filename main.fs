@@ -34,8 +34,10 @@ include region2.fs
 include state2.fs
 include regionlist2.fs
 
-include rule.fs
 include sample.fs
+include samplelist.fs
+include rule.fs
+include rulelist.fs
 include floatnum.fs
 
 include token.fs
