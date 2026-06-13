@@ -40,3 +40,11 @@
         struct-dec-use-count
     then
 ;
+
+\ Print a sample-list
+: .sample-list ( list0 -- )
+    \ Check arg.
+    assert-tos-is-sample-list
+
+    [ ' .sample ] literal swap .list
+;

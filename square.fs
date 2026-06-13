@@ -68,8 +68,8 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
 
 \ Check nos is a valid pn value.
 : assert-nos-is-pn ( nos tos -- nos tos )
-    over dup 1 < swap
-    #3 > or
+    over dup 0 < swap
+    #2 > or
     if
         s" nos is not a valid pn value"
         .abort-xt execute
@@ -98,6 +98,11 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
     assert-tos-is-square
 
     5c@
+    if
+        true
+    else
+        false
+    then
 ;
 
 : _square-set-pnc ( bool sqr0 -- )
@@ -105,6 +110,12 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
     assert-tos-is-square
     assert-nos-is-bool
 
+    swap        \ sqr0 bool
+    if
+        1 swap
+    else
+        0 swap
+    then
     5c!
 ;
 
@@ -378,7 +389,7 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
     \ Add sample.
     swap                        \ sqr0 smpl
     over _square-get-samples    \ sqr0 smpl smpl-lst
-    list-push-struct            \ sqr0
+    list-push-end-struct        \ sqr0
 
     \ Check for sample list too long.
     dup _square-get-samples     \ sqr0 smpl-lst
@@ -391,18 +402,18 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
         sample-deallocate       \ sqr0
     then
 
-    \ dup _square-calc-pn
+    dup _square-calc-pn         \ sqr0
 
-    \ dup _square-calc-pnc
+    dup _square-calc-pnc        \ sqr0
 
-    \ dup square-get-changed
-    \ if
-    \    _square-calc-rules
-    \    true
-    \ else
-    \    false
-    \ then
-    cr ." TODO" cr
+    dup square-get-changed      \ sqr0 bool
+    if
+        _square-calc-rules
+        true
+    else
+        drop
+        false
+    then
 ;
 
 \ Deallocate a square.
@@ -433,7 +444,6 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
 
     s" (" type
     dup square-get-state .state
-    \ space s" pn: " type dup square-get-pn dec.
     space s" pnc: " type dup square-get-pnc .bool
     space square-get-rules .rule-list
     s" )" type
