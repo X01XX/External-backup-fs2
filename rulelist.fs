@@ -98,34 +98,6 @@
     assert-tos-is-rule-list
     assert-nos-is-rule-list
 
-    \ Check lengths.
-    over list-get-length            \ reg-lst1 reg-lst0 len1
-    over list-get-length            \ reg-lst1 reg-lst0 len1 len0
-    <>                              \ reg-lst1 reg-lst0 bool
-    if
-        2drop
-        false
-        exit
-    then
-
-    \ Check elements.
-    list-get-links                  \ reg-lst1 lnk
-    begin
-        ?dup
-    while
-        [ ' rules-eq? ] literal     \ reg-lst1 lnk xt
-        over link-get-data          \ reg-lst1 lnk xt regx
-        #3 pick                     \ reg-lst1 lnk xt regx reg-lst1
-        list-member                 \ reg-lst1 lnk bool
-        if
-        else
-            2drop
-            false
-            exit
-        then
-
-        link-get-next
-    repeat
-    drop
-    true
+    [ ' rules-eq? ] literal -rot    \ xt reg-lst1 reg-lst0
+    struct-lists-eq?                \ bool
 ;

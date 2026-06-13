@@ -178,3 +178,41 @@
     [ ' struct-inc-use-count ] literal  \ ret-lst xt
     over list-apply                     \ ret-lst
 ;
+
+\ Return true if two struct lists are equal.
+: struct-lists-eq? ( xt sct-lst1 sct-lst0 -- bool )
+    \ Check args.
+    assert-tos-is-list
+    assert-nos-is-list
+
+    \ Check lengths.
+    over list-get-length            \ xt sct-lst1 sct-lst0 len1
+    over list-get-length            \ xt sct-lst1 sct-lst0 len1 len0
+    <>                              \ xt sct-lst1 sct-lst0 bool
+    if
+        2drop drop
+        false
+        exit
+    then
+
+    \ Check elements.
+    list-get-links                  \ xt sct-lst1 lnk
+    begin
+        ?dup
+    while
+        #2 pick                     \ xt sct-lst1 lnk xt
+        over link-get-data          \ xt sct-lst1 lnk xt regx
+        #3 pick                     \ xt sct-lst1 lnk xt regx sct-lst1
+        list-member                 \ xt sct-lst1 lnk bool
+        if
+        else
+            2drop drop
+            false
+            exit
+        then
+
+        link-get-next
+    repeat
+    2drop
+    true
+;
