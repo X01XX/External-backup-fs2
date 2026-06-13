@@ -90,6 +90,124 @@
     cr ." square-test-basic - Ok"
 ;
 
+: square-test-compare-pn0
+    \ Make a pn0 square.
+    s" s0101->s0111" sample-from-string-a   \ smpl
+    square-new                              \ sqr1
+    s" s0101->s0101" sample-from-string-a   \ sqr smpl
+    over square-add-sample drop             \ sqr1
+    s" s0101->s0100" sample-from-string-a   \ sqr smpl
+    over square-add-sample drop             \ sqr1
+    cr ." square 1 smpl: " dup .square      \ sqr1
+
+    \ Make another pn0 square.
+    s" s0100->s0111" sample-from-string-a   \ sqr1 smpl
+    square-new                              \ sqr1 sqr2
+    s" s0100->s0101" sample-from-string-a   \ sqr1 sqr smpl
+    over square-add-sample drop             \ sqr1 sqr2
+    s" s0100->s0100" sample-from-string-a   \ sqr1 sqr smpl
+    over square-add-sample drop             \ sqr1 sqr2
+    cr ." square 1 smpl: " dup .square      \ sqr1 sqr2
+
+    \ Test compatibility.
+    2dup squares-compare                    \ sqr1 sqr2 c
+    [char] C =
+    if
+        cr ." square-test-compare-pn0 pn0 = C - Ok"
+        square-deallocate                   \ sqr1
+    else
+        true abort" pn0 pn0 not C?"
+    then
+
+    \ Make a pn1 square.
+    s" s0100->s0111" sample-from-string-a   \ sqr1 smpl
+    square-new                              \ sqr1 sqr2
+
+    \ Test compatibility.
+    2dup swap                               \ sqr1 sqr2 sqr2 sqr1
+    squares-compare                         \ sqr1 sqr2 m
+    [char] M =
+    if
+        cr ." square-test-compare-pn0 pn1 = M - Ok"
+    else
+        true abort" pn0 pn1 not M?"
+    then
+
+    \ Add to pn1 square to make it pnc == true.
+    s" s0100->s0111" sample-from-string-a   \ sqr1 sqr2 smpl
+    2dup swap square-add-sample drop
+    2dup swap square-add-sample drop
+    over square-add-sample drop             \ sqr1 sqr2
+
+    \ Test compatibility.
+    2dup swap                               \ sqr1 sqr2 sqr2 sqr1
+    squares-compare                         \ sqr1 sqr2 I
+    [char] I =
+    if
+        cr ." square-test-compare-pn0 pn1 = I - Ok"
+        square-deallocate
+    else
+        true abort" pn0 pn1 not I?"
+    then
+
+    square-deallocate
+
+    \ Check for memory leaks.
+    structinfo-list-store structinfo-list-project-deallocated
+
+    cr ." square-test-compare-pn0 - Ok"
+;
+
+: square-test-compare-pn1
+    cr ." square-test-compare-pn1 - Ok"
+
+    \ Create pn1 square.
+    s" s0100->s0111" sample-from-string-a   \ smpl
+    square-new                              \ sqr1
+
+    \ Create a compatible second square.
+    s" s0101->s0111" sample-from-string-a   \ sqr1 smpl
+    square-new                              \ sqr1 sqr2
+
+    \ Test compatibility.
+    2dup                                    \ sqr1 sqr2 sqr1 sqr2
+    squares-compare                         \ sqr1 sqr2 C
+    [char] C =
+    if
+        cr ." square-test-compare-pn1 pn1 = C - Ok"
+        square-deallocate
+    else
+        true abort" pn1 pn1 not C?"
+    then
+
+    \ Create an incompatible second square.
+    s" s0101->s0011" sample-from-string-a   \ sqr1 smpl
+    square-new                              \ sqr1 sqr2
+
+    \ Test compatibility.
+    2dup                                    \ sqr1 sqr2 sqr1 sqr2
+    squares-compare                         \ sqr1 sqr2 I
+    [char] I =
+    if
+        cr ." square-test-compare-pn1 pn1 = I - Ok"
+        square-deallocate
+    else
+        true abort" pn1 pn1 not I?"
+    then
+
+    square-deallocate
+
+    \ Check for memory leaks.
+    structinfo-list-store structinfo-list-project-deallocated
+;
+
+: square-test-compare-pn2
+    cr ." square-test-compare-pn2 - Ok"
+;
+
 : square-tests
     square-test-basic
+    square-test-compare-pn0
+    square-test-compare-pn1
+    square-test-compare-pn2
 ;

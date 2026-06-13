@@ -458,110 +458,64 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
     list-get-length
 ;
 
-\ Compare a square with a pn 0 value with another square.
-: _squares-compare-pn0 ( sqr1 sqr0 -- char )
-    drop                    \ sqr1
-    dup square-get-pn       \ sqr1 pn
-    0=
+\ Compare a pn0 square with a pn1, or pn2, square.
+\ Return I for Incompatible, M for More samples needed.
+: squares-compare-pnx-pn0 ( sqr-pnx sqr-pn0 -- char )
+    drop            \ sqr-pnx
+    square-get-pnc  \ pnc
     if
-        drop
+        [char] I
+    else
+        [char] M
+    then
+;
+
+\ Compare two pn1 squares.
+\ Return C for Compatible, I for Incompatible.
+: squares-compare-pn1-pn1 ( sqr-pn1b sqr-pn1a -- char )
+    square-get-rules list-get-first-item        \ sqr-pn1b rul-pn1a
+    swap square-get-rules list-get-first-item   \ rul-pn1a rul-pn1b
+    rule-union                                  \ rul t | f
+    if
+        rule-deallocate
         [char] C
     else
-        square-get-pnc      \ pnc
+        [char] I
+    then
+;
+
+\ Compare a pn1 and pn2 square.
+\ Return  I for Incompatible, M for More samples needed.
+: squares-compare-pn1-pn2 ( sqr-pn1 sqr-pn2 -- char )
+    over square-get-num-samples                     \ sqr-pn1 sqr-pn2 ns-pn1
+    1 >
+    if
+        2drop
+        [char] I
+    else
+        swap square-get-rules list-get-first-item   \ sqr-pn2 rul-pn1
+        swap square-get-rules                       \ rul-pn1 ruls-pn2
+        rule-list-union-superset?                   \ bool
         if
-            [char] I
-        else
             [char] M
+        else
+            [char] I
         then
     then
 ;
 
-\ Compare a square with a pn 1 value with another square.
-: _squares-compare-pn1 ( sqr1 sqr0 -- char )
-    over square-get-pn
-    case
-        0 of
-            dup square-get-pnc
-            if
-                [char] I
-            else
-                [char] M
-            then
-        endof
-        1 of
-            dup square-get-rules list-get-first-item        \ sqr1 sqr0 rul0
-            #2 pick square-get-rules list-get-first-item    \ sqr1 sqr0 rul0 rul1
-            rule-union                                      \ sqr1 sqr0, rul t | f
-            if
-                rule-deallocate
-                [char] C
-            else
-                [char] I
-            then
-        endof
-        2 of
-            dup square-get-num-samples
-            1 >
-            if
-                [char] I
-            else
-                dup square-get-rules list-get-first-item    \ sqr1 sqr0 rul0
-                #2 pick square-get-rules                    \ sqr1 sqr0 rul0 ruls1
-                rule-list-union-superset?                   \ sqr1 sqr0 bool
-                if
-                    [char] M
-                else
-                    [char] I
-                then
-            then
-        endof
-        true abort" Invalid pn value"
-    endcase
-    nip nip
-;
-
-\ Compare a square with a pn 2 value with another square.
-: _squares-compare-pn2 ( sqr1 sqr0 -- char )
-    over square-get-pn
-    case
-        0 of
-            dup square-get-pnc
-            if
-                [char] I
-            else
-                [char] M
-            then
-        endof
-        1 of
-            over square-get-num-samples
-            1 >
-            if
-                [char] I
-            else
-                over square-get-rules list-get-first-item   \ sqr1 sqr0 rul1
-                dup  square-get-rules                       \ sqr1 sqr0 rul1 ruls0
-                rule-list-union-superset?                   \ sqr1 sqr0 bool
-                if
-                    [char] M
-                else
-                    [char] I
-                then
-            then
-        endof
-        2 of
-            over square-get-rules                            \ sqr1 sqr0 ruls1
-            over square-get-rules                           \ sqr1 sqr0 ruls1 ruls0
-            rule-list-union                                 \ sqr1 sqr0, rul-lst t | f
-            if
-                rule-list-deallocate
-                [char] C
-            else
-                [char] I
-            then
-        endof
-        true abort" Invalid pn value"
-    endcase
-    nip nip
+\ Compare two pn2 squares.
+\ Return C for Compatible, I for Incompatible.
+: squares-compare-pn2-pn2 ( sqr-pn2b sqr-pn2a -- char )
+    square-get-rules            \ sqr-pn2b ruls-pn2a
+    swap square-get-rules       \ ruls-pn2a ruls-pn2b
+    rule-list-union             \ rul-lst t | f
+    if
+        rule-list-deallocate
+        [char] C
+    else
+        [char] I
+    then
 ;
 
 \ Compare two squares for union.
@@ -571,17 +525,48 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
     assert-tos-is-square
     assert-nos-is-square
 
-    dup square-get-pn       \ sqr1 sqr0 pn0
+    over square-get-pn      \ sqr1 sqr0 pn1
+    over square-get-pn      \ sqr1 sqr0 pn1 pn0
     case
         0 of
-            _squares-compare-pn0
+            case
+                0 of
+                    2drop
+                    [char] C
+                endof
+                1 of
+                    squares-compare-pnx-pn0
+                endof
+                #2 of
+                    squares-compare-pnx-pn0
+                endof
+            endcase
         endof
         1 of
-            _squares-compare-pn1
+            case
+                0 of
+                    swap squares-compare-pnx-pn0
+                endof
+                1 of
+                    squares-compare-pn1-pn1
+                endof
+                #2 of
+                    swap squares-compare-pn1-pn2
+                endof
+            endcase
         endof
         #2 of
-            _squares-compare-pn2
+            case
+                0 of
+                    swap squares-compare-pnx-pn0
+                endof
+                1 of
+                    squares-compare-pn1-pn2
+                endof
+                #2 of
+                    squares-compare-pn2-pn2
+                endof
+            endcase
         endof
-        true abort" invalid pn value?"
     endcase
 ;
