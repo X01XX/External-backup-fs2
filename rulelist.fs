@@ -108,7 +108,7 @@
     \ Check args.
     assert-tos-is-rule-list
     assert-nos-is-rule
-    dup list-get-length 2 < abort" rule list too short?"
+    dup list-get-length #2 < abort" rule list too short?"
 
     \ Check union with first list rule.
     dup list-get-first-item     \ rul1 rul-lst0 rul0a
@@ -164,7 +164,7 @@
         then
     \ else leave ret-lst1 empty.
     then
-    
+
     \ Check order two.
     list-new -rot                   \ ret-lst1 ret-lst2 rul-lst1 rul-lst0
     over list-get-first-item        \ ret-lst1 ret-lst2 rul-lst1 rul-lst0 rul1a

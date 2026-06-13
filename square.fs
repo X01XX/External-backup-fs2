@@ -266,7 +266,7 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
     \ Check for samples length too long.
     dup list-get-length #4 >
     abort" square number samples GT 4?"
-    
+
     \ Check for length GT 2.
     dup list-get-length         \ sqr0 smpl-lst len
     #2 > if
