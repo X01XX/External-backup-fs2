@@ -488,7 +488,15 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
             then
         endof
         1 of
-            \ todo rule valid union? C or I
+            dup square-get-rules list-get-first-item        \ sqr1 sqr0 rul0
+            #2 pick square-get-rules list-get-first-item    \ sqr1 sqr0 rul0 rul1
+            rule-union                                      \ sqr1 sqr0, rul t | f
+            if
+                rule-deallocate
+                [char] C
+            else
+                [char] I
+            then
         endof
         2 of
             dup square-get-num-samples
