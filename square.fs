@@ -448,3 +448,109 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
     space square-get-rules .rule-list
     s" )" type
 ;
+
+\ Return the number of samples stored by a square.
+: square-get-num-samples ( square -- 1-4 )
+    \ Check arg.
+    assert-tos-is-square
+
+    _square-get-samples
+    list-get-length
+;
+
+\ Compare a square with a pn 0 value with another square.
+: _squares-compare-pn0 ( sqr1 sqr0 -- char )
+    over square-get-pn
+    0=
+    if
+        [char] C
+    else
+        over square-get-pnc
+        if
+            [char] I
+        else
+            [char] M
+        then
+    then
+    nip nip
+;
+
+\ Compare a square with a pn 1 value with another square.
+: _squares-compare-pn1 ( sqr1 sqr0 -- char )
+    over square-get-pn
+    case
+        0 of
+            dup square-get-pnc
+            if
+                [char] I
+            else
+                [char] M
+            then
+        endof
+        1 of
+            \ todo rule valid union? C or I
+        endof
+        2 of
+            dup square-get-num-samples
+            1 >
+            if
+                [char] I
+            else
+                \ todo number vaid unions == 1? M or I
+            then
+        endof
+        true abort" Invalid pn value"
+    endcase
+    nip nip
+;
+
+\ Compare a square with a pn 2 value with another square.
+: _squares-compare-pn2 ( sqr1 sqr0 -- char )
+    over square-get-pn
+    case
+        0 of
+            dup square-get-pnc
+            if
+                [char] I
+            else
+                [char] M
+            then
+        endof
+        1 of
+            over square-get-num-samples
+            1 >
+            if
+                [char] I
+            else
+                \ todo number vaid unions == 1? M or I
+            then
+        endof
+        2 of
+                \ todo  valid union, one order only? C or I
+        endof
+        true abort" Invalid pn value"
+    endcase
+    nip nip
+;
+
+\ Compare two squares for union.
+\ Return char C for Compatible, I for Incompatible, M for More samples needed.
+: squares-compare ( sqr1 sqr0 -- char )
+    \ Check args.
+    assert-tos-is-square
+    assert-nos-is-square
+
+    dup square-get-pn       \ sqr1 sqr0 pn0
+    case
+        0 of
+            _squares-compare-pn0
+        endof
+        1 of
+            _squares-compare-pn1
+        endof
+        #2 of
+            _squares-compare-pn2
+        endof
+        true abort" invalid pn value?"
+    endcase
+;

@@ -49,6 +49,7 @@ include stackprint.fs
 include list2.fs
 
 include square.fs
+include squarelist.fs
 
 cr
 
