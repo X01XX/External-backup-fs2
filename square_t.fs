@@ -201,13 +201,86 @@
     structinfo-list-store structinfo-list-project-deallocated
 ;
 
-: square-test-compare-pn2
-    cr ." square-test-compare-pn2 - Ok"
+: squares-test-compare-pnx-pn0
+    \ Make a pn1 square.
+    s" s0100->s0111" sample-from-string-a   \ smpl
+    square-new                              \ sqr-pn1
+    cr ." square pn1: " dup .square         \ sqr-pn1
+
+    \ Make a pn0 square.
+    s" s0101->s0111" sample-from-string-a   \ sqr-pn1 smpl
+    square-new                              \ sqr-pn1 sqr-pn0
+    s" s0101->s0101" sample-from-string-a   \ sqr-pn1 sqr-pn0 smpl
+    over square-add-sample drop             \ sqr-pn1 sqr-pn0
+    s" s0101->s0100" sample-from-string-a   \ sqr-pn1 sqr-pn0 smpl
+    over square-add-sample drop             \ sqr-pn1 sqr-pn0
+    cr ." square pn0: " dup .square         \ sqr-pn1 sqr-pn0
+
+    \ Compare.
+    2dup squares-compare-pnx-pn0            \ sqr-pn1 sqr-pn0 char
+    [char] M =
+    if
+        cr ." compare pn1 pn0 to M - Ok"
+    else
+        true abort" comparison not M?"
+    then
+
+    \ Change sqr-pn1 to pnc == true.
+    s" s0100->s0111" sample-from-string-a   \ sqr-pn1 sqr-pn0 smpl
+    #2 pick square-add-sample drop          \ sqr-pn1 sqr-pn0
+    s" s0100->s0111" sample-from-string-a   \ sqr-pn1 sqr-pn0 smpl
+    #2 pick square-add-sample drop          \ sqr-pn1 sqr-pn0
+    s" s0100->s0111" sample-from-string-a   \ sqr-pn1 sqr-pn0 smpl
+    #2 pick square-add-sample drop          \ sqr-pn1 sqr-pn0
+
+    \ Compare.
+    2dup squares-compare-pnx-pn0            \ sqr-pn1 sqr-pn0 char
+    [char] I =
+    if
+        cr ." compare pn1 pn0 to I - Ok"
+    else
+        true abort" comparison not I?"
+    then
+    
+    \ Clean up.
+    square-deallocate
+    square-deallocate
+
+    \ Check for memory leaks.
+    structinfo-list-store structinfo-list-project-deallocated
+
+    cr ." square-test-compare-pnx-pn0 - Ok"
 ;
+
+: squares-test-compare-pn1-pn1
+
+    \ Check for memory leaks.
+    structinfo-list-store structinfo-list-project-deallocated
+
+    cr ." square-test-compare-pn1-pn1 - Ok"
+;
+
+: squares-test-compare-pn1-pn2
+
+    \ Check for memory leaks.
+    structinfo-list-store structinfo-list-project-deallocated
+
+    cr ." square-test-compare-pn1-pn2 - Ok"
+;
+
+: squares-test-compare-pn2-pn2
+
+    \ Check for memory leaks.
+    structinfo-list-store structinfo-list-project-deallocated
+
+    cr ." square-test-compare-pn2-pn2 - Ok"
+;
+
 
 : square-tests
     square-test-basic
-    square-test-compare-pn0
-    square-test-compare-pn1
-    square-test-compare-pn2
+    squares-test-compare-pnx-pn0
+    squares-test-compare-pn1-pn1
+    squares-test-compare-pn1-pn2
+    squares-test-compare-pn2-pn2
 ;

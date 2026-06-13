@@ -380,7 +380,7 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
     states-eq?                  \ smpl sqr0 bool
     if
     else
-        cr ." sample initial does sot match square state" cr abort
+        cr ." sample initial does not match square state" cr abort
     then
 
     \ Init changed flag for the following process.
