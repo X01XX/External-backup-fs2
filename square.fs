@@ -460,19 +460,20 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
 
 \ Compare a square with a pn 0 value with another square.
 : _squares-compare-pn0 ( sqr1 sqr0 -- char )
-    over square-get-pn
+    drop                    \ sqr1
+    dup square-get-pn       \ sqr1 pn
     0=
     if
+        drop
         [char] C
     else
-        over square-get-pnc
+        square-get-pnc      \ pnc
         if
             [char] I
         else
             [char] M
         then
     then
-    nip nip
 ;
 
 \ Compare a square with a pn 1 value with another square.
@@ -504,7 +505,14 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
             if
                 [char] I
             else
-                \ todo number vaid unions == 1? M or I
+                dup square-get-rules list-get-first-item    \ sqr1 sqr0 rul0
+                #2 pick square-get-rules                    \ sqr1 sqr0 rul0 ruls1
+                rule-list-union-superset?                   \ sqr1 sqr0 bool
+                if
+                    [char] M
+                else
+                    [char] I
+                then
             then
         endof
         true abort" Invalid pn value"
@@ -530,11 +538,26 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
             if
                 [char] I
             else
-                \ todo number vaid unions == 1? M or I
+                over square-get-rules list-get-first-item   \ sqr1 sqr0 rul1
+                dup  square-get-rules                       \ sqr1 sqr0 rul1 ruls0
+                rule-list-union-superset?                   \ sqr1 sqr0 bool
+                if
+                    [char] M
+                else
+                    [char] I
+                then
             then
         endof
         2 of
-                \ todo  valid union, one order only? C or I
+            over square-get-rules                            \ sqr1 sqr0 ruls1
+            over square-get-rules                           \ sqr1 sqr0 ruls1 ruls0
+            rule-list-union                                 \ sqr1 sqr0, rul-lst t | f
+            if
+                rule-list-deallocate
+                [char] C
+            else
+                [char] I
+            then
         endof
         true abort" Invalid pn value"
     endcase
