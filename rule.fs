@@ -179,8 +179,8 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
     \ Check arg.
     assert-tos-is-sample
 
-    dup sample-get-result       \ rslt smpl0
-    sample-get-initial          \ rslt smpl
+    dup sample-get-result       \ smpl0 rslt
+    swap sample-get-initial     \ rslt init
     rule-new                    \ rul
 ;
 

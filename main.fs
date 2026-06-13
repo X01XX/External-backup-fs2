@@ -59,6 +59,7 @@ include region_t.fs
 include rule_t.fs
 include sample_t.fs
 include regionlist_t.fs
+include square_t.fs
 
 \ Init array-stacks.
 #101 link-mma-init
