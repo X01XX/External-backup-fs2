@@ -767,3 +767,11 @@
     state-list-deallocate                               \ sta-lst1 pos-reg-lst0
     2drop
 ;
+
+\ Return a list containing a region with max X bit positions,
+\ given a number of bits.
+: region-list-max-x ( nb -- reg-lst )
+    region-max-x        \ reg-max
+    list-new tuck       \ ret-lst reg-max ret-lst
+    list-push-struct    \ ret-lst
+;

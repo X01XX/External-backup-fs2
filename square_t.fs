@@ -192,9 +192,9 @@
     square-new                              \ sqr-pn1
 
     \ Create a second square with pn2.
-    s" s0101->s0111" sample-from-string-a   \ sqr-pn1 smpl
+    s" s0101->s0100" sample-from-string-a   \ sqr-pn1 smpl
     square-new                              \ sqr-pn1 sqr-pn2
-    s" s0101->s0100" sample-from-string-a   \ sqr-pn1 sqr-pn2 smpl
+    s" s0101->s0111" sample-from-string-a   \ sqr-pn1 sqr-pn2 smpl
     over square-add-sample drop             \ sqr-pn1 sqr-pn2
 
     \ Test compatibility.
@@ -203,9 +203,24 @@
     [char] M =
     if
         cr ." square-test-compare-pn1-pn2 = M - Ok"
-        swap square-deallocate              \ sqr-pn2
     else
         true abort" pn1 pn1 not M?"
+    then
+
+    \ Make pn1 square incompatible by adding a sample.
+    s" s0100->s0111" sample-from-string-a   \ sqr-pn1 sqr-pn2 smpl
+    #2 pick                                 \ sqr-pn1 sqr-pn2 smpl sqr-pn1
+    square-add-sample drop                  \ sqr-pn1 sqr-pn2
+
+    \ Test compatibility.
+    2dup                                    \ sqr-pn1 sqr-pn2 sqr-pn1 sqr-pn2
+    squares-compare-pn1-pn2                 \ sqr-pn1 sqr-pn2 I
+    [char] I =
+    if
+        cr ." square-test-compare-pn1-pn2 = I - Ok"
+        swap square-deallocate              \ sqr-pn2
+    else
+        true abort" pn1 pn1 not I?"
     then
 
     \ Create incompatible pn1 square.

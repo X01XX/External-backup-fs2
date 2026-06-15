@@ -125,3 +125,7 @@ action-header-disp  cell+   constant action-squares-disp        \ A square list.
     then
 ;
 
+: action-add-sample ( smpl1 act0 -- )
+
+;
+

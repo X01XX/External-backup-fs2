@@ -226,6 +226,38 @@
     cr ." state-test-~a+~b - Ok"
 ;
 
+: state-test-region-from-corner
+    s" (s1100 (s0100 s1101))" list-from-string-a    \ sta-lst
+
+    dup state-regions-from-corner                   \ sta-lst reg-lst
+
+    cr ." regs: " dup .region-list cr
+
+    region-list-deallocate                          \ sta-lst
+    structinfo-list-deallocate-struct-list
+
+    \ Check for memory leaks.
+    structinfo-list-store structinfo-list-project-deallocated
+
+    cr ." state-region-from-corner - Ok"
+;
+
+: state-test-region-from-corners
+    s" ((s1100 (s0100 s1101)) (s0111 (s0101 s1111)))" list-from-string-a    \ sta-lst
+
+    dup state-regions-from-corners                  \ sta-lst reg-lst
+
+    cr ." regs: " dup .region-list cr
+
+    region-list-deallocate                          \ sta-lst
+    structinfo-list-deallocate-struct-list
+
+    \ Check for memory leaks.
+    structinfo-list-store structinfo-list-project-deallocated
+
+    cr ." state-region-from-corners - Ok"
+;
+
 : state-tests
     state-test-basic
     states-test-eq?
@@ -236,4 +268,5 @@
     state-test-same-num-bits?
     state-test-complement
     state-test-~a+~b
+    \ state-region-from-corner
 ;

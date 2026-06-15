@@ -54,7 +54,3 @@
     state-list-test-or-items
     state-list-test-and-items
 ;
-
-\ s10101
-\ s10110
-\ s10111

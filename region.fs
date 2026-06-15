@@ -705,3 +705,13 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
         false
     then
 ;
+
+\ Return a region with all X bit positions for a given number of bits.
+: region-max-x ( nb -- reg )
+    dup all-bits                        \ nb u
+    over state-new                      \ nb sta1
+    swap                                \ sta1 nb
+    0 swap                              \ sta1 0 nb
+    state-new                           \ sta1 sta0
+    region-new                          \ reg-max
+;
