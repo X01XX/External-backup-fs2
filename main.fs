@@ -51,6 +51,8 @@ include list2.fs
 include square.fs
 include squarelist.fs
 
+include action.fs
+
 cr
 
 include mask_t.fs
@@ -74,6 +76,7 @@ include square_t.fs
 #100 token-mma-init
 #100 floatnum-mma-init
 #100 square-mma-init
+#010 action-mma-init
 cr cr
 
 \ Init structinfo list.
@@ -91,6 +94,7 @@ list-new to structinfo-list-store
 ' tokens-eq?    ' noop                  ' token-deallocate      ' .token    s" Token"       token-mma       token-id    structinfo-new structinfo-list-store structinfo-list-push-end
 ' rules-eq?     ' rule-from-string      ' rule-deallocate       ' .rule     s" Rule"        rule-mma        rule-id     structinfo-new structinfo-list-store structinfo-list-push-end
 ' samples-eq?   ' sample-from-string    ' sample-deallocate     ' .sample   s" Sample"      sample-mma      sample-id   structinfo-new structinfo-list-store structinfo-list-push-end
+' noop          ' noop                  ' action-deallocate     ' .action   s" Sample"      action-mma      action-id   structinfo-new structinfo-list-store structinfo-list-push-end
 
 : main
 
