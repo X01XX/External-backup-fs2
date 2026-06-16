@@ -204,17 +204,44 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
 ;
 
 \ Return true if a square is used by a corner.
-: corner-uses-square ( sqr1 crn0 -- bool )
+: corner-uses-square? ( sqr1 crn0 -- bool )
     \ Check args.
     assert-tos-is-corner
     assert-nos-is-square
 
     \ Check sqr1 eq anchor.
+    dup corner-get-anchor-square    \ sqr1 crn0 anc
+    #2 pick =                       \ sqr1 crn0 bool
+    if
+        2drop
+        true
+        exit
+    then
 
     \ Check sqr1 eq any similar square.
+    [ ' = ] literal                 \ sqr1 crn0 xt
+    #2 pick #2 pick                 \ sqr1 crn0 xt sqr1 crn0
+    corner-get-similar-squares      \ sqr1 crn0 sqr1 sim-lst
+    list-member?                    \ sqr1 crn0
+    if
+        2drop
+        true
+        exit
+    then
 
     \ Check sqr1 eq any dissimilar square.
-
+    [ ' = ] literal                 \ sqr1 crn0 xt
+    #2 pick #2 pick                 \ sqr1 crn0 xt sqr1 crn0
+    corner-get-dissimilar-squares   \ sqr1 crn0 sqr1 dis-lst
+    list-member?                    \ sqr1 crn0
+    if
+        2drop
+        true
+        exit
+    then
+                                    \ sqr1 crn0
+    2drop
+    false
 ;
 
 \ Return true if any similar, or dissimilar, square is between the anchor and a given square.
@@ -224,7 +251,7 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
     assert-nos-is-square
 
     \ Check if square is already used.
-    2dup corner-uses-square                 \ sqr1 crn0 bool
+    2dup corner-uses-square?                \ sqr1 crn0 bool
     if
         2dup
         false

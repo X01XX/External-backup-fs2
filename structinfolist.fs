@@ -399,7 +399,7 @@
     \ Check for duplicate struct id.
     [ ' structinfo-id-eq ] literal      \ snf1 snf-lst0 xt
     #2 pick #2 pick                     \ snf1 snf-lst0 xt snf1 snf-lst1
-    list-member                         \ snf1 snf-lst0 bool
+    list-member?                        \ snf1 snf-lst0 bool
     abort" structinfo-list-push-end: Duplicat struct id?"
 
     list-push-end-struct
@@ -414,7 +414,7 @@
     \ Check for duplicate struct id.
     [ ' structinfo-id-eq ] literal      \ snf1 snf-lst0 xt
     #2 pick #2 pick                     \ snf1 snf-lst0 xt snf1 snf-lst1
-    list-member                         \ snf1 snf-lst0 bool
+    list-member?                        \ snf1 snf-lst0 bool
     abort" structinfo-list-push: Duplicate struct id?"
 
     list-push-struct

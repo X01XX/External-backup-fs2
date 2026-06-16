@@ -203,7 +203,7 @@
         #2 pick                     \ xt sct-lst1 lnk xt
         over link-get-data          \ xt sct-lst1 lnk xt regx
         #3 pick                     \ xt sct-lst1 lnk xt regx sct-lst1
-        list-member                 \ xt sct-lst1 lnk bool
+        list-member?                \ xt sct-lst1 lnk bool
         if
         else
             2drop drop
