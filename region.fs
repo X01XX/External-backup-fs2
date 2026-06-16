@@ -36,7 +36,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 ;
 
 \ Check instance type.
-: is-allocated-region ( addr -- flag )
+: is-allocated-region? ( addr -- flag )
     dup region-mma mma-is-item  \ addr bool
     if
         struct-get-id
@@ -49,7 +49,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 
 \ Check TOS for region, unconventional, leaves stack unchanged.
 : assert-tos-is-region ( tos -- tos )
-    dup is-allocated-region
+    dup is-allocated-region?
     if exit then
 
     s" TOS is not an allocated region"
@@ -58,7 +58,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 
 \ Check NOS for region, unconventional, leaves stack unchanged.
 : assert-nos-is-region ( nos tos -- nos tos )
-    over is-allocated-region
+    over is-allocated-region?
     if exit then
 
     s" NOS is not an allocated region"
@@ -67,7 +67,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 
 \ Check 3OS for region, unconventional, leaves stack unchanged.
 : assert-3os-is-region ( 3os nos tos -- 3os nos tos )
-    #2 pick is-allocated-region
+    #2 pick is-allocated-region?
     if exit then
 
     s" 3OS is not an allocated region"
@@ -76,7 +76,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 
 \ Check 4OS for region, unconventional, leaves stack unchanged.
 : assert-4os-is-region ( 4os 3os nos tos -- 4os 3os nos tos )
-    #3 pick is-allocated-region
+    #3 pick is-allocated-region?
     if exit then
 
     s" 4OS is not an allocated region"
@@ -85,7 +85,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 
 \ Check 5OS for region, unconventional, leaves stack unchanged.
 : assert-5os-is-region ( 5os 4os 3os nos tos -- 5os 4os 3os nos tos )
-    #4 pick is-allocated-region
+    #4 pick is-allocated-region?
     if exit then
 
     s" 5OS is not an allocated region"

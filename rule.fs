@@ -24,7 +24,7 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
 
 \ Check instance type.
 
-: is-allocated-rule ( addr -- flag )    \ Check if an address is within the rule array.
+: is-allocated-rule? ( addr -- flag )    \ Check if an address is within the rule array.
     dup rule-mma mma-is-item    \ addr bool
     if
         struct-get-id
@@ -36,7 +36,7 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
 ;
 
 : assert-tos-is-rule ( tos -- tos ) \ Check TOS for rule, unconventional, leaves stack unchanged.
-    dup is-allocated-rule
+    dup is-allocated-rule?
     false? if
         s" TOS is not an allocated rule."
         .abort-xt execute
@@ -44,7 +44,7 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
 ;
 
 : assert-nos-is-rule ( nos tos -- nos tos ) \ Check NOS for rule, unconventional, leaves stack unchanged.
-    over is-allocated-rule
+    over is-allocated-rule?
     false? if
         s" NOS is not an allocated rule."
         .abort-xt execute
@@ -52,7 +52,7 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
 ;
 
 : assert-3os-is-rule ( 3os nos tos -- 3os nos tos ) \ Check 3OS for rule, unconventional, leaves stack unchanged.
-    #2 pick is-allocated-rule
+    #2 pick is-allocated-rule?
     false? if
         s" 3OS is not an allocated rule."
         .abort-xt execute

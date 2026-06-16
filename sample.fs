@@ -25,7 +25,7 @@ sample-initial-disp cell+   constant sample-result-disp     \ Result state.
 ;
 
 \ Check instance type.
-: is-allocated-sample ( addr -- flag )
+: is-allocated-sample? ( addr -- flag )
     dup sample-mma mma-is-item  \ addr bool
     if
         struct-get-id
@@ -38,7 +38,7 @@ sample-initial-disp cell+   constant sample-result-disp     \ Result state.
 
 \ Check TOS for sample, unconventional, leaves stack unchanged.
 : assert-tos-is-sample ( tos -- tos )
-    dup is-allocated-sample
+    dup is-allocated-sample?
     false? if
         s" TOS is not an allocated sample"
         .abort-xt execute
@@ -47,7 +47,7 @@ sample-initial-disp cell+   constant sample-result-disp     \ Result state.
 
 \ Check NOS for sample, unconventional, leaves stack unchanged.
 : assert-nos-is-sample ( nos tos -- nos tos )
-    over is-allocated-sample
+    over is-allocated-sample?
     false? if
         s" NOS is not an allocated sample"
         .abort-xt execute

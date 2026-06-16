@@ -49,7 +49,7 @@ list-header-disp    cell+   constant list-links-disp
 ;
 
 \  Return true if TOS is an allocated list.
-: is-allocated-list ( list -- flag )
+: is-allocated-list? ( list -- flag )
     dup list-mma mma-is-item    \ addr bool
     if
         struct-get-id
@@ -62,7 +62,7 @@ list-header-disp    cell+   constant list-links-disp
 
 \ Check TOS for list, unconventional, leaves stack unchanged.
 : assert-tos-is-list ( tos -- tos )
-    dup is-allocated-list
+    dup is-allocated-list?
     if
     else
         s" TOS is not an allocated list."
@@ -72,7 +72,7 @@ list-header-disp    cell+   constant list-links-disp
 
 \ Check NOS for list, unconventional, leaves stack unchanged.
 : assert-nos-is-list ( nos tos -- nos tos )
-    over is-allocated-list
+    over is-allocated-list?
     if
     else
         s" NOS is not an allocated list."
@@ -82,7 +82,7 @@ list-header-disp    cell+   constant list-links-disp
 
 \ Check 3OS for list, unconventional, leaves stack unchanged.
 : assert-3os-is-list ( 3os nos tos -- 3os nos tos )
-    #2 pick is-allocated-list
+    #2 pick is-allocated-list?
     if
     else
         s" 3OS is not an allocated list."
@@ -92,7 +92,7 @@ list-header-disp    cell+   constant list-links-disp
 
 \ Check 4OS for list, unconventional, leaves stack unchanged.
 : assert-4os-is-list ( 4os 3os nos tos -- 4os 3os nos tos )
-    #3 pick is-allocated-list
+    #3 pick is-allocated-list?
     if
     else
         s" 4OS is not an allocated list."
@@ -253,7 +253,7 @@ list-header-disp    cell+   constant list-links-disp
     while
         \ Check for sub-list.
         dup link-get-data       \ lst-link link-data
-        is-allocated-list       \ lst-link bool
+        is-allocated-list?      \ lst-link bool
         if
             \ Process sub-list.
             dup link-get-data   \ lst-link link-data
@@ -287,7 +287,7 @@ list-header-disp    cell+   constant list-links-disp
         dup link-get-data       \ xt lst-link link-data
 
         \ Check for sub-list.
-        dup is-allocated-list   \ xt lst-link link-data bool
+        dup is-allocated-list?  \ xt lst-link link-data bool
         if
             \ Process sub-list.
             #2 pick             \ xt lst-link link-data xt
@@ -323,7 +323,7 @@ list-header-disp    cell+   constant list-links-disp
         dup link-get-data       \ xt item link link-data
 
         \ Check for sub-list.
-        dup is-allocated-list  abort" should use list-member-recursive?"
+        dup is-allocated-list? abort" should use list-member-recursive?"
 
         #2 pick swap            \ xt item link item link-data
         #4 pick                 \ xt item link item link-data xt
@@ -354,7 +354,7 @@ list-header-disp    cell+   constant list-links-disp
         dup link-get-data       \ xt item link link-data
 
         \ Check for sub-list.
-        dup is-allocated-list   \ xt item link link-data bool
+        dup is-allocated-list?  \ xt item link link-data bool
         if
             #3 pick swap        \ xt item link xt link-data
             #3 pick swap        \ xt item link xt item link-data
@@ -411,7 +411,7 @@ list-header-disp    cell+   constant list-links-disp
         link-get-data           \ xt item link item link-data
 
         \ Check for sub-list.
-        dup is-allocated-list abort" should use list-find-recursive?"
+        dup is-allocated-list? abort" should use list-find-recursive?"
 
         #4 pick             \ xt item link item link-data xt
         execute             \ xt item link flag
@@ -455,7 +455,7 @@ list-header-disp    cell+   constant list-links-disp
         link-get-data           \ xt item link item link-data
 
         \ Check for sub-list.
-        dup is-allocated-list   \ xt item link item link-data bool
+        dup is-allocated-list?  \ xt item link item link-data bool
         if
             #4 pick             \ xt item link item link-data xt
             -rot                \ xt item link xt item link-data
@@ -743,7 +743,7 @@ list-header-disp    cell+   constant list-links-disp
 
             \ Check for sub-list.
             dup link-get-data       \ lst0 lst-link-next lst-link link-data
-            is-allocated-list       \ lst0 lst-link-next lst-link bool
+            is-allocated-list?      \ lst0 lst-link-next lst-link bool
             if
                 \ Process sub-list.
                 dup link-get-data   \ lst0 lst-link-next lst-link link-data
@@ -797,7 +797,7 @@ list-header-disp    cell+   constant list-links-disp
         link-get-data       \ ret xt item link item link-data
 
         \ Check for sub-list.
-        dup is-allocated-list abort" should use list-find-all-recursive?"
+        dup is-allocated-list? abort" should use list-find-all-recursive?"
         #4 pick             \ ret xt item link item link-data xt
         execute             \ ret xt item link flag
         if
@@ -842,7 +842,7 @@ list-header-disp    cell+   constant list-links-disp
 
 
         \ Check for sub-list.
-        dup is-allocated-list   \ ret xt item link item link-data bool
+        dup is-allocated-list?  \ ret xt item link item link-data bool
         if
             #4 pick             \ ret xt item link item link-data xt
             -rot                \ ret xt item link xt item link-data
@@ -1055,7 +1055,7 @@ list-header-disp    cell+   constant list-links-disp
         dup link-get-data       \ xt link0 data0
 
         \ Check for sub-list.
-        dup is-allocated-list   \ xt link0 data0 bool
+        dup is-allocated-list?  \ xt link0 data0 bool
         if
             #2 pick             \ xt link0 lst xt
             swap                \ xt link0 xt lst
@@ -1290,7 +1290,7 @@ list-header-disp    cell+   constant list-links-disp
         ?dup
     while
         dup link-get-data       \ ret-lst lst-link lst-dat
-        dup is-allocated-list   \ ret-lst lst-link lst-dat bool
+        dup is-allocated-list?  \ ret-lst lst-link lst-dat bool
         if
             recurse
         then

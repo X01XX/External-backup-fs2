@@ -94,7 +94,7 @@
     list-from-string-xt execute \ lst t | f
     if
         \ Check items.
-        [ ' is-allocated-region ] literal over  \ lst xt lst
+        [ ' is-allocated-region? ] literal over \ lst xt lst
         list-apply-all-true?                    \ lst bool
         if
             true

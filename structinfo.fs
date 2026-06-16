@@ -29,7 +29,7 @@ structinfo-eq-xt-disp           cell+   constant structinfo-name-disp           
 ;
 
 \ Check instance type.
-: is-allocated-structinfo ( tos -- flag )
+: is-allocated-structinfo? ( tos -- flag )
     dup structinfo-mma mma-is-item  \ addr bool
     if
         struct-get-id
@@ -42,14 +42,20 @@ structinfo-eq-xt-disp           cell+   constant structinfo-name-disp           
 
 \ Check TOS for structinfo. Unconventional, no change in stack.
 : assert-tos-is-structinfo ( tos --  tos )
-    dup is-allocated-structinfo 0=
-    abort" tos is not an allocated structinfo."
+    dup is-allocated-structinfo?
+    if exit then
+
+    s" TOS is not an allocated structinfo"
+    .abort-xt execute
 ;
 
 \ Check NOS for structinfo. Unconventional, no change in stack.
 : assert-nos-is-structinfo ( nos tos --  nos tos )
-    over is-allocated-structinfo 0=
-    abort" nos is not an allocated structinfo."
+    over is-allocated-structinfo?
+    if exit then
+
+    s" NOS is not an allocated structinfo"
+    .abort-xt execute
 ;
 
 \ Start accessors.

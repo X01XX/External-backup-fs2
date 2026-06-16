@@ -52,6 +52,7 @@ include square.fs
 include squarelist.fs
 
 include action.fs
+include corner.fs
 
 cr
 
@@ -77,6 +78,7 @@ include square_t.fs
 #100 floatnum-mma-init
 #100 square-mma-init
 #010 action-mma-init
+#010 corner-mma-init
 cr cr
 
 \ Init structinfo list.
@@ -95,6 +97,7 @@ list-new to structinfo-list-store
 ' rules-eq?     ' rule-from-string      ' rule-deallocate       ' .rule     s" Rule"        rule-mma        rule-id     structinfo-new structinfo-list-store structinfo-list-push-end
 ' samples-eq?   ' sample-from-string    ' sample-deallocate     ' .sample   s" Sample"      sample-mma      sample-id   structinfo-new structinfo-list-store structinfo-list-push-end
 ' noop          ' noop                  ' action-deallocate     ' .action   s" Sample"      action-mma      action-id   structinfo-new structinfo-list-store structinfo-list-push-end
+' noop          ' noop                  ' corner-deallocate     ' .corner   s" Corner"      corner-mma      corner-id   structinfo-new structinfo-list-store structinfo-list-push-end
 
 : main
 

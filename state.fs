@@ -21,7 +21,7 @@ state-header-disp cell+   constant state-number-disp
 ;
 
 \ Check instance type.
-: is-allocated-state ( tos -- flag )
+: is-allocated-state? ( tos -- flag )
     dup state-mma mma-is-item  \ addr bool
     if
         struct-get-id
@@ -34,7 +34,7 @@ state-header-disp cell+   constant state-number-disp
 
 \ Check TOS for state, unconventional, leaves stack unchanged.
 : assert-tos-is-state ( tos -- tos )
-    dup is-allocated-state
+    dup is-allocated-state?
     if exit then
 
     s" TOS is not an allocated state"
@@ -43,7 +43,16 @@ state-header-disp cell+   constant state-number-disp
 
 \ Check NOS for state, unconventional, leaves stack unchanged.
 : assert-nos-is-state ( nos tos -- nos tos )
-    over is-allocated-state
+    over is-allocated-state?
+    if exit then
+
+    s" NOS is not an allocated state"
+    .abort-xt execute
+;
+
+\ Check 3OS for state, unconventional, leaves stack unchanged.
+: assert-3os-is-state ( 3os nos tos -- 3os nos tos )
+    #2 pick is-allocated-state?
     if exit then
 
     s" NOS is not an allocated state"
@@ -442,3 +451,45 @@ state-header-disp cell+   constant state-number-disp
     state-new
 ;
 
+\ Return a different bit mask.
+: state-dif-mask ( sta1 sta0 -- msk )
+    \ Check args.
+    assert-tos-is-state
+    assert-nos-is-state
+
+    \ Save number bits.
+    dup state-get-num-bits -rot \ nb sta1 sta0
+
+    \ Get state numbers.
+    state-get-number swap       \ nb u0 sta1
+    state-get-number            \ nb u0 u1
+
+    \ Calc dif.
+    xor                         \ nb dif
+
+    \ Return mask.
+    swap mask-new               \ msk
+;
+
+\ Return true if a state (tos) is between two other states.
+: state-between? ( sta2 sta1 sta0 -- bool )
+    \ Check args.
+    assert-tos-is-state
+    assert-nos-is-state
+    assert-3os-is-state
+
+    \ Get sta0 dif masks.
+    tuck                    \ sta2 sta0 sta1 sta0
+    state-dif-mask          \ sta2 sta0 dif1
+    -rot                    \ dif1 sta2 sta0
+    state-dif-mask          \ dif1 dif2
+
+    \ Check if dif masks have the same bit set.
+    2dup mask-and           \ dif1 dif2 dif12
+    dup mask-is-zero?       \ dif1 dif2 dif12 bool
+
+    \ Clean up.
+    swap mask-deallocate    \ dif1 dif2 bool
+    swap mask-deallocate    \ dif1 bool
+    swap mask-deallocate
+;

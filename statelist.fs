@@ -72,7 +72,7 @@
     list-from-string-xt execute \ lst t | f
     if
         \ Check items.
-        [ ' is-allocated-state ] literal over   \ lst xt lst
+        [ ' is-allocated-state? ] literal over  \ lst xt lst
         list-apply-all-true?                    \ lst bool
         if
             true
@@ -151,4 +151,5 @@
     swap state-list-and-items   \ sta-max-1s sta-max-0s
     region-new                  \ reg
 ;
+
 

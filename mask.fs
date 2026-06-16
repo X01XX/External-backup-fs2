@@ -23,7 +23,7 @@ mask-header-disp cell+  constant mask-number-disp
 ;
 
 \ Check instance type.
-: is-allocated-mask ( tos -- bool )
+: is-allocated-mask? ( tos -- bool )
     dup mask-mma mma-is-item    \ addr bool
     if
         struct-get-id
@@ -36,7 +36,7 @@ mask-header-disp cell+  constant mask-number-disp
 
 \ Check TOS for mask, unconventional, leaves stack unchanged.
 : assert-tos-is-mask ( tos -- tos )
-    dup is-allocated-mask
+    dup is-allocated-mask?
     if exit then
 
     s" TOS is not an allocated mask"
@@ -45,7 +45,7 @@ mask-header-disp cell+  constant mask-number-disp
 
 \ Check NOS for mask, unconventional, leaves stack unchanged.
 : assert-nos-is-mask ( nos tos -- nos tos )
-    over is-allocated-mask
+    over is-allocated-mask?
     if exit then
 
     s" NOS is not an allocated mask"

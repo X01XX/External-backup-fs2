@@ -21,7 +21,7 @@ floatnum-header-disp cell+   constant floatnum-number-disp
 ;
 
 \ Check instance type.
-: is-allocated-floatnum ( addr -- flag )
+: is-allocated-floatnum? ( addr -- flag )
     dup floatnum-mma mma-is-item  \ addr bool
     if
         struct-get-id
@@ -34,7 +34,7 @@ floatnum-header-disp cell+   constant floatnum-number-disp
 
 \ Check TOS for floatnum, unconventional, leaves stack unchanged.
 : assert-tos-is-floatnum ( tos -- tos )
-    dup is-allocated-floatnum
+    dup is-allocated-floatnum?
     if exit then
 
     s" TOS is not an allocated floatnum"
@@ -43,7 +43,7 @@ floatnum-header-disp cell+   constant floatnum-number-disp
 
 \ Check NOS for floatnum, unconventional, leaves stack unchanged.
 : assert-nos-is-floatnum ( nos tos -- nos tos )
-    over is-allocated-floatnum
+    over is-allocated-floatnum?
     if exit then
 
     s" NOS is not an allocated floatnum"
@@ -62,20 +62,14 @@ floatnum-header-disp cell+   constant floatnum-number-disp
     floatnum-number-disp + f!
 ;
 
-\ Check instance type.
-: is-allocated-float ( fnum -- flag )
-    get-first-word          \ w t | f
-    if
-        floatnum-id =
-    else
-        false
-    then
-;
-
 \ Check TOS for float. Unconventional, no change in stack.
 : assert-tos-is-float ( arg0 --  arg0 )
-    dup is-allocated-float 0=
-    abort" tos is not an allocated float."
+    dup is-allocated-floatnum?
+    if
+    else
+        s" TOS is not an allocated floatnum."
+       .abort-xt execute
+    then
 ;
 
 \ Check list mma usage.

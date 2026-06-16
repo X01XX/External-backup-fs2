@@ -111,7 +111,7 @@
 
     \ Avoid unneeded top-level list.
     dup list-get-first-item                 \ int-lst itm0
-    is-allocated-list                       \ int-lst bool
+    is-allocated-list?                      \ int-lst bool
     if
         dup list-get-length                 \ int-lst len
         1 =
