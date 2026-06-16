@@ -48,3 +48,38 @@
 
     [ ' .square ] literal swap .list
 ;
+
+\ Print square list states.
+: .square-list-states ( sqr-lst -- )
+    \ Check arg.
+    assert-tos-is-square-list
+
+    [ ' .square-state ] literal swap .list
+;
+
+: square-list-any-between? ( sqr2 sqr1 sqr-lst0 -- bool )
+    \ Check args.
+    assert-tos-is-square-list
+    assert-nos-is-square
+    assert-3os-is-square
+
+    list-get-links          \ sqr2 sqr1 lnk
+
+    begin
+        ?dup
+    while
+        #2 pick #2 pick #2 pick \ sqr2 sqr1 lnk sqr2 sqr1 lnk
+        link-get-data           \ sqr2 sqr1 lnk sqr2 sqr1 sqrx
+        square-between?         \ sqr2 sqr1 lnk bool
+        if
+            2drop drop
+            true
+            exit
+        then
+
+        link-get-next
+    repeat
+                            \ sqr2 sqr1
+    2drop
+    false
+;

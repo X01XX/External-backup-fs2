@@ -8,10 +8,10 @@
 
 \ Struct fields
 0                                       constant corner-header-disp             \ 16-bits, [0] struct id, [1] use count.
-corner-header-disp              cell+   constant corner-anchor-state-disp       \ The anchor state.
-corner-anchor-state-disp        cell+   constant corner-dissimilar-states-disp  \ Dissimilar, closest, state list.
-corner-dissimilar-states-disp   cell+   constant corner-similar-states-disp     \ Similar, closest, state list.
-corner-similar-states-disp      cell+   constant corner-regions-disp            \ Regions the anchor is in.
+corner-header-disp              cell+   constant corner-anchor-square-disp      \ The anchor state.
+corner-anchor-square-disp       cell+   constant corner-dissimilar-squares-disp \ Dissimilar, closest, square list.
+corner-dissimilar-squares-disp  cell+   constant corner-similar-squares-disp    \ Similar, closest, square list.
+corner-similar-squares-disp     cell+   constant corner-regions-disp            \ Regions the anchor is in.
 
 0 value corner-mma \ Storage for corner mma instance.
 
@@ -56,30 +56,39 @@ corner-similar-states-disp      cell+   constant corner-regions-disp            
 
 \ Start accessors.
 
-\ Return the anchor-state field from a corner instance.
+\ Return the anchor-square field from a corner instance.
+: corner-get-anchor-square ( crn0 -- sqr )
+    \ Check arg.
+    assert-tos-is-corner
+
+    corner-anchor-square-disp + \ Add offset.
+    @                           \ Fetch the field.
+;
+
+\ Return the anchor-square field state from a corner instance.
 : corner-get-anchor-state ( crn0 -- sta )
     \ Check arg.
     assert-tos-is-corner
 
-    corner-anchor-state-disp +  \ Add offset.
-    @                           \ Fetch the field.
+    corner-get-anchor-square    \ sqr
+    square-get-state
 ;
 
-\ Return the dissimilar-states list field from a corner instance.
-: corner-get-dissimilar-states ( crn0 -- sta-lst )
+\ Return the dissimilar-squares list field from a corner instance.
+: corner-get-dissimilar-squares ( crn0 -- sta-lst )
     \ Check arg.
     assert-tos-is-corner
 
-    corner-dissimilar-states-disp + \ Add offset.
-    @                               \ Fetch the field.
+    corner-dissimilar-squares-disp +    \ Add offset.
+    @                                   \ Fetch the field.
 ;
 
-\ Return the similar-states list field from a corner instance.
-: corner-get-similar-states ( crn0 -- sta-lst )
+\ Return the similar-squares list field from a corner instance.
+: corner-get-similar-squares ( crn0 -- sta-lst )
     \ Check arg.
     assert-tos-is-corner
 
-    corner-similar-states-disp +    \ Add offset.
+    corner-similar-squares-disp +   \ Add offset.
     @                               \ Fetch the field.
 ;
 
@@ -92,33 +101,33 @@ corner-similar-states-disp      cell+   constant corner-regions-disp            
     @                               \ Fetch the field.
 ;
 
-\ Set the anchor-state field from a corner instance, use only in this file.
-: _corner-set-anchor-state ( sta1 crn0 -- )
+\ Set the anchor-square field from a corner instance, use only in this file.
+: _corner-set-anchor-square ( sta1 crn0 -- )
     \ Check args.
     assert-tos-is-corner
-    assert-nos-is-state
+    assert-nos-is-square
 
-    corner-anchor-state-disp +  \ Add offset.
-    !struct                     \ Set the field.
+    corner-anchor-square-disp +     \ Add offset.
+    !struct                         \ Set the field.
 ;
 
-\ Set the dissimilar-states list field from a corner instance, use only in this file.
-: _corner-set-dissimilar-states ( sta-lst1 crn0 -- )
+\ Set the dissimilar-squares list field from a corner instance, use only in this file.
+: _corner-set-dissimilar-squares ( sta-lst1 crn0 -- )
     \ Check args.
     assert-tos-is-corner
-    assert-nos-is-state-list
+    assert-nos-is-square-list
 
-    corner-dissimilar-states-disp +     \ Add offset.
+    corner-dissimilar-squares-disp +    \ Add offset.
     !struct                             \ Set the field.
 ;
 
-\ Set the similar-states list field from a corner instance, use only in this file.
-: _corner-set-similar-states ( sta-lst1 crn0 -- )
+\ Set the similar-squares list field from a corner instance, use only in this file.
+: _corner-set-similar-squares ( sta-lst1 crn0 -- )
     \ Check args.
     assert-tos-is-corner
-    assert-nos-is-state-list
+    assert-nos-is-square-list
 
-    corner-similar-states-disp +        \ Add offset.
+    corner-similar-squares-disp +       \ Add offset.
     !struct                             \ Set the field.
 ;
 
@@ -139,29 +148,29 @@ corner-similar-states-disp      cell+   constant corner-regions-disp            
     \ Check args.
     assert-tos-is-corner
 
-    corner-get-anchor-state \ sta
-    state-get-num-bits
+    corner-get-anchor-square        \ sta
+    square-get-num-bits
 ;
 
-\ Create a corner, given an anchor state.
-: corner-new ( sta0 -- crn )
+\ Create a corner, given an anchor square.
+: corner-new ( sqr0 -- crn )
     \ Check args.
-    assert-tos-is-state
+    assert-tos-is-square
 
     \ Allocate space.
     corner-id corner-mma                \ sta1 id mma
     struct-allocate                     \ sta1 crn
 
-    \ Store anchor state.
-    tuck _corner-set-anchor-state       \ crn
+    \ Store anchor square.
+    tuck _corner-set-anchor-square       \ crn
 
-    \ Store dissimilar state list.
+    \ Store dissimilar square list.
     list-new                            \ crn lst
-    over _corner-set-dissimilar-states  \ crn
+    over _corner-set-dissimilar-squares \ crn
 
-    \ Store similar state list.
+    \ Store similar square list.
     list-new                            \ crn lst
-    over _corner-set-similar-states     \ crn
+    over _corner-set-similar-squares    \ crn
 
     \ Store regions list.
     dup corner-get-number-bits          \ crn nb
@@ -174,24 +183,97 @@ corner-similar-states-disp      cell+   constant corner-regions-disp            
     \ Check arg.
     assert-tos-is-corner
 
-    ." ("
+    ." (anchor: "
 
-    dup corner-get-anchor-state         \ crn0 sta
-    .state                              \ crn0
+    dup corner-get-anchor-square        \ crn0 sta
+    .square-state                       \ crn0
 
-    ."  dissimilar states: "
-    dup corner-get-dissimilar-states    \ crn0 ext-sta-lst
-    .state-list                         \ crn0
+    ."  dissimilar squares: "
+    dup corner-get-dissimilar-squares   \ crn0 ext-sta-lst
+    .square-list-states                 \ crn0
 
-    ."  similar states: "
-    dup corner-get-similar-states       \ crn0 ext-sta-lst
-    .state-list                         \ crn0
+    ."  similar squares: "
+    dup corner-get-similar-squares      \ crn0 ext-sta-lst
+    .square-list-states                 \ crn0
 
     ."  regions: "
     corner-get-regions                  \ ext-sta-lst
     .region-list                        \
 
     ." )"
+;
+
+\ Return true if a square is used by a corner.
+: corner-uses-square ( sqr1 crn0 -- bool )
+    \ Check args.
+    assert-tos-is-corner
+    assert-nos-is-square
+
+    \ Check sqr1 eq anchor.
+
+    \ Check sqr1 eq any similar square.
+
+    \ Check sqr1 eq any dissimilar square.
+
+;
+
+\ Return true if any similar, or dissimilar, square is between the anchor and a given square.
+: corner-square-can-be-added? ( sqr1 crn0 -- bool )
+    \ Check args.
+    assert-tos-is-corner
+    assert-nos-is-square
+
+    \ Check if square is already used.
+    2dup corner-uses-square                 \ sqr1 crn0 bool
+    if
+        2dup
+        false
+        exit
+    then
+
+    \ Check if square is More samples needed.
+    over                                    \ sqr1 crn0 sqr1
+    over corner-get-anchor-square           \ sqr1 crn0 sqr1 anc
+    squares-compare                         \ sqr1 crn0 char
+
+    case
+        [char] C of
+            2dup                            \ sqr1 crn0 sqr1 crn0
+            dup corner-get-anchor-square    \ sqr1 crn0 sqr1 crn0 anc
+            swap                            \ sqr1 crn0 sqr1 anc crn0
+            corner-get-similar-squares      \ sqr1 crn0 sqr1 anc sqr-lst
+            square-list-any-between?        \ sqr1 crn0 sqr1 bool
+            invert
+        endof
+        [char] I of
+            2dup                            \ sqr1 crn0 sqr1 crn0
+            dup corner-get-anchor-square    \ sqr1 crn0 sqr1 crn0 anc
+            swap                            \ sqr1 crn0 sqr1 anc crn0
+            corner-get-dissimilar-squares   \ sqr1 crn0 sqr1 anc sqr-lst
+            square-list-any-between?        \ sqr1 crn0 sqr1 bool
+            invert
+        endof
+        [char] M of
+            2drop
+            false
+        endof
+    endcase
+;
+
+\ Recalculate a corner, when a close dissimilar square becomes similar.
+\ A closer dissimilar square requires only an extra intersection with the existing regions.
+: corner-recalc ( crn0 -- )
+    \ Check arg.
+    assert-tos-is-corner
+
+;
+
+\ Validate a corner.
+\ Recalc if needed.
+: corner-validate ( crn0 -- )
+    \ Check arg.
+    assert-tos-is-corner
+
 ;
 
 \ Deallocate a corner.
@@ -205,9 +287,9 @@ corner-similar-states-disp      cell+   constant corner-regions-disp            
     #2 <
     if
         \ Clear fields.
-        dup corner-get-anchor-state state-deallocate
-        dup corner-get-dissimilar-states state-list-deallocate
-        dup corner-get-similar-states state-list-deallocate
+        dup corner-get-anchor-square square-deallocate
+        dup corner-get-dissimilar-squares square-list-deallocate
+        dup corner-get-similar-squares square-list-deallocate
         dup corner-get-regions region-list-deallocate
 
         \ Deallocate instance.

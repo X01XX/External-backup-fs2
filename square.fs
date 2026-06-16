@@ -66,6 +66,15 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
     then
 ;
 
+\ Check 3OS for square, unconventional, leaves stack unchanged.
+: assert-3os-is-square ( 3os nos tos -- 3os nos tos )
+    #2 pick is-allocated-square?
+    false? if
+        s" 3OS is not an allocated square"
+        .abort-xt execute
+    then
+;
+
 \ Check nos is a valid pn value.
 : assert-nos-is-pn ( nos tos -- nos tos )
     over dup 0 < swap
@@ -569,4 +578,36 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
             endcase
         endof
     endcase
+;
+
+\ Return the number of bits used in square states.
+: square-get-num-bits ( sqr0 -- nb )
+    \ Check arg.
+    assert-tos-is-square
+
+    square-get-state        \ sta
+    state-get-num-bits      \ nb
+;
+
+\ Print a square's state.
+: .square-state ( sqr0 -- )
+    \ Check arg.
+    assert-tos-is-square
+
+    square-get-state        \ sta
+    .state
+;
+
+\ Return true if a square (tos) is between two other squares.
+: square-between? ( sqr2 sqr1 sqr0 -- bool )
+    \ Check args.
+    assert-tos-is-square
+    assert-nos-is-square
+    assert-3os-is-square
+
+    rot square-get-state    \ sqr1 sqr0 sta2
+    rot square-get-state    \ sqr0 sta2 sta1
+    rot square-get-state    \ sta2 sta1 sta0
+
+    state-between?
 ;
