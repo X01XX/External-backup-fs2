@@ -175,16 +175,21 @@ corner-similar-states-disp      cell+   constant corner-regions-disp            
     assert-tos-is-corner
 
     ." ("
-    dup corner-get-anchor-state     \ crn0 sta
-    .state                          \ crn0
 
-    ."  dissimilar states:  "
+    dup corner-get-anchor-state         \ crn0 sta
+    .state                              \ crn0
+
+    ."  dissimilar states: "
     dup corner-get-dissimilar-states    \ crn0 ext-sta-lst
     .state-list                         \ crn0
 
-    ."  similar states:  "
-    dup corner-get-dissimilar-states    \ crn0 ext-sta-lst
+    ."  similar states: "
+    dup corner-get-similar-states       \ crn0 ext-sta-lst
     .state-list                         \ crn0
+
+    ."  regions: "
+    corner-get-regions                  \ ext-sta-lst
+    .region-list                        \
 
     ." )"
 ;
@@ -201,8 +206,9 @@ corner-similar-states-disp      cell+   constant corner-regions-disp            
     if
         \ Clear fields.
         dup corner-get-anchor-state state-deallocate
-        dup corner-get-similar-states state-list-deallocate
         dup corner-get-dissimilar-states state-list-deallocate
+        dup corner-get-similar-states state-list-deallocate
+        dup corner-get-regions region-list-deallocate
 
         \ Deallocate instance.
         corner-mma mma-deallocate
