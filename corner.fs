@@ -4,13 +4,14 @@
 \ Once developed, the anchor square-state should be in only one region.
 
 #53719 constant corner-id
-    #4 constant corner-struct-number-cells
+    #5 constant corner-struct-number-cells
 
 \ Struct fields
 0                                       constant corner-header-disp             \ 16-bits, [0] struct id, [1] use count.
 corner-header-disp              cell+   constant corner-anchor-state-disp       \ The anchor state.
 corner-anchor-state-disp        cell+   constant corner-dissimilar-states-disp  \ Dissimilar, closest, state list.
 corner-dissimilar-states-disp   cell+   constant corner-similar-states-disp     \ Similar, closest, state list.
+corner-similar-states-disp      cell+   constant corner-regions-disp            \ Regions the anchor is in.
 
 0 value corner-mma \ Storage for corner mma instance.
 
@@ -82,6 +83,15 @@ corner-dissimilar-states-disp   cell+   constant corner-similar-states-disp     
     @                               \ Fetch the field.
 ;
 
+\ Return the regions list field from a corner instance.
+: corner-get-regions ( crn0 -- sta-lst )
+    \ Check arg.
+    assert-tos-is-corner
+
+    corner-regions-disp +           \ Add offset.
+    @                               \ Fetch the field.
+;
+
 \ Set the anchor-state field from a corner instance, use only in this file.
 : _corner-set-anchor-state ( sta1 crn0 -- )
     \ Check args.
@@ -112,7 +122,26 @@ corner-dissimilar-states-disp   cell+   constant corner-similar-states-disp     
     !struct                             \ Set the field.
 ;
 
+\ Set the regions list field from a corner instance, use only in this file.
+: _corner-set-regions ( reg-lst1 crn0 -- )
+    \ Check args.
+    assert-tos-is-corner
+    assert-nos-is-region-list
+
+    corner-regions-disp +               \ Add offset.
+    !struct                             \ Set the field.
+;
+
 \ End accessors.
+
+\ Return a corner's number bits.
+: corner-get-number-bits ( crn0 -- nb )
+    \ Check args.
+    assert-tos-is-corner
+
+    corner-get-anchor-state \ sta
+    state-get-num-bits
+;
 
 \ Create a corner, given an anchor state.
 : corner-new ( sta0 -- crn )
@@ -133,6 +162,11 @@ corner-dissimilar-states-disp   cell+   constant corner-similar-states-disp     
     \ Store similar state list.
     list-new                            \ crn lst
     over _corner-set-similar-states     \ crn
+
+    \ Store regions list.
+    dup corner-get-number-bits          \ crn nb
+    region-list-max-x                   \ crn reg-lst
+    over _corner-set-regions            \ crn
 ;
 
 \ Print a corner.
