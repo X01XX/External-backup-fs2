@@ -57,20 +57,21 @@
     [ ' .square-state ] literal swap .list
 ;
 
-: square-list-any-between? ( sqr2 sqr1 sqr-lst0 -- bool )
+\ Return true if anf square in a list is between twe given squares.
+: square-list-any-between? ( sqr2 sqr1 btw-lst0 -- bool )
     \ Check args.
     assert-tos-is-square-list
     assert-nos-is-square
     assert-3os-is-square
 
-    list-get-links          \ sqr2 sqr1 lnk
+    list-get-links          \ sqr2 sqr1 btw-lnk
 
     begin
         ?dup
     while
-        #2 pick #2 pick #2 pick \ sqr2 sqr1 lnk sqr2 sqr1 lnk
-        link-get-data           \ sqr2 sqr1 lnk sqr2 sqr1 sqrx
-        square-between?         \ sqr2 sqr1 lnk bool
+        #2 pick #2 pick #2 pick \ sqr2 sqr1 btw-lnk sqr2 sqr1 btw-lnk
+        link-get-data           \ sqr2 sqr1 btw-lnk sqr2 sqr1 sqrx
+        square-between?         \ sqr2 sqr1 btw-lnk bool
         if
             2drop drop
             true
@@ -82,4 +83,36 @@
                             \ sqr2 sqr1
     2drop
     false
+;
+
+\ Given a square (3os) a secand square (nos) and a list of squares,
+\ return a list of squares where the nos square is between the 3os an square-list
+\ squares.
+: square-list-between-any ( sqr2 btw1 sqr-lst0 -- sqr-lst )
+    \ Check args.
+    assert-tos-is-square-list
+    assert-nos-is-square
+    assert-3os-is-square
+
+    \ Init return list.
+    list-new                \ sqr2 btw1 sqr-lst0 ret-lst
+    swap list-get-links     \ sqr2 btw1 ret-lst lnk
+
+    begin
+        ?dup
+    while
+        #3 pick                 \ sqr2 btw1 ret-lst lnk sqr2
+        over link-get-data      \ sqr2 btw1 ret-lst lnk sqr2 sqrx
+        #4 pick                 \ sqr2 btw1 ret-lst lnk sqr2 btwx
+        square-between?         \ sqr2 btw1 ret-lst lnk bool
+        if
+            dup link-get-data   \ sqr2 btw1 ret-lst lnk sqrx
+            #2 pick             \ sqr2 btw1 ret-lst lnk sqrx ret-lst
+            list-push-struct    \ sqr2 btw1 ret-lst lnk
+        then
+
+        link-get-next
+    repeat
+                            \ sqr2 sqr1 ret-lst
+    nip nip
 ;
