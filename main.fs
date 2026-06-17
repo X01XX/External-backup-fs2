@@ -98,8 +98,9 @@ list-new to structinfo-list-store
 ' tokens-eq?    ' noop                  ' token-deallocate      ' .token    s" Token"       token-mma       token-id    structinfo-new structinfo-list-store structinfo-list-push-end
 ' rules-eq?     ' rule-from-string      ' rule-deallocate       ' .rule     s" Rule"        rule-mma        rule-id     structinfo-new structinfo-list-store structinfo-list-push-end
 ' samples-eq?   ' sample-from-string    ' sample-deallocate     ' .sample   s" Sample"      sample-mma      sample-id   structinfo-new structinfo-list-store structinfo-list-push-end
-' noop          ' noop                  ' action-deallocate     ' .action   s" Sample"      action-mma      action-id   structinfo-new structinfo-list-store structinfo-list-push-end
+' noop          ' noop                  ' action-deallocate     ' .action   s" Action"      action-mma      action-id   structinfo-new structinfo-list-store structinfo-list-push-end
 ' noop          ' noop                  ' corner-deallocate     ' .corner   s" Corner"      corner-mma      corner-id   structinfo-new structinfo-list-store structinfo-list-push-end
+' =             ' noop                  ' square-deallocate     ' .square   s" Square"      square-mma      square-id   structinfo-new structinfo-list-store structinfo-list-push-end
 
 : main
 
