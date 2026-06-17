@@ -245,7 +245,7 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
 ;
 
 \ Return true if any similar, or dissimilar, square is between the anchor and a given square.
-: corner-square-can-be-added? ( sqr1 crn0 -- bool )
+: corner-can-square-be-added? ( sqr1 crn0 -- bool )
     \ Check args.
     assert-tos-is-corner
     assert-nos-is-square
@@ -284,6 +284,7 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
             2drop
             false
         endof
+        true abort" Invalid comparison result"
     endcase
 ;
 

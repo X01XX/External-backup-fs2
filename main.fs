@@ -65,6 +65,7 @@ include sample_t.fs
 include regionlist_t.fs
 include square_t.fs
 include corner_t.fs
+include squarelist_t.fs
 
 \ Init array-stacks.
 #101 link-mma-init
@@ -165,6 +166,7 @@ list-new to structinfo-list-store
     state-list-tests
     region-list-tests
     corner-tests
+    square-list-tests
     cr
 ;
 
