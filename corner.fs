@@ -178,6 +178,17 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
     over _corner-set-regions            \ crn
 ;
 
+\ Return a list of regions the anchor is in.
+: corner-anchor-regions ( crn0 -- reg-lst )
+    \ Check arg.
+    assert-tos-is-corner
+
+    dup corner-get-anchor-square    \ crn0 anc-sqr
+    square-get-state                \ crn0 anc-sta
+    swap corner-get-regions         \ anc-sta reg-lst
+    region-list-state-in            \ ret-lst
+;
+
 \ Print a corner.
 : .corner ( crn0 -- )
     \ Check arg.
@@ -197,10 +208,17 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
     .square-list-states                 \ crn0
 
     ."  regions: "
-    corner-get-regions                  \ ext-sta-lst
-    .region-list                        \
+    dup corner-get-regions              \ crn0 ext-sta-lst
+    .region-list                        \ crn0
+
+    space ." anchor regions: "
+    dup corner-anchor-regions           \ crn0 reg-lst'
+    dup .region-list                    \ crn0 reg-lst'
+    region-list-deallocate              \ crn0
 
     ." )"
+                                        \ crn0
+    drop
 ;
 
 \ Return true if a square is used by a corner.

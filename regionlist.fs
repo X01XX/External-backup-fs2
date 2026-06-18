@@ -674,6 +674,36 @@
     \ cr ." region-list-states-in: end: " .stack-gbl cr
 ;
 
+: region-list-state-in ( sta1 reg-lst0 -- reg-lst )
+    \ Check args.
+    \ cr ." region-list-state-in: start: " .stack-gbl cr
+    assert-tos-is-region-list
+    assert-nos-is-state
+
+    \ Init return list.
+    list-new -rot                   \ ret-lst sta1 reg-lst0
+
+    \ Prep for loop.
+    list-get-links                  \ ret-lst sta1 reg-lnk
+
+    begin
+        ?dup
+    while
+        over                        \ ret-lst sta1 reg-lnk sta1
+        over link-get-data          \ ret-lst sta1 reg-lnk sta1 regx
+        region-superset-of-state?   \ ret-lst sta1 reg-lnk bool
+        if
+            dup link-get-data       \ ret-lst sta1 reg-lnk regx
+            #3 pick                 \ ret-lst sta1 reg-lnk regx ret-lst
+            region-list-push        \ ret-lst sta1 reg-lnk
+        then
+
+        link-get-next
+    repeat
+                                    \ ret-lst sta1
+    drop
+;
+
 : region-list-states-not-in ( sta-lst1 reg-lst0 -- sta-lst )
     \ Check args.
     \ cr ." region-list-states-not-in: start: " .stack-gbl cr
