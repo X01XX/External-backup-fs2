@@ -260,6 +260,7 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
     if
         2dup
         false
+        \ cr ." exit 1" cr
         exit
     then
 
@@ -270,24 +271,25 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
 
     case
         [char] C of
-            2dup                            \ sqr1 crn0 sqr1 crn0
-            dup corner-get-anchor-square    \ sqr1 crn0 sqr1 crn0 anc
-            swap                            \ sqr1 crn0 sqr1 anc crn0
-            corner-get-similar-squares      \ sqr1 crn0 sqr1 anc sqr-lst
-            square-list-any-between?        \ sqr1 crn0 sqr1 bool
+            dup corner-get-anchor-square    \ sqr1 crn0 anc
+            swap                            \ sqr1 anc crn0
+            corner-get-similar-squares      \ sqr1 anc sqr-lst
+            square-list-any-between?        \ bool
             invert
+            \ cr ." exit 2" cr
         endof
         [char] I of
-            2dup                            \ sqr1 crn0 sqr1 crn0
-            dup corner-get-anchor-square    \ sqr1 crn0 sqr1 crn0 anc
-            swap                            \ sqr1 crn0 sqr1 anc crn0
-            corner-get-dissimilar-squares   \ sqr1 crn0 sqr1 anc sqr-lst
-            square-list-any-between?        \ sqr1 crn0 sqr1 bool
+            dup corner-get-anchor-square    \ sqr1 crn0 anc
+            swap                            \ sqr1 anc crn0
+            corner-get-dissimilar-squares   \ sqr1 anc sqr-lst
+            square-list-any-between?        \ bool
             invert
+            \ cr ." exit 3" .s cr
         endof
         [char] M of
             2drop
             false
+            \ cr ." exit 4" cr
         endof
         true abort" Invalid comparison result"
     endcase
@@ -388,6 +390,7 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
     2dup corner-can-square-be-added?        \ sqr1 crn0 bool
     if
     else
+        cr ." corner-add-square: exit 1" cr
         \ Return.
         2drop
         false
@@ -434,6 +437,7 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
 
     \ Return
     true
+    cr ." corner-add-square: exit 2" cr
 ;
 
 \ Recalculate a corner, when a close dissimilar square becomes similar.
