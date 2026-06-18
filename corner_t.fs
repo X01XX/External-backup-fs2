@@ -12,7 +12,8 @@
 ;
 
 : corner-test-add-square
-    s" s1010->s1010" sample-from-string-a square-new corner-new
+    \ Init corner.
+    s" s0101->s0101" sample-from-string-a square-new corner-new
     cr ." crn: " dup .corner cr
 
     s" s0110->s0110" sample-from-string-a square-new    \ crn sqr6
@@ -33,8 +34,19 @@
     then
     cr ." crn: " #2 pick .corner cr
 
+    \ Add between square.
+    s" s0111->s1111" sample-from-string-a square-new    \ crn sqr6 sqr9 sqr4
+    dup                                                 \ crn sqr6 sqr9 sqr4 sqr4
+    #4 pick                                             \ crn sqr6 sqr9 sqr4 sqr4 crn
+    corner-add-square                                   \ crn sqr6 sqr9 sqr4 bool
+    if
+    else
+        true abort" add square 4 failed?"
+    then
+    cr ." crn: " #3 pick .corner cr
+    
     \ Deallocate.
-    2drop
+    2drop drop
     corner-deallocate
 
     \ Check for memory leaks.

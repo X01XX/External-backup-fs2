@@ -321,21 +321,27 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
     assert-nos-is-square-list
 
     \ Prep for loop.
-    corner-get-similar-squares      \ sqr-lst1 dis-lst
-    swap                            \ dis-lst sqr-lst
-    list-get-links                  \ dis-lst sqr-lnk
+    corner-get-similar-squares      \ sqr-lst1 sim-lst
+    swap                            \ sim-lst sqr-lst
+    list-get-links                  \ sim-lst sqr-lnk
 
     begin
         ?dup
     while
-        dup link-get-data           \ dis-lst sqr-lnk sqrx
-        #2 pick                     \ dis-lst sqr-lnk sqrx dis-lst
-        list-remove-item-struct     \ dis-lst sqr-lnk sqrx
-        drop                        \ dis-lst sqr-lnk
+        \ Set xt.
+        [ ' = ] literal             \ sim-lst sqr-lnk xt
+        over link-get-data          \ sim-lst sqr-lnk xt sqrx
+        #3 pick                     \ sim-lst sqr-lnk xt sqrx sim-lst
+        list-remove-struct          \ sim-lst sqr-lnk, sqrx t | f
+        if
+            drop                    \ dis-lst sqr-lnk
+        else
+            true abort" item not found?"
+        then
 
         link-get-next
     repeat
-                                    \ dis-lst
+                                    \ sim-lst
     drop
 ;
 
@@ -354,10 +360,16 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
     begin
         ?dup
     while
-        dup link-get-data           \ dis-lst sqr-lnk sqrx
-        #2 pick                     \ dis-lst sqr-lnk sqrx dis-lst
-        list-remove-item-struct     \ dis-lst sqr-lnk sqrx
-        drop                        \ dis-lst sqr-lnk
+        \ Set xt.
+        [ ' = ] literal             \ dis-lst sqr-lnk xt
+        over link-get-data          \ dis-lst sqr-lnk xt sqrx
+        #3 pick                     \ dis-lst sqr-lnk xt sqrx dis-lst
+        list-remove-struct          \ dis-lst sqr-lnk, sqrx t | f
+        if
+            drop                    \ dis-lst sqr-lnk
+        else
+            true abort" item not found?"
+        then
 
         link-get-next
     repeat
@@ -404,14 +416,15 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
     \ Check args.
     assert-tos-is-corner
     assert-nos-is-square
+    \ cr ." corner-add-square: start: " .stack-gbl cr
 
     2dup corner-can-square-be-added?        \ sqr1 crn0 bool
     if
     else
-        cr ." corner-add-square: exit 1" cr
         \ Return.
         2drop
         false
+        \ cr ." corner-add-square: exit 1" .stack-gbl cr
         exit
     then
 
@@ -455,7 +468,7 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
 
     \ Return
     true
-    cr ." corner-add-square: exit 2" cr
+    \ cr ." corner-add-square: exit 2" .stack-gbl cr
 ;
 
 \ Recalculate a corner, when a close dissimilar square becomes similar.
