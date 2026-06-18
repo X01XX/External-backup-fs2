@@ -35,10 +35,10 @@
     cr ." crn: " #2 pick .corner cr
 
     \ Add between square.
-    s" s0111->s1111" sample-from-string-a square-new    \ crn sqr6 sqr9 sqr4
-    dup                                                 \ crn sqr6 sqr9 sqr4 sqr4
-    #4 pick                                             \ crn sqr6 sqr9 sqr4 sqr4 crn
-    corner-add-square                                   \ crn sqr6 sqr9 sqr4 bool
+    s" s0111->s1111" sample-from-string-a square-new    \ crn sqr6 sqr9 sqr7
+    dup                                                 \ crn sqr6 sqr9 sqr7 sqr7
+    #4 pick                                             \ crn sqr6 sqr9 sqr7 sqr7 crn
+    corner-add-square                                   \ crn sqr6 sqr9 sqr7 bool
     if
     else
         true abort" add square 4 failed?"
@@ -46,9 +46,11 @@
     cr ." crn: " #3 pick .corner cr
     
     \ Deallocate.
-    2drop drop
+    2drop drop  \ sqr6 already deallocated, sqr9 and sqr7 will be deallocated below.
     corner-deallocate
 
+\   structinfo-list-store structinfo-list-print-memory-use
+    
     \ Check for memory leaks.
     structinfo-list-store structinfo-list-project-deallocated
 

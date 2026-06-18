@@ -435,7 +435,7 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
     square-list-between-any                 \ sqr1 crn0 btw-lst'
     2dup swap                               \ sqr1 crn0 btw-lst' btw-lst' crn0
     corner-remove-similar-squares           \ sqr1 crn0 btw-lst'
-    square-list-deallocate                  \ sqr1 crn0
+    square-list-deallocate                  \ sqr1 crn0 ( may deallocate removed squares )
 
     \ Delete squares that the new square will be between, in the dissimilar square list.
     dup corner-get-anchor-square            \ sqr1 crn0 anc
@@ -444,7 +444,7 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
     square-list-between-any                 \ sqr1 crn0 btw-lst'
     2dup swap                               \ sqr1 crn0 btw-lst' btw-lst' crn0
     corner-remove-dissimilar-squares        \ sqr1 crn0 btw-lst'
-    square-list-deallocate                  \ sqr1 crn0
+    square-list-deallocate                  \ sqr1 crn0 ( may deallocate removed squares )
 
     \ Determine which square-list to add it to.
     dup corner-get-anchor-square            \ sqr1 crn0 anc
@@ -481,10 +481,19 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
 
 \ Validate a corner.
 \ Recalc if needed.
-: corner-validate ( crn0 -- )
+: corner-is-validate ( crn0 -- )
     \ Check arg.
     assert-tos-is-corner
 
+    abort" TODO"
+;
+
+\ Return a character, T - True, F - False, M - More samples needed.
+: corner-is-valid? ( crn0 -- char )
+    \ Check arg.
+    assert-tos-is-corner
+
+    abort" TODO"
 ;
 
 \ Deallocate a corner.
