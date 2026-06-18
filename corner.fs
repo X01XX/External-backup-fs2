@@ -345,6 +345,39 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
     drop
 ;
 
+\ Update corner regions with new regions.
+: corner-update-regions ( reg-lst1 crn0 -- )
+    \ Check args.
+    assert-tos-is-corner
+    assert-nos-is-region-list
+
+    dup corner-get-regions  \ reg-lst1 crn0 crn-regs'
+    -rot                    \ crn-regs' reg-lst1 crn0
+    _corner-set-regions     \ crn-lst'
+    region-list-deallocate
+;
+
+\ Adjust regions for a new dissimilar square.
+: corner-adjust-regions ( sqr1 crn0 -- )
+    \ Check args.
+    assert-tos-is-corner
+    assert-nos-is-square
+
+    swap square-get-state               \ crn0 sta1
+    over corner-get-anchor-square       \ crn0 sta1 anc
+    square-get-state                    \ crn0 sta1 sta-anc
+    state-~a+~b                         \ crn0 reg-lst'
+    dup                                 \ crn0 reg-lst' reg-lst'
+    #2 pick corner-get-regions          \ crn0 reg-lst' reg-lst' crn-regs
+    region-list-intersections-nosubs    \ crn0 reg-lst' new-regs
+
+    \ Clean up.
+    swap region-list-deallocate         \ crn0 new-regs
+
+    \ Update regions.
+    swap corner-update-regions          \
+;
+
 \ Add a square to a corner, if possible.
 \ Return true if added.
 : corner-add-square ( sqr1 crn0 -- bool )
@@ -387,6 +420,8 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
     \ Add it.
     case
         [char] I of
+            2dup                            \ sqr1 cnr0 sqr1 crn0
+            corner-adjust-regions           \ sqr1 crn0
             corner-get-dissimilar-squares   \ sqr1 dis-lst
             list-push-struct
         endof
@@ -394,7 +429,7 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
             corner-get-similar-squares      \ sqr1 dis-lst
             list-push-struct
         endof
-        abort" Invalid comprison result"
+        abort" Invalid comparison result"
     endcase
 
     \ Return
