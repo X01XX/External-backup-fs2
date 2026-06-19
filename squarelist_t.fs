@@ -91,8 +91,82 @@
     cr ." square-list-test-between-any - Ok"
 ;
 
+: square-list-test-find-incompatible-pair
+
+    \ Init square-list.
+    list-new                        \ lst
+
+    \ Create a pn2 square.
+    s" s0010->s1111" sample-from-string-a   \ lst smpl
+    square-new                              \ lst sqr2
+    s" s0010->s1110" sample-from-string-a   \ lst sqr2 smpl
+    over square-add-sample                  \ lst sqr2 bool
+    \ Check for change to pn.
+    if else ." add sample 1 failed?" abort then
+
+    \ Add square to list. Save ref for testing results.
+    2dup swap list-push-struct              \ lst sqr2
+    swap                                    \ sqr2 lst
+
+    \ Create a pn1 square.
+    s" s0110->s1111" sample-from-string-a   \ sqr2 lst smpl
+    square-new                              \ sqr2 lst sqr1a
+
+    \ Add square to list.
+    2dup swap list-push-struct              \ sqr2 lst sqr1a
+    swap                                    \ sqr2 sqr1a lst
+
+    \ Create a pn1 square, apparently incompatible with sqr1a
+    \ 01/11/11/0X.
+    s" s1110->s1110" sample-from-string-a   \ sqr2 lst smpl
+    square-new                              \ sqr2 lst sqr1b
+
+    \ Add square to list. Save ref for testing results.
+    2dup swap list-push-struct              \ sqr2 lst sqr1b
+    swap                                    \ sqr2 sqr1a sqr1b lst
+
+    cr ." list: " dup .square-list cr
+
+    \ sqr1a and sqr1b are incompatible with each other, but not with
+    \ the higher-pn-level sqr2.
+    dup square-list-find-incompatible-pair \ sqr2 sqr1a sqr1b lst, inc-lst t | f
+    if
+        cr ." incompatible pairs?: " dup .square-list cr
+        abort
+    then
+
+    \ Make sqr1b incompatible with sqr2.
+    s" s1110->s1110" sample-from-string-a   \ sqr2 sqr1a sqr1b lst smpl
+    #2 pick square-add-sample               \ sqr2 sqr1a sqr1b lst bool
+    \ Check for no change to pn.
+    if ." add sample 2 failed?" abort then
+
+    dup square-list-find-incompatible-pair \ sqr2 sqr1a sqr1b lst, inc-lst t | f
+    if
+        cr ." incompatible pairs: "
+        [ ' .square ] literal over            \ sqr2 sqr1a sqr1b lst inc-lst xt inc-lst
+        .list
+        cr
+
+        [ ' square-deallocate ] literal swap
+        list-deallocate-recursive-struct
+    else
+        ." no incompatible pairs?"
+    then
+    
+    \ Deallocate.
+    nip nip nip
+    square-list-deallocate
+
+    \ Check for memory leaks.
+    structinfo-list-store structinfo-list-project-deallocated
+
+    cr ." square-list-test-find-incompatible-pair - Ok"
+;
+
 : square-list-tests
     square-list-test-any-between?
     square-list-test-between-any
+    square-list-test-find-incompatible-pair
     cr
 ;

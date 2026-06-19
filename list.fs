@@ -726,6 +726,7 @@ list-header-disp    cell+   constant list-links-disp
 : list-deallocate-recursive ( lst0 -- )
     \ Check arg.
     assert-tos-is-list
+    \ cr ." at aa: " .s cr .stack-structs-xt execute cr
 
     dup struct-get-use-count        \ lst0 uc
 
@@ -749,20 +750,21 @@ list-header-disp    cell+   constant list-links-disp
                 dup link-get-data   \ lst0 lst-link-next lst-link link-data
                 recurse
             then
-            link-deallocate         \ lst0 lst-link-next
+            link-deallocate     \ lst0 lst-link-next
         repeat
-                                    \ lst0
+                                    \ lst0 ( can't be printed at this point )
         \ Clear fields.
         0 over _list-set-length
         0 over _list-set-links
-
+        \ cr ." at xx: " .s cr .stack-structs-xt execute cr
         \ Deallocate list instance.
         list-mma mma-deallocate
+        \ cr ." at yy: " .s cr .stack-structs-xt execute cr
     else
         struct-dec-use-count
     then
 ;
-
+        
 \ Return a list containing items that match a given test execution token and test item.
 \ xt signature is ( item link-data -- flag ) or ( filler link-data -- flag )
 \
@@ -1057,8 +1059,8 @@ list-header-disp    cell+   constant list-links-disp
         \ Check for sub-list.
         dup is-allocated-list?  \ xt link0 data0 bool
         if
-            #2 pick             \ xt link0 lst xt
-            swap                \ xt link0 xt lst
+            #2 pick             \ xt link0 sub-lst xt
+            swap                \ xt link0 xt sub-lst
             recurse             \ xt lst-link
         else
             #2 pick             \ xt link0 data0 xt
@@ -1070,7 +1072,6 @@ list-header-disp    cell+   constant list-links-disp
                                 \ xt
     drop
 ;
-
 
 \ Return the intersection of two lists.
 \ xt signature is ( link-data link-data -- flag )

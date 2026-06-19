@@ -144,3 +144,6 @@
 
 ' xtabort value region-subtract-xt
 
+' xtabort value structinfo-list-deallocate-struct-xt
+
+

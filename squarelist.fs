@@ -181,7 +181,7 @@
     list-new swap                       \ pn inc-lst sqr-lst0
 
     \ Check every possible pair.
-    \ For each pair, at least one must have the base pn.
+    \ For each pair, at least one must have the base pn, if so compare them.
     list-get-links                      \ pn inc-lst sqr-lnk
 
     begin
@@ -242,6 +242,21 @@
                                         \ pn inc-lst
     nip                                 \ inc-lst
 
-    
-    true abort" todo"
+    \ Check for an empty list.
+    dup list-is-empty?
+    if
+        list-deallocate
+        false
+        exit
+    then
+
+    \ Check for one pair.
+    dup list-get-length
+    1 =
+    if
+        true
+        exit
+    then
+
+    ." TODO" abort
 ;

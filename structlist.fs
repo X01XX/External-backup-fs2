@@ -216,3 +216,14 @@
     2drop
     true
 ;
+
+\ Deallocate a list of structs, given
+\ a <struct>-deallocate xt.
+: list-deallocate-recursive-struct ( xt1 lst0 -- )
+    \ Check arg.
+    assert-tos-is-list
+
+    tuck                        \ lst0 xt1 lst0
+    list-apply-recursive        \ lst0 ( may now be invalid )
+    list-deallocate-recursive
+;
