@@ -329,13 +329,14 @@
     \ Clean up.
                                         \ inc-lst min-dis inc-lst2
     nip                                 \ inc-lst inc-lst2
-    swap                                \ inc-lst2 inc-lst
 
+    \ Deallocate previous list with square pairs.
+    swap                                \ inc-lst2 inc-lst
     [ ' square-deallocate ] literal     \ inc-lst2 inc-lst xt
     swap                                \ inc-lst2 xt inc-lst
     list-deallocate-recursive-struct    \ inc-lst2
 
-    \ Check for one pair.
+    \ Check for one pair in new list.
     dup list-get-length
     1 =
     if
@@ -393,35 +394,36 @@
 
     \ Clean up.
     nip                                 \ inc-lst inc-lst2
-    swap                                \ inc-lst2 inc-lst
 
+    \ Deallocate previous list with square pairs.
+    swap                                \ inc-lst2 inc-lst
     [ ' square-deallocate ] literal     \ inc-lst2 inc-lst xt
     swap                                \ inc-lst2 xt inc-lst
     list-deallocate-recursive-struct    \ inc-lst2
 
-    \ Check for one pair.
+    \ Check for one pair in new list.
     dup list-get-length
     1 =
     if
-        dup list-get-first-item     \ inc-lst sqr-pr
+        dup list-pop                \ inc-lst sqr-pr
         swap list-deallocate        \ sqr-pr
         true
         exit
     then
 
     \ More than one pair.
-        dup list-pop                    \ inc-lst, sqr-pr t | f
-        if
-            swap                        \ sqr-pr inc-lst
+    dup list-pop                    \ inc-lst, sqr-pr t | f
+    if
+        swap                        \ sqr-pr inc-lst
 
-            \ Dealocate list with one, or more, square pairs.
-            [ ' square-deallocate ] literal     \ sqr-pr inc-lst xt
-            swap                                \ sqr-pr xt inc-lst
-            list-deallocate-recursive-struct    \ sqr-pr
+        \ Deallocate list with one, or more, square pairs.
+        [ ' square-deallocate ] literal     \ sqr-pr inc-lst xt
+        swap                                \ sqr-pr xt inc-lst
+        list-deallocate-recursive-struct    \ sqr-pr
 
-            true
-            exit
-        else
-            ." pop failed?" abort
-        then
+        true
+        exit
+    else
+        ." pop failed?" abort
+    then
 ;
