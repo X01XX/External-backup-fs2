@@ -116,3 +116,132 @@
                             \ sqr2 sqr1 ret-lst
     nip nip
 ;
+
+\ Return true if any square in a list has a pn value equal to a given pn value.
+: square-list-any-pn-eq? ( pn1 sqr-lst0 -- bool )
+    \ Check args.
+    assert-tos-is-square-list
+    over 0< abort" Invalid pn value"
+    over 2 > abort" Invalid pn value"
+
+    \ Prep for loop.
+    list-get-links          \ pn1 sqr-lnk
+
+    begin
+        ?dup
+    while
+        over                \ pn1 sqr-lnk pn1
+        over link-get-data  \ pn1 sqr-lnk pn1 sqrx
+        square-get-pn       \ pn1 sqr-lnk pn1 sqr-pn
+        = if
+            2drop
+            true
+            exit
+        then
+
+        link-get-next
+    repeat
+                            \ pn1
+    drop
+    false
+;
+
+\ Return a pair of incompatible squares, if any.
+\ If there are more than one pairs, return the closest pair.
+\ If more than one pair is of equal closeness, return the pair with the most samples.
+\ If there is more than one pair with equal closeness and number samples, return an
+\ arbitrary pick.
+: square-list-find-incompatible-pair ( sqr-lst0 -- sqr-lst t | f )
+    \ Check arg.
+    assert-tos-is-square-list
+
+    \ Check list length.
+    dup list-get-length                 \ sqr-lst len
+    2 < if
+        \ No pairs to check.
+        drop
+        false
+        exit
+    then
+
+    \ Get base pn.
+    0 over square-list-any-pn-eq?       \ sqr-lst0 bool
+    if
+        0 swap                          \ pn sqr-lst0
+    else
+        2 over square-list-any-pn-eq?   \ sqr-lst0 bool
+        if
+            2 swap                      \ pn sqr-lst0
+        else
+            1 swap                      \ pn sqr-lst0
+        then
+    then
+
+    \ Init the incompatible pair list.
+    list-new swap                       \ pn inc-lst sqr-lst0
+
+    \ Check every possible pair.
+    \ For each pair, at least one must have the base pn.
+    list-get-links                      \ pn inc-lst sqr-lnk
+
+    begin
+        ?dup
+    while
+        \ Check if loop 1 square pn is equal to the base pn.
+        dup link-get-data               \ pn inc-lst sqr-lnx sqr1
+        square-get-pn                   \ pn inc-lst sqr-lnx pn1
+        #3 pick                         \ pn inc-lst sqr-lnx pn1 pn
+        =                               \ pn inc-lst sqr-lnx bool1
+
+        \ Check next squares.
+        over link-get-next              \ pn inc-lst sqr-lnx bool1 nxt-lnk
+        begin
+            ?dup
+        while
+            \ Check if loop 2 square pn is equal to the base pn.
+            dup link-get-data           \ pn inc-lst sqr-lnx bool1 nxt-lnk sqr2
+            square-get-pn               \ pn inc-lst sqr-lnx bool1 nxt-lnk pn2
+            #5 pick                     \ pn inc-lst sqr-lnx bool1 nxt-lnk pn2 pn
+            =                           \ pn inc-lst sqr-lnx bool1 nxt-lnk bool2
+
+            \ Check that at least one square of the pair has a pn equal to the base pn.
+            #2 pick                     \ pn inc-lst sqr-lnx bool1 nxt-lnk bool2 bool1
+            or                          \ pn inc-lst sqr-lnx bool1 nxt-lnk bool12
+            if
+                \ Check the pair.
+                #2 pick link-get-data   \ pn inc-lst sqr-lnx bool1 nxt-lnk sqr1
+                over link-get-data      \ pn inc-lst sqr-lnx bool1 nxt-lnk sqr1 sqr2
+                squares-compare         \ pn inc-lst sqr-lnx bool1 nxt-lnk char
+                [char] I =
+                if
+                    \ Init pair list.
+                    list-new                \ pn inc-lst sqr-lnx bool1 nxt-lnk pr-lst
+
+                    \ Add loop1 square.
+                    #3 pick                 \ pn inc-lst sqr-lnx bool1 nxt-lnk pr-lst sqr-lnk
+                    link-get-data           \ pn inc-lst sqr-lnx bool1 nxt-lnk pr-lst sqr1
+                    over list-push-struct   \ pn inc-lst sqr-lnx bool1 nxt-lnk pr-lst
+
+                    \ Add loop2 square.
+                    over                    \ pn inc-lst sqr-lnx bool1 nxt-lnk pr-lst nxt-lnk
+                    link-get-data           \ pn inc-lst sqr-lnx bool1 nxt-lnk pr-lst sqr2
+                    over list-push-struct   \ pn inc-lst sqr-lnx bool1 nxt-lnk pr-lst
+
+                    \ Save pair.
+                    #4 pick                 \ pn inc-lst sqr-lnx bool1 nxt-lnk pr-lst inc-lst
+                    list-push-struct        \ pn inc-lst sqr-lnx bool1 nxt-lnk
+                then
+            then
+
+            link-get-next
+        repeat
+                                        \ pn inc-lst sqr-lnx bool1
+        drop                            \ pn inc-lst sqr-lnx
+        link-get-next
+    repeat
+                                        \ pn inc-lst
+    nip                                 \ inc-lst
+
+    
+    true abort" todo"
+;
