@@ -157,20 +157,6 @@
     dup struct-dec-use-count
 ;
 
-\ Remove a struct item given an xt and item to compare.
-: list-remove-struct ( xt item lst0 -- item t | f )
-    \ Check arg.
-    assert-tos-is-list
-
-    list-remove             \ item t | f
-    if
-        dup struct-dec-use-count
-        true
-    else
-        false
-    then
-;
-
 \ Return a copy of a list, except the first item.
 : list-copy-after-first-struct ( lst0 -- lst )
     \ Check arg.

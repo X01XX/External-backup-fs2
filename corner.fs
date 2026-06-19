@@ -332,9 +332,9 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
         [ ' = ] literal             \ sim-lst sqr-lnk xt
         over link-get-data          \ sim-lst sqr-lnk xt sqrx
         #3 pick                     \ sim-lst sqr-lnk xt sqrx sim-lst
-        list-remove-struct          \ sim-lst sqr-lnk, sqrx t | f
+        list-remove                 \ sim-lst sqr-lnk, sqrx t | f
         if
-            drop                    \ dis-lst sqr-lnk
+            square-deallocate       \ dis-lst sqr-lnk
         else
             true abort" item not found?"
         then
@@ -364,9 +364,9 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
         [ ' = ] literal             \ dis-lst sqr-lnk xt
         over link-get-data          \ dis-lst sqr-lnk xt sqrx
         #3 pick                     \ dis-lst sqr-lnk xt sqrx dis-lst
-        list-remove-struct          \ dis-lst sqr-lnk, sqrx t | f
+        list-remove                 \ dis-lst sqr-lnk, sqrx t | f
         if
-            drop                    \ dis-lst sqr-lnk
+            square-deallocate       \ dis-lst sqr-lnk
         else
             true abort" item not found?"
         then
@@ -435,7 +435,7 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
     square-list-between-any                 \ sqr1 crn0 btw-lst'
     2dup swap                               \ sqr1 crn0 btw-lst' btw-lst' crn0
     corner-remove-similar-squares           \ sqr1 crn0 btw-lst'
-    square-list-deallocate                  \ sqr1 crn0 ( may deallocate removed squares )
+    square-list-deallocate                  \ sqr1 crn0
 
     \ Delete squares that the new square will be between, in the dissimilar square list.
     dup corner-get-anchor-square            \ sqr1 crn0 anc
@@ -444,7 +444,7 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
     square-list-between-any                 \ sqr1 crn0 btw-lst'
     2dup swap                               \ sqr1 crn0 btw-lst' btw-lst' crn0
     corner-remove-dissimilar-squares        \ sqr1 crn0 btw-lst'
-    square-list-deallocate                  \ sqr1 crn0 ( may deallocate removed squares )
+    square-list-deallocate                  \ sqr1 crn0
 
     \ Determine which square-list to add it to.
     dup corner-get-anchor-square            \ sqr1 crn0 anc
@@ -517,5 +517,152 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
     else
         struct-dec-use-count
     then
+;
+
+\ Check the anchor, after a change.
+: corner-check-anchor ( sqr1 crn0 -- )
+    \ Check args.
+    assert-tos-is-corner
+    assert-nos-is-square
+
+    true abort" TODO"
+;
+
+\ Check a similar square, after a change.
+: corner-check-similar-square ( sqr1 crn0 -- )
+    \ Check args.
+    assert-tos-is-corner
+    assert-nos-is-square
+
+    true abort" TODO"
+;
+
+\ Check a dissimilar square, after a change.
+: corner-check-dissimilar-square ( sqr1 crn0 -- )
+    \ Check args.
+    assert-tos-is-corner
+    assert-nos-is-square
+
+    true abort" TODO"
+;
+
+\ Check if a new square can be added.
+: corner-check-new-square ( sqr1 crn0 -- )
+    \ Check args.
+    assert-tos-is-corner
+    assert-nos-is-square
+
+    \ Check if a square can be added.
+    over                                    \ sqr1 crn0 sqr1
+    over corner-get-anchor-square           \ sqr1 crn0 sqr1 anc
+    squares-compare                         \ sqr1 crn0 char
+
+    dup [char] M =                          \ sqr1 crn0 char bool
+    if
+        2drop drop
+        exit
+    then
+
+    \ Save comparison char.
+    -rot                                    \ char sqr1 crn0
+
+    \ Delete squares that the new square will be between, in the similar square list.
+    dup corner-get-anchor-square            \ char sqr1 crn0 anc
+    #2 pick                                 \ char sqr1 crn0 anc sqr1
+    #2 pick corner-get-similar-squares      \ char sqr1 crn0 anc sqr1 sim-lst
+    square-list-between-any                 \ char sqr1 crn0 btw-lst'
+    2dup swap                               \ char sqr1 crn0 btw-lst' btw-lst' crn0
+    corner-remove-similar-squares           \ char sqr1 crn0 btw-lst'
+    square-list-deallocate                  \ char sqr1 crn0
+
+    \ Delete squares that the new square will be between, in the dissimilar square list.
+    dup corner-get-anchor-square            \ char sqr1 crn0 anc
+    #2 pick                                 \ char sqr1 crn0 anc sqr1
+    #2 pick corner-get-dissimilar-squares   \ char sqr1 crn0 anc sqr1 dis-lst
+    square-list-between-any                 \ char sqr1 crn0 btw-lst'
+    2dup swap                               \ char sqr1 crn0 btw-lst' btw-lst' crn0
+    corner-remove-dissimilar-squares        \ char sqr1 crn0 btw-lst'
+    square-list-deallocate                  \ char sqr1 crn0
+
+    \ Add it.
+    rot                                     \ sqr1 crn0 char
+    case
+        [char] I of
+            2dup                            \ sqr1 cnr0 sqr1 crn0
+            corner-adjust-regions           \ sqr1 crn0
+            corner-get-dissimilar-squares   \ sqr1 dis-lst
+            list-push-struct
+        endof
+        [char] C of
+            corner-get-similar-squares      \ sqr1 dis-lst
+            list-push-struct
+        endof
+        abort" Unexpected comparison result"
+    endcase
+;
+
+\ Return true if a square is the corner anchor.
+: corner-square-is-anchor? ( sqr1 crn0 -- bool )
+    \ Check args.
+    assert-tos-is-corner
+    assert-nos-is-square
+
+    dup corner-get-anchor-square    \ sqr1 anc
+    =
+;
+
+\ Return true if a square is in the similar squares list.
+: corner-square-is-in-similar-squares? ( sqr1 crn0 -- bool )
+    \ Check args.
+    assert-tos-is-corner
+    assert-nos-is-square
+
+    [ ' = ] literal                 \ sqr1 crn0 xt
+    -rot                            \ xt sqr1 crn0
+    dup corner-get-similar-squares  \ xt sqr1 siw-lst
+    list-member?                    \ bool
+;
+
+\ Return true if a square is in the dissimilar squares list.
+: corner-square-is-in-dissimilar-squares? ( sqr1 crn0 -- bool )
+    \ Check args.
+    assert-tos-is-corner
+    assert-nos-is-square
+
+    [ ' = ] literal                     \ sqr1 crn0 xt
+    -rot                                \ xt sqr1 crn0
+    dup corner-get-dissimilar-squares   \ xt sqr1 siw-lst
+    list-member?                        \ bool
+;
+
+\ Check a new, or changed, square.
+\ Divide and conquer.
+: corner-check-changed-square ( sqr1 crn0 -- )
+    \ Check args.
+    assert-tos-is-corner
+    assert-nos-is-square
+    over square-get-num-bits
+    over corner-get-num-bits
+    <> abort" number bit difference?"
+
+    2dup corner-square-is-anchor?                   \ sqr1 crn0 bool
+    if
+        corner-check-anchor
+        exit
+    then
+
+    2dup corner-square-is-in-similar-squares?       \ sqr1 crn0 bool
+    if
+        corner-check-similar-square
+        exit
+    then
+
+    2dup corner-square-is-in-dissimilar-squares?    \ sqr1 crn0 bool
+    if
+        corner-check-dissimilar-square
+        exit
+    then
+
+    corner-check-new-square
 ;
 
