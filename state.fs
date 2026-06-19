@@ -493,3 +493,13 @@ state-header-disp cell+   constant state-number-disp
     swap mask-deallocate    \ dif1 bool
     swap mask-deallocate
 ;
+
+: states-distance ( sta1 sta0 -- u )
+    \ Check args.
+    assert-tos-is-state
+    assert-nos-is-state
+
+    state-dif-mask      \ msk'
+    dup mask-count-bits \ msk' u
+    swap mask-deallocate 
+;

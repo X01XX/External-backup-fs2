@@ -92,6 +92,16 @@
 ;
 
 : square-list-test-find-incompatible-pair
+\    s" (r1010 (s1000) m1010)" list-from-string-a   \ lst
+\    structinfo-list-deallocate-struct-xt           \ lst xt
+\    swap                                           \ xt lst
+\    list-deallocate-recursive-struct
+\
+\ Or
+\   structinfo-list-deallocate-struct-list
+\
+\     structinfo-list-store structinfo-list-project-deallocated
+\     exit
 
     \ Init square-list.
     list-new                        \ lst
@@ -125,11 +135,11 @@
     2dup swap list-push-struct              \ sqr2 lst sqr1b
     swap                                    \ sqr2 sqr1a sqr1b lst
 
-    cr ." list: " dup .square-list cr
+    \ cr ." list: " dup .square-list cr
 
     \ sqr1a and sqr1b are incompatible with each other, but not with
     \ the higher-pn-level sqr2.
-    dup square-list-find-incompatible-pair \ sqr2 sqr1a sqr1b lst, inc-lst t | f
+    dup square-list-find-incompatible-pair \ sqr2 sqr1a sqr1b lst, sqr-pr t | f
     if
         cr ." incompatible pairs?: " dup .square-list cr
         abort
@@ -141,21 +151,36 @@
     \ Check for no change to pn.
     if ." add sample 2 failed?" abort then
 
-    dup square-list-find-incompatible-pair \ sqr2 sqr1a sqr1b lst, inc-lst t | f
+    dup square-list-find-incompatible-pair  \ sqr2 sqr1a sqr1b lst, sqr-pr t | f
     if
-        cr ." incompatible pairs: "
-        [ ' .square ] literal over            \ sqr2 sqr1a sqr1b lst inc-lst xt inc-lst
-        .list
-        cr
+        \ cr ." incompatible pairs: " dup .square-list cr
 
-        [ ' square-deallocate ] literal swap
-        list-deallocate-recursive-struct
+        \ Check square pair contains sqr2.
+        [ ' = ] literal                     \ sqr2 sqr1a sqr1b lst sqr-pr xt
+        #5 pick                             \ sqr2 sqr1a sqr1b lst sqr-pr xt sqr2
+        #2 pick                             \ sqr2 sqr1a sqr1b lst sqr-pr xt sqr2 sqr-pr
+        list-member?
+        if
+        else
+            cr ." sqr2 not found?" abort
+        then
+
+        \ Check square pair contains sqr1b.
+        [ ' = ] literal                     \ sqr2 sqr1a sqr1b lst sqr-pr xt
+        #3 pick                             \ sqr2 sqr1a sqr1b lst sqr-pr xt sqr1b
+        #2 pick                             \ sqr2 sqr1a sqr1b lst sqr-pr xt sqr1b sqr-pr
+        list-member?
+        if
+        else
+            cr ." sqr1b not found?" abort
+        then
     else
-        ." no incompatible pairs?"
+        cr ." no incompatible pairs?" abort
     then
     
-    \ Deallocate.
-    nip nip nip
+    \ Deallocate.                       \ sqr2 sqr1a sqr1b lst sqr-pr
+    square-list-deallocate              \ sqr2 sqr1a sqr1b lst
+    nip nip nip                         \ lst
     square-list-deallocate
 
     \ Check for memory leaks.

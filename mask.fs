@@ -484,3 +484,12 @@ mask-header-disp cell+  constant mask-number-disp
     swap mask-get-number    \ all num
     =
 ;
+
+\ Return the number of bits set to one.
+: mask-count-bits ( msk0 -- u )
+    \ Check arg.
+    assert-tos-is-mask
+
+    mask-get-number     \ u
+    num-bits-set
+;
