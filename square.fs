@@ -611,3 +611,13 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
 
     state-between?
 ;
+
+\ Return true if a square state matches a value.
+: square-state-eq ( sta1 sqr0 -- flag )                                                                                                       
+    \ Check args.
+    assert-tos-is-square
+    assert-nos-is-state
+
+    square-get-state
+    states-eq?
+;

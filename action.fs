@@ -125,7 +125,57 @@ action-header-disp  cell+   constant action-squares-disp        \ A square list.
     then
 ;
 
-: action-add-sample ( smpl1 act0 -- )
+\ Find a square, given a state.
+: action-find-square ( sta1 act0 -- sqr t | f )
+    \ Check args.
+    assert-tos-is-action
+    assert-nos-is-state
 
+    action-get-squares      \ sta1 sqr-lst
+    square-list-find        \ sqr t | f
+;
+
+\ Add a square to the action square list.
+: action-add-square ( sqr1 act0 -- )
+    \ Check args.
+    assert-tos-is-action
+    assert-nos-is-square
+
+    over square-get-state       \ sqr1 act0 sta
+    over action-find-square     \ sqr1 act0, sqr t | f
+    if
+        cr ." square already exists in square list" abort
+    then
+
+    \ Store the square.
+    2dup action-get-squares     \ sqr1 act0 sqr1 sqr-lst
+    list-push-struct            \ sqr1 act0
+
+    \ Clean up, return.
+    2drop
+;
+
+\ Add a sample, return true if the sample changed
+\ a square.
+: action-add-sample ( smpl1 act0 -- bool )
+    \ Check args.
+    assert-tos-is-action
+    assert-nos-is-sample
+
+    over sample-get-initial     \ smpl1 act0 initial
+    over action-find-square     \ smpl1 act0, sqr t | f
+    if
+        #2 pick                 \ smpl1 act0 sqr smpl1
+        swap                    \ smpl1 act0 smpl1 sqr
+        square-add-sample       \ smpl1 act0 bool
+        nip nip
+    else
+        over                    \ smpl1 act0 smpl1
+        square-new              \ smpl1 act0 sqr1
+        over                    \ smpl1 act0 sqr1 act0
+        action-add-square       \ smpl1 act0
+        2drop
+        true
+    then
 ;
 

@@ -167,7 +167,7 @@
     +
 ;
 
-\ Return a pair of incompatible squares in a list of squares, if any.
+\ Return a pair of incompatible squares, if any, from a list of squares.
 \ If there is more than one pair, return the closest pair.
 \ If more than one pair is of equal closeness, return the pair with the most samples.
 \ If there is more than one pair with equal closeness, and number samples, return an
@@ -315,6 +315,7 @@
         link-get-next
     repeat
                                     \ inc-lst min-dis
+    \ cr ." min distance: " dup dec. cr
 
     \ Gather square pairs with min distance.
 
@@ -332,7 +333,7 @@
         if
             dup link-get-data       \ inc-lst min-dis inc-lst2 inc-lnk sqr-prx
             #2 pick                 \ inc-lst min-dis inc-lst2 inc-lnk sqr-prx inc-lst2
-            list-push-struct-list        \ inc-lst min-dis inc-lst2 inc-lnk
+            list-push-struct-list   \ inc-lst min-dis inc-lst2 inc-lnk
         then
 
         link-get-next
@@ -382,6 +383,7 @@
     repeat
                                     \ inc-lst max-ns
 
+    \ cr ." max samples: " dup dec. cr
     \ Gather square pairs with max number samples.
 
     \ Init new inc-lst.
@@ -445,4 +447,13 @@
     else
         ." pop failed?" abort
     then
+;
+
+\ Find a square in a list, by state, if any.
+: square-list-find ( sta1 list0 -- sqr t | f )                                                                                                
+    \ Check args.
+    assert-tos-is-list
+    assert-nos-is-state
+
+    [ ' square-state-eq ] literal -rot list-find
 ;
