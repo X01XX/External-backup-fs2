@@ -1,6 +1,6 @@
 
 : action-test-basic
-    action-new      \ act
+    #4 action-new      \ act
 
     cr dup .action cr
 

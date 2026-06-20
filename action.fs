@@ -1,12 +1,13 @@
 \ Implement an Action struct and functions.                                                                                                       
 
 #29717 constant action-id
-    #2 constant action-struct-number-cells
+    #4 constant action-struct-number-cells
 
 \ Struct fields
-0                           constant action-header-disp         \ 16 bits, [0] Struct id, [1] Use count 
-action-header-disp  cell+   constant action-squares-disp        \ A square list.
-
+0                                       constant action-header-disp             \ 16 bits, [0] Struct id, [1] Use count 
+action-header-disp              cell+   constant action-squares-disp            \ A square list.
+action-squares-disp             cell+   constant action-incompatible-pairs-disp \ A region list.  States that define the regions are incompatible.
+action-incompatible-pairs-disp  cell+   constant action-possible-regions-disp   \ A region list.
 
 0 value action-mma \ Storage for action mma instance.
 
@@ -83,18 +84,92 @@ action-header-disp  cell+   constant action-squares-disp        \ A square list.
     !struct                 \ Set the field.
 ;
 
+\ Return the incompatible pairs list from an action instance.
+: action-get-incompatible-pairs ( act0 -- lst )
+    \ Check arg.
+    assert-tos-is-action
+
+    action-incompatible-pairs-disp +    \ Add offset.
+    @                                   \ Fetch the field.
+;
+
+\ Set the incompatible-pairs list of an action instance, use only in this file.
+: _action-set-incompatible-pairs ( reg-lst1 act0 -- )
+    \ Check args.
+    assert-tos-is-action
+    assert-nos-is-region-list
+
+    action-incompatible-pairs-disp +    \ Add offset.
+    !struct                             \ Set the field.
+;
+
+\ Update the incompatible-pairs list of an action instance, use only in this file.
+: _action-update-incompatible-pairs ( reg-lst1 act0 -- )
+    \ Check args.
+    assert-tos-is-action
+    assert-nos-is-region-list
+
+    dup action-get-incompatible-pairs     \ reg-lst1 act0 pos-regs
+    -rot                                \ pos-regs reg-lst1 act0
+    _action-set-incompatible-pairs        \ pos-regs
+    region-list-deallocate
+;
+
+\ Return the possible-regions list from an action instance.
+: action-get-possible-regions ( act0 -- lst )
+    \ Check arg.
+    assert-tos-is-action
+
+    action-possible-regions-disp +  \ Add offset.
+    @                               \ Fetch the field.
+;
+
+\ Set the possible-regions list of an action instance, use only in this file.
+: _action-set-possible-regions ( reg-lst1 act0 -- )
+    \ Check args.
+    assert-tos-is-action
+    assert-nos-is-region-list
+
+    action-possible-regions-disp +  \ Add offset.
+    !struct                         \ Set the field.
+;
+
+\ Update the possible-regions list of an action instance, use only in this file.
+: _action-update-possible-regions ( reg-lst1 act0 -- )
+    \ Check args.
+    assert-tos-is-action
+    assert-nos-is-region-list
+
+    dup action-get-possible-regions     \ reg-lst1 act0 pos-regs
+    -rot                                \ pos-regs reg-lst1 act0
+    _action-set-possible-regions        \ pos-regs
+    region-list-deallocate
+;
+
 \ End accessors
 
-: action-new ( -- addr)
+: action-new ( num-bits -- addr)
 
     \ Allocate space.
-    action-id action-mma                \ id mma
-    struct-allocate                     \ act
+    action-id action-mma                \ nb id mma
+    struct-allocate                     \ nb act
 
     \ Set squares list.
-    list-new                            \ act lst
-    over _action-set-squares            \ act
+    list-new                            \ nb act lst
+    over _action-set-squares            \ nb act
 
+    \ Set incompatible-pairs list.
+    list-new                            \ nb act lst
+    over                                \ nb act lst act
+    _action-set-incompatible-pairs      \ nb act
+
+    \ Set possible-regions list.
+    list-new                            \ nb act lst
+    rot                                 \ act lst nb
+    region-max-x                        \ act lst reg-max
+    over list-push-struct               \ act lst
+    over                                \ act lst act
+    _action-set-possible-regions        \ act
 ;
 
 \ Print a action.
@@ -102,7 +177,11 @@ action-header-disp  cell+   constant action-squares-disp        \ A square list.
     \ Check arg.
     assert-tos-is-action
 
-    ." action: " action-get-squares .square-list
+    cr ." Action: "
+    cr #4 spaces ." Squares:        " dup action-get-squares .square-list
+    cr #4 spaces ." Incompat pairs: " dup action-get-incompatible-pairs .region-list
+    cr #4 spaces ." Poss regions:   " action-get-possible-regions .region-list
+    cr
 ;
 
 \ Deallocate a action.
@@ -117,6 +196,8 @@ action-header-disp  cell+   constant action-squares-disp        \ A square list.
     if
         \ Clear fields.
         dup action-get-squares square-list-deallocate
+        dup action-get-incompatible-pairs region-list-deallocate
+        dup action-get-possible-regions region-list-deallocate
 
         \ Deallocate instance.
         action-mma mma-deallocate
