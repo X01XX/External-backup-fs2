@@ -112,7 +112,7 @@
     s" s0010->s1110" sample-from-string-a   \ lst sqr2 smpl
     over square-add-sample                  \ lst sqr2 bool
     \ Check for change to pn.
-    if else ." add sample 1 failed?" abort then
+    if else ." add sample 1 did not cause change?" abort then
 
     \ Add square to list. Save ref for testing results.
     2dup swap list-push-struct              \ lst sqr2
@@ -149,11 +149,11 @@
     s" s1110->s1110" sample-from-string-a   \ sqr2 sqr1a sqr1b lst smpl
     #2 pick square-add-sample               \ sqr2 sqr1a sqr1b lst bool
     \ Check for no change to pn.
-    if ." add sample 2 failed?" abort then
+    if ." add sample 2 caused change?" abort then
 
     dup square-list-find-incompatible-pair  \ sqr2 sqr1a sqr1b lst, sqr-pr t | f
     if
-        \ cr ." incompatible pairs: " dup .square-list cr
+        \ cr ." incompatible pair: " dup .square-list cr
 
         \ Check square pair contains sqr2.
         [ ' = ] literal                     \ sqr2 sqr1a sqr1b lst sqr-pr xt
@@ -189,9 +189,80 @@
     cr ." square-list-test-find-incompatible-pair - Ok"
 ;
 
+\ Find incompatible pair based on min distance.
+: square-list-test-find-incompatible-pair-dis
+    \ Init square-list.
+    list-new                        \ lst
+
+    \ Create a pn2 square.
+    s" s0100->s0100" sample-from-string-a   \ lst smpl
+    square-new                              \ lst sqr2a
+    s" s0100->s0000" sample-from-string-a   \ lst sqr2a smpl
+    over square-add-sample                  \ lst sqr2a bool
+    \ Check for change to pn.
+    if else ." add sample 1 did not cause change?" abort then
+    dup #2 pick list-push-struct            \ lst sqr2a
+    swap                                    \ sqr2a lst
+
+    \ Create another pn2 square.
+    s" s0111->s0111" sample-from-string-a   \ sqr2a lst smpl
+    square-new                              \ sqr2a lst sqr2b
+    s" s0111->s0011" sample-from-string-a   \ sqr2a lst sqr2b smpl
+    over square-add-sample                  \ sqr2a lst sqr2b bool
+    \ Check for change to pn.
+    if else ." add sample 2 did not cause change?" abort then
+    swap                                    \ sqr2a sqr2b lst
+    2dup list-push-struct                   \ sqr2a sqr2b lst
+
+    \ Make an incompatible pn1 square.
+    s" s1011->s1011" sample-from-string-a   \ sqr2a sqr2b lst smpl
+    square-new                              \ sqr2a sqr2b lst sqr1
+    s" s1011->s1011" sample-from-string-a   \ sqr2a sqr2b lst sqr1 smpl
+    over square-add-sample                  \ sqr2a sqr2b lst sqr1 bool
+    \ Check for change to pn.
+    if ." add sample 2 caused change?" abort then
+    swap                                    \ sqr2a sqr2b sqr1 lst
+    2dup list-push-struct                   \ sqr2a sqr2b sqr1 lst
+
+    cr ." at 1: " dup .square-list cr
+
+    dup square-list-find-incompatible-pair  \ sqr2a sqr2b sqr1 lst, sqr-pr t | f
+    if
+        cr ." incompatible pair: " dup .square-list cr
+    else
+        cr ." no incompatible pairs?" abort
+    then
+
+    \ Deallocate.                           \ sqr2a sqr2b sqr1 lst sqr-pr
+    cr ." at 2: " .stack-gbl cr
+    cr dup .list-raw cr
+    cr over .list-raw cr
+    square-list-deallocate
+    cr ." at 3: " .stack-gbl cr
+    nip nip nip
+    cr ." at 4" cr
+    square-list-deallocate
+
+    \ Check for memory leaks.
+    structinfo-list-store structinfo-list-project-deallocated
+
+    cr ." square-list-test-find-incompatible-pair-dis - Ok"
+;
+
+\ Find incompatible pair based on max number samples.
+: square-list-test-find-incompatible-pair-ns
+;
+
+\ Find incompatible pair based on max number samples, arbitray choice.
+: square-list-test-find-incompatible-pair-ns2
+;
+
 : square-list-tests
     square-list-test-any-between?
     square-list-test-between-any
     square-list-test-find-incompatible-pair
+    square-list-test-find-incompatible-pair-dis
+    square-list-test-find-incompatible-pair-ns
+    square-list-test-find-incompatible-pair-ns2
     cr
 ;

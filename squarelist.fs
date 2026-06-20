@@ -177,11 +177,12 @@
     assert-tos-is-square-list
 
     \ Check list length.
-    dup list-get-length                 \ sqr-lst len
+    dup list-get-length                 \ sqr-lst0 len
     2 < if
         \ No pairs to check.
         drop
         false
+        cr ." square-list-find-incompatible-pair: exit 1" cr
         exit
     then
 
@@ -275,10 +276,11 @@
     dup list-get-length
     1 =
     if
-        dup list-pop                    \ inc-lst, sqr-pr t | f
+        dup list-pop-struct             \ inc-lst, sqr-pr t | f
         if
             swap list-deallocate        \ sqr-pr
             true
+            cr ." square-list-find-incompatible-pair: exit 2" cr
             exit
         else
             ." pop failed?" abort
@@ -303,6 +305,7 @@
         link-get-next
     repeat
                                     \ inc-lst min-dis
+    cr ." min dist = " dup dec. cr
 
     \ Gather square pairs with min distance.
 
@@ -340,10 +343,11 @@
     dup list-get-length
     1 =
     if
-        dup list-pop                    \ inc-lst2, sqr-pr t | f
+        dup list-pop-struct             \ inc-lst2, sqr-pr t | f
         if
             swap list-deallocate        \ sqr-pr
             true
+            cr ." square-list-find-incompatible-pair: exit 3" cr
             exit
         else
             ." pop failed?" abort
@@ -405,16 +409,17 @@
     dup list-get-length
     1 =
     if
-        dup list-pop                \ inc-lst sqr-pr
-        swap list-deallocate        \ sqr-pr
+        dup list-pop-struct             \ inc-lst sqr-pr
+        swap list-deallocate            \ sqr-pr
         true
+        cr ." square-list-find-incompatible-pair: exit 4" cr
         exit
     then
 
     \ More than one pair.
-    dup list-pop                    \ inc-lst, sqr-pr t | f
+    dup list-pop-struct                 \ inc-lst, sqr-pr t | f
     if
-        swap                        \ sqr-pr inc-lst
+        swap                            \ sqr-pr inc-lst
 
         \ Deallocate list with one, or more, square pairs.
         [ ' square-deallocate ] literal     \ sqr-pr inc-lst xt
@@ -422,6 +427,7 @@
         list-deallocate-recursive-struct    \ sqr-pr
 
         true
+        cr ." square-list-find-incompatible-pair: exit 5" cr
         exit
     else
         ." pop failed?" abort
