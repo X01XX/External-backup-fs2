@@ -305,7 +305,6 @@
         link-get-next
     repeat
                                     \ inc-lst min-dis
-    cr ." min dist = " dup dec. cr
 
     \ Gather square pairs with min distance.
 
@@ -323,7 +322,7 @@
         if
             dup link-get-data       \ inc-lst min-dis inc-lst2 inc-lnk sqr-prx
             #2 pick                 \ inc-lst min-dis inc-lst2 inc-lnk sqr-prx inc-lst2
-            list-push-struct        \ inc-lst min-dis inc-lst2 inc-lnk
+            list-push-struct-list        \ inc-lst min-dis inc-lst2 inc-lnk
         then
 
         link-get-next
@@ -389,7 +388,7 @@
         if
             dup link-get-data       \ inc-lst max-ns inc-lst2 inc-lnk sqr-prx
             #2 pick                 \ inc-lst max-ns inc-lst2 inc-lnk sqr-prx inc-lst2
-            list-push-struct        \ inc-lst max-ns inc-lst2 inc-lnk
+            list-push-struct-list   \ inc-lst max-ns inc-lst2 inc-lnk
         then
 
         link-get-next

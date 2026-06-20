@@ -224,8 +224,6 @@
     swap                                    \ sqr2a sqr2b sqr1 lst
     2dup list-push-struct                   \ sqr2a sqr2b sqr1 lst
 
-    cr ." at 1: " dup .square-list cr
-
     dup square-list-find-incompatible-pair  \ sqr2a sqr2b sqr1 lst, sqr-pr t | f
     if
         cr ." incompatible pair: " dup .square-list cr
@@ -233,14 +231,18 @@
         cr ." no incompatible pairs?" abort
     then
 
+    [ ' = ] literal                         \ sqr2a sqr2b sqr1 lst sqr-pr xt
+    #4 pick                                 \ sqr2a sqr2b sqr1 lst sqr-pr xt sqr2b
+    #2 pick                                 \ sqr2a sqr2b sqr1 lst sqr-pr xt sqr2b sqr-pr
+    list-member?                            \ sqr2a sqr2b sqr1 lst sqr-pr bool
+    if
+    else
+        cr ." sqr2b not found?" abort
+    then
+
     \ Deallocate.                           \ sqr2a sqr2b sqr1 lst sqr-pr
-    cr ." at 2: " .stack-gbl cr
-    cr dup .list-raw cr
-    cr over .list-raw cr
     square-list-deallocate
-    cr ." at 3: " .stack-gbl cr
     nip nip nip
-    cr ." at 4" cr
     square-list-deallocate
 
     \ Check for memory leaks.
