@@ -167,11 +167,20 @@
     +
 ;
 
-\ Return a pair of incompatible squares, if any.
-\ If there are more than one pairs, return the closest pair.
+\ Return a pair of incompatible squares in a list of squares, if any.
+\ If there is more than one pair, return the closest pair.
 \ If more than one pair is of equal closeness, return the pair with the most samples.
-\ If there is more than one pair with equal closeness and number samples, return an
+\ If there is more than one pair with equal closeness, and number samples, return an
 \ arbitrary pick.
+\
+\ Given a list of possible regions, from ~A + ~B calculations,
+\ squares in each region can be gathered.
+\ If there is no incompatible pair, a group can be made.
+\ else the incompatible pair needs to be resolved, to improve the possible regions.
+\
+\ The incompatible pair selection is intended to minimize the effort of resolving
+\ a pair. That is, getting samples so the pair are pnc, then finding samples between
+\ them, if they are not adjacent.
 : square-list-find-incompatible-pair ( sqr-lst0 -- sqr-lst t | f )
     \ Check arg.
     assert-tos-is-square-list
@@ -182,7 +191,7 @@
         \ No pairs to check.
         drop
         false
-        cr ." square-list-find-incompatible-pair: exit 1" cr
+        \ cr ." square-list-find-incompatible-pair: exit 1" cr
         exit
     then
 
@@ -269,6 +278,7 @@
     if
         list-deallocate
         false
+        \ cr ." square-list-find-incompatible-pair: exit 1.5" cr
         exit
     then
 
@@ -280,7 +290,7 @@
         if
             swap list-deallocate        \ sqr-pr
             true
-            cr ." square-list-find-incompatible-pair: exit 2" cr
+            \ cr ." square-list-find-incompatible-pair: exit 2" cr
             exit
         else
             ." pop failed?" abort
@@ -346,7 +356,7 @@
         if
             swap list-deallocate        \ sqr-pr
             true
-            cr ." square-list-find-incompatible-pair: exit 3" cr
+            \ cr ." square-list-find-incompatible-pair: exit 3" cr
             exit
         else
             ." pop failed?" abort
@@ -409,10 +419,14 @@
     1 =
     if
         dup list-pop-struct             \ inc-lst sqr-pr
-        swap list-deallocate            \ sqr-pr
-        true
-        cr ." square-list-find-incompatible-pair: exit 4" cr
-        exit
+        if
+            swap list-deallocate        \ sqr-pr
+            true
+            \ cr ." square-list-find-incompatible-pair: exit 4" cr
+            exit
+        else
+            ." pop failed?" abort
+        then
     then
 
     \ More than one pair.
@@ -426,7 +440,7 @@
         list-deallocate-recursive-struct    \ sqr-pr
 
         true
-        cr ." square-list-find-incompatible-pair: exit 5" cr
+        \ cr ." square-list-find-incompatible-pair: exit 5" cr
         exit
     else
         ." pop failed?" abort
