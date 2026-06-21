@@ -715,3 +715,28 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     state-new                           \ sta1 sta0
     region-new                          \ reg-max
 ;
+
+\ Return the union of a region and a state.
+: region-union-state ( sta1 reg0 -- reg )                                                                                                                     
+    \ Check args.
+    assert-tos-is-region
+    assert-nos-is-state
+    dup region-get-num-bits -rot    \ nb sta1 reg0
+
+    dup region-high-state           \ nb sta1 reg0 sta-h
+    swap region-low-state           \ nb sta1 sta-h' sta-l'
+    rot                             \ nb sta-h' sta-l' sta1
+    tuck                            \ nb sta-h' sta1 sta-l' sta1
+
+    \ Get new low state.
+    over state-and                  \ nb sta-h' sta1 sta-l' low2
+    swap state-deallocate           \ nb sta-h' sta1 low2
+
+    \ Get new high state.
+    -rot                            \ nb low2 sta-h' sta1
+    over state-or                   \ nb low2 sta-h' high2
+    swap state-deallocate           \ nb low2 high2
+    rot                             \ low2 high2 nb
+
+    region-new
+;

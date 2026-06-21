@@ -51,6 +51,9 @@ include list2.fs
 include square.fs
 include squarelist.fs
 
+include group.fs
+include grouplist.fs
+
 include action.fs
 include corner.fs
 
@@ -67,6 +70,7 @@ include square_t.fs
 include corner_t.fs
 include squarelist_t.fs
 include action_t.fs
+include group_t.fs
 
 \ Init array-stacks.
 #101 link-mma-init
@@ -82,6 +86,7 @@ include action_t.fs
 #100 square-mma-init
 #010 action-mma-init
 #010 corner-mma-init
+#030 group-mma-init
 cr cr
 
 \ Init structinfo list.
@@ -102,6 +107,7 @@ list-new to structinfo-list-store
 ' noop          ' noop                  ' action-deallocate     ' .action   s" Action"      action-mma      action-id   structinfo-new structinfo-list-store structinfo-list-push-end
 ' noop          ' noop                  ' corner-deallocate     ' .corner   s" Corner"      corner-mma      corner-id   structinfo-new structinfo-list-store structinfo-list-push-end
 ' =             ' noop                  ' square-deallocate     ' .square   s" Square"      square-mma      square-id   structinfo-new structinfo-list-store structinfo-list-push-end
+' =             ' noop                  ' group-deallocate      ' .group    s" Group"       group-mma       group-id    structinfo-new structinfo-list-store structinfo-list-push-end
 
 : main
 
@@ -170,6 +176,7 @@ list-new to structinfo-list-store
     corner-tests
     square-list-tests
     action-tests
+    group-tests
     cr
 ;
 

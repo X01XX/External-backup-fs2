@@ -10,6 +10,12 @@
 
     cr dup .action cr
 
+    s" s1111->s0111" sample-from-string-a   \ act smpl1
+    over action-add-sample                  \ act bool
+    if else ." Did not return true?" abort then
+
+    cr dup .action cr
+
     action-deallocate
 
     \ Check for memory leaks.

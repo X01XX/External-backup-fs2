@@ -167,6 +167,29 @@
     +
 ;
 
+\ Return the base pn value, from a non-empty list.
+: square-list-base-pn ( sqr-lst0 -- pn )
+    \ Check arg.
+    assert-tos-is-square-list
+
+    \ Check list length.
+    dup list-get-length                 \ sqr-lst0 len
+    list-is-empty? abort" list is empty?"
+
+    \ Get base pn.
+    0 over square-list-any-pn-eq?       \ sqr-lst0 bool
+    if
+        drop 0                          \ pn
+    else
+        2 over square-list-any-pn-eq?   \ sqr-lst0 bool
+        if
+            drop 2                      \ pn
+        else
+            drop 1                      \ pn
+        then
+    then
+;
+
 \ Return a pair of incompatible squares, if any, from a list of squares.
 \ If there is more than one pair, return the closest pair.
 \ If more than one pair is of equal closeness, return the pair with the most samples.
@@ -196,17 +219,7 @@
     then
 
     \ Get base pn.
-    0 over square-list-any-pn-eq?       \ sqr-lst0 bool
-    if
-        0 swap                          \ pn sqr-lst0
-    else
-        2 over square-list-any-pn-eq?   \ sqr-lst0 bool
-        if
-            2 swap                      \ pn sqr-lst0
-        else
-            1 swap                      \ pn sqr-lst0
-        then
-    then
+    dup square-list-base-pn swap        \ pn sqr-lst0
 
     \ Init the incompatible pair list.
     list-new swap                       \ pn inc-lst sqr-lst0
@@ -456,4 +469,142 @@
     assert-nos-is-state
 
     [ ' square-state-eq ] literal -rot list-find
+;
+
+\ Return a region built from squares of the highest pn value, in a list.
+: square-list-region ( sqr-lst0 -- reg t | f )
+    \ Check arg.
+    assert-tos-is-list
+    dup list-is-empty?
+    if
+        drop
+        false
+        exit
+    then
+
+    \ Get highest pn value
+    dup square-list-base-pn swap    \ pn sqr-lst
+
+    \ Prep for loop.
+    list-get-links                  \ pn link
+
+    \ Set ruturn region to null.
+    0 swap                          \ pn reg link
+
+    \ Scan square list.
+    begin
+        ?dup
+    while
+        \ Check if square pn is equal to the max pn of the list.
+        dup link-get-data               \ pn reg link sqr
+        dup square-get-pn               \ pn reg link sqr s-pn
+        #4 pick                         \ pn reg link sqr s-pn max-pn
+        = if
+            square-get-state            \ pn reg link sta
+            rot                         \ pn link sta reg
+            dup 0=
+            if
+                                        \ pn link sta 0
+                drop                        \ pn link sta
+                dup                         \ pn link sta sta
+                region-new                  \ pn link reg
+                swap                        \ pn reg link
+            else
+                                            \ pn link sta reg
+                2dup                        \ pn link sta reg sta reg
+                region-superset-of-state?   \ pn link sta reg flag
+                if
+                    nip swap                \ pn reg link
+                else
+                    \ Add state to expand return region.
+                    tuck                    \ pn link reg sta reg
+                    region-union-state      \ pn link reg reg2
+                    swap region-deallocate  \ pn link reg2
+                    swap                    \ pn reg2 link
+                then
+            then
+        else
+            drop
+        then
+
+        link-get-next           \ pn reg link
+    repeat
+                                \ pn reg
+    nip                         \ reg
+    true
+;
+
+\ Return rules for a square-list.
+: square-list-get-rules ( list0 -- rul-lst t | f )
+    \ Check arg.
+    assert-tos-is-list
+
+    \ Check for empty list.
+    dup list-is-empty?
+    if
+        drop
+        false
+    then
+
+    dup square-list-base-pn         \ list0 max-pn
+
+    \ Check for 0/U
+    dup 0=
+    if
+        2drop                       \
+        list-new                    \ rul-str
+        true
+        exit
+    then
+
+    swap                            \ max-pn list0
+    \ Init return rule list placeholder.
+    0 -rot                          \ ret-lst max-pn list0
+
+    \ Prep for loop
+    list-get-links                  \ ret-lst max-pn link
+
+    begin
+        ?dup
+    while
+        \ Check if the current square pn is equal to the max-pn.
+        dup link-get-data           \ ret-lst max-pn link sqr
+        square-get-pn               \ ret-lst max-pn link sqr-pn
+        #2 pick                     \ ret-lst max-pn link sqr-pn max-pn
+        =                           \ ret-lst max-pn link flag
+
+        if                          \ ret-lst max-pn link
+            \ Update the return rule-list.
+            rot                             \ max-pn link ret-lst
+
+            over link-get-data              \ max-pn link ret-lst sqr
+            square-get-rules                \ max-pn link ret-lst sqr-ruls
+            over                            \ max-pn link ret-lst sqr-ruls ret-lst
+            if                              \ max-pn link ret-lst sqr-ruls
+                over                        \ max-pn link ret-lst sqr-ruls ret-lst
+                rule-list-union             \ max-pn link ret-lst, new-rules t | f
+                if                          \ max-pn link ret-lst new-rules
+                    swap                    \ max-pn link new-rules ret-lst
+                    rule-list-deallocate    \ max-pn link new-rules
+                    -rot                    \ ret-lst max-pn link
+                else                        \ max-pn link ret-lst
+                    rule-list-deallocate    \ max-pn link
+                    2drop
+                    false
+                    exit
+                then
+            else                            \ max-pn link ret-lst sqr-ruls
+                \ Square rules are the first rules
+                \ Init the return rulestore
+                nip                         \ max-pn link sqr-ruls
+                rule-list-copy              \ max-pn link sqr-ruls (since it may be deallocated later)
+                -rot                        \ ret-lst max-pn link
+            then                            \ ret-lst max-pn link
+        then
+
+        link-get-next
+    repeat
+                                \ ret-lst max-pn
+    drop                        \ ret-lst
+    true
 ;

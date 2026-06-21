@@ -1,13 +1,14 @@
 \ Implement an Action struct and functions.                                                                                                       
 
 #29717 constant action-id
-    #4 constant action-struct-number-cells
+    #5 constant action-struct-number-cells
 
 \ Struct fields
-0                                       constant action-header-disp             \ 16 bits, [0] Struct id, [1] Use count 
+0                                       constant action-header-disp             \ 16 bits, [0] Struct id, [1] Use count [2] Number bits ( 8 bits ).
 action-header-disp              cell+   constant action-squares-disp            \ A square list.
 action-squares-disp             cell+   constant action-incompatible-pairs-disp \ A region list.  States that define the regions are incompatible.
 action-incompatible-pairs-disp  cell+   constant action-possible-regions-disp   \ A region list.
+action-possible-regions-disp    cell+   constant action-groups-disp             \ A group list.
 
 0 value action-mma \ Storage for action mma instance.
 
@@ -64,6 +65,19 @@ action-incompatible-pairs-disp  cell+   constant action-possible-regions-disp   
 ;
 
 \ Start accessors.
+
+\ Get the number of bits.
+: action-get-num-bits ( act0 -- nb )
+    \ Check arg.
+    assert-tos-is-action
+
+    4c@
+;
+
+\ Set the number of bits.
+: _action-set-num-bits ( nb act0 -- )
+    4c!
+;
 
 \ Return the square-list from an action instance.
 : action-get-squares ( act0 -- lst )
@@ -146,6 +160,25 @@ action-incompatible-pairs-disp  cell+   constant action-possible-regions-disp   
     region-list-deallocate
 ;
 
+\ Return the square-list from an action instance.
+: action-get-groups ( act0 -- lst )
+    \ Check arg.
+    assert-tos-is-action
+
+    action-groups-disp +    \ Add offset.
+    @                       \ Fetch the field.
+;
+
+\ Set the square-list of an action instance, use only in this file.
+: _action-set-groups ( grp-lst1 act0 -- )
+    \ Check args.
+    assert-tos-is-action
+    assert-nos-is-group-list
+
+    action-groups-disp +    \ Add offset.
+    !struct                 \ Set the field.
+;
+
 \ End accessors
 
 : action-new ( num-bits -- addr)
@@ -153,6 +186,9 @@ action-incompatible-pairs-disp  cell+   constant action-possible-regions-disp   
     \ Allocate space.
     action-id action-mma                \ nb id mma
     struct-allocate                     \ nb act
+
+    \ Set number bits.
+    2dup _action-set-num-bits           \ nb act
 
     \ Set squares list.
     list-new                            \ nb act lst
@@ -170,6 +206,9 @@ action-incompatible-pairs-disp  cell+   constant action-possible-regions-disp   
     over list-push-struct               \ act lst
     over                                \ act lst act
     _action-set-possible-regions        \ act
+
+    \ Set initial group list.
+    list-new over _action-set-groups    \ act
 ;
 
 \ Print a action.

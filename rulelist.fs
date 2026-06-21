@@ -198,3 +198,24 @@
         then
     then
 ;
+
+\ Return a copy of a rule-list.
+: rule-list-copy ( lst0 -- lst-copy )                                                                                                                       
+    \ Check arg.
+    assert-tos-is-rule-list
+
+    list-new swap           \ lst-n lst0
+
+    list-get-links          \ lst-n link
+
+    begin
+        ?dup 
+    while
+        dup link-get-data       \ lst-n link rule
+        #2 pick                 \ lst-n link rule lst-n
+        list-push-end-struct    \ lst-n link
+
+        link-get-next       \ lst-n link
+    repeat
+                            \ lst-n
+;

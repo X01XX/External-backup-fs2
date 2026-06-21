@@ -222,7 +222,7 @@ state-header-disp cell+   constant state-number-disp
 ;
 
 \ Return the Boolean OR of two states, as a state
-: state-or ( sta1 sta0 -- mask )
+: state-or ( sta1 sta0 -- sta )
     \ Check args.
     assert-tos-is-state
     assert-nos-is-state
