@@ -257,8 +257,28 @@ action-possible-regions-disp    cell+   constant action-groups-disp             
     square-list-find        \ sqr t | f
 ;
 
-\ Add a square to the action square list.
-: action-add-square ( sqr1 act0 -- )
+\ Check an existing square, changed by a new result.
+: action-check-changed-square ( sqr1 act0 -- )
+    \ Check args.
+    assert-tos-is-action
+    assert-nos-is-square
+
+    2drop
+    cr ." action-check-changed-square: todo" cr
+;
+
+\ Check a new square.
+: action-check-new-square ( sqr1 act0 -- )
+    \ Check args.
+    assert-tos-is-action
+    assert-nos-is-square
+
+    2drop
+    cr ." action-check-new-square: todo" cr
+;
+
+\ Add a new square to the action square list.
+: action-add-new-square ( sqr1 act0 -- )
     \ Check args.
     assert-tos-is-action
     assert-nos-is-square
@@ -273,8 +293,7 @@ action-possible-regions-disp    cell+   constant action-groups-disp             
     2dup action-get-squares     \ sqr1 act0 sqr1 sqr-lst
     list-push-struct            \ sqr1 act0
 
-    \ Clean up, return.
-    2drop
+    action-check-new-square
 ;
 
 \ Add a sample, return true if the sample changed
@@ -287,15 +306,22 @@ action-possible-regions-disp    cell+   constant action-groups-disp             
     over sample-get-initial     \ smpl1 act0 initial
     over action-find-square     \ smpl1 act0, sqr t | f
     if
-        #2 pick                 \ smpl1 act0 sqr smpl1
-        swap                    \ smpl1 act0 smpl1 sqr
-        square-add-sample       \ smpl1 act0 bool
-        nip nip
+        rot                     \ act0 sqr smpl1
+        over                    \ act0 sqr smpl1 sqr
+        square-add-sample       \ act0 sqr bool
+        if
+            swap                        \ sqr act0
+            action-check-changed-square \
+            true
+        else
+            2drop
+            false
+        then
     else
         over                    \ smpl1 act0 smpl1
         square-new              \ smpl1 act0 sqr1
         over                    \ smpl1 act0 sqr1 act0
-        action-add-square       \ smpl1 act0
+        action-add-new-square   \ smpl1 act0
         2drop
         true
     then

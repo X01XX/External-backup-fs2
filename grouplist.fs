@@ -57,3 +57,54 @@
         link-get-next
     repeat
 ;
+
+\ Return a list of groups a state should be in.
+: group-list-superset-of-state ( sta1 grp-lst0 -- grp-lst t | f )
+    \ Check args.
+    assert-tos-is-group-list
+    assert-nos-is-state
+
+    \ Init return list.
+    list-new swap                   \ sta1 ret-lst grp-lst0
+
+    \ Prep for loop.
+    list-get-links                  \ sta1 ret-lst grp-lnk
+    
+    begin
+        ?dup
+    while
+        #2 pick                     \ sta1 ret-lst grp-lnk sta1
+        over link-get-data          \ sta1 ret-lst grp-lnk sta1 grpx
+        group-get-region            \ sta1 ret-lst grp-lnk sta1 grp-reg
+        region-superset-of-state?   \ sta1 ret-lst grp-lnk bool
+        if
+            dup link-get-data       \ sta1 ret-lst grp-lnk grpx
+            #2 pick                 \ sta1 ret-lst grp-lnk grpx ret-lst
+            list-push-struct        \ sta1 ret-lst grp-lnk
+        then
+
+        link-get-next
+    repeat
+                                    \ sta1 ret-lst
+    \ Clean up.
+    nip                             \ ret-lst
+
+    \ Return.
+    dup list-is-empty?
+    if
+        list-deallocate
+        false
+    else
+        true
+    then
+;
+
+\ Return a list of groups a square should be in.
+: group-list-superset-of-square ( sqr1 grp-lst0 -- grp-lst t | f )
+    \ Check args.
+    assert-tos-is-group-list
+    assert-nos-is-square
+
+    swap square-get-state swap  \ sta grp-lst0
+    group-list-superset-of-state
+;
