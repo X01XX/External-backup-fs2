@@ -40,3 +40,20 @@
         struct-dec-use-count
     then
 ;
+
+\ Print a group list.
+: .group-list ( grp-lst0 -- )
+    \ Check arg.
+    assert-tos-is-group-list
+
+    list-get-links          \ grp-lnk
+
+    begin
+        ?dup
+    while
+        dup link-get-data   \ grp-lnk grpx
+        cr #8 spaces .group
+
+        link-get-next
+    repeat
+;

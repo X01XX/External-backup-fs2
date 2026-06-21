@@ -255,3 +255,4 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 
     group-get-region .region
 ;
+

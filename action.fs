@@ -219,7 +219,8 @@ action-possible-regions-disp    cell+   constant action-groups-disp             
     cr ." Action: "
     cr #4 spaces ." Squares:        " dup action-get-squares .square-list
     cr #4 spaces ." Incompat pairs: " dup action-get-incompatible-pairs .region-list
-    cr #4 spaces ." Poss regions:   " action-get-possible-regions .region-list
+    cr #4 spaces ." Poss regions:   " dup action-get-possible-regions .region-list
+    cr #4 spaces ." Groups:         " action-get-groups .group-list
     cr
 ;
 
@@ -237,6 +238,7 @@ action-possible-regions-disp    cell+   constant action-groups-disp             
         dup action-get-squares square-list-deallocate
         dup action-get-incompatible-pairs region-list-deallocate
         dup action-get-possible-regions region-list-deallocate
+        dup action-get-groups group-list-deallocate
 
         \ Deallocate instance.
         action-mma mma-deallocate
