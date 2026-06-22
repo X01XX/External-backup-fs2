@@ -108,3 +108,15 @@
     swap square-get-state swap  \ sta grp-lst0
     group-list-superset-of-state
 ;
+
+\ Print a list of group regions.
+: .group-list-regions ( grp-lst0 -- )                                                                                    
+    \ Check args.
+    assert-tos-is-group-list
+
+    ." ("
+    [ ' .group-region ] literal swap list-apply
+    ." )"
+;
+
+

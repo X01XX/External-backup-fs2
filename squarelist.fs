@@ -173,7 +173,7 @@
     assert-tos-is-square-list
 
     \ Check list length.
-    dup list-get-length                 \ sqr-lst0 len
+    dup                                 \ sqr-lst0 len
     list-is-empty? abort" list is empty?"
 
     \ Get base pn.
@@ -187,6 +187,191 @@
         else
             drop 1                      \ pn
         then
+    then
+;
+
+\ Return a pair of incompatible squares, if any, from a list of square pairs.
+\ If there is more than one pair, return the closest pair.
+\ If more than one pair is of equal closeness, return the pair with the most samples.
+\ If there is more than one pair with equal closeness, and number samples, return an
+\ arbitrary pick.
+: square-list-choose-square-pair ( sqr-pr-lst0 -- sqr-pr t | f )
+    \ Check arg.
+    assert-tos-is-list
+
+    \ Check for an empty list.
+    dup list-is-empty?
+    if
+        list-deallocate
+        false
+        \ cr ." square-list-choose-square-pair: exit 1.5" cr
+        exit
+    then
+
+    \ Check for one pair.
+    dup list-get-length
+    1 =
+    if
+        dup list-pop-struct             \ inc-lst, sqr-pr t | f
+        if
+            swap list-deallocate        \ sqr-pr
+            true
+            \ cr ." square-list-choose-square-pair: exit 2" cr
+            exit
+        else
+            ." pop failed?" abort
+        then
+    then
+
+    \ More than one pair, get min distance pairs.
+
+    \ Init min distance.
+    9999                            \ inc-lst min-dis
+    over list-get-links             \ inc-lst min-dis inc-lnk
+
+    begin
+        ?dup
+    while
+        dup link-get-data           \ inc-lst min-dis inc-lnk sqr-prx
+        square-pair-get-distance    \ inc-lst min-dis inc-lnk u
+        rot                         \ inc-lst inc-lnk u min-dis
+        min                         \ inc-lst inc-lnk min
+        swap                        \ inc-lst min-dis inc-lnk
+
+        link-get-next
+    repeat
+                                    \ inc-lst min-dis
+    \ cr ." min distance: " dup dec. cr
+
+    \ Gather square pairs with min distance.
+
+    \ Init new inc-lst.
+    list-new                        \ inc-lst min-dis inc-lst2
+
+    #2 pick list-get-links          \ inc-lst min-dis inc-lst2 inc-lnk
+    begin
+        ?dup
+    while
+        dup link-get-data           \ inc-lst min-dis inc-lst2 inc-lnk sqr-prx
+        square-pair-get-distance    \ inc-lst min-dis inc-lst2 inc-lnk dis
+        #3 pick                     \ inc-lst min-dis inc-lst2 inc-lnk dis min-dis
+        =
+        if
+            dup link-get-data       \ inc-lst min-dis inc-lst2 inc-lnk sqr-prx
+            #2 pick                 \ inc-lst min-dis inc-lst2 inc-lnk sqr-prx inc-lst2
+            list-push-struct-list   \ inc-lst min-dis inc-lst2 inc-lnk
+        then
+
+        link-get-next
+    repeat
+
+    \ Clean up.
+                                        \ inc-lst min-dis inc-lst2
+    nip                                 \ inc-lst inc-lst2
+
+    \ Deallocate previous list with square pairs.
+    swap                                \ inc-lst2 inc-lst
+    [ ' square-deallocate ] literal     \ inc-lst2 inc-lst xt
+    swap                                \ inc-lst2 xt inc-lst
+    list-deallocate-recursive-struct    \ inc-lst2
+
+    \ Check for one pair in new list.
+    dup list-get-length
+    1 =
+    if
+        dup list-pop-struct             \ inc-lst2, sqr-pr t | f
+        if
+            swap list-deallocate        \ sqr-pr
+            true
+            \ cr ." square-list-choose-square-pair: exit 3" cr
+            exit
+        else
+            ." pop failed?" abort
+        then
+    then
+
+    \ More than one pair, get max number samples.
+
+    \ Init max num samples.
+    0                               \ inc-lst max-ns
+    over list-get-links             \ inc-lst max-ns inc-lnk
+
+    begin
+        ?dup
+    while
+        dup link-get-data           \ inc-lst max-ns inc-lnk sqr-prx
+        square-pair-get-num-samples \ inc-lst max-ns inc-lnk u
+        rot                         \ inc-lst inc-lnk u max-ns
+        max                         \ inc-lst inc-lnk max
+        swap                        \ inc-lst max-ns inc-lnk
+
+        link-get-next
+    repeat
+                                    \ inc-lst max-ns
+
+    \ cr ." max samples: " dup dec. cr
+    \ Gather square pairs with max number samples.
+
+    \ Init new inc-lst.
+    list-new                        \ inc-lst max-ns inc-lst2
+
+    #2 pick list-get-links          \ inc-lst max-ns inc-lst2 inc-lnk
+    begin
+        ?dup
+    while
+        dup link-get-data           \ inc-lst max-ns inc-lst2 inc-lnk sqr-prx
+        square-pair-get-num-samples \ inc-lst max-ns inc-lst2 inc-lnk dis
+        #3 pick                     \ inc-lst max-ns inc-lst2 inc-lnk dis max-ns
+        =
+        if
+            dup link-get-data       \ inc-lst max-ns inc-lst2 inc-lnk sqr-prx
+            #2 pick                 \ inc-lst max-ns inc-lst2 inc-lnk sqr-prx inc-lst2
+            list-push-struct-list   \ inc-lst max-ns inc-lst2 inc-lnk
+        then
+
+        link-get-next
+    repeat
+                                        \ inc-lst max-ns inc-lst2
+
+    \ Clean up.
+    nip                                 \ inc-lst inc-lst2
+
+    \ Deallocate previous list with square pairs.
+    swap                                \ inc-lst2 inc-lst
+    [ ' square-deallocate ] literal     \ inc-lst2 inc-lst xt
+    swap                                \ inc-lst2 xt inc-lst
+    list-deallocate-recursive-struct    \ inc-lst2
+
+    \ Check for one pair in new list.
+    dup list-get-length
+    1 =
+    if
+        dup list-pop-struct             \ inc-lst sqr-pr
+        if
+            swap list-deallocate        \ sqr-pr
+            true
+            \ cr ." square-list-choose-square-pair: exit 4" cr
+            exit
+        else
+            ." pop failed?" abort
+        then
+    then
+
+    \ More than one pair.
+    dup list-pop-struct                 \ inc-lst, sqr-pr t | f
+    if
+        swap                            \ sqr-pr inc-lst
+
+        \ Deallocate list with one, or more, square pairs.
+        [ ' square-deallocate ] literal     \ sqr-pr inc-lst xt
+        swap                                \ sqr-pr xt inc-lst
+        list-deallocate-recursive-struct    \ sqr-pr
+
+        true
+        \ cr ." square-list-choose-square-pair: exit 5" cr
+        exit
+    else
+        ." pop failed?" abort
     then
 ;
 
@@ -210,7 +395,7 @@
 
     \ Check list length.
     dup list-get-length                 \ sqr-lst0 len
-    2 < if
+    #2 < if
         \ No pairs to check.
         drop
         false
@@ -286,180 +471,7 @@
                                         \ pn inc-lst
     nip                                 \ inc-lst
 
-    \ Check for an empty list.
-    dup list-is-empty?
-    if
-        list-deallocate
-        false
-        \ cr ." square-list-find-incompatible-pair: exit 1.5" cr
-        exit
-    then
-
-    \ Check for one pair.
-    dup list-get-length
-    1 =
-    if
-        dup list-pop-struct             \ inc-lst, sqr-pr t | f
-        if
-            swap list-deallocate        \ sqr-pr
-            true
-            \ cr ." square-list-find-incompatible-pair: exit 2" cr
-            exit
-        else
-            ." pop failed?" abort
-        then
-    then
-
-    \ More than one pair, get min distance pairs.
-
-    \ Init min distance.
-    9999                            \ inc-lst min-dis
-    over list-get-links             \ inc-lst min-dis inc-lnk
-
-    begin
-        ?dup
-    while
-        dup link-get-data           \ inc-lst min-dis inc-lnk sqr-prx
-        square-pair-get-distance    \ inc-lst min-dis inc-lnk u
-        rot                         \ inc-lst inc-lnk u min-dis
-        min                         \ inc-lst inc-lnk min
-        swap                        \ inc-lst min-dis inc-lnk
-
-        link-get-next
-    repeat
-                                    \ inc-lst min-dis
-    \ cr ." min distance: " dup dec. cr
-
-    \ Gather square pairs with min distance.
-
-    \ Init new inc-lst.
-    list-new                        \ inc-lst min-dis inc-lst2
-
-    #2 pick list-get-links          \ inc-lst min-dis inc-lst2 inc-lnk
-    begin
-        ?dup
-    while
-        dup link-get-data           \ inc-lst min-dis inc-lst2 inc-lnk sqr-prx
-        square-pair-get-distance    \ inc-lst min-dis inc-lst2 inc-lnk dis
-        #3 pick                     \ inc-lst min-dis inc-lst2 inc-lnk dis min-dis
-        =
-        if
-            dup link-get-data       \ inc-lst min-dis inc-lst2 inc-lnk sqr-prx
-            #2 pick                 \ inc-lst min-dis inc-lst2 inc-lnk sqr-prx inc-lst2
-            list-push-struct-list   \ inc-lst min-dis inc-lst2 inc-lnk
-        then
-
-        link-get-next
-    repeat
-
-    \ Clean up.
-                                        \ inc-lst min-dis inc-lst2
-    nip                                 \ inc-lst inc-lst2
-
-    \ Deallocate previous list with square pairs.
-    swap                                \ inc-lst2 inc-lst
-    [ ' square-deallocate ] literal     \ inc-lst2 inc-lst xt
-    swap                                \ inc-lst2 xt inc-lst
-    list-deallocate-recursive-struct    \ inc-lst2
-
-    \ Check for one pair in new list.
-    dup list-get-length
-    1 =
-    if
-        dup list-pop-struct             \ inc-lst2, sqr-pr t | f
-        if
-            swap list-deallocate        \ sqr-pr
-            true
-            \ cr ." square-list-find-incompatible-pair: exit 3" cr
-            exit
-        else
-            ." pop failed?" abort
-        then
-    then
-
-    \ More than one pair, get max number samples.
-
-    \ Init max num samples.
-    0                               \ inc-lst max-ns
-    over list-get-links             \ inc-lst max-ns inc-lnk
-
-    begin
-        ?dup
-    while
-        dup link-get-data           \ inc-lst max-ns inc-lnk sqr-prx
-        square-pair-get-num-samples \ inc-lst max-ns inc-lnk u
-        rot                         \ inc-lst inc-lnk u max-ns
-        max                         \ inc-lst inc-lnk max
-        swap                        \ inc-lst max-ns inc-lnk
-
-        link-get-next
-    repeat
-                                    \ inc-lst max-ns
-
-    \ cr ." max samples: " dup dec. cr
-    \ Gather square pairs with max number samples.
-
-    \ Init new inc-lst.
-    list-new                        \ inc-lst max-ns inc-lst2
-
-    #2 pick list-get-links          \ inc-lst max-ns inc-lst2 inc-lnk
-    begin
-        ?dup
-    while
-        dup link-get-data           \ inc-lst max-ns inc-lst2 inc-lnk sqr-prx
-        square-pair-get-num-samples \ inc-lst max-ns inc-lst2 inc-lnk dis
-        #3 pick                     \ inc-lst max-ns inc-lst2 inc-lnk dis max-ns
-        =
-        if
-            dup link-get-data       \ inc-lst max-ns inc-lst2 inc-lnk sqr-prx
-            #2 pick                 \ inc-lst max-ns inc-lst2 inc-lnk sqr-prx inc-lst2
-            list-push-struct-list   \ inc-lst max-ns inc-lst2 inc-lnk
-        then
-
-        link-get-next
-    repeat
-                                        \ inc-lst max-ns inc-lst2
-
-    \ Clean up.
-    nip                                 \ inc-lst inc-lst2
-
-    \ Deallocate previous list with square pairs.
-    swap                                \ inc-lst2 inc-lst
-    [ ' square-deallocate ] literal     \ inc-lst2 inc-lst xt
-    swap                                \ inc-lst2 xt inc-lst
-    list-deallocate-recursive-struct    \ inc-lst2
-
-    \ Check for one pair in new list.
-    dup list-get-length
-    1 =
-    if
-        dup list-pop-struct             \ inc-lst sqr-pr
-        if
-            swap list-deallocate        \ sqr-pr
-            true
-            \ cr ." square-list-find-incompatible-pair: exit 4" cr
-            exit
-        else
-            ." pop failed?" abort
-        then
-    then
-
-    \ More than one pair.
-    dup list-pop-struct                 \ inc-lst, sqr-pr t | f
-    if
-        swap                            \ sqr-pr inc-lst
-
-        \ Deallocate list with one, or more, square pairs.
-        [ ' square-deallocate ] literal     \ sqr-pr inc-lst xt
-        swap                                \ sqr-pr xt inc-lst
-        list-deallocate-recursive-struct    \ sqr-pr
-
-        true
-        \ cr ." square-list-find-incompatible-pair: exit 5" cr
-        exit
-    else
-        ." pop failed?" abort
-    then
+    square-list-choose-square-pair      \ sqr-lst t | f
 ;
 
 \ Find a square in a list, by state, if any.
@@ -607,4 +619,14 @@
                                 \ ret-lst max-pn
     drop                        \ ret-lst
     true
+;
+
+\ Return squares in a given region.
+: square-list-in-region ( reg1 list0 -- sqr-lst )                                                                           
+    \ Check args.
+    assert-tos-is-list
+    assert-nos-is-region
+
+    [ ' square-in-region? ] literal -rot            \ xt reg1 list0
+    list-find-all-struct                            \ ret-list
 ;

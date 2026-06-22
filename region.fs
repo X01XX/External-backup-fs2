@@ -661,6 +661,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     over region-get-num-bits
     <> abort" state and region do not have the same number bits?"
 
+    \ cr ." region-superset-of-state?: " over .state space dup .region cr
     region-get-states           \ sta1 reg-sta1 reg-sta0
 
     \ Get sta1 dif reg-sta0

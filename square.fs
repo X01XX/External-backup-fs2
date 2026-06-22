@@ -621,3 +621,14 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
     square-get-state
     states-eq?
 ;
+
+\ Return true if a square state is a subset of a region.
+: square-in-region? ( reg1 sqr0 -- flag )                                                                              
+    \ Check args.
+    assert-tos-is-square
+    assert-nos-is-region
+
+    square-get-state
+    swap
+    region-superset-of-state?
+;

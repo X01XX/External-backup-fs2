@@ -273,8 +273,48 @@ action-possible-regions-disp    cell+   constant action-groups-disp             
     assert-tos-is-action
     assert-nos-is-square
 
+    over square-get-state over      \ sqr1 act0 sta act0
+    action-get-groups               \ sqr1 act0 sta grp-lst
+
+    group-list-superset-of-state    \ sqr1 act0, grp-lst t | f
+    if
+        cr ." new square in groups: " dup .group-list-regions cr
+        cr ." action-check-new-square: todo" cr
+    else
+        cr ." new square not in any groups. " cr
+        over square-get-state               \ sqr1 act0 sta
+        over action-get-possible-regions    \ sqr1 act0 sta reg-lst
+        region-list-regions-state-in        \ sqr1 act0 regs-in-lst
+        cr ." new square in possible regions: " dup .region-list cr
+
+        \ Check each region for new group, or new incompatible pair.
+        dup list-get-links                  \ sqr1 act0 regs-in-lst' regs-lnk
+
+        begin
+            ?dup
+        while
+            dup link-get-next               \ sqr1 act0 regs-in-lst' regs-lnk regx
+            #3 pick                         \ sqr1 act0 regs-in-lst' regs-lnk regx act0
+            action-get-squares              \ sqr1 act0 regs-in-lst' regs-lnk regx sqr-lst
+            square-list-in-region           \ sqr1 act0 regs-in-lst' regs-lnk sqr-in-lst'
+            dup                             \ sqr1 act0 regs-in-lst' regs-lnk sqr-in-lst' sqr-in-lst'
+            square-list-find-incompatible-pair  \ sqr1 act0 regs-in-lst' regs-lnk sqr-in-lst', sqr-pr t | f
+            if
+                \ Process incompatible pair.
+                todo
+            else
+                \ Add new group.
+            then
+
+            link-get-next
+        repeat
+
+        
+        region-list-deallocate
+        cr ." action-check-new-square: todo" cr
+    then
+
     2drop
-    cr ." action-check-new-square: todo" cr
 ;
 
 \ Add a new square to the action square list.
