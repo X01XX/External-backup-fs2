@@ -158,8 +158,9 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 
 \ End accessors.
 
-\ Return a new group, given a region and square-list.
-: group-new    ( sqrs1 reg0 -- grp )
+\ Return a new group, given a region and a non-empty square-list.
+\ Return an incompatible square pair, if any.
+: group-new    ( sqrs1 reg0 -- grp t | sqr-pr f )
     \ Check args.
     assert-tos-is-region
     assert-nos-is-list
@@ -168,6 +169,13 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     if
         ." empty square list?"
         abort
+    then
+
+    over square-list-find-incompatible-pair
+    if                          \ sqrs1 reg0 sqr-pr
+        nip nip                 \ sqr-pr
+        false
+        exit
     then
 
    \ Allocate space.
@@ -202,6 +210,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     \ Set squares
     tuck                        \ grp  sqrs1 grp
     _group-set-squares          \ grp
+    true
 ;
 
 : group-deallocate ( grp0 -- )

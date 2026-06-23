@@ -41,6 +41,16 @@
     then
 ;
 
+\ Deallocate a list of square pairs.
+: square-pair-list-deallocate ( sqr-pr-lst0 -- )
+    \ Check arg.
+    assert-tos-is-list
+
+    [ ' square-deallocate ] literal     \ sqr-pr-lst0 xt
+    swap                                \ xt sqr-pr-lst0
+    list-deallocate-recursive-struct    \
+;
+
 \ Print a square-list
 : .square-list ( list0 -- )
     \ Check arg.
@@ -335,9 +345,7 @@
 
     \ Deallocate previous list with square pairs.
     swap                                    \ pr-lst3 pr-lst2
-    [ ' square-deallocate ] literal         \ pr-lst3 pr-lst2 xt
-    swap                                    \ pr-lst3 xt pr-lst2
-    list-deallocate-recursive-struct        \ pr-lst3
+    square-pair-list-deallocate             \ pr-lst3
 
     \ Check for one pair in new list.
     dup list-get-length
@@ -360,9 +368,7 @@
         swap                                \ sqr-pr pr-lst3
 
         \ Deallocate list with one, or more, square pairs.
-        [ ' square-deallocate ] literal     \ sqr-pr pr-lst3 xt
-        swap                                \ sqr-pr xt pr-lst3
-        list-deallocate-recursive-struct    \ sqr-pr
+        square-pair-list-deallocate         \ sqr-pr
 
         true
         \ cr ." square-list-choose-square-pair: exit 5" cr
@@ -472,9 +478,7 @@
     square-list-choose-square-pair          \ inc-lst, sqr-lst t | f
     if
         swap                                \ sqr-pr inc-lst
-        [ ' square-deallocate ] literal     \ sqr-pr inc-lst xt
-        swap                                \ sqr-pr xt inc-lst
-        list-deallocate-recursive-struct    \ sql-pr
+        square-pair-list-deallocate         \ sqr-pr
         true
     else
         list-deallocate
@@ -683,9 +687,7 @@
     dup square-list-choose-square-pair      \ sqr-pr-lst, sqr-pr t | f
     if                                      \ sqr-pr-lst sqr-pr
         swap                                \ sqr-pr sqr-pr-lst
-        [ ' square-deallocate ] literal     \ sqr-pr sqr-pr-lst xt
-        swap                                \ sqr-pr xt sqr-pr-lst
-        list-deallocate-recursive-struct    \ sqr-pr
+        square-pair-list-deallocate         \ sqr-pr
         true
     else
         list-deallocate
