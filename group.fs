@@ -256,3 +256,73 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     group-get-region .region
 ;
 
+\ Check a square in a group that has changed.
+\ Return true if the group is Ok, false otherwise.
+: group-check-square ( sqr1 grp0 -- sqr-pr t | f )
+    \ Check args.
+    assert-tos-is-group
+    assert-nos-is-square
+
+    tuck                        \ grp0 sqr1 grp0
+    group-get-squares           \ grp0 sqr1 sqr-lst
+    square-list-check-square    \ grp0, sqr-pr t | f
+
+    if
+        \ Group is invalidated.
+        nip
+        true
+    else
+        \ Group is Ok.
+        \ group-check-pn-pnc.
+        cr ." TODO" cr
+        drop
+    then
+;
+
+\ Attempt to add a square to a group.
+\ If the addition would invalidate the group,
+\ return true and an incompatible square pair.
+: group-add-square ( sqr1 grp0 -- sqr-pr t | f )
+    \ Check args.
+    assert-tos-is-group
+    assert-nos-is-square
+    
+    \ Check that the square is a subset of the group's region.
+    over square-get-state       \ sqr1 grp0 sta
+    over group-get-region       \ sqr1 grp0 sta reg
+    region-superset-of-state?   \ sqr1 grp0 bool
+    invert abort" square is not subset of group region?"
+
+    \ Check that the square is not already in the square list.
+    over square-get-state       \ sqr1 grp0 sta
+    over group-get-squares      \ sqr1 grp0 sta sqr-lst
+    square-list-find            \ sqr1 grp0, sqr t | f
+    abort" square already in group list?"
+
+    \ Check if the square can be added, without invalidating the group.
+    2dup group-check-square     \ sqr1 grp0, sqr-pr t | f
+    if
+        \ The group is now invalid.
+        2drop
+        false
+    else
+        \ The group remains valid.
+
+        \ Add the square to the square list.
+        over                        \ sqr1 grp0 sqr1
+        over group-get-squares      \ sqr1 grp0 sqr1 sqr-lst
+        list-push-struct            \ sqr1 grp0
+
+        \ Check if the new square is in the r-region.
+        over square-get-state       \ sqr1 grp0 sta
+        over group-get-r-region     \ sqr1 grp0 sta r-reg
+        if
+            \ no op
+        else
+            \ Update r-region and rules.
+        then
+
+        \ group-check-pn-pnc.
+    then
+;
+

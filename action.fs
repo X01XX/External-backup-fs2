@@ -267,11 +267,23 @@ action-possible-regions-disp    cell+   constant action-groups-disp             
     cr ." action-check-changed-square: todo" cr
 ;
 
+\ Add a group to the group list.
+: action-add-group ( grp1 act0 -- )
+    \ Check args.
+    assert-tos-is-action
+    assert-nos-is-group
+    cr ." Action " space ." Adding group: " over .group cr
+
+    action-get-groups        \ grp1 grp-lst
+    list-push-struct
+;
+
 \ Check a new square.
 : action-check-new-square ( sqr1 act0 -- )
     \ Check args.
     assert-tos-is-action
     assert-nos-is-square
+    \ cr ." action-check-new-square: start: " .stack-gbl cr
 
     over square-get-state over      \ sqr1 act0 sta act0
     action-get-groups               \ sqr1 act0 sta grp-lst
@@ -280,6 +292,7 @@ action-possible-regions-disp    cell+   constant action-groups-disp             
     if
         cr ." new square in groups: " dup .group-list-regions cr
         cr ." action-check-new-square: todo" cr
+        group-list-deallocate
     else
         cr ." new square not in any groups. " cr
         over square-get-state               \ sqr1 act0 sta
@@ -293,17 +306,21 @@ action-possible-regions-disp    cell+   constant action-groups-disp             
         begin
             ?dup
         while
-            dup link-get-next               \ sqr1 act0 regs-in-lst' regs-lnk regx
-            #3 pick                         \ sqr1 act0 regs-in-lst' regs-lnk regx act0
-            action-get-squares              \ sqr1 act0 regs-in-lst' regs-lnk regx sqr-lst
-            square-list-in-region           \ sqr1 act0 regs-in-lst' regs-lnk sqr-in-lst'
-            dup                             \ sqr1 act0 regs-in-lst' regs-lnk sqr-in-lst' sqr-in-lst'
+            dup link-get-data                   \ sqr1 act0 regs-in-lst' regs-lnk regx
+            #3 pick                             \ sqr1 act0 regs-in-lst' regs-lnk regx act0
+            action-get-squares                  \ sqr1 act0 regs-in-lst' regs-lnk regx sqr-lst
+            square-list-in-region               \ sqr1 act0 regs-in-lst' regs-lnk sqr-in-lst'
+            dup                                 \ sqr1 act0 regs-in-lst' regs-lnk sqr-in-lst' sqr-in-lst'
             square-list-find-incompatible-pair  \ sqr1 act0 regs-in-lst' regs-lnk sqr-in-lst', sqr-pr t | f
             if
                 \ Process incompatible pair.
-                todo
+                cr ." todo" abort
             else
                 \ Add new group.
+                over link-get-data              \ sqr1 act0 regs-in-lst' regs-lnk sqr-is-lst' regx
+                group-new                       \ sqr1 act0 regs-in-lst' regs-lnk grp
+                #3 pick                         \ sqr1 act0 regs-in-lst' regs-lnk grp act0
+                action-add-group                \ sqr1 act0 regs-in-lst' regs-lnk
             then
 
             link-get-next
@@ -311,10 +328,10 @@ action-possible-regions-disp    cell+   constant action-groups-disp             
 
         
         region-list-deallocate
-        cr ." action-check-new-square: todo" cr
     then
 
     2drop
+    \ cr ." action-check-new-square: end: " .stack-gbl cr
 ;
 
 \ Add a new square to the action square list.
@@ -322,6 +339,7 @@ action-possible-regions-disp    cell+   constant action-groups-disp             
     \ Check args.
     assert-tos-is-action
     assert-nos-is-square
+    \ cr ." action-add-new-square: start: " .stack-gbl cr
 
     over square-get-state       \ sqr1 act0 sta
     over action-find-square     \ sqr1 act0, sqr t | f
@@ -334,6 +352,7 @@ action-possible-regions-disp    cell+   constant action-groups-disp             
     list-push-struct            \ sqr1 act0
 
     action-check-new-square
+    \ cr ." action-add-new-square: end: " .stack-gbl cr
 ;
 
 \ Add a sample, return true if the sample changed
@@ -342,6 +361,7 @@ action-possible-regions-disp    cell+   constant action-groups-disp             
     \ Check args.
     assert-tos-is-action
     assert-nos-is-sample
+    \ cr ." action-add-sample: start: " .stack-gbl cr
 
     over sample-get-initial     \ smpl1 act0 initial
     over action-find-square     \ smpl1 act0, sqr t | f
@@ -365,5 +385,6 @@ action-possible-regions-disp    cell+   constant action-groups-disp             
         2drop
         true
     then
+    \ cr ." action-add-sample: end: " .stack-gbl cr
 ;
 

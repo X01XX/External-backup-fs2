@@ -8,11 +8,15 @@
     over action-add-sample                  \ act bool
     if else ." Did not return true?" abort then
 
+    \ cr ." at 1: " .stack-gbl cr
     cr dup .action cr
+    \ cr ." at 2: " .stack-gbl cr
 
     s" s1111->s0111" sample-from-string-a   \ act smpl1
+    \ cr ." at 3: " .stack-gbl cr
     over action-add-sample                  \ act bool
     if else ." Did not return true?" abort then
+    \ cr ." at 4: " .stack-gbl cr
 
     cr dup .action cr
 
