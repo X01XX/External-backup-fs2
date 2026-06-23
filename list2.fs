@@ -109,32 +109,27 @@
 
     nip                                     \ int-lst
 
-    dup list-get-length                     \ int-lst len
-    0> if
-        \ Avoid unneeded top-level list.
-        dup list-get-first-item                 \ int-lst itm0
-        is-allocated-list?                      \ int-lst bool
+    \ Avoid unneeded top-level list.
+    dup list-get-first-item                 \ int-lst itm0
+    is-allocated-list?                      \ int-lst bool
+    if
+        dup list-get-length                 \ int-lst len
+        1 =
         if
-            dup list-get-length                 \ int-lst len
-            1 =
-            if
-                \ Get rid of upper-level list.
-                dup list-pop-struct             \ int-lst next-lst bool
-                invert abort" pop failed?"
-                swap list-deallocate            \ next-lst
-            then
+            \ Get rid of upper-level list.
+            dup list-pop-struct             \ int-lst next-lst bool
+            invert abort" pop failed?"
+            swap list-deallocate            \ next-lst
         then
     then
 
     true
 ;
 
-' list-from-token-list to list-from-token-list-xt
-
 \ Return a struct instance, number from a token.
 \ If no conversion can be made, return the token itself.
 : list-interpret-string ( c-addr u -- result t | f )
-    \ cr ." list-interpret-string: " 2dup type cr
+
     \ Check for struct instance.
     2dup structinfo-list-store          \ c-addr u c-addr u stkinf-lst
     structinfolist-interpret-string     \ c-addr u, instance t | f
@@ -143,18 +138,19 @@
         true
         exit
     then
+
     \ Return token.
     token-new                               \ tkn
     true
 ;
 
-\ Produce a list from a string.
+\ Produce a, possibly complex, list from a string.
 : list-from-string ( c-addr u -- lst t | f )
-    \ cr ." list-from-string: len: " dup . cr
-    token-list-from-string                              \ tkn-lst' t | f
+    token-list-from-string                              \ tkn-lst t | f
+
     if
-        [ ' list-interpret-string ] literal over        \ tkn-lst' xt tkn-lst'
-        list-from-token-list                            \ tkn-lst', lst t | f
+        [ ' list-interpret-string ] literal over        \ txs-lst xt tkn-lst
+        list-from-token-list                            \ tkn-lst, lst t | f
         if
             swap token-list-deallocate                  \ lst
             true
