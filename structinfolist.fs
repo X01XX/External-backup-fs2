@@ -114,7 +114,25 @@
     \ Print Summary line.
     cr
     spaces
-    #82 spaces ." Totals: "
+    #46 spaces ." Totals: "
+
+    \ Sum struct instances in use.
+    0 over list-get-links           \ si-lst0 cnt si-link
+
+    begin
+        ?dup
+    while
+        dup link-get-data           \ si-lst0 cnt si-link six
+        structinfo-get-mma          \ si-lst0 cnt si-link mmax
+        mma-in-use                  \ si-lst0 cnt si-link totx
+        rot                         \ si-lst0 si-link totx cnt
+        + swap                      \ si-lst0 cnt+ si-link
+
+        link-get-next
+    repeat
+
+    \ Print array instances in use.
+    #6 dec.r
 
     \ Sum array memory use.
     0 over list-get-links           \ si-lst0 cnt si-link
@@ -132,6 +150,7 @@
     repeat
 
     \ Print array memory use.
+    30 spaces
     #7 dec.r
 
     \ Sum overhead memory use.
@@ -191,7 +210,7 @@
     #7 spaces #12 dec.r
 
     drop
-    cr .stack-gbl cr                \ si-lst0
+    cr .stack-structs-xt execute cr	\ si-lst0
 ;
 
 ' structinfo-list-print-memory-use to structinfo-list-print-memory-use-xt
@@ -399,7 +418,7 @@
     \ Check for duplicate struct id.
     [ ' structinfo-id-eq ] literal      \ snf1 snf-lst0 xt
     #2 pick #2 pick                     \ snf1 snf-lst0 xt snf1 snf-lst1
-    list-member?                        \ snf1 snf-lst0 bool
+    list-member                         \ snf1 snf-lst0 bool
     abort" structinfo-list-push-end: Duplicat struct id?"
 
     list-push-end-struct
@@ -414,7 +433,7 @@
     \ Check for duplicate struct id.
     [ ' structinfo-id-eq ] literal      \ snf1 snf-lst0 xt
     #2 pick #2 pick                     \ snf1 snf-lst0 xt snf1 snf-lst1
-    list-member?                        \ snf1 snf-lst0 bool
+    list-member                         \ snf1 snf-lst0 bool
     abort" structinfo-list-push: Duplicate struct id?"
 
     list-push-struct
@@ -445,6 +464,18 @@
         structinfo-list-find    \ snf t | f
     else
         false
+    then
+;
+
+: structinfo-list-print-struct ( stc -- )
+    dup get-structinfo              \ lst-link data, snf t | f
+    if                              \ lst-link data snf
+        \ Print a struct instance.
+        structinfo-get-print-xt     \ lst-link data xt
+        execute                     \ lst-link
+    else                            \ lst-link data
+        \ Print a number.
+        .
     then
 ;
 
@@ -481,39 +512,40 @@
 
 ' structinfo-list-print-struct-list to structinfo-list-print-struct-list-xt
 
-\ Deallocate any struct instance.
-\ Do nothing to a non-struct.
-\ So this will deallocate everything, when applied to a list.
-: structinfo-list-deallocate-struct ( inst0 -- )
-    structinfo-list-store                   \ inst0 snf-lst
-
-    over get-first-word                     \ inst0 snf-lst0, w t | f
-    if
-        swap                                \ inst0 w snf-lst
-        structinfo-list-find                \ inst0, snf t | f
-        if
-            structinfo-get-deallocate-xt    \ inst0 xt
-            execute
-        else
-            cr ." structinfo-list-find failed?" abort
-        then
-    else
-        2drop
-    then
-;
-
-' structinfo-list-deallocate-struct to structinfo-list-deallocate-struct-xt
-
 \ Deallocate a list of structures.
 : structinfo-list-deallocate-struct-list ( lst0 -- )
-    \ Check arg.
+    \ Check args.
     assert-tos-is-list
-    dup struct-get-use-count                \ lst0 uc
-    0< abort" structinfo-list-deallocate-struct-list: Invalid use count"
 
-    structinfo-list-deallocate-struct-xt        \ lst xt
-    swap                                        \ xt lst
-    list-deallocate-recursive-struct            \
+    dup struct-get-use-count                \ lst0 uc
+    dup 0< abort" structinfo-list-deallocate-struct-list: Invalid use count"
+
+    #2 <                                    \ lst0 bool
+    if
+        dup list-get-links                  \ lst0 lst-link
+        begin
+            ?dup
+        while
+            dup link-get-data               \ lst0 lst-link link-data
+
+            dup get-structinfo              \ lst0 lst-link link-data, snf t | f
+            if
+                \ Deallocate struct instance.
+                \ space 2dup structinfo-get-print-xt execute
+                structinfo-get-deallocate-xt    \ lst0 lst-link link-struct xt
+                execute                     \ lst0 lst-link
+            else
+                \ Just a number.            \ lst0 lst-link u
+                drop
+            then
+
+            link-get-next
+        repeat
+                                            \ lst0
+        list-deallocate
+    else                                    \ lst0
+        struct-dec-use-count
+    then
 ;
 
 ' structinfo-list-deallocate-struct-list to structinfo-list-deallocate-struct-list-xt
@@ -657,16 +689,3 @@
     drop
     false
 ;
-
-: structinfo-list-print-struct ( stc -- )
-    dup get-structinfo              \ lst-link data, snf t | f
-    if                              \ lst-link data snf
-        \ Print a struct instance.
-        structinfo-get-print-xt     \ lst-link data xt
-        execute                     \ lst-link
-    else                            \ lst-link data
-        \ Print a number.
-        .
-    then
-;
-

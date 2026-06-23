@@ -39,22 +39,20 @@
     then
 ;
 
-\ Split lsb from mask.
-: split-lsb ( u1 -- u2 u3 t | f )
+\ Isolate LSB from a non-zero number.
+\ Return changed number and a single-bit number.
+: isolate-a-bit ( u1 -- u2 u3 )
+    depth
+    0= abort" isolate-a-bin: no argument on stack"
+
     dup 0=
-    if
-        drop
-        false
-        exit
-    then
+    abort" isolate-a-bit: argument is zero"
 
     \ Remove lsb.
     dup 1- over and     \ u u-lsb
 
     \ Isolate lsb.
     tuck xor            \ u-lsb lsb
-
-    true
 ;
 
 : 3drop ( x y z -- )
@@ -208,14 +206,14 @@
 ;
 
 \ Store a string on the stack to a given address.
-: string! ( c-addr u target-addr -- )
+: string! ( string-addr length target-addr -- )
     2dup c!         \ Store the length at target[0].
     1+              \ Point to target[1].
     swap cmove      \ Move characters to target[1].
 ;
 
 \ Fetch a string from a given address, put on stack.
-: string@ ( uc-addr -- c-addr u)
+: string@ ( string-addr -- string-addr+1 length )
     dup c@          \ addr length
     swap 1+ swap    \ addr+1 length
 ;
@@ -288,31 +286,12 @@
     true
 ;
 
-\ Return true if only one bit is set to one.
-: only-one-bit-set? ( u - bool )
-    dup 0=
-    if
-        drop
-        false
-        exit
-    then
+\ Check if nos is a valid number of bits.
+: assert-nos-num-bits ( nos tos -- )
+    over 1 <        \ nos tos bool
+    abort" NOS is not a valid number of bits."
 
-    dup 1- and 0=
-;
-
-\ Return the numbur of bits set to one.
-: num-bits-set ( u0 -- u )
-    \ Init counter.
-    0 swap          \ cnt u0
-
-    begin
-        ?dup
-    while
-        \ Remove lsb.
-        dup 1- and
-
-        \ Inc counter.
-        swap 1+ swap
-    repeat
-                    \ cnt
+    over            \ nos tos nos
+    cell #8 *
+    > abort" NOS is not a valid number of bits."
 ;

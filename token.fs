@@ -78,6 +78,8 @@ token-header-disp cell+ constant token-string-disp
     token-string-disp + string!
 ;
 
+\ End accessors.
+
 \ Return a new token struct instance address, with given data value.
 : token-new ( c-addr u -- tkn )
     token-id token-mma
@@ -141,3 +143,4 @@ token-header-disp cell+ constant token-string-disp
         then
     then
 ;
+
