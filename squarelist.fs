@@ -700,3 +700,46 @@
     2drop
     true
 ;
+
+\ Return a region built from squares of the highest pn value, in a list.
+: square-list-pnc-squares ( sqr-lst0 -- sqr-lst t | f )
+    \ Check arg.
+    assert-tos-is-square-list
+
+    dup list-is-empty?
+    if
+        drop
+        false
+        exit
+    then
+
+    \ Init return list.
+    list-new swap                   \ ret-lst sqr-lst
+
+    \ Prep for loop.
+    list-get-links                  \ ret-lst link
+
+    \ Scan square list.
+    begin
+        ?dup
+    while
+        \ Check if square is pnc.
+        dup link-get-data           \ ret-lst link sqr
+        square-get-pnc              \ ret-lst link s-pnc
+        if
+            dup link-get-data       \ ret-lst link sqr
+            #2 pick                 \ ret-lst link sqr ret-lst
+            list-push-struct        \ ret-lst link
+        then
+
+        link-get-next               \ ret-lst link
+    repeat
+                                    \ ret-lst
+    dup list-is-empty?
+    if
+        list-deallocate
+        false
+    else
+        true
+    then
+;
