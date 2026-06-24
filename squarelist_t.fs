@@ -143,6 +143,7 @@
 
     dup square-list-find-incompatible-pair  \ sqr2 sqr1a sqr1b lst, sqr-pr t | f
     if
+        \ cr dup .list-raw cr
         \ cr ." incompatible pair: " dup .square-list cr
 
         \ Check square pair contains sqr2.
@@ -169,9 +170,11 @@
     then
     
     \ Deallocate.                       \ sqr2 sqr1a sqr1b lst sqr-pr
+    \ cr ." at end: " .stack-gbl cr
+    \ cr .s cr
     square-list-deallocate              \ sqr2 sqr1a sqr1b lst
-    nip nip nip                         \ lst
-    square-list-deallocate
+    square-list-deallocate              \ sqr2 sqr1a sqr1b
+    2drop drop
 
     \ Check for memory leaks.
     structinfo-list-store structinfo-list-project-deallocated
@@ -214,16 +217,23 @@
     swap                                    \ sqr2a sqr2b sqr1 lst
     2dup list-push-struct                   \ sqr2a sqr2b sqr1 lst
 
+    \ cr ." at 1: " .stack-gbl cr
     dup square-list-find-incompatible-pair  \ sqr2a sqr2b sqr1 lst, sqr-pr t | f
+    \ cr ." at 2: " .stack-gbl cr
     if
-        cr ." incompatible pair: " dup .square-list cr
+        \ cr ." incompatible pair: " dup .square-list cr
+        \ cr dup .list-raw cr
+        \ cr .s cr
     else
         cr ." no incompatible pairs?" abort
     then
 
     \ exit 3 was confirmed.
+    \ cr ." At 33: " .stack-gbl cr
     [ ' = ] literal                         \ sqr2a sqr2b sqr1 lst sqr-pr xt
+    \ cr ." At 44: " .stack-gbl cr
     #4 pick                                 \ sqr2a sqr2b sqr1 lst sqr-pr xt sqr2b
+    \ cr ." sqr2b: " dup .square cr
     #2 pick                                 \ sqr2a sqr2b sqr1 lst sqr-pr xt sqr2b sqr-pr
     list-member?                            \ sqr2a sqr2b sqr1 lst sqr-pr bool
     if
@@ -296,12 +306,12 @@
 
     dup square-list-find-incompatible-pair  \ sqr2a sqr2b sqr1 lst, sqr-pr t | f
     if
-        cr ." incompatible pair: " dup .square-list cr
+        \ cr ." incompatible pair: " dup .square-list cr
     else
         cr ." no incompatible pairs?" abort
     then
 
-    cr ." pair: " dup .square-list cr
+    \ cr ." pair: " dup .square-list cr
 
 \ exit 4 was confirmed. 0111 is different that the arbitrary result of 0100 in
 \ square-list-test-find-incompatible-pair-ns2
@@ -371,12 +381,12 @@
 
     dup square-list-find-incompatible-pair  \ sqr2a sqr2b sqr1 lst, sqr-pr t | f
     if
-        cr ." incompatible pair: " dup .square-list cr
+        \ cr ." incompatible pair: " dup .square-list cr
     else
         cr ." no incompatible pairs?" abort
     then
 
-    cr ." pair: " dup .square-list cr
+    \ cr ." pair: " dup .square-list cr
 \ Square 0100 is in the pair, but thats arbitrary, the first pair in the list of pairs.
 \ exit 5 was confirmed.
     [ ' = ] literal                         \ sqr2a sqr2b sqr1 lst sqr-pr xt

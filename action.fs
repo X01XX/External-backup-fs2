@@ -318,9 +318,13 @@ action-possible-regions-disp    cell+   constant action-groups-disp             
             else
                 \ Add new group.
                 over link-get-data              \ sqr1 act0 regs-in-lst' regs-lnk sqr-is-lst' regx
-                group-new                       \ sqr1 act0 regs-in-lst' regs-lnk grp
-                #3 pick                         \ sqr1 act0 regs-in-lst' regs-lnk grp act0
-                action-add-group                \ sqr1 act0 regs-in-lst' regs-lnk
+                group-new                       \ sqr1 act0 regs-in-lst' regs-lnk, grp t | sqr-pr f
+                if
+                    #3 pick                     \ sqr1 act0 regs-in-lst' regs-lnk grp act0
+                    action-add-group            \ sqr1 act0 regs-in-lst' regs-lnk
+                else
+                    cr ." TODO" cr
+                then
             then
 
             link-get-next

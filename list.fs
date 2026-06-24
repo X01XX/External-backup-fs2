@@ -326,6 +326,8 @@ list-header-disp    cell+   constant list-links-disp
         dup is-allocated-list? abort" should use list-member-recursive?"
 
         #2 pick swap            \ xt item link item link-data
+
+        \ cr ." list-member? comparing: " over hex. space ." and: " dup hex. cr
         #4 pick                 \ xt item link item link-data xt
         execute                 \ xt item link flag
         if

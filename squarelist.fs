@@ -45,10 +45,11 @@
 : square-pair-list-deallocate ( sqr-pr-lst0 -- )
     \ Check arg.
     assert-tos-is-list
-
+    \ cr ." square-pair-list-deallocate: start: " .stack-gbl cr
     [ ' square-deallocate ] literal     \ sqr-pr-lst0 xt
     swap                                \ xt sqr-pr-lst0
     list-deallocate-recursive-struct    \
+    \ cr ." square-pair-list-deallocate: end: " .stack-gbl cr
 ;
 
 \ Print a square-list
@@ -207,19 +208,20 @@
 \ arbitrary pick.
 : square-list-choose-square-pair ( pr-lst0 -- sqr-pr t | f )
     \ Check arg.
-    assert-tos-is-square-list
+    assert-tos-is-list
+    \ cr ." square-list-choose-square-pair: start: " .stack-gbl cr
 
     \ Check for an empty list.
     dup list-is-empty?                      \ pr-lst0 bool
     if
         drop
         false
-        \ cr ." square-list-choose-square-pair: exit 1.5" cr
+        \ cr ." square-list-choose-square-pair: exit 1" cr
         exit
     then
 
     \ Check for one pair.
-    dup list-get-length                     \ pr-lst0
+    dup list-get-length                     \ pr-lst0 len
     1 =
     if
         dup list-pop-struct                 \ pr-lst0, sqr-pr t | f
@@ -237,16 +239,16 @@
 
     \ Init min distance.
     9999                                    \ pr-lst0 min-dis
-    over list-get-links                     \ pr-lst0 min-dis inc-lnk
+    over list-get-links                     \ pr-lst0 min-dis pr-lnk
 
     begin
         ?dup
     while
-        dup link-get-data                   \ pr-lst0 min-dis inc-lnk sqr-prx
-        square-pair-get-distance            \ pr-lst0 min-dis inc-lnk u
-        rot                                 \ pr-lst0 inc-lnk u min-dis
-        min                                 \ pr-lst0 inc-lnk min
-        swap                                \ pr-lst0 min-dis inc-lnk
+        dup link-get-data                   \ pr-lst0 min-dis pr-lnk sqr-prx
+        square-pair-get-distance            \ pr-lst0 min-dis pr-lnk u
+        rot                                 \ pr-lst0 pr-lnk u min-dis
+        min                                 \ pr-lst0 pr-lnk min
+        swap                                \ pr-lst0 min-dis pr-lnk
 
         link-get-next
     repeat
@@ -257,19 +259,20 @@
 
     \ Init new pair list.
     list-new                                \ pr-lst0 min-dis pr-lst2
+    \ cr ." list-new 1: " dup hex. cr
 
-    #2 pick list-get-links                  \ pr-lst0 min-dis pr-lst2 inc-lnk
+    #2 pick list-get-links                  \ pr-lst0 min-dis pr-lst2 pr-lnk
     begin
         ?dup
     while
-        dup link-get-data                   \ pr-lst0 min-dis pr-lst2 inc-lnk sqr-prx
-        square-pair-get-distance            \ pr-lst0 min-dis pr-lst2 inc-lnk dis
-        #3 pick                             \ pr-lst0 min-dis pr-lst2 inc-lnk dis min-dis
+        dup link-get-data                   \ pr-lst0 min-dis pr-lst2 pr-lnk sqr-prx
+        square-pair-get-distance            \ pr-lst0 min-dis pr-lst2 pr-lnk dis
+        #3 pick                             \ pr-lst0 min-dis pr-lst2 pr-lnk dis min-dis
         =
         if
-            dup link-get-data               \ pr-lst0 min-dis pr-lst2 inc-lnk sqr-prx
-            #2 pick                         \ pr-lst0 min-dis pr-lst2 inc-lnk sqr-prx pr-lst2
-            list-push-struct-list           \ pr-lst0 min-dis pr-lst2 inc-lnk
+            dup link-get-data               \ pr-lst0 min-dis pr-lst2 pr-lnk sqr-prx
+            #2 pick                         \ pr-lst0 min-dis pr-lst2 pr-lnk sqr-prx pr-lst2
+            list-push-struct-list           \ pr-lst0 min-dis pr-lst2 pr-lnk
         then
 
         link-get-next
@@ -281,7 +284,7 @@
 
     \ Replace previous pair list.
     nip                                     \ pr-lst2
-
+    \ cr ." pr-lst2: " dup .list-raw cr
     \ Check for one pair in new list.
     dup list-get-length
     1 =
@@ -301,16 +304,16 @@
 
     \ Init max num samples.
     0                                       \ pr-lst2 max-ns
-    over list-get-links                     \ pr-lst2 max-ns inc-lnk
+    over list-get-links                     \ pr-lst2 max-ns pr-lnk
 
     begin
         ?dup
     while
-        dup link-get-data                   \ pr-lst2 max-ns inc-lnk sqr-prx
-        square-pair-get-num-samples         \ pr-lst2 max-ns inc-lnk u
-        rot                                 \ pr-lst2 inc-lnk u max-ns
-        max                                 \ pr-lst2 inc-lnk max
-        swap                                \ pr-lst2 max-ns inc-lnk
+        dup link-get-data                   \ pr-lst2 max-ns pr-lnk sqr-prx
+        square-pair-get-num-samples         \ pr-lst2 max-ns pr-lnk u
+        rot                                 \ pr-lst2 pr-lnk u max-ns
+        max                                 \ pr-lst2 pr-lnk max
+        swap                                \ pr-lst2 max-ns pr-lnk
 
         link-get-next
     repeat
@@ -321,19 +324,20 @@
 
     \ Init new pair list.
     list-new                                \ pr-lst2 max-ns pr-lst3
+    \ cr ." list-new 2: " dup hex. cr
 
-    #2 pick list-get-links                  \ pr-lst2 max-ns pr-lst3 inc-lnk
+    #2 pick list-get-links                  \ pr-lst2 max-ns pr-lst3 pr-lnk
     begin
         ?dup
     while
-        dup link-get-data                   \ pr-lst2 max-ns pr-lst3 inc-lnk sqr-prx
-        square-pair-get-num-samples         \ pr-lst2 max-ns pr-lst3 inc-lnk dis
-        #3 pick                             \ pr-lst2 max-ns pr-lst3 inc-lnk dis max-ns
+        dup link-get-data                   \ pr-lst2 max-ns pr-lst3 pr-lnk sqr-prx
+        square-pair-get-num-samples         \ pr-lst2 max-ns pr-lst3 pr-lnk dis
+        #3 pick                             \ pr-lst2 max-ns pr-lst3 pr-lnk dis max-ns
         =
         if
-            dup link-get-data               \ pr-lst2 max-ns pr-lst3 inc-lnk sqr-prx
-            #2 pick                         \ pr-lst2 max-ns pr-lst3 inc-lnk sqr-prx pr-lst3
-            list-push-struct-list           \ pr-lst2 max-ns pr-lst3 inc-lnk
+            dup link-get-data               \ pr-lst2 max-ns pr-lst3 pr-lnk sqr-prx
+            #2 pick                         \ pr-lst2 max-ns pr-lst3 pr-lnk sqr-prx pr-lst3
+            list-push-struct-list           \ pr-lst2 max-ns pr-lst3 pr-lnk
         then
 
         link-get-next
@@ -395,9 +399,10 @@
 : square-list-find-incompatible-pair ( sqr-lst0 -- sqr-lst t | f )
     \ Check arg.
     assert-tos-is-square-list
+    \ cr ." square-list-find-incompatible-pair: start: " .stack-gbl cr
 
     \ Check list length.
-    dup list-get-length                 \ sqr-lst0 len
+    dup list-get-length                 \ s/qr-lst0 len
     #2 < if
         \ No pairs to check.
         drop
@@ -410,7 +415,9 @@
     dup square-list-base-pn swap        \ pn sqr-lst0
 
     \ Init the incompatible pair list.
-    list-new swap                       \ pn inc-lst sqr-lst0
+    list-new
+    \ cr ." list-new 3: " dup hex. cr
+    swap                       \ pn inc-lst sqr-lst0
 
     \ Check every possible pair.
     \ For each pair, at least one must have the base pn, if so compare them.
@@ -448,6 +455,7 @@
                 if
                     \ Init pair list.
                     list-new                \ pn inc-lst sqr-lnx bool1 nxt-lnk pr-lst
+                    \ cr ." list-new 4: " dup hex. cr
 
                     \ Add loop1 square.
                     #3 pick                 \ pn inc-lst sqr-lnx bool1 nxt-lnk pr-lst sqr-lnk
@@ -477,8 +485,11 @@
     dup                                     \ inc-lst inc-lst
     square-list-choose-square-pair          \ inc-lst, sqr-lst t | f
     if
+        dup struct-inc-use-count
         swap                                \ sqr-pr inc-lst
+        \ cr ." at 3: " .stack-gbl cr cr
         square-pair-list-deallocate         \ sqr-pr
+        \ cr ." at 4: " .stack-gbl cr cr
         true
     else
         list-deallocate
