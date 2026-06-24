@@ -350,24 +350,24 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 
 \ Attempt to add a square to a group.
 \ The addition may invalidate the group,
-: group-add-square ( sqr1 grp0 -- )
+: group-add-new-square ( sqr1 grp0 -- )
     \ Check args.
     assert-tos-is-group
     assert-nos-is-square
 
-    \ Check that square pn == 1.
-    over square-get-pn 1 <> abort" New square pn se 1?"
+    \ Check that square.
+    over square-get-num-samples 1 <> abort" New square gt 1 samples?"
 
     \ Check that the square is a subset of the group's region.
-    over square-get-state       \ sqr1 grp0 sta
-    over group-get-region       \ sqr1 grp0 sta reg
-    region-superset-of-state?   \ sqr1 grp0 bool
+    over square-get-state           \ sqr1 grp0 sta
+    over group-get-region           \ sqr1 grp0 sta reg
+    region-superset-of-state?       \ sqr1 grp0 bool
     invert abort" square is not subset of group region?"
 
     \ Check that the square is not already in the square list.
-    over square-get-state       \ sqr1 grp0 sta
-    over group-get-squares      \ sqr1 grp0 sta sqr-lst
-    square-list-find            \ sqr1 grp0, sqr t | f
+    over square-get-state           \ sqr1 grp0 sta
+    over group-get-squares          \ sqr1 grp0 sta sqr-lst
+    square-list-find                \ sqr1 grp0, sqr t | f
     abort" square already in group list?"
 
     \ Check if the square will invalidate the group.
@@ -388,13 +388,17 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
         drop
     else
         \ Check if the new square is in the r-region.
-        over square-get-state       \ sqr1 grp0 sta
-        over group-get-r-region     \ sqr1 grp0 sta r-reg
-        region-superset-of-state?   \ sqr1 grp0 bool
+        swap square-get-state       \ grp0 sta
+        over group-get-r-region     \ grp0 sta r-reg
+        region-superset-of-state?   \ grp0 bool
         if
-            \ no op
+            \ no op.
+            drop
         else
             \ Update r-region and rules.
+            dup                         \ grp0 grp0
+            _group-calc-set-r-region    \ grp
+            _group-calc-set-rules
         then
     then
 ;

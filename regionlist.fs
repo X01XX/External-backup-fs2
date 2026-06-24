@@ -775,7 +775,7 @@
         ?dup
     while
         dup link-get-data                       \ sta-lst1 pos-reg-lst0 stas-in-one def-regs stas-not-in stas-reg def-lnk def-regx
-        \ cr ." def reg: " .region cr
+        cr ." def reg: " .region cr
 
         link-get-next
     repeat
@@ -786,7 +786,7 @@
         ?dup
     while
         dup link-get-data                       \ sta-lst1 pos-reg-lst0 stas-in-one def-regs stas-not-in stas-reg stas-reg-lnk sta-regx
-        \ cr ." sta-regs: " structinfo-list-print-struct-list-xt execute cr
+        cr ." sta-regs: " structinfo-list-print-struct-list-xt execute cr
 
         link-get-next                           \ sta-lst1 pos-reg-lst0 stas-in-one def-regs stas-not-in stas-reg stas-reg-lsk
     repeat
