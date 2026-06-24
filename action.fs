@@ -278,6 +278,10 @@ action-possible-regions-disp    cell+   constant action-groups-disp             
     list-push-struct
 ;
 
+: action-add-new-square-to-groups ( sqr2 grp-lst act0 -- )
+
+;
+
 \ Check a new square.
 : action-check-new-square ( sqr1 act0 -- )
     \ Check args.
@@ -292,6 +296,9 @@ action-possible-regions-disp    cell+   constant action-groups-disp             
     if
         cr ." new square in groups: " dup .group-list-regions cr
         cr ." action-check-new-square: todo" cr
+        #2 pick over #3 pick                \ sqr1 act0 grp-lst' sqr1 grp-lst1' act0
+        action-add-new-square-to-groups     \ sqr1 act0 grp-lst'
+        \ todo any invalid?
         group-list-deallocate
     else
         cr ." new square not in any groups. " cr

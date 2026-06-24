@@ -654,54 +654,49 @@
     list-find-all-struct                            \ ret-list
 ;
 
-: square-list-check-square ( sqr1 sqr-lst0 -- sqr-pr t | f )
+\ Return true if base-pn elements of a square-list are compatible with a given square.
+: square-list-square-compatible? ( sqr1 sqr-lst0 -- bool )
     \ Check args.
     assert-tos-is-square-list
     assert-nos-is-square
 
-    \ Init square pair list.
-    list-new swap               \ sqr1 sqr-pr-lst sqr-lst0
+    \ Check for empty list.
+    dup list-is-empty?
+    if
+        2drop
+        true
+        exit
+    then
+
+    \ Find base pn.
+    dup square-list-base-pn     \ sqr1 sqr-lst0 bpn
+    -rot                        \ bpn sqr1 sqr-lst0
 
     \ Prep for loop.
-    list-get-links              \ sqr1 sqr-pr-lst sqr-lnk
+    list-get-links              \ bpn sqr1 sqr-lnk
 
     begin
         ?dup
     while
-        dup link-get-data       \ sqr1 sqr-pr-lst sqr-lnk sqrx
-        #3 pick                 \ sqr1 sqr-pr-lst sqr-lnk sqrx sqr1
-        squares-compare         \ sqr1 sqr-pr-lst sqr-lnk char
-        [char] I =              \ sqr1 sqr-pr-lst sqr-lnk bool
+        dup link-get-data       \ bpn sqr1 sqr-lnk sqrx
+        square-get-pn           \ bpn sqr1 sqr-lnk spn
+        #3 pick                 \ bpn sqr1 sqr-lnk spn bpn
+        =
         if
-            \ Init square pair list.
-            list-new                \ sqr1 sqr-pr-lst sqr-lnk sqr-pr
-
-            \ Ad square from list.
-            over link-get-data      \ sqr1 sqr-pr-lst sqr-lnk sqr-pr sqrx
-            over list-push-struct   \ sqr1 sqr-pr-lst sqr-lnk sqr-pr
-
-            \ Add sqr1.
-            #3 pick                 \ sqr1 sqr-pr-lst sqr-lnk sqr-pr sqr1
-            over list-push-struct   \ sqr1 sqr-pr-lst sqr-lnk sqr-pr
-
-            \ Add square pair to square pair list.
-            #2 pick                 \ sqr1 sqr-pr-lst sqr-lnk sqr-pr sqr-pr-lst
-            list-push-struct        \ sqr1 sqr-pr-lst sqr-lnk
+            dup link-get-data   \ bpn sqr1 sqr-lnk sqrx
+            #2 pick             \ bpn sqr1 sqr-lnk sqrx sqr1
+            squares-compare     \ bpn sqr1 sqr-lnk char
+            [char] I =          \ bpn sqr1 sqr-lnk bool
+            if
+                2drop drop
+                false
+                exit
+            then
         then
 
         link-get-next
     repeat
-                                    \ sqr1 sqr-pr-lst
-    nip                             \ sqr-pr-lst
-
-    \ Chose square pair, if any.
-    dup square-list-choose-square-pair      \ sqr-pr-lst, sqr-pr t | f
-    if                                      \ sqr-pr-lst sqr-pr
-        swap                                \ sqr-pr sqr-pr-lst
-        square-pair-list-deallocate         \ sqr-pr
-        true
-    else
-        list-deallocate
-        false
-    then
+                                \ bpn sqr1
+    2drop
+    true
 ;
