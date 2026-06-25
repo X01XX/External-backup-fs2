@@ -55,7 +55,7 @@ frame-header-disp cell+ constant frame-disp
 ;
 
 \ Set frame data cell 0.
-: frame-cell1@ ( u frm0 -- )
+: frame-cell0! ( u frm0 -- )
     \ Check arg.
     assert-tos-is-frame
 
@@ -74,7 +74,7 @@ frame-header-disp cell+ constant frame-disp
 ;
 
 \ Set frame data cell 1.
-: frame-cell1@ ( u frm0 -- )
+: frame-cell1! ( u frm0 -- )
     \ Check arg.
     assert-tos-is-frame
 
@@ -94,7 +94,7 @@ frame-header-disp cell+ constant frame-disp
 ;
 
 \ Set frame data cell 2.
-: frame-cell2@ ( u frm0 -- )
+: frame-cell2! ( u frm0 -- )
     \ Check arg.
     assert-tos-is-frame
 
@@ -114,7 +114,7 @@ frame-header-disp cell+ constant frame-disp
 ;
 
 \ Set frame data cell 3.
-: frame-cell3@ ( u frm0 -- )
+: frame-cell3! ( u frm0 -- )
     \ Check arg.
     assert-tos-is-frame
 
@@ -134,7 +134,7 @@ frame-header-disp cell+ constant frame-disp
 ;
 
 \ Set frame data cell 4.
-: frame-cell4@ ( u frm0 -- )
+: frame-cell4! ( u frm0 -- )
     \ Check arg.
     assert-tos-is-frame
 

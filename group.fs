@@ -314,7 +314,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     regions-eq?
 ;
 
-: .group ( grp -- )
+: .group ( grp0 -- )
     \ Check arg.
     assert-tos-is-group
 
@@ -323,13 +323,18 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     space ." - "
     dup group-get-r-region .region
     space
-    dup group-get-rules  .rule-list
-    space
-    group-get-squares   .square-list-states
+    dup group-get-valid
+    if
+        dup group-get-rules  .rule-list
+        space
+        group-get-squares   .square-list-states
+    else
+        ." Invalid"
+    then
 ;
 
 \ Print a group region.
-: .group-region ( grp -- )
+: .group-region ( grp0 -- )
     \ Check arg.
     assert-tos-is-group
 
@@ -337,19 +342,60 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 ;
 
 \ Check a square in a group that has changed.
-\ Return true if the group is Ok, false otherwise.
-: group-check-square ( sqr1 grp0 -- bool )
+\ The change may invalidate the group.
+: group-check-changed-square ( sqr1 grp0 -- )
     \ Check args.
     assert-tos-is-group
     assert-nos-is-square
 
-    tuck                            \ grp0 sqr1 grp0
-    group-get-squares               \ grp0 sqr1 sqr-lst
-    square-list-square-compatible?  \ grp0 bool
+    \ Check that the square is already in the square list.
+    over square-get-state           \ sqr1 grp0 sta
+    over group-get-squares          \ sqr1 grp0 sta sqr-lst
+    square-list-find                \ sqr1 grp0, sqr t | f
+    if drop else abort" square not in group square list?" then
+
+    2dup                            \ sqr1 grp0 sqr1 grp0
+    group-get-squares               \ sqr1 grp0 sqr1 sqr-lst
+    square-list-square-compatible?  \ sqr1 grp0 bool
+    if
+        \ Check if square pn GT group pn.
+        over square-get-pn          \ sqr1 grp0 s-pn
+        over group-get-pn           \ sqr1 grp0 s-pn g-pn
+        >
+        if
+            \ Update r-region and rules.
+            dup                     \ sqr1 grp0 grp0
+            _group-update-r-region  \ sqr1 grp0
+            _group-update-rules     \ sqr1
+            drop
+        else
+            \ Check if square pn = group pn.
+            over square-get-pn      \ sqr1 grp0 s-pn
+            over group-get-pn       \ sqr1 grp0 s-pn g-pn
+            =
+            if
+                \ Check if square is in r-region.
+                swap square-get-state       \ grp0 sta
+                over group-get-r-region     \ grp0 sta r-reg
+                region-superset-of-state?   \ grp0 bool
+                if
+                else
+                    \ Update r-region and rules.
+                    dup                     \ grp0 grp0
+                    _group-update-r-region  \ grp0
+                    _group-update-rules     \
+                then
+            then
+        then
+    else
+        false swap                  \ sqr1 f bool
+        _group-set-valid
+        drop
+    then
 ;
 
 \ Attempt to add a square to a group.
-\ The addition may invalidate the group,
+\ The addition may invalidate the group.
 : group-add-new-square ( sqr1 grp0 -- )
     \ Check args.
     assert-tos-is-group
@@ -395,10 +441,14 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
             \ no op.
             drop
         else
-            \ Update r-region and rules.
-            dup                         \ grp0 grp0
-            _group-calc-set-r-region    \ grp
-            _group-calc-set-rules
+            \ Check if group pn is 1.
+            dup group-get-pn 1 =
+            if
+                \ Update r-region and rules.
+                dup                     \ grp0 grp0
+                _group-update-r-region  \ grp
+                _group-update-rules
+            then
         then
     then
 ;
