@@ -374,23 +374,25 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
     endcase
 ;
 
+\ Return the quare state.
 : square-get-state ( sqr0 -- sta )
     _square-get-samples     \ smpl-lst
     list-get-first-item     \ smpl
     sample-get-initial      \ sta
 ;
 
+\ Add a sample to a square.
+\ Return true if the square pn, or pnc, value changed.
 : square-add-sample ( smpl sqr0 -- bool )
     \ Check args.
     assert-tos-is-square
     assert-nos-is-sample
+
+    \ Check number bits.
     dup square-get-state        \ smpl sqr0 sta1
     #2 pick sample-get-initial  \ smpl sqr0 sta1 sta2
-    states-eq?                  \ smpl sqr0 bool
-    if
-    else
-        cr ." sample initial does not match square state" cr abort
-    then
+    states-dif-num-bits?        \ smpl sqr0 bool
+    abort" square-add-sample: sample initial state number bitsdoes not match square state"
 
     \ Init changed flag for the following process.
     false over _square-set-changed

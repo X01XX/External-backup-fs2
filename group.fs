@@ -110,8 +110,21 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     0<>     \ Change 255 to -1
 ;
 
+\ Set the valid flag to the given bool value.
 : _group-set-valid ( bool sqr -- )
     5c!
+;
+
+\ Set the valid flag to false.
+: _group-set-to-invalid ( grp0 -- )
+   false swap
+   _group-set-valid
+;
+
+\ Set the valid flag to false.
+: _group-set-to-valid ( grp0 -- )
+   true swap
+   _group-set-valid
 ;
 
 : group-get-rules ( sqr0 -- rul-lst )
@@ -192,9 +205,9 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     dup group-get-squares   \ grp0 sqr-lst
     square-list-get-rules   \ grp0, ruls t | f
     if
-        true #2 pick _group-set-valid
+        over _group-set-to-valid
     else
-        false over _group-set-valid
+        dup _group-set-to-invalid
         list-new            \ grp0 rul-lst
     then
                                 \ sqrs1 grp ruls
@@ -246,36 +259,48 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 
 \ Return a new group, given a region and a non-empty square-list.
 \ Return an incompatible square pair, if any.
+\ Allow creation of an invalid group, for testing.
 : group-new    ( sqrs1 reg0 -- grp )
     \ Check args.
     assert-tos-is-region
     assert-nos-is-list
 
-    over list-is-empty?
-    if
-        cr ." empty square list?"
-        abort
-    then
+   \ Allocate instance.
+    group-id group-mma              \ sqrs1 reg0 id mma
+    struct-allocate                 \ sqrs1 reg0 grp
 
-    over square-list-find-incompatible-pair
-    if                          \ sqrs1 reg0 sqr-pr
-        cr ." square list is invalid" abort
-    then
-
-   \ Allocate space.
-    group-id group-mma          \ sqrs1 reg0 id mma
-    struct-allocate             \ sqrs1 reg0 grp
+    \ Set group to valid.
+    dup _group-set-to-valid         \ sqrs1 reg0 grp
 
     \ Set region.
-    tuck                        \ sqrs1 grp reg0 grp
-    _group-set-region           \ sqrs1 grp
+    tuck                            \ sqrs1 grp reg0 grp
+    _group-set-region               \ sqrs1 grp
 
     \ Set squares.
-    tuck                        \ grp sqrs1 grp
-    _group-set-squares          \ grp
+    tuck                            \ grp sqrs1 grp
+    _group-set-squares              \ grp
+    
+    \ Check for empty list.
+    dup group-get-squares           \ grp sqr-lst
+    list-is-empty?
+    if
+        cr ." problem? group-new: square list empty" cr
+        dup _group-set-to-invalid
+        exit
+    then
 
     \ Set r-region
     dup _group-calc-set-r-region    \ grp
+
+    \ Check if squares are compatible.
+    dup group-get-squares               \ grp sqr-lst
+    square-list-find-incompatible-pair  \ grp, sqp-pr t | f
+    if
+        cr ." problem? Group-nem: incompatible squares" dup .square-list cr
+        square-list-deallocate
+        dup _group-set-to-invalid
+        exit
+    then
 
     \ Set rules
     dup _group-calc-set-rules       \ grp
@@ -320,16 +345,18 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 
     ." Grp: "
     dup group-get-region .region
-    space ." - "
-    dup group-get-r-region .region
     space
-    dup group-get-valid
+    dup group-get-valid             \ grp0 valid
     if
+        ." - "
+        dup group-get-r-region .region
+        space
         dup group-get-rules  .rule-list
         space
         group-get-squares   .square-list-states
     else
-        ." Invalid"
+        ." Invalid, states: "
+        group-get-squares   .square-list-states
     then
 ;
 
@@ -348,13 +375,24 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     assert-tos-is-group
     assert-nos-is-square
 
+    \ Check if square is valid.
+    dup group-get-valid             \ sqr1 grp0 bool
+    if
+    else
+        cr ." problem? group-check-changed-square: group is invalid." cr
+        2drop
+        exit
+    then
+    
     \ Check that the square is already in the square list.
-    over square-get-state           \ sqr1 grp0 sta
-    over group-get-squares          \ sqr1 grp0 sta sqr-lst
-    square-list-find                \ sqr1 grp0, sqr t | f
-    if drop else abort" square not in group square list?" then
+    [ ' = ] literal                 \ sqr1 grp0 xt
+    #2 pick #2 pick                 \ sqr1 grp0 xt sqr1 grp0
+    group-get-squares               \ sqr1 grp0 xt sqr-lst
+    list-member?                    \ sqr1 grp0, bool
+    invert abort" group-check-changed-square: square not in group square list?"
 
-    2dup                            \ sqr1 grp0 sqr1 grp0
+    \ Check if squares are still compatible.
+    2dup                            \ sqr1 grp0 sqr1 grp
     group-get-squares               \ sqr1 grp0 sqr1 sqr-lst
     square-list-square-compatible?  \ sqr1 grp0 bool
     if
@@ -387,9 +425,8 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
                 then
             then
         then
-    else
-        false swap                  \ sqr1 f bool
-        _group-set-valid
+    else                            \ sqr1 grp0
+        _group-set-to-invalid       \ sqr1
         drop
     then
 ;
@@ -429,8 +466,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     \ Process validity result.
     if
         \ Set the valid flag to false.
-        false swap                  \ sqr1 false grp0
-        _group-set-valid            \ sqr1
+        dup _group-set-to-invalid            \ sqr1
         drop
     else
         \ Check if the new square is in the r-region.
@@ -452,4 +488,3 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
         then
     then
 ;
-
