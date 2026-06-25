@@ -634,3 +634,8 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
     swap
     region-superset-of-state?
 ;
+
+\ Return a square from a string sample.
+: square-from-string-a ( c-addr u -- sqr )
+    sample-from-string-a square-new
+;

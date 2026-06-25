@@ -113,8 +113,8 @@
     then
 ;
 
-\ Return rule-list pair union.
-\ Try two different orders of union, return true if one order works, and the other does not.
+\ Return rule-list union.
+\ For a pair try two different orders of union, return true if one order works, and the other does not.
 \ Kind of like XOR.
 \ With two successful unions, at least one bit will be unpredictable,
 \ the four possible values of one bit position will be 0->0, 0->1, 1->1, 1->0,
@@ -123,8 +123,8 @@
     \ Check args.
     assert-tos-is-rule-list
     assert-nos-is-rule-list
-    dup  list-get-length #2 <> abort" rule list not pair?"
-    over list-get-length #2 <> abort" rule list not pair?"
+    over list-get-length
+    over list-get-length <> abort" rule-list-pair-union: rule list lengths ne?"
 
     \ Check order one.
     list-new -rot                   \ ret-lst1 rul-lst1 rul-lst0
@@ -132,6 +132,16 @@
     over list-get-first-item        \ ret-lst1 rul-lst1 rul-lst0 rul1a rul0a
     rule-union                      \ ret-lst1 rul-lst1 rul-lst0, rul-u t | f
     if
+        \ Check for two length 1 rule lists.
+        over list-get-length        \ ret-lst1 rul-lst1 rul-lst0 rul-u len
+        1 = if
+            #3 pick                 \ ret-lst1 rul-lst1 rul-lst0 rul-u ret-lst
+            list-push-struct        \ ret-lst1 rul-lst1 rul-lst0
+            2drop                   \ ret-lst
+            true
+            exit
+        then
+
         #3 pick                     \ ret-lst1 rul-lst1 rul-lst0 rul-u ret-lst1
         list-push-struct            \ ret-lst1 rul-lst1 rul-lst0
         \ Check rul0b union rul1b.

@@ -291,7 +291,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     dup group-get-squares           \ grp sqr-lst
     list-is-empty?
     if
-        cr ." problem? group-new: square list empty" cr
+        cr ." problem? group-new: square list empty"
         dup _group-set-to-invalid
         exit
     then
@@ -303,7 +303,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     dup group-get-squares               \ grp sqr-lst
     square-list-find-incompatible-pair  \ grp, sqp-pr t | f
     if
-        cr ." problem? Group-nem: incompatible squares" dup .square-list cr
+        cr ." problem? Group-new: incompatible squares" dup .square-list
         square-list-deallocate
         dup _group-set-to-invalid
         exit
@@ -327,9 +327,21 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     if
         \ Deallocate instance.
         dup group-get-region region-deallocate
-        dup group-get-r-region region-deallocate
-        dup group-get-rules rule-list-deallocate
+
+        dup group-get-squares
+        list-get-length 0>
+        if
+            dup group-get-r-region region-deallocate
+        then
+
         dup group-get-squares square-list-deallocate
+
+        dup group-get-valid
+        if
+            
+            dup group-get-rules rule-list-deallocate
+        then
+
         group-mma mma-deallocate
     else
         struct-dec-use-count
@@ -352,18 +364,25 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 
     ." Grp: "
     dup group-get-region .region
-    space
-    dup group-get-valid             \ grp0 valid
+
+    dup group-get-squares
+    list-get-length 0>
     if
+        space
         ." - "
         dup group-get-r-region .region
+    then
+    
+    dup group-get-valid             \ grp0 valid
+    if
         space
         dup group-get-rules  .rule-list
         space
         group-get-squares   .square-list-states
     else
+        space
         ." Invalid, states: "
-        group-get-squares   .square-list-states
+        group-get-squares   .square-list
     then
 ;
 
