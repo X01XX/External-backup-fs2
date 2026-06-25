@@ -189,11 +189,18 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     \ Check arg.
     assert-tos-is-group
 
-    dup group-get-squares   \ grp0 sqr-lst
-    square-list-region      \ grp0, reg t | f
-    0= abort" group region not found?"
-    
-    swap _group-set-r-region
+    dup group-get-squares       \ grp0 sqr-lst
+    square-list-region          \ grp0, r-reg t | f
+    0= abort" _group-calc-set-r-region: group r-region not found?"
+
+    dup                         \ grp0 r-reg r-reg
+    #2 pick group-get-region    \ grp0 r-reg r-reg g-reg
+    region-superset?            \ grp0 r-reg bool
+    if
+        swap _group-set-r-region
+    else
+        cr ." _group-calc-set-r-region: r-region not subset group region?"
+    then
 ;
 
 \ Calc, and set, group rules, based on group square list.
@@ -210,8 +217,8 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
         dup _group-set-to-invalid
         list-new            \ grp0 rul-lst
     then
-                                \ sqrs1 grp ruls
-    over _group-set-rules       \ sqrs1 grp
+                                \ grp ruls
+    swap _group-set-rules       \
 ;
 
 \ Calc, and set, group pnc, based on group square list.
@@ -279,7 +286,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     \ Set squares.
     tuck                            \ grp sqrs1 grp
     _group-set-squares              \ grp
-    
+
     \ Check for empty list.
     dup group-get-squares           \ grp sqr-lst
     list-is-empty?

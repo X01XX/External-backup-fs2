@@ -141,7 +141,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     \ Check args.
     assert-tos-is-state
     assert-nos-is-state
-    2dup states-dif-num-bits? abort" states use a different number of bits?"
+    2dup states-dif-num-bits? abort" region-new: states use a different number of bits?"
 
     \ Allocate space.
     region-id region-mma        \ sta1 sta0 id mma
@@ -488,7 +488,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     \ Check args.
     assert-tos-is-region
     assert-nos-is-region
-    2dup regions-dif-num-bits? abort" regions do not have the same number bits?"
+    2dup regions-dif-num-bits? abort" region-intersects?: regions do not have the same number bits?"
     \ cr ." region-intersects: reg1: " over .region space ." reg0: " dup .region cr
 
     \ Get different bits mask of any pair states from reg1 and reg0.
@@ -557,7 +557,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     \ Check args.
     assert-tos-is-region
     assert-nos-is-region
-    2dup regions-dif-num-bits? abort" regions do not have the same number bits?"
+    2dup regions-dif-num-bits? abort" region-intersection: regions do not have the same number bits?"
 
     \ Check that the two regions intersect.
     2dup region-intersects?     \ reg1 reg0 bool
@@ -599,7 +599,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     \ Check args.
     assert-tos-is-region
     assert-nos-is-region
-    2dup regions-dif-num-bits? abort" regions do not have the same number bits?"
+    2dup regions-dif-num-bits? abort" regions-eq?: regions do not have the same number bits?"
 
     \ Check address.
     2dup =                  \ reg1 reg0 bool
@@ -635,7 +635,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     \ Check args.
     assert-tos-is-region
     assert-nos-is-region
-    2dup regions-dif-num-bits? abort" regions do not have the same number bits?"
+    2dup regions-dif-num-bits? abort" region-superset?: regions do not have the same number bits?"
 
     2dup region-intersects?         \ reg1 reg-sup flag
     if
@@ -659,7 +659,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     assert-nos-is-state
     over state-get-num-bits
     over region-get-num-bits
-    <> abort" state and region do not have the same number bits?"
+    <> abort" region-superset-of-state?: state and region do not have the same number bits?"
 
     \ cr ." region-superset-of-state?: " over .state space dup .region cr
     region-get-states           \ sta1 reg-sta1 reg-sta0
@@ -696,7 +696,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
         \ Regions intersect.
         tuck                        \ reg-sub reg1 reg-sub
         region-intersection         \ reg-sub reg-int flag
-        0= abort" region-subset-of: reg-sub and reg1 should intersect"
+        0= abort" region-subset?: region-subset-of: reg-sub and reg1 should intersect"
                                     \ reg-sub reg-int'
         tuck regions-eq?            \ reg-int' flag
         swap region-deallocate      \ flag
