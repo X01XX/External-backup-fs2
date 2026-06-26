@@ -167,10 +167,7 @@
 
     2dup group-check-changed-square
     cr ." group: " dup .group
-
-
-    
-    \ dup group-get-pnc invert abort" group not pnc?"
+    dup group-get-pnc invert abort" group not pnc?"
 
     \ Clean up.
     group-deallocate

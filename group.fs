@@ -435,16 +435,29 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
             =
             if
                 \ Check if square is in r-region.
-                swap square-get-state       \ grp0 sta
-                over group-get-r-region     \ grp0 sta r-reg
-                region-superset-of-state?   \ grp0 bool
+                over square-get-state       \ sqr1 grp0 sta
+                over group-get-r-region     \ sqr1 grp0 sta r-reg
+                region-superset-of-state?   \ sqr1 grp0 bool
                 if
-                    drop
+                    \ Check pnc.
+                    over square-get-pnc     \ sqr1 grp0 sqr-pnc
+                    if
+                        dup group-get-pnc   \ sqr1 grp0 grp-pnc
+                        if
+                            2drop
+                        else
+                            _group-calc-set-pnc \ sqr1
+                            drop
+                        then
+                    else
+                        2drop
+                    then
                 else
                     \ Update r-region and rules.
-                    dup                     \ grp0 grp0
-                    _group-update-r-region  \ grp0
-                    _group-update-rules     \
+                    dup                     \ sqr1 grp0 grp0
+                    _group-update-r-region  \ sqr1 grp0
+                    _group-update-rules     \ sqr1
+                    drop
                 then
             then
         then
@@ -452,6 +465,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
         _group-set-to-invalid       \ sqr1
         drop
     then
+
     \ cr ." group-check-changed-square: exit 2: " .stack-gbl cr
 ;
 
