@@ -169,14 +169,14 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 
 \ End accessors.
 
-\ Calc, and set, group r-region, based on group square list.
+\ Calc, and set, group s-region, based on group square list.
 : _group-calc-set-s-region ( grp0 -- )
     \ Check arg.
     assert-tos-is-group
 
     dup group-get-squares       \ grp0 sqr-lst
     square-list-region          \ grp0, r-reg t | f
-    0= abort" _group-calc-set-s-region: group r-region not found?"
+    0= abort" _group-calc-set-s-region: group s-region not found?"
 
     dup                         \ grp0 r-reg r-reg
     #2 pick group-get-region    \ grp0 r-reg r-reg g-reg
@@ -184,11 +184,11 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     if
         swap _group-set-s-region
     else
-        cr ." _group-calc-set-s-region: r-region not subset group region?"
+        cr ." _group-calc-set-s-region: s-region not subset group region?"
     then
 ;
 
-\ Replace current r-region with new region.
+\ Replace current s-region with new region.
 : _group-update-s-region ( grp0 -- )
     \ Check arg.
     assert-tos-is-group
@@ -230,7 +230,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     \ Check arg.
     assert-tos-is-group
 
-    \ Check if group region EQ group r-region.
+    \ Check if group region EQ group s-region.
     dup group-get-region            \ grp0 reg
     over group-get-s-region         \ grp0 reg r-reg
     regions-eq?                     \ grp0 bool
@@ -335,7 +335,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     \ Set rules
     tuck _group-set-rules           \ s-reg' grp
 
-    \ Set r-region
+    \ Set s-region
     tuck _group-set-s-region        \ grp
 
     \ Set pnc
@@ -404,6 +404,16 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     group-get-region .region
 ;
 
+\ Return true if a group's region equals its s-region.
+: group-region-eq-s-region? ( grp0 -- bool )
+    \ Check arg.
+    assert-tos-is-group
+
+    dup group-get-region        \ grp0 reg
+    swap group-get-s-region     \ reg s-reg
+    regions-eq?
+;
+
 \ Check a square in a group that has changed.
 \ The change may invalidate the group.
 : group-check-changed-square ( sqr1 grp0 -- )
@@ -439,43 +449,30 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
         over group-get-pn           \ sqr1 grp0 s-pn g-pn
         >
         if
-            
-            \ Update r-region and rules.
+            \ Update s-region and rules.
             dup                     \ sqr1 grp0 grp0
             _group-update-s-region  \ sqr1 grp0
             _group-update-rules     \ sqr1
             drop
         else
-            \ Check if square pn = group pn.
-            over square-get-pn      \ sqr1 grp0 s-pn
-            over group-get-pn       \ sqr1 grp0 s-pn g-pn
-            =
+            \ Check if square is pnc
+            over square-get-pnc     \ sqr1 grp0 s-pnc
             if
-                \ Check if square is in r-region.
-                over square-get-state       \ sqr1 grp0 sta
-                over group-get-s-region     \ sqr1 grp0 sta r-reg
-                region-superset-of-state?   \ sqr1 grp0 bool
+                \ Check if group-region equals group-s-region.
+                dup group-region-eq-s-region?   \ sqr1 grp0 bool
                 if
-                    \ Check pnc.
-                    over square-get-pnc     \ sqr1 grp0 sqr-pnc
+                    dup group-get-pnc   \ sqr1 grp0 grp-pnc
                     if
-                        dup group-get-pnc   \ sqr1 grp0 grp-pnc
-                        if
-                            2drop
-                        else
-                            _group-calc-set-pnc \ sqr1
-                            drop
-                        then
-                    else
                         2drop
+                    else
+                        _group-calc-set-pnc \ sqr1
+                        drop
                     then
                 else
-                    \ Update r-region and rules.
-                    dup                     \ sqr1 grp0 grp0
-                    _group-update-s-region  \ sqr1 grp0
-                    _group-update-rules     \ sqr1
-                    drop
+                    2drop
                 then
+            else
+                2drop
             then
         then
     else                            \ sqr1 grp0
@@ -494,7 +491,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     assert-nos-is-square
     \ cr ." group-add-new-square: start: " .stack-gbl cr
 
-    \ Check that square.
+    \ Check that square is new.
     over square-get-num-samples 1 <> abort" New square gt 1 samples?"
 
     \ Check that the square is a subset of the group's region.
@@ -523,7 +520,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     list-push-struct                        \ sqr1 grp0 valid-bool
     \ cr ." group-add-new-square: at 4: " .stack-gbl cr
 
-    \ Check if the new square is in the r-region.
+    \ Check if the new square is in the s-region.
     #2 pick square-get-state                \ sqr1 grp0 valid-bool sta
     #2 pick group-get-s-region              \ sqr1 grp0 valid-bool sta r-reg
     region-superset-of-state?               \ sqr1 grp0 valid-bool r-bool
@@ -537,7 +534,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
             \ Check if group pn is 1.
             dup group-get-pn 1 =
             if
-                \ Update r-region and rules.
+                \ Update s-region and rules.
                 dup                         \ sqr1 grp0 grp0
                 _group-update-s-region      \ sqr1 grp0
                 _group-update-rules         \ sqr1
@@ -545,16 +542,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
             then
         then
     else                                    \ sqr1 grp0 r-bool
-        if
-            \ no op.
-        else
-            \ Check if group pn is 1.
-            dup group-get-pn 1 =            \ sqr1 grp0
-            if
-                \ Update r-region and rules.
-                dup _group-update-s-region  \ sqr1 grp0
-            then
-        then
+        drop                                \ sqr1 grp0
         \ Set the valid flag to false
         _group-set-to-invalid               \ sqr1
         drop
