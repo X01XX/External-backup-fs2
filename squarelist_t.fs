@@ -409,8 +409,8 @@
 
     \ Deallocate.                           \ sqr2a sqr2b sqr1 lst sqr-pr
     square-list-deallocate
-    nip nip nip
     square-list-deallocate
+    2drop drop
 
     \ Check for memory leaks.
     structinfo-list-store structinfo-list-project-deallocated

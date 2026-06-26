@@ -366,7 +366,7 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
             over _square-get-samples    \ sqr0 rul-lst smpl-lst
             list-get-first-item         \ sqr0 rul-lst smpl1
             rule-new-from-sample        \ sqr0 rul-lst rul1
-            over list-push-end
+            over list-push-end-struct
 
             swap _square-update-rules
         endof

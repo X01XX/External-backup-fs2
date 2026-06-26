@@ -116,12 +116,6 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 ;
 
 \ Set the valid flag to false.
-: _group-set-to-invalid ( grp0 -- )
-   false swap
-   _group-set-valid
-;
-
-\ Set the valid flag to false.
 : _group-set-to-valid ( grp0 -- )
    true swap
    _group-set-valid
@@ -137,6 +131,17 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 : _group-set-rules ( rul-lst1 sqr0 -- )
     group-rules-disp +
     !struct
+;
+
+\ Set the valid flag to false.
+: _group-set-to-invalid ( grp0 -- )
+    dup group-get-valid     \ grp0 bool
+    if
+        dup group-get-rules \ grp0 ruls
+        rule-list-deallocate
+    then
+    false swap
+    _group-set-valid
 ;
 
 \ Return the group squares.
@@ -162,26 +167,6 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     list-get-length
 ;
 
-: _group-update-r-region ( reg1 grp0 -- )
-    \ Check arg.
-    assert-tos-is-group
-    assert-nos-is-region
-
-    dup group-get-r-region -rot \ reg-old reg1 grp0
-    _group-set-r-region         \ reg-old
-    region-deallocate           \ Deallocate last, so struct field is never invalid.
-;
-
-: _group-update-rules ( rul-lst1 grp0 -- )
-    \ Check args.
-    assert-tos-is-group
-    assert-nos-is-rule-list
-
-    dup group-get-rules -rot    \ ruls-old ruls1 grp0
-    _group-set-rules            \ ruls-old
-    rule-list-deallocate        \ Deallocate last, so struct field is never invalid.
-;
-
 \ End accessors.
 
 \ Calc, and set, group r-region, based on group square list.
@@ -203,6 +188,15 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     then
 ;
 
+: _group-update-r-region ( grp0 -- )
+    \ Check arg.
+    assert-tos-is-group
+
+    dup group-get-r-region swap \ reg-old reg1 grp0
+    _group-calc-set-r-region    \ reg-old
+    region-deallocate           \ Deallocate last, so struct field is never invalid.
+;
+
 \ Calc, and set, group rules, based on group square list.
 \ Also set group-valid flag.
 : _group-calc-set-rules ( grp0 -- )
@@ -212,13 +206,21 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     dup group-get-squares   \ grp0 sqr-lst
     square-list-get-rules   \ grp0, ruls t | f
     if
-        over _group-set-to-valid
+        swap                \ ruls grp0
+        dup _group-set-to-valid
+        _group-set-rules
     else
-        dup _group-set-to-invalid
-        list-new            \ grp0 rul-lst
+        _group-set-to-invalid
     then
-                                \ grp ruls
-    swap _group-set-rules       \
+;
+
+: _group-update-rules ( grp0 -- )
+    \ Check arg.
+    assert-tos-is-group
+
+    dup group-get-rules swap    \ ruls-old grp0
+    _group-calc-set-rules       \ ruls-old
+    rule-list-deallocate        \ Deallocate last, so struct field is never invalid.
 ;
 
 \ Calc, and set, group pnc, based on group square list.
@@ -335,11 +337,11 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
         then
 
         dup group-get-squares square-list-deallocate
-
         dup group-get-valid
         if
-            
-            dup group-get-rules rule-list-deallocate
+            dup group-get-rules
+            cr dup .rule-list cr
+            rule-list-deallocate
         then
 
         group-mma mma-deallocate
@@ -400,6 +402,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     \ Check args.
     assert-tos-is-group
     assert-nos-is-square
+    \ cr ." group-check-changed-square: start: " .stack-gbl cr
 
     \ Check if square is valid.
     dup group-get-valid             \ sqr1 grp0 bool
@@ -407,13 +410,14 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     else
         cr ." problem? group-check-changed-square: group is invalid." cr
         2drop
+        \ cr ." group-check-changed-square: exit 1: " .stack-gbl cr
         exit
     then
     
     \ Check that the square is already in the square list.
     [ ' = ] literal                 \ sqr1 grp0 xt
     #2 pick #2 pick                 \ sqr1 grp0 xt sqr1 grp0
-    group-get-squares               \ sqr1 grp0 xt sqr-lst
+    group-get-squares               \ sqr1 grp0 xt sqr1 sqr-lst
     list-member?                    \ sqr1 grp0, bool
     invert abort" group-check-changed-square: square not in group square list?"
 
@@ -427,6 +431,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
         over group-get-pn           \ sqr1 grp0 s-pn g-pn
         >
         if
+            
             \ Update r-region and rules.
             dup                     \ sqr1 grp0 grp0
             _group-update-r-region  \ sqr1 grp0
@@ -443,6 +448,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
                 over group-get-r-region     \ grp0 sta r-reg
                 region-superset-of-state?   \ grp0 bool
                 if
+                    drop
                 else
                     \ Update r-region and rules.
                     dup                     \ grp0 grp0
@@ -455,6 +461,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
         _group-set-to-invalid       \ sqr1
         drop
     then
+    \ cr ." group-check-changed-square: exit 2: " .stack-gbl cr
 ;
 
 \ Attempt to add a square to a group.
