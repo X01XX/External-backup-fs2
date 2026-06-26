@@ -1,4 +1,4 @@
-\ Implement a group struct and functions.                                                                                                         
+\ Implement a group struct and functions.
 
 #43717 constant group-id
     #5 constant group-struct-number-cells
@@ -6,7 +6,7 @@
 \ Struct fields
 0                           constant group-header-disp      \ 16 bits, [0] struct id, [1] use count (16), [2] pnc (8 bits), valid (8 bits)
 group-header-disp   cell+   constant group-region-disp      \ The group region.
-group-region-disp   cell+   constant group-s-region-disp    \ A Region covered by the group squares, often a proper subset of the group-region.
+group-region-disp   cell+   constant group-s-region-disp    \ A Region covered by the group's base-pn squares, often a proper subset of the group-region.
 group-s-region-disp cell+   constant group-squares-disp     \ A square-list.
 group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 
@@ -59,7 +59,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 \ Start accessors.
 
 \ Return the group region.
-: group-get-region ( addr -- reg )
+: group-get-region ( grp0 -- reg )
     \ Check arg.
     assert-tos-is-group
 
@@ -68,13 +68,13 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 ;
 
 \ Set the region of a group instance, use only in this file.
-: _group-set-region ( reg1 addr -- )
+: _group-set-region ( reg1 grp0 -- )
     group-region-disp + \ Add offset.
     !struct             \ Set the field.
 ;
 
 \ Return the group squares region.
-: group-get-s-region ( addr -- reg )
+: group-get-s-region ( grp0 -- reg )
     \ Check arg.
     assert-tos-is-group
 
@@ -83,12 +83,12 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 ;
 
 \ Set the square region of a group instance, use only in this file.
-: _group-set-s-region ( reg1 addr -- )
+: _group-set-s-region ( reg1 grp0 -- )
     group-s-region-disp +   \ Add offset.
     !struct                 \ Set the field.
 ;
 
-\ Return group 8-bit pnc value, as a bool.
+\ Return group's pnc value.
 : group-get-pnc ( sqr0 -- bool )
     \ Check arg.
     assert-tos-is-group
@@ -115,12 +115,6 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     5c!
 ;
 
-\ Set the valid flag to false.
-: _group-set-to-valid ( grp0 -- )
-   true swap
-   _group-set-valid
-;
-
 : group-get-rules ( sqr0 -- rul-lst )
     \ Check arg.
     assert-tos-is-group
@@ -133,19 +127,8 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     !struct
 ;
 
-\ Set the valid flag to false.
-: _group-set-to-invalid ( grp0 -- )
-    dup group-get-valid     \ grp0 bool
-    if
-    else
-        cr ." problem? group is already invalid."
-    then
-    false swap
-    _group-set-valid
-;
-
 \ Return the group squares.
-: group-get-squares ( addr -- reg )
+: group-get-squares ( grp0 -- reg )
     \ Check arg.
     assert-tos-is-group
 
@@ -154,11 +137,12 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 ;
 
 \ Set the squares field of a group instance, use only in this file.
-: _group-set-squares ( sqr-lst addr -- )
+: _group-set-squares ( sqr-lst grp0 -- )
     group-squares-disp +    \ Add offset.
     !struct                 \ Set the field.
 ;
 
+\ Return a group's pn value.
 : group-get-pn ( grp0 -- pn )
     \ Check arg.
     assert-tos-is-group
@@ -168,6 +152,18 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 ;
 
 \ End accessors.
+
+\ Set the valid flag to true.
+: _group-set-to-valid ( grp0 -- )
+   true swap
+   _group-set-valid
+;
+
+\ Set the valid flag to false.
+: _group-set-to-invalid ( grp0 -- )
+    false swap
+    _group-set-valid
+;
 
 \ Calc, and set, group s-region, based on group square list.
 : _group-calc-set-s-region ( grp0 -- )
@@ -290,7 +286,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
         exit
     then
 
-    \ Check squares are in region.
+    \ Check squares are in region, save the square's region.
     over square-list-region         \ sqrs1 reg0, s-reg t | f
     invert abort" group-new: square-list-region failed?"
     2dup swap                       \ sqrs1 reg0 s-reg' s-reg reg0
@@ -364,16 +360,6 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     then
 ;
 
-\ Return true if a group region is equal to a given region.
-: groups-region-eq? ( reg1 grp0 -- flag )
-    \ Check args.
-    assert-tos-is-group
-    assert-nos-is-region
-
-    group-get-region
-    regions-eq?
-;
-
 : .group ( grp0 -- )
     \ Check arg.
     assert-tos-is-group
@@ -405,7 +391,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 ;
 
 \ Return true if a group's region equals its s-region.
-: group-region-eq-s-region? ( grp0 -- bool )
+: _group-region-eq-s-region? ( grp0 -- bool )
     \ Check arg.
     assert-tos-is-group
 
@@ -433,10 +419,9 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     then
     
     \ Check that the square is already in the square list.
-    [ ' = ] literal                 \ sqr1 grp0 xt
-    #2 pick #2 pick                 \ sqr1 grp0 xt sqr1 grp0
-    group-get-squares               \ sqr1 grp0 xt sqr1 sqr-lst
-    list-member?                    \ sqr1 grp0, bool
+    2dup                            \ sqr1 grp0 sqr1 grp0
+    group-get-squares               \ sqr1 grp0 sqr1 sqr-lst
+    square-list-member?             \ sqr1 grp0 bool
     invert abort" group-check-changed-square: square not in group square list?"
 
     \ Check if squares are still compatible.
@@ -455,21 +440,23 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
             _group-update-rules     \ sqr1
             drop
         else
-            \ Check if square is pnc
+            \ Check if square is pnc.
             over square-get-pnc     \ sqr1 grp0 s-pnc
             if
-                \ Check if group-region equals group-s-region.
-                dup group-region-eq-s-region?   \ sqr1 grp0 bool
+                \ Check if group is pnc ...
+                dup group-get-pnc
                 if
-                    dup group-get-pnc   \ sqr1 grp0 grp-pnc
+                    2drop
+                else
+                    \ Check if group-region equals group-s-region.
+                    dup _group-region-eq-s-region?   \ sqr1 grp0 bool
                     if
-                        2drop
-                    else
+                        \ See if the square's change allows setting the group's pnc to true.
                         _group-calc-set-pnc \ sqr1
                         drop
+                    else
+                        2drop
                     then
-                else
-                    2drop
                 then
             else
                 2drop
