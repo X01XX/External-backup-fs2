@@ -475,56 +475,65 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     over square-get-num-samples 1 <> abort" New square gt 1 samples?"
 
     \ Check that the square is a subset of the group's region.
-    over square-get-state           \ sqr1 grp0 sta
-    over group-get-region           \ sqr1 grp0 sta reg
-    region-superset-of-state?       \ sqr1 grp0 bool
+    over square-get-state                   \ sqr1 grp0 sta
+    over group-get-region                   \ sqr1 grp0 sta reg
+    region-superset-of-state?               \ sqr1 grp0 bool
     invert abort" square is not subset of group region?"
     \ cr ." group-add-new-square: at 1: " .stack-gbl cr
 
     \ Check that the square is not already in the square list.
-    over square-get-state           \ sqr1 grp0 sta
-    over group-get-squares          \ sqr1 grp0 sta sqr-lst
-    square-list-find                \ sqr1 grp0, sqr t | f
+    over square-get-state                   \ sqr1 grp0 sta
+    over group-get-squares                  \ sqr1 grp0 sta sqr-lst
+    square-list-find                        \ sqr1 grp0, sqr t | f
     abort" square already in group list?"
     \ cr ." group-add-new-square: at 2: " .stack-gbl cr
 
     \ Check if the square will invalidate the group.
     
-    2dup group-get-squares          \ sqr1 grp0 sqr1 sqr-lst
-    square-list-square-compatible?  \ sqr1 grp0 bool
+    2dup group-get-squares                  \ sqr1 grp0 sqr1 sqr-lst
+    square-list-square-compatible?          \ sqr1 grp0 valid-bool
     \ cr ." group-add-new-square: at 3: " .stack-gbl cr
 
     \ Add the square to the square list.
-    #2 pick #2 pick                 \ sqr1 grp0 bool sqr1 grp0
-    group-get-squares               \ sqr1 grp0 bool sqr1 sqr-lst
-    list-push-struct                \ sqr1 grp0 bool
+    #2 pick #2 pick                         \ sqr1 grp0 valid-bool sqr1 grp0
+    group-get-squares                       \ sqr1 grp0 valid-bool sqr1 sqr-lst
+    list-push-struct                        \ sqr1 grp0 valid-bool
     \ cr ." group-add-new-square: at 4: " .stack-gbl cr
 
+    \ Check if the new square is in the r-region.
+    #2 pick square-get-state                \ sqr1 grp0 valid-bool sta
+    #2 pick group-get-r-region              \ sqr1 grp0 valid-bool sta r-reg
+    region-superset-of-state?               \ sqr1 grp0 valid-bool r-bool
+
     \ Process validity result.
-    if
-        \ Check if the new square is in the r-region.
-        swap square-get-state       \ grp0 sta
-        over group-get-r-region     \ grp0 sta r-reg
-        region-superset-of-state?   \ grp0 bool
-        if
-            \ cr ." group-add-new-square: at 6: " .stack-gbl cr
-            \ no op.
-            drop
+    swap                                    \ sqr1 grp0 r-bool valid-bool
+    if                                      \ sqr1 grp0 r-bool
+        if                                  \ sqr1 grp
+            2drop
         else
-            \ cr ." group-add-new-square: at 7: " .stack-gbl cr
             \ Check if group pn is 1.
             dup group-get-pn 1 =
             if
-                \ cr ." group-add-new-square: at 8: " .stack-gbl cr
                 \ Update r-region and rules.
-                dup                     \ grp0 grp0
-                _group-update-r-region  \ grp0
-                _group-update-rules
+                dup                         \ sqr1 grp0 grp0
+                _group-update-r-region      \ sqr1 grp0
+                _group-update-rules         \ sqr1
+                drop
             then
         then
-    else
-          \ Set the valid flag to false.
-        _group-set-to-invalid            \ sqr1
+    else                                    \ sqr1 grp0 r-bool
+        if
+            \ no op.
+        else
+            \ Check if group pn is 1.
+            dup group-get-pn 1 =            \ sqr1 grp0
+            if
+                \ Update r-region and rules.
+                dup _group-update-r-region  \ sqr1 grp0
+            then
+        then
+        \ Set the valid flag to false
+        _group-set-to-invalid               \ sqr1
         drop
     then
 ;

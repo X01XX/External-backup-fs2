@@ -123,7 +123,15 @@
     over group-get-r-region over                        \ grp reg-tmp' grp-reg reg-tmp'
     regions-eq? invert abort" r-region invalid?"        \ grp reg-tmp'
     region-deallocate                                   \
-    
+
+    \ Add an incompatible square.
+    s" s1011->s0011" square-from-string-a                               \ grp sqr9
+    over
+    \ cr ." at 1: " .stack-gbl cr
+    group-add-new-square                                                \ grp
+    \ cr ." at 2: " .stack-gbl cr
+    cr ." group + sqrB: " dup .group cr
+
     \ Deallocate.
     group-deallocate
 
