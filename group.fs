@@ -274,7 +274,8 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 
 \ Return a new group, given a region and square-list.
 \ Return false if the given square list is empty,
-\ or contains at least one incompatible pair.
+\ or contains an incompatible pair,
+\ or are not all within the given region.
 : group-new    ( sqrs1 reg0 -- grp t | f )
     \ Check args.
     assert-tos-is-region
@@ -292,45 +293,47 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     \ Check squares are in region.
     over square-list-region         \ sqrs1 reg0, s-reg t | f
     invert abort" group-new: square-list-region failed?"
-    2dup swap                       \ sqrs1 reg0 s-reg s-reg reg0
-    region-superset?                \ sqrs1 reg0 s-reg bool
+    2dup swap                       \ sqrs1 reg0 s-reg' s-reg reg0
+    region-superset?                \ sqrs1 reg0 s-reg' bool
     if
     else
-        2drop drop
+        region-deallocate
+        2drop
         false
         exit
     then
-    -rot                            \ s-reg sqrs1 reg0
+    -rot                            \ s-reg' sqrs1 reg0
     
     \ Get square rules, and check all squares are compatible.
-    over square-list-calc-rules     \ s-reg sqrs1 reg0, ruls t | f
+    over square-list-calc-rules     \ s-reg' sqrs1 reg0, ruls' t | f
     if
     else
         2drop
+        region-deallocate
         false
         \ cr ." group-new: exit 2" cr
         exit
     then
 
-    -rot                            \ s-reg ruls sqrs1 reg0
+    -rot                            \ s-reg' ruls' sqrs1 reg0
 
     \ Allocate instance.
-    group-id group-mma              \ s-reg ruls sqrs1 reg0 id mma
-    struct-allocate                 \ s-reg ruls sqrs1 reg0 grp
+    group-id group-mma              \ s-reg' ruls' sqrs1 reg0 id mma
+    struct-allocate                 \ s-reg' ruls' sqrs1 reg0 grp
 
     \ Set group to valid.
-    dup _group-set-to-valid         \ s-reg ruls sqrs1 reg0 grp
+    dup _group-set-to-valid         \ s-reg' ruls' sqrs1 reg0 grp
 
     \ Set region.
-    tuck                            \ s-reg ruls sqrs1 grp reg0 grp
-    _group-set-region               \ s-reg ruls sqrs1 grp
+    tuck                            \ s-reg' ruls' sqrs1 grp reg0 grp
+    _group-set-region               \ s-reg' ruls' sqrs1 grp
 
     \ Set squares.
-    tuck                            \ s-reg ruls grp sqrs1 grp
-    _group-set-squares              \ s-reg ruls grp
+    tuck                            \ s-reg' ruls' grp sqrs1 grp
+    _group-set-squares              \ s-reg' ruls' grp
 
     \ Set rules
-    tuck _group-set-rules           \ s-reg grp
+    tuck _group-set-rules           \ s-reg' grp
 
     \ Set r-region
     tuck _group-set-s-region        \ grp

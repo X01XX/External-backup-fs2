@@ -333,13 +333,17 @@ action-possible-regions-disp    cell+   constant action-groups-disp             
             else
                 \ Add new group.
                 over link-get-data              \ sqr1 act0 regs-in-lst' regs-lnk sqr-is-lst' regx
-                group-new                       \ sqr1 act0 regs-in-lst' regs-lnk, grp
-                dup group-get-valid
+                group-new                       \ sqr1 act0 regs-in-lst' regs-lnk, grp t | f
                 if
-                    #3 pick                     \ sqr1 act0 regs-in-lst' regs-lnk grp act0
-                    action-add-group            \ sqr1 act0 regs-in-lst' regs-lnk
+                    dup group-get-valid
+                    if
+                        #3 pick                     \ sqr1 act0 regs-in-lst' regs-lnk grp act0
+                        action-add-group            \ sqr1 act0 regs-in-lst' regs-lnk
+                    else
+                        cr ." action-check-new-square: process invalid new group, todo" cr
+                    then
                 else
-                    cr ." action-check-new-square: process invalid new group, todo" cr
+                    cr ." action-check-new-square: problem?" cr abort
                 then
             then
 
