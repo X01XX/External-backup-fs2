@@ -97,7 +97,7 @@
     dup group-get-valid invert abort" Group not valid?"
     dup group-get-pn 1 <> abort" Group pn ne 1?"
     s" r1XXX" region-from-string-a                      \ sqr8 sqrf grp reg-tmp'
-    over group-get-r-region over                        \ sqr8 sqrf grp reg-tmp' grp-reg reg-tmp'
+    over group-get-s-region over                        \ sqr8 sqrf grp reg-tmp' grp-reg reg-tmp'
     regions-eq? invert abort" r-region invalid?"        \ sqr8 sqrf grp reg-tmp'
     region-deallocate                                   \ sqr8 sqrf grp
 
@@ -114,7 +114,7 @@
     dup group-get-valid invert abort" Group not valid?"
     dup group-get-pn 2 <> abort" Group pn ne 2?"
     s" r1000" region-from-string-a                      \ sqr8 sqrf grp reg-tmp'
-    over group-get-r-region over                        \ sqr8 sqrf grp reg-tmp' grp-reg reg-tmp'
+    over group-get-s-region over                        \ sqr8 sqrf grp reg-tmp' grp-reg reg-tmp'
     regions-eq? invert abort" r-region invalid?"        \ sqr8 sqrf grp reg-tmp'
     region-deallocate                                   \ sqr8 sqrf grp
 
@@ -204,7 +204,7 @@
     \ Check group.
     dup group-get-valid invert abort" Group not valid?"
     s" r100X" region-from-string-a                      \ grp reg-tmp'
-    over group-get-r-region over                        \ grp reg-tmp' grp-reg reg-tmp'
+    over group-get-s-region over                        \ grp reg-tmp' grp-reg reg-tmp'
     regions-eq? invert abort" r-region invalid?"        \ grp reg-tmp'
     region-deallocate                                   \
 

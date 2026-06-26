@@ -6,8 +6,8 @@
 \ Struct fields
 0                           constant group-header-disp      \ 16 bits, [0] struct id, [1] use count (16), [2] pnc (8 bits), valid (8 bits)
 group-header-disp   cell+   constant group-region-disp      \ The group region.
-group-region-disp   cell+   constant group-r-region-disp    \ A Region covered by the group rules, often a proper subset of the group-region.
-group-r-region-disp cell+   constant group-squares-disp     \ A square-list.
+group-region-disp   cell+   constant group-s-region-disp    \ A Region covered by the group squares, often a proper subset of the group-region.
+group-s-region-disp cell+   constant group-squares-disp     \ A square-list.
 group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 
 0 value group-mma \ Storage for group mma instance.
@@ -74,17 +74,17 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 ;
 
 \ Return the group squares region.
-: group-get-r-region ( addr -- reg )
+: group-get-s-region ( addr -- reg )
     \ Check arg.
     assert-tos-is-group
 
-    group-r-region-disp +   \ Add offset.
+    group-s-region-disp +   \ Add offset.
     @                       \ Fetch the field.
 ;
 
 \ Set the square region of a group instance, use only in this file.
-: _group-set-r-region ( reg1 addr -- )
-    group-r-region-disp +   \ Add offset.
+: _group-set-s-region ( reg1 addr -- )
+    group-s-region-disp +   \ Add offset.
     !struct                 \ Set the field.
 ;
 
@@ -170,31 +170,31 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 \ End accessors.
 
 \ Calc, and set, group r-region, based on group square list.
-: _group-calc-set-r-region ( grp0 -- )
+: _group-calc-set-s-region ( grp0 -- )
     \ Check arg.
     assert-tos-is-group
 
     dup group-get-squares       \ grp0 sqr-lst
     square-list-region          \ grp0, r-reg t | f
-    0= abort" _group-calc-set-r-region: group r-region not found?"
+    0= abort" _group-calc-set-s-region: group r-region not found?"
 
     dup                         \ grp0 r-reg r-reg
     #2 pick group-get-region    \ grp0 r-reg r-reg g-reg
     region-superset?            \ grp0 r-reg bool
     if
-        swap _group-set-r-region
+        swap _group-set-s-region
     else
-        cr ." _group-calc-set-r-region: r-region not subset group region?"
+        cr ." _group-calc-set-s-region: r-region not subset group region?"
     then
 ;
 
 \ Replace current r-region with new region.
-: _group-update-r-region ( grp0 -- )
+: _group-update-s-region ( grp0 -- )
     \ Check arg.
     assert-tos-is-group
 
-    dup group-get-r-region swap \ reg-old reg1 grp0
-    _group-calc-set-r-region    \ reg-old
+    dup group-get-s-region swap \ reg-old reg1 grp0
+    _group-calc-set-s-region    \ reg-old
     region-deallocate           \ Deallocate last, so struct field is never invalid.
 ;
 
@@ -232,7 +232,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 
     \ Check if group region EQ group r-region.
     dup group-get-region            \ grp0 reg
-    over group-get-r-region         \ grp0 reg r-reg
+    over group-get-s-region         \ grp0 reg r-reg
     regions-eq?                     \ grp0 bool
     if
     else
@@ -272,8 +272,9 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     then
 ;
 
-\ Return a new group, given a region and a non-empty square-list.
-\ Return false if the given square list contains at least one incompatible pair.
+\ Return a new group, given a region and square-list.
+\ Return false if the given square list is empty,
+\ or contains at least one incompatible pair.
 : group-new    ( sqrs1 reg0 -- grp t | f )
     \ Check args.
     assert-tos-is-region
@@ -288,8 +289,21 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
         exit
     then
 
-    \ Check squares.
-    over square-list-calc-rules     \ sqrs1 reg0, ruls t | f
+    \ Check squares are in region.
+    over square-list-region         \ sqrs1 reg0, s-reg t | f
+    invert abort" group-new: square-list-region failed?"
+    2dup swap                       \ sqrs1 reg0 s-reg s-reg reg0
+    region-superset?                \ sqrs1 reg0 s-reg bool
+    if
+    else
+        2drop drop
+        false
+        exit
+    then
+    -rot                            \ s-reg sqrs1 reg0
+    
+    \ Get square rules, and check all squares are compatible.
+    over square-list-calc-rules     \ s-reg sqrs1 reg0, ruls t | f
     if
     else
         2drop
@@ -298,28 +312,28 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
         exit
     then
 
-    -rot                            \ ruls sqrs1 reg0
+    -rot                            \ s-reg ruls sqrs1 reg0
 
     \ Allocate instance.
-    group-id group-mma              \ ruls sqrs1 reg0 id mma
-    struct-allocate                 \ ruls sqrs1 reg0 grp
+    group-id group-mma              \ s-reg ruls sqrs1 reg0 id mma
+    struct-allocate                 \ s-reg ruls sqrs1 reg0 grp
 
     \ Set group to valid.
-    dup _group-set-to-valid         \ ruls sqrs1 reg0 grp
+    dup _group-set-to-valid         \ s-reg ruls sqrs1 reg0 grp
 
     \ Set region.
-    tuck                            \ ruls sqrs1 grp reg0 grp
-    _group-set-region               \ ruls sqrs1 grp
+    tuck                            \ s-reg ruls sqrs1 grp reg0 grp
+    _group-set-region               \ s-reg ruls sqrs1 grp
 
     \ Set squares.
-    tuck                            \ ruls grp sqrs1 grp
-    _group-set-squares              \ ruls grp
-
-    \ Set r-region
-    dup _group-calc-set-r-region    \ ruls grp
+    tuck                            \ s-reg ruls grp sqrs1 grp
+    _group-set-squares              \ s-reg ruls grp
 
     \ Set rules
-    tuck _group-set-rules           \ grp
+    tuck _group-set-rules           \ s-reg grp
+
+    \ Set r-region
+    tuck _group-set-s-region        \ grp
 
     \ Set pnc
     dup _group-calc-set-pnc         \ grp
@@ -337,7 +351,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     if
         \ Deallocate instance.
         dup group-get-region region-deallocate
-        dup group-get-r-region region-deallocate
+        dup group-get-s-region region-deallocate
         dup group-get-squares square-list-deallocate
         dup group-get-rules rule-list-deallocate
 
@@ -368,7 +382,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     dup group-get-valid             \ grp0 valid
     if
         space ." - "
-        dup group-get-r-region .region
+        dup group-get-s-region .region
         space
         dup group-get-rules  .rule-list
     else
@@ -425,7 +439,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
             
             \ Update r-region and rules.
             dup                     \ sqr1 grp0 grp0
-            _group-update-r-region  \ sqr1 grp0
+            _group-update-s-region  \ sqr1 grp0
             _group-update-rules     \ sqr1
             drop
         else
@@ -436,7 +450,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
             if
                 \ Check if square is in r-region.
                 over square-get-state       \ sqr1 grp0 sta
-                over group-get-r-region     \ sqr1 grp0 sta r-reg
+                over group-get-s-region     \ sqr1 grp0 sta r-reg
                 region-superset-of-state?   \ sqr1 grp0 bool
                 if
                     \ Check pnc.
@@ -455,7 +469,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
                 else
                     \ Update r-region and rules.
                     dup                     \ sqr1 grp0 grp0
-                    _group-update-r-region  \ sqr1 grp0
+                    _group-update-s-region  \ sqr1 grp0
                     _group-update-rules     \ sqr1
                     drop
                 then
@@ -508,7 +522,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 
     \ Check if the new square is in the r-region.
     #2 pick square-get-state                \ sqr1 grp0 valid-bool sta
-    #2 pick group-get-r-region              \ sqr1 grp0 valid-bool sta r-reg
+    #2 pick group-get-s-region              \ sqr1 grp0 valid-bool sta r-reg
     region-superset-of-state?               \ sqr1 grp0 valid-bool r-bool
 
     \ Process validity result.
@@ -522,7 +536,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
             if
                 \ Update r-region and rules.
                 dup                         \ sqr1 grp0 grp0
-                _group-update-r-region      \ sqr1 grp0
+                _group-update-s-region      \ sqr1 grp0
                 _group-update-rules         \ sqr1
                 drop
             then
@@ -535,7 +549,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
             dup group-get-pn 1 =            \ sqr1 grp0
             if
                 \ Update r-region and rules.
-                dup _group-update-r-region  \ sqr1 grp0
+                dup _group-update-s-region  \ sqr1 grp0
             then
         then
         \ Set the valid flag to false
