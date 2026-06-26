@@ -51,7 +51,15 @@
     s" rXXXX" region-from-string-a                                      \ sqr8 sqrf lst reg
     cr
     group-new                                                           \ sqr8 sqrf grp
-    cr ." initial group: " dup .group
+    cr ." initial group: " dup .group cr
+
+    \ Check group.
+    dup group-get-valid invert abort" Group not valid?"
+    dup group-get-pn 1 <> abort" Group pn ne 1?"
+    s" r1XXX" region-from-string-a                      \ sqr8 sqrf grp reg-tmp'
+    over group-get-r-region over                        \ sqr8 sqrf grp reg-tmp' grp-reg reg-tmp'
+    regions-eq? invert abort" r-region invalid?"        \ sqr8 sqrf grp reg-tmp'
+    region-deallocate                                   \ sqr8 sqrf grp
 
     \ Change a square to be pn = 2.
     s" s1000->s0000" sample-from-string-a               \ sqr8 sqrf grp smpl
@@ -62,12 +70,21 @@
     \ cr ." at 2: " .stack-gbl cr
     cr ." after changing sqr8: " dup .group cr
 
+    \ Check group.
+    dup group-get-valid invert abort" Group not valid?"
+    dup group-get-pn 2 <> abort" Group pn ne 2?"
+    s" r1000" region-from-string-a                      \ sqr8 sqrf grp reg-tmp'
+    over group-get-r-region over                        \ sqr8 sqrf grp reg-tmp' grp-reg reg-tmp'
+    regions-eq? invert abort" r-region invalid?"        \ sqr8 sqrf grp reg-tmp'
+    region-deallocate                                   \ sqr8 sqrf grp
+
     \ Make sqrf incompatible with sqr8.
     s" s1111->s1111" sample-from-string-a               \ sqr8 sqrf grp smpl
     #2 pick square-add-sample                           \ sqr8 sqrf grp bool
     drop
     2dup group-check-changed-square                     \ sqr8 sqrf grp
     cr ." after changing sqrf: " dup .group cr
+    dup group-get-valid abort" Group valid?"
     
     \ Deallocate.
     \ cr ." at 3: " .stack-gbl cr
@@ -80,8 +97,45 @@
     cr ." group-test-check-changed-square - Ok"
 ;
 
+: group-test-add-new-square
+    \ Init group.
+    list-new                                                            \ lst
+    s" s1000->s1000" square-from-string-a over list-push-struct         \ lst
+    s" rXXXX" region-from-string-a                                      \ lst reg
+    cr
+    group-new                                                           \ grp
+    cr ." initial group: " dup .group cr
+    \ cr .stack-gbl cr
+    \ Check group.
+    dup group-get-valid invert abort" Group not valid?"
+
+    \ Add a compatible square.
+    s" s1001->s1001" square-from-string-a                               \ grp sqr9
+    over
+    \ cr ." at 1: " .stack-gbl cr
+    group-add-new-square                                                \ grp
+    \ cr ." at 2: " .stack-gbl cr
+    cr ." group + sqr9: " dup .group cr
+    
+    \ Check group.
+    dup group-get-valid invert abort" Group not valid?"
+    s" r100X" region-from-string-a                      \ grp reg-tmp'
+    over group-get-r-region over                        \ grp reg-tmp' grp-reg reg-tmp'
+    regions-eq? invert abort" r-region invalid?"        \ grp reg-tmp'
+    region-deallocate                                   \
+    
+    \ Deallocate.
+    group-deallocate
+
+    \ Check for memory leaks.
+    structinfo-list-store structinfo-list-project-deallocated
+
+    cr ." group-test-add-new-square - Ok"
+;
+
 : group-tests
     group-test-new
     group-test-check-changed-square
+    group-test-add-new-square
     cr
 ;
