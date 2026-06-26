@@ -243,23 +243,27 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     then
 
     \ Look for a pair of pnc squares.
-    dup group-get-squares           \ grp0 sqr-lst
-    square-list-pnc-squares         \ grp0, pnc-lst' t | f
+    dup group-get-squares               \ grp0 sqr-lst
+    square-list-pnc-squares             \ grp0, pnc-lst' t | f
     if
-        dup square-list-region      \ grp0, pnc-lst' pnc-reg'
-        swap square-list-deallocate \ grp0 pnc-reg'
-        2dup swap                   \ grp0 pnc-reg' pnc-reg' grp0
-        group-get-region            \ grp0 pnc-reg' pnc-reg' grp-reg
-        regions-eq?                 \ grp0 pnc-reg' bool
-        swap region-deallocate      \ grp0 bool
+        dup square-list-region          \ grp0, pnc-lst', pnc-reg' t | f
         if
-            true
-            swap                    \ false grp0
-            _group-set-pnc
+            swap square-list-deallocate \ grp0 pnc-reg'
+            2dup swap                   \ grp0 pnc-reg' pnc-reg' grp0
+            group-get-region            \ grp0 pnc-reg' pnc-reg' grp-reg
+            regions-eq?                 \ grp0 pnc-reg' bool
+            swap region-deallocate      \ grp0 bool
+            if
+                true
+                swap                    \ false grp0
+                _group-set-pnc
+            else
+                false
+                swap                    \ false grp0
+                _group-set-pnc
+            then
         else
-            false
-            swap                    \ false grp0
-            _group-set-pnc
+            true abort" unexpected"
         then
     else
         false
@@ -359,6 +363,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 
     ." Grp: "
     dup group-get-region .region
+    space ." pnc: " dup group-get-pnc .bool
 
     dup group-get-valid             \ grp0 valid
     if

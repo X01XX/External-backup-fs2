@@ -18,7 +18,7 @@
         cr ." group-test-new: group not valid? " cr abort
     then
 
-    \ Deallocate.
+    \ Clean up.
     group-deallocate
 
     \ Test empty square list.
@@ -38,8 +38,42 @@
     2dup                                        \ lst reg lst reg
     group-new                                   \ lst reg grp t | f
     abort" group-new succeeded?"
+
+    \ Clean up.
     region-deallocate
     square-list-deallocate
+
+    \ Test new with pnc squares that can make the group pnc.
+
+    \ Init square-list.
+    list-new                                    \ sqr-lst
+
+    \ Add square 1.
+    s" s1010->s1010" sample-from-string-a       \ sqr-lst smpl
+    dup square-new                              \ sqr-lst smpl sqr1
+    2dup square-add-sample drop                 \ sqr-lst smpl sqr1
+
+    2dup square-add-sample drop                 \ sqr-lst smpl sqr1
+    tuck square-add-sample drop                 \ sqr-lst sqr1
+    over list-push-struct                       \ sqr-lst
+
+    \ Add square 2.
+    s" s0101->s0101" sample-from-string-a       \ sqr-lst smpl
+    dup square-new                              \ sqr-lst smpl sqr1
+    2dup square-add-sample drop                 \ sqr-lst smpl sqr1
+    2dup square-add-sample drop                 \ sqr-lst smpl sqr1
+    tuck square-add-sample drop                 \ sqr-lst sqr1
+    over list-push-struct                       \ sqr-lst
+
+    s" rXXXX" region-from-string-a              \ sqr-lst reg
+    group-new                                   \ grp t | f
+    invert abort" group-new failed?"
+
+    cr ." group: " dup .group
+    dup group-get-pnc invert abort" group not pnc?"
+
+    \ Clean up.
+    group-deallocate
     
     \ Check for memory leaks.
     structinfo-list-store structinfo-list-project-deallocated
@@ -94,6 +128,51 @@
     
     \ Deallocate.
     \ cr ." at 3: " .stack-gbl cr
+    group-deallocate
+    2drop
+
+    \ Test square change than can make the group pnc.
+
+    \ Init square-list.
+    list-new                                    \ sqr-lst
+
+    \ Add square 1.
+    s" s1010->s1010" sample-from-string-a       \ sqr-lst smpl
+    dup square-new                              \ sqr-lst smpl sqr1
+    2dup square-add-sample drop                 \ sqr-lst smpl sqr1
+
+    2dup square-add-sample drop                 \ sqr-lst smpl sqr1
+    tuck square-add-sample drop                 \ sqr-lst sqr1
+    over list-push-struct                       \ sqr-lst
+
+    \ Add square 2.
+    s" s0101->s0101" sample-from-string-a       \ sqr-lst smpl
+    dup square-new                              \ sqr-lst smpl sqr1
+    2dup square-add-sample drop                 \ sqr-lst smpl sqr1
+    2dup square-add-sample drop                 \ sqr-lst smpl sqr1
+    
+    dup                                         \ sqr-lst smpl sqr1 sqr1
+    #3 pick list-push-struct                    \ sqr-lst smpl sqr1
+    rot                                         \ smpl sqr1 sqr-lst
+
+    s" rXXXX" region-from-string-a              \ smpl sqr1 sqr-lst reg
+    group-new                                   \ smpl sqr1 grp t | f
+    invert abort" group-new failed?"
+
+    cr ." group: " dup .group
+    dup group-get-pnc abort" group pnc true?"
+
+    #2 pick #2 pick square-add-sample           \ smpl sqr1 grp bool
+    invert abort" added sample did not make square pnc true?"
+
+    2dup group-check-changed-square
+    cr ." group: " dup .group
+
+
+    
+    \ dup group-get-pnc invert abort" group not pnc?"
+
+    \ Clean up.
     group-deallocate
     2drop
 
