@@ -596,6 +596,77 @@
     false
 ;
 
+\ Return true if any incompatible square pair is found.
+\ At least one of the pair must be a base-pn square.
+\ Base-pn: 0 if any pn-0 squares, else 2 if any pn-2 squares, else 1.
+: square-list-all-compatible? ( sqr-lst0 -- bool )
+    \ Check arg.
+    assert-tos-is-square-list
+    \ cr ." square-list-any-incompatible-pair?: start: " .stack-gbl cr
+
+    \ Check list length.
+    dup list-get-length                 \ s/qr-lst0 len
+    #2 < if
+        \ No pairs to check.
+        drop
+        true
+        \ cr ." square-list-find-incompatible-pair: exit 1" cr
+        exit
+    then
+
+    \ Get base pn.
+    dup square-list-base-pn swap        \ bpn sqr-lst0
+
+    \ Check every possible pair, when at least one has the base pn, compare them.
+    list-get-links                      \ bpn sqr-lnk
+
+    begin
+        ?dup
+    while
+        \ Check if loop 1 square pn is equal to the base pn.
+        dup link-get-data               \ bpn sqr-lnx sqr1
+        square-get-pn                   \ bpn sqr-lnx pn1
+        #2 pick                         \ bpn sqr-lnx pn1 bpn
+        =                               \ bpn sqr-lnx bool1
+
+        \ Check next squares.
+        over link-get-next              \ bpn sqr-lnx bool1 nxt-lnk
+        begin
+            ?dup
+        while
+            \ Check if loop 2 square pn is equal to the base pn.
+            dup link-get-data           \ bpn sqr-lnx bool1 nxt-lnk sqr2
+            square-get-pn               \ bpn sqr-lnx bool1 nxt-lnk pn2
+            #4 pick                     \ bpn sqr-lnx bool1 nxt-lnk pn2 bpn
+            =                           \ bpn sqr-lnx bool1 nxt-lnk bool2
+
+            \ Check that at least one square of the pair has a pn equal to the base pn.
+            #2 pick                     \ bpn sqr-lnx bool1 nxt-lnk bool2 bool1
+            or                          \ bpn sqr-lnx bool1 nxt-lnk bool12
+            if
+                \ Check the pair.
+                #2 pick link-get-data   \ bpn sqr-lnx bool1 nxt-lnk sqr1
+                over link-get-data      \ bpn sqr-lnx bool1 nxt-lnk sqr1 sqr2
+                squares-compare         \ bpn sqr-lnx bool1 nxt-lnk char
+                [char] I =
+                if
+                   2drop 2drop
+                   false
+                   exit
+                then
+            then
+
+            link-get-next
+        repeat
+                                        \ bpn sqr-lnx bool1
+        drop                            \ bpn sqr-lnx
+        link-get-next
+    repeat
+                                        \ bpn
+    drop
+    true
+;
+
 \ Return rules for a square-list.
 : square-list-get-rules ( sqr-lst0 -- rul-lst t | f )
     \ Check arg.
@@ -609,57 +680,66 @@
         drop
         false
         \ cr ." square-list-get-rules: exit 1: " .stack-gbl cr
+        exit
     then
 
-    dup square-list-base-pn         \ sqr-lst0 max-pn
+    dup square-list-all-compatible?     \ sqr-lst0 bool
+    if
+    else
+        drop
+        false
+        exit
+    then
 
-    \ Check for 0/U
+    dup square-list-base-pn             \ sqr-lst0 max-pn
+
+    \ Check for pn 0 (Unpredictable).
     dup 0=
     if
-        2drop                       \
-        list-new                    \ rul-str
+        2drop                           \
+        list-new                        \ rul-lst
         true
         \ cr ." square-list-get-rules: exit 2: " .stack-gbl cr
         exit
     then
 
-    swap                            \ max-pn sqr-lst0
+    swap                                \ max-pn sqr-lst0
 
-    \ Init return rule list.
+    \ Init return rule list, with a base-pn square's rules.
     2dup                                \ max-pn sqr-lst0 max-pn sqr-lst0
     square-list-first-pn-eq             \ max-pn sqr-lst0, sqr0 t | f
     invert abort" square-list-get-rules: first pn eq failed?"
-    square-get-rules                    \ max-pn sqr-lst0 ret-ruls
+    square-get-rules                    \ max-pn sqr-lst0 rul-lst
 
     \ Adjust for one deallocate, below.
-    list-copy-struct                    \ max-pn sqr-lst0 ret-ruls
-    -rot                                \ ret-lst max-pn sqr-lst0
+    list-copy-struct                    \ max-pn sqr-lst0 rul-lst
+    -rot                                \ rul-lst max-pn sqr-lst0
 
     \ Prep for loop
-    list-get-links                      \ ret-lst max-pn link
+    list-get-links                      \ rul-lst max-pn link
     begin
         ?dup
     while
         \ Check if the current square pn is equal to the max-pn.
-        dup link-get-data               \ ret-lst max-pn link sqr
-        square-get-pn                   \ ret-lst max-pn link sqr-pn
-        #2 pick                         \ ret-lst max-pn link sqr-pn max-pn
-        =                               \ ret-lst max-pn link flag
+        dup link-get-data               \ rul-lst max-pn link sqr
+        square-get-pn                   \ rul-lst max-pn link sqr-pn
+        #2 pick                         \ rul-lst max-pn link sqr-pn max-pn
+        =                               \ rul-lst max-pn link flag
 
-        if                              \ ret-lst max-pn link
+        if                              \ rul-lst max-pn link
             \ Update the return rule-list.
-            rot                         \ max-pn link ret-lst
+            rot                         \ max-pn link rul-lst
 
-            over link-get-data          \ max-pn link ret-lst sqr
-            square-get-rules            \ max-pn link ret-lst sqr-ruls
-            over                        \ max-pn link ret-lst sqr-ruls ret-lst
+            over link-get-data          \ max-pn link rul-lst sqr
+            square-get-rules            \ max-pn link rul-lst sqr-ruls
+            over                        \ max-pn link rul-lst sqr-ruls rul-lst
             \ cr ." about to union: " over .rule-list space dup .rule-list cr
-            rule-list-union             \ max-pn link ret-lst, new-rules t | f
-            if                          \ max-pn link ret-lst new-rules
-                swap                    \ max-pn link new-rules ret-lst
+            rule-list-union             \ max-pn link rul-lst, new-rules t | f
+            if                          \ max-pn link rul-lst new-rules
+                swap                    \ max-pn link new-rules rul-lst
                 rule-list-deallocate    \ max-pn link new-rules
-                -rot                    \ ret-lst max-pn link
-            else                        \ max-pn link ret-lst
+                -rot                    \ rul-lst max-pn link
+            else                        \ max-pn link rul-lst
                 rule-list-deallocate    \ max-pn link
                 2drop
                 false
@@ -670,8 +750,8 @@
 
         link-get-next
     repeat
-                                \ ret-lst max-pn
-    drop                        \ ret-lst
+                                        \ rul-lst max-pn
+    drop                                \ rul-lst
     true
     \ cr ." square-list-get-rules: exit 4: " .stack-gbl cr
 ;
