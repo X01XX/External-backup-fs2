@@ -6,7 +6,8 @@
     over list-push-struct                       \ sqr-lst
     s" rXX10" region-from-string-a              \ sqr-lst reg
 
-    group-new                                   \ grp
+    group-new                                   \ grp t | f
+    invert abort" group-new failed?"
 
     cr ." group: " dup .group
 
@@ -23,20 +24,23 @@
     \ Test empty square list.
     list-new                                    \ lst
     s" rX0XX" region-from-string-a              \ lst reg
-    cr group-new                                \ grp
-    cr dup .group
-    group-deallocate
+    2dup                                        \ lst reg lst reg
+    cr group-new                                \ lst reg, grp t | f
+    abort" group-new succeeded?"
+    region-deallocate
+    list-deallocate
 
     \ Test incompatible square list.
     list-new                                    \ lst
     s" s1000->s1000" square-from-string-a over list-push-struct
     s" s1001->s0001" square-from-string-a over list-push-struct
     s" rX0XX" region-from-string-a              \ lst reg
-    cr
-    group-new                                   \ grp
-    cr dup .group
-    group-deallocate
-
+    2dup                                        \ lst reg lst reg
+    group-new                                   \ lst reg grp t | f
+    abort" group-new succeeded?"
+    region-deallocate
+    square-list-deallocate
+    
     \ Check for memory leaks.
     structinfo-list-store structinfo-list-project-deallocated
 
@@ -50,7 +54,9 @@
     s" s1111->s1111" square-from-string-a tuck over list-push-struct    \ sqr8 sqrf lst
     s" rXXXX" region-from-string-a                                      \ sqr8 sqrf lst reg
     cr
-    group-new                                                           \ sqr8 sqrf grp
+    group-new                                                           \ sqr8 sqrf, grp t | f
+    invert abort" group-new failed?"
+
     cr ." initial group: " dup .group cr
 
     \ Check group.
@@ -103,7 +109,9 @@
     s" s1000->s1000" square-from-string-a over list-push-struct         \ lst
     s" rXXXX" region-from-string-a                                      \ lst reg
     cr
-    group-new                                                           \ grp
+    group-new                                                           \ grp t | f
+    invert abort" group-new failed?"
+    
     cr ." initial group: " dup .group cr
     \ cr .stack-gbl cr
     \ Check group.

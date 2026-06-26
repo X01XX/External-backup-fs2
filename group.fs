@@ -137,8 +137,8 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 : _group-set-to-invalid ( grp0 -- )
     dup group-get-valid     \ grp0 bool
     if
-        dup group-get-rules \ grp0 ruls
-        rule-list-deallocate
+    else
+        cr ." problem? group is already invalid."
     then
     false swap
     _group-set-valid
@@ -205,7 +205,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     assert-tos-is-group
 
     dup group-get-squares   \ grp0 sqr-lst
-    square-list-get-rules   \ grp0, ruls t | f
+    square-list-calc-rules  \ grp0, ruls t | f
     if
         swap                \ ruls grp0
         dup _group-set-to-valid
@@ -280,6 +280,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     if
         2drop
         false
+        \ cr ." group-new: exit 1" cr
         exit
     then
 
@@ -289,6 +290,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     else
         2drop
         false
+        \ cr ." group-new: exit 2" cr
         exit
     then
 
@@ -317,6 +319,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 
     \ Set pnc
     dup _group-calc-set-pnc         \ grp
+    true
 ;
 
 : group-deallocate ( grp0 -- )
@@ -364,7 +367,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
         space
         dup group-get-rules  .rule-list
     else
-        ." Invalid:"
+        space ." Invalid"
     then
     space
     group-get-squares   .square-list-states

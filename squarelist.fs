@@ -571,7 +571,7 @@
 
 \ Return the first square matching a given pn value.
 : square-list-first-pn-eq ( pn sqr-lst0 -- sqr t | f )
-    \ Check arg.
+    \ Check arg.square-list-
     assert-tos-is-square-list
 
     \ Prep for loop.
@@ -668,7 +668,7 @@
 ;
 
 \ Return rules for a square-list.
-: square-list-get-rules ( sqr-lst0 -- rul-lst t | f )
+: square-list-calc-rules ( sqr-lst0 -- rul-lst t | f )
     \ Check arg.
     assert-tos-is-square-list
     \ cr ." square-list-get-rules: start: " .stack-gbl cr
@@ -679,7 +679,7 @@
     if
         drop
         false
-        \ cr ." square-list-get-rules: exit 1: " .stack-gbl cr
+        \ cr ." square-list-calc-rules: exit 1: " .stack-gbl cr
         exit
     then
 
@@ -699,7 +699,7 @@
         2drop                           \
         list-new                        \ rul-lst
         true
-        \ cr ." square-list-get-rules: exit 2: " .stack-gbl cr
+        \ cr ." square-list-calc-rules: exit 2: " .stack-gbl cr
         exit
     then
 
@@ -708,7 +708,7 @@
     \ Init return rule list, with a base-pn square's rules.
     2dup                                \ max-pn sqr-lst0 max-pn sqr-lst0
     square-list-first-pn-eq             \ max-pn sqr-lst0, sqr0 t | f
-    invert abort" square-list-get-rules: first pn eq failed?"
+    invert abort" square-list-calc-rules: first pn eq failed?"
     square-get-rules                    \ max-pn sqr-lst0 rul-lst
 
     \ Adjust for one deallocate, below.
@@ -743,7 +743,7 @@
                 rule-list-deallocate    \ max-pn link
                 2drop
                 false
-                \ cr ." square-list-get-rules: exit 3: " .stack-gbl cr
+                \ cr ." square-list-calc-rules: exit 3: " .stack-gbl cr
                 exit
             then
         then
@@ -753,7 +753,7 @@
                                         \ rul-lst max-pn
     drop                                \ rul-lst
     true
-    \ cr ." square-list-get-rules: exit 4: " .stack-gbl cr
+    \ cr ." square-list-calc-rules: exit 4: " .stack-gbl cr
 ;
 
 \ Return squares in a given region.
