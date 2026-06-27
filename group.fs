@@ -535,3 +535,14 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
         drop
     then
 ;
+
+\ Return true if a group's region is superset of a square's state.
+: group-superset-square? ( sqr1 grp0 -- bool )
+    \ Check args.
+    assert-tos-is-group
+    assert-nos-is-square
+
+    swap square-get-state
+    swap group-get-region
+    region-superset-of-state?
+;

@@ -285,7 +285,22 @@ action-possible-regions-disp    cell+   constant action-groups-disp             
     assert-nos-is-group-list
     assert-3os-is-square
 
-    cr ." action-add-new-square-to-groups: todo" cr
+    over list-get-links             \ sqr2 grp-lst act0 grp-lnk
+
+    begin
+        ?dup
+    while
+        #3 pick over link-get-data  \ sqr2 grp-lst act0 grp-lnk sqr2 grpx
+        group-superset-square?      \ sqr2 grp-lst act0 grp-lnk sqr2 grpx
+        if
+            #3 pick over            \ sqr2 grp-lst act0 grp-lnk sqr2 grp-lnk
+            link-get-data           \ sqr2 grp-lst act0 grp-lnk sqr2 grpx
+            group-add-new-square    \ sqr2 grp-lst act0 grp-lnk
+        then
+        link-get-next
+    repeat
+    
+    \ cr ." action-add-new-square-to-groups: end" cr
     2drop drop
 ;
 
@@ -303,6 +318,7 @@ action-possible-regions-disp    cell+   constant action-groups-disp             
     group-list-superset-of-state    \ sqr1 act0, grp-lst t | f
     if
         cr ." action-check-new-square: new square in groups: " dup .group-list-regions cr
+        
         cr ." action-check-new-square: todo" cr
         #2 pick over #3 pick                \ sqr1 act0 grp-lst' sqr1 grp-lst1' act0
         _action-add-new-square-to-groups    \ sqr1 act0 grp-lst'

@@ -855,3 +855,15 @@
         true
     then
 ;
+
+\ Return true if a square is a member of a square-list.
+\ Comparing the square states might be more correct,
+\ but address equality should work.
+: square-list-member? ( sqr1 sqr-lst0 -- bool )
+    \ Check args.
+    assert-tos-is-square-list
+    assert-nos-is-square
+
+    [ ' = ] literal -rot    \ xt sqr1 sqr-lst0
+    list-member?
+;
