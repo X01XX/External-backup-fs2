@@ -2,6 +2,8 @@
 cr ." Starting vocabulary UES," cr
 vocabulary UES
 
+true constant debug
+
 \ Put new words into the UES vocabulary.
 UES definitions
 
