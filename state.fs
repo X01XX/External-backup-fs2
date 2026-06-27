@@ -196,7 +196,7 @@ state-header-disp cell+   constant state-number-disp
     \ Check args.
     assert-tos-is-state
     assert-nos-is-state
-    2dup states-dif-num-bits? abort" states do not have the same number of bits?"
+    2dup states-dif-num-bits? abort" state-and-state-to-mask: num bits ne?"
 
     over state-get-number   \ sta1 sta0 num1
     swap state-get-number   \ sta1 num1 num0
@@ -211,7 +211,7 @@ state-header-disp cell+   constant state-number-disp
     \ Check args.
     assert-tos-is-state
     assert-nos-is-state
-    2dup states-dif-num-bits? abort" states do not have the same number of bits?"
+    2dup states-dif-num-bits? abort" state-xor-to-mask: num bits ne?"
 
     over state-get-number   \ sta1 sta0 num1
     swap state-get-number   \ sta1 num1 num0
@@ -226,13 +226,13 @@ state-header-disp cell+   constant state-number-disp
     \ Check args.
     assert-tos-is-state
     assert-nos-is-state
-    2dup states-dif-num-bits? abort" states do not have the same number of bits?"
+    2dup states-dif-num-bits? abort" state-or: num bits ne?"
 
     over state-get-number   \ sta1 sta0 num1
     swap state-get-number   \ sta1 num1 num0
     or                      \ sta1 num
     swap                    \ num sta1
-    state-get-num-bits   \ num nb
+    state-get-num-bits      \ num nb
     state-new               \ msk
 ;
 
@@ -243,7 +243,7 @@ state-header-disp cell+   constant state-number-disp
     assert-nos-is-mask
     over mask-get-num-bits
     over state-get-num-bits
-    <> abort" state and mask do not have the same number of bits?"
+    <> abort" state-or-mask: num bits ne?"
 
     over mask-get-number    \ msk1 sta0 num1
     swap state-get-number   \ msk1 num1 num0
@@ -258,7 +258,7 @@ state-header-disp cell+   constant state-number-disp
     \ Check args.
     assert-tos-is-state
     assert-nos-is-state
-    2dup states-dif-num-bits? abort" states do not have the same number of bits?"
+    2dup states-dif-num-bits? abort" state-and: num bits ne?"
 
     over state-get-number   \ sta1 sta0 num1
     swap state-get-number   \ sta1 num1 num0
@@ -275,7 +275,7 @@ state-header-disp cell+   constant state-number-disp
     assert-nos-is-mask
     over mask-get-num-bits
     over state-get-num-bits
-    <> abort" state and mask do not have the same number of bits?"
+    <> abort" state-and-mask: num bits ne?"
 
     over mask-get-number    \ msk1 sta0 num1
     swap state-get-number   \ msk1 num1 num0
@@ -292,7 +292,7 @@ state-header-disp cell+   constant state-number-disp
     assert-nos-is-mask
     over mask-get-num-bits
     over state-get-num-bits
-    <> abort" state and mask do not have the same number of bits?"
+    <> abort" state-and-mask-to-mask: num bits ne?"
 
     over mask-get-number    \ msk1 sta0 num1
     swap state-get-number   \ msk1 num1 num0
@@ -421,7 +421,7 @@ state-header-disp cell+   constant state-number-disp
     \ Check args.
     assert-tos-is-state
     assert-nos-is-state
-    2dup states-dif-num-bits? abort" states do not have the same number of bits?"
+    2dup states-dif-num-bits? abort" states-eq?: num bits ne?"
 
     state-get-number        \ sta1 num0
     swap state-get-number   \ num0 num1
@@ -433,7 +433,7 @@ state-header-disp cell+   constant state-number-disp
     \ Check args.
     assert-tos-is-state
     assert-nos-is-state
-    2dup states-dif-num-bits? abort" states do not have the same number of bits?"
+    2dup states-dif-num-bits? abort" states-adjacent?: num bits ne?"
 
     state-get-number        \ sta1 num0
     swap state-get-number   \ num0 num1
@@ -456,6 +456,7 @@ state-header-disp cell+   constant state-number-disp
     \ Check args.
     assert-tos-is-state
     assert-nos-is-state
+    2dup states-dif-num-bits? abort" states-dif-mask: num bits ne?"
 
     \ Save number bits.
     dup state-get-num-bits -rot \ nb sta1 sta0
@@ -477,6 +478,8 @@ state-header-disp cell+   constant state-number-disp
     assert-tos-is-state
     assert-nos-is-state
     assert-3os-is-state
+    2dup states-dif-num-bits? abort" states-between?: num bits ne?"
+    #2 pick over states-dif-num-bits? abort" states-between?: num bits ne?"
 
     \ Get sta0 dif masks.
     tuck                    \ sta2 sta0 sta1 sta0
@@ -498,6 +501,7 @@ state-header-disp cell+   constant state-number-disp
     \ Check args.
     assert-tos-is-state
     assert-nos-is-state
+    2dup states-dif-num-bits? abort" states-distance: num bits ne?"
 
     state-dif-mask      \ msk'
     dup mask-count-bits \ msk' u

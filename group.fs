@@ -161,6 +161,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 
 \ Set the valid flag to false.
 : _group-set-to-invalid ( grp0 -- )
+    cr ." Group: " dup group-get-region .region space ." invalidated" cr
     false swap
     _group-set-valid
 ;

@@ -304,6 +304,23 @@ action-possible-regions-disp    cell+   constant action-groups-disp             
     2drop drop
 ;
 
+: _action-check-for-invalidated-groups ( grp-lst1 act0 -- )
+    \ Check args.
+    assert-tos-is-action
+    assert-nos-is-group-list
+
+    \ Prep for loop.
+    swap group-list-get-invalidated-groups  \ act0, grp-lst' t | f
+    if
+        cr ." invalidated groups: " dup .group-list-regions cr
+        group-list-deallocate
+        cr ." TODO "
+        drop
+    else
+        drop
+    then
+;
+
 \ Check a new square.
 : action-check-new-square ( sqr1 act0 -- )
     \ Check args.
@@ -318,11 +335,9 @@ action-possible-regions-disp    cell+   constant action-groups-disp             
     group-list-superset-of-state    \ sqr1 act0, grp-lst t | f
     if
         cr ." action-check-new-square: new square in groups: " dup .group-list-regions cr
-        
-        cr ." action-check-new-square: todo" cr
         #2 pick over #3 pick                \ sqr1 act0 grp-lst' sqr1 grp-lst1' act0
         _action-add-new-square-to-groups    \ sqr1 act0 grp-lst'
-        cr ." action-check-new-square: any groups invalid? todo" cr
+        2dup swap _action-check-for-invalidated-groups
         group-list-deallocate
     else
         cr ." action-check-new-square: new square not in any groups. " cr
