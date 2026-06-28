@@ -505,5 +505,5 @@ state-header-disp cell+   constant state-number-disp
 
     state-dif-mask      \ msk'
     dup mask-count-bits \ msk' u
-    swap mask-deallocate 
+    swap mask-deallocate
 ;

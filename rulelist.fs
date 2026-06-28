@@ -210,7 +210,7 @@
 ;
 
 \ Return a copy of a rule-list.
-: rule-list-copy ( lst0 -- lst-copy )                                                                                                                       
+: rule-list-copy ( lst0 -- lst-copy )
     \ Check arg.
     assert-tos-is-rule-list
 
@@ -219,7 +219,7 @@
     list-get-links          \ lst-n link
 
     begin
-        ?dup 
+        ?dup
     while
         dup link-get-data       \ lst-n link rule
         #2 pick                 \ lst-n link rule lst-n

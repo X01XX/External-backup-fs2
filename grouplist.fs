@@ -1,10 +1,10 @@
-\ Functions for group lists.                                                                                                                      
+\ Functions for group lists.
 
 \ Check if tos is an empty list, or has a group instance as its first item.
 : assert-tos-is-group-list ( tos -- tos )
     assert-tos-is-list
     dup list-is-not-empty?
-    if  
+    if
         dup list-get-links link-get-data
         assert-tos-is-group
         drop
@@ -15,7 +15,7 @@
 : assert-nos-is-group-list ( nos tos -- nos tos )
     assert-nos-is-list
     over list-is-not-empty?
-    if  
+    if
         over list-get-links link-get-data
         assert-tos-is-group
         drop
@@ -69,7 +69,7 @@
 
     \ Prep for loop.
     list-get-links                  \ sta1 ret-lst grp-lnk
-    
+
     begin
         ?dup
     while
@@ -110,7 +110,7 @@
 ;
 
 \ Print a list of group regions.
-: .group-list-regions ( grp-lst0 -- )                                                                                    
+: .group-list-regions ( grp-lst0 -- )
     \ Check args.
     assert-tos-is-group-list
 

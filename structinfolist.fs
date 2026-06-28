@@ -150,7 +150,7 @@
     repeat
 
     \ Print array memory use.
-    30 spaces
+    #30 spaces
     #7 dec.r
 
     \ Sum overhead memory use.

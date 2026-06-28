@@ -89,7 +89,7 @@ frame-header-disp cell+ constant frame-disp
     assert-tos-is-frame
 
     frame-header-disp +
-    2 cells +
+    #2 cells +
     @
 ;
 
@@ -99,7 +99,7 @@ frame-header-disp cell+ constant frame-disp
     assert-tos-is-frame
 
     frame-header-disp +
-    2 cells +
+    #2 cells +
     !
 ;
 
@@ -109,7 +109,7 @@ frame-header-disp cell+ constant frame-disp
     assert-tos-is-frame
 
     frame-header-disp +
-    3 cells +
+    #3 cells +
     @
 ;
 
@@ -119,7 +119,7 @@ frame-header-disp cell+ constant frame-disp
     assert-tos-is-frame
 
     frame-header-disp +
-    3 cells +
+    #3 cells +
     !
 ;
 
@@ -129,7 +129,7 @@ frame-header-disp cell+ constant frame-disp
     assert-tos-is-frame
 
     frame-header-disp +
-    4 cells +
+    #4 cells +
     @
 ;
 
@@ -139,7 +139,7 @@ frame-header-disp cell+ constant frame-disp
     assert-tos-is-frame
 
     frame-header-disp +
-    4 cells +
+    #4 cells +
     !
 ;
 

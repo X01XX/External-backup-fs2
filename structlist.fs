@@ -35,20 +35,6 @@
     list-push
 ;
 
-\ Push a struct list to a list.
-\ Run struct-inc-use-count on all elements.
-: list-push-struct-list ( struct1 list0 -- )
-    \ Check args.
-    assert-tos-is-list
-
-    [ ' struct-inc-use-count ] literal  \ struct1 list0 xt
-    #2 pick                             \ struct1 list0 xt struct1
-    list-apply-recursive                \ struct1 list0
-
-    over struct-inc-use-count
-    list-push
-;
-
 \ Push a struct to the end of a list.
 : list-push-end-struct ( struct1 list0 -- )
     \ Check args.

@@ -74,7 +74,7 @@
 
     \ Clean up.
     group-deallocate
-    
+
     \ Check for memory leaks.
     structinfo-list-store structinfo-list-project-deallocated
 
@@ -112,7 +112,7 @@
 
     \ Check group.
     dup group-get-valid invert abort" Group not valid?"
-    dup group-get-pn 2 <> abort" Group pn ne 2?"
+    dup group-get-pn #2 <> abort" Group pn ne 2?"
     s" r1000" region-from-string-a                      \ sqr8 sqrf grp reg-tmp'
     over group-get-s-region over                        \ sqr8 sqrf grp reg-tmp' grp-reg reg-tmp'
     regions-eq? invert abort" r-region invalid?"        \ sqr8 sqrf grp reg-tmp'
@@ -125,7 +125,7 @@
     2dup group-check-changed-square                     \ sqr8 sqrf grp
     cr ." after changing sqrf: " dup .group cr
     dup group-get-valid abort" Group valid?"
-    
+
     \ Deallocate.
     \ cr ." at 3: " .stack-gbl cr
     group-deallocate
@@ -150,7 +150,7 @@
     dup square-new                              \ sqr-lst smpl sqr1
     2dup square-add-sample drop                 \ sqr-lst smpl sqr1
     2dup square-add-sample drop                 \ sqr-lst smpl sqr1
-    
+
     dup                                         \ sqr-lst smpl sqr1 sqr1
     #3 pick list-push-struct                    \ sqr-lst smpl sqr1
     rot                                         \ smpl sqr1 sqr-lst
@@ -187,7 +187,7 @@
     cr
     group-new                                                           \ grp t | f
     invert abort" group-new failed?"
-    
+
     cr ." initial group: " dup .group cr
     \ cr .stack-gbl cr
     \ Check group.
@@ -200,7 +200,7 @@
     group-add-new-square                                                \ grp
     \ cr ." at 2: " .stack-gbl cr
     cr ." group + sqr9: " dup .group cr
-    
+
     \ Check group.
     dup group-get-valid invert abort" Group not valid?"
     s" r100X" region-from-string-a                      \ grp reg-tmp'

@@ -45,11 +45,12 @@
 : square-pair-list-deallocate ( sqr-pr-lst0 -- )
     \ Check arg.
     assert-tos-is-list
-    \ cr ." square-pair-list-deallocate: start: " .stack-gbl cr
+    cr ." square-pair-list-deallocate: start: " .stack-gbl cr
     [ ' square-deallocate ] literal     \ sqr-pr-lst0 xt
     swap                                \ xt sqr-pr-lst0
     list-deallocate-recursive-struct    \
-    \ cr ." square-pair-list-deallocate: end: " .stack-gbl cr
+
+    cr ." square-pair-list-deallocate: end: " .stack-gbl cr
 ;
 
 \ Print a square-list
@@ -133,7 +134,7 @@
     \ Check args.
     assert-tos-is-square-list
     over 0< abort" Invalid pn value"
-    over 2 > abort" Invalid pn value"
+    over #2 > abort" Invalid pn value"
 
     \ Prep for loop.
     list-get-links          \ pn1 sqr-lnk
@@ -168,7 +169,7 @@
     states-distance
 ;
 
-\ Return the sum of the number of samples of two squares. 
+\ Return the sum of the number of samples of two squares.
 : square-pair-get-num-samples ( sqr-pr0 -- u )
     \ Check arg.
     assert-tos-is-square-list
@@ -192,9 +193,9 @@
     if
         drop 0                          \ pn
     else
-        2 over square-list-any-pn-eq?   \ sqr-lst0 bool
+        #2 over square-list-any-pn-eq?  \ sqr-lst0 bool
         if
-            drop 2                      \ pn
+            drop #2                     \ pn
         else
             drop 1                      \ pn
         then
@@ -209,7 +210,7 @@
 : square-list-choose-square-pair ( pr-lst0 -- sqr-pr t | f )
     \ Check arg.
     assert-tos-is-list
-    \ cr ." square-list-choose-square-pair: start: " .stack-gbl cr
+    cr ." square-list-choose-square-pair: start: " .stack-gbl cr
 
     \ Check for an empty list.
     dup list-is-empty?                      \ pr-lst0 bool
@@ -227,6 +228,7 @@
         dup list-pop-struct                 \ pr-lst0, sqr-pr t | f
         if
             nip                             \ sqr-pr
+            cr ." square-list-choose-square-pair: exit 2: " dup .list-raw
             true
             \ cr ." square-list-choose-square-pair: exit 2" cr
             exit
@@ -238,7 +240,7 @@
     \ More than one pair, get min distance pairs.
 
     \ Init min distance.
-    9999                                    \ pr-lst0 min-dis
+    #9999                                   \ pr-lst0 min-dis
     over list-get-links                     \ pr-lst0 min-dis pr-lnk
 
     begin
@@ -272,7 +274,7 @@
         if
             dup link-get-data               \ pr-lst0 min-dis pr-lst2 pr-lnk sqr-prx
             #2 pick                         \ pr-lst0 min-dis pr-lst2 pr-lnk sqr-prx pr-lst2
-            list-push-struct-list           \ pr-lst0 min-dis pr-lst2 pr-lnk
+            list-push-struct                \ pr-lst0 min-dis pr-lst2 pr-lnk
         then
 
         link-get-next
@@ -292,6 +294,7 @@
         dup list-pop-struct                 \ pr-lst2, sqr-pr t | f
         if
             swap list-deallocate            \ sqr-pr
+            cr ." square-list-choose-square-pair: exit 3: " dup .list-raw
             true
             \ cr ." square-list-choose-square-pair: exit 3" cr
             exit
@@ -337,7 +340,7 @@
         if
             dup link-get-data               \ pr-lst2 max-ns pr-lst3 pr-lnk sqr-prx
             #2 pick                         \ pr-lst2 max-ns pr-lst3 pr-lnk sqr-prx pr-lst3
-            list-push-struct-list           \ pr-lst2 max-ns pr-lst3 pr-lnk
+            list-push-struct                \ pr-lst2 max-ns pr-lst3 pr-lnk
         then
 
         link-get-next
@@ -358,6 +361,7 @@
         dup list-pop-struct                 \ pr-lst3 sqr-pr
         if
             swap list-deallocate            \ sqr-pr
+            cr ." square-list-choose-square-pair: exit 4: " dup .list-raw
             true
             \ cr ." square-list-choose-square-pair: exit 4" cr
             exit
@@ -373,7 +377,7 @@
 
         \ Deallocate list with one, or more, square pairs.
         square-pair-list-deallocate         \ sqr-pr
-
+        cr ." square-list-choose-square-pair: exit 5: " dup .list-raw
         true
         \ cr ." square-list-choose-square-pair: exit 5" cr
         exit
@@ -399,7 +403,7 @@
 : square-list-find-incompatible-pair ( sqr-lst0 -- sqr-lst t | f )
     \ Check arg.
     assert-tos-is-square-list
-    \ cr ." square-list-find-incompatible-pair: start: " .stack-gbl cr
+    cr ." square-list-find-incompatible-pair: start: " .stack-gbl cr
 
     \ Check list length.
     dup list-get-length                 \ s/qr-lst0 len
@@ -407,7 +411,7 @@
         \ No pairs to check.
         drop
         false
-        \ cr ." square-list-find-incompatible-pair: exit 1" cr
+        cr ." square-list-find-incompatible-pair: exit 1" cr
         exit
     then
 
@@ -416,7 +420,7 @@
 
     \ Init the incompatible pair list.
     list-new
-    \ cr ." list-new 3: " dup hex. cr
+    cr ." list-new 3: " dup hex. cr
     swap                       \ pn inc-lst sqr-lst0
 
     \ Check every possible pair.
@@ -455,7 +459,7 @@
                 if
                     \ Init pair list.
                     list-new                \ pn inc-lst sqr-lnx bool1 nxt-lnk pr-lst
-                    \ cr ." list-new 4: " dup hex. cr
+                    cr ." list-new 4: " dup hex. cr
 
                     \ Add loop1 square.
                     #3 pick                 \ pn inc-lst sqr-lnx bool1 nxt-lnk pr-lst sqr-lnk
@@ -482,10 +486,11 @@
                                             \ pn inc-lst
     nip                                     \ inc-lst
 
+    cr ." square-list-find-incompatible-pair: at 99: " .stack-gbl cr
+
     dup                                     \ inc-lst inc-lst
     square-list-choose-square-pair          \ inc-lst, sqr-lst t | f
     if
-        dup struct-inc-use-count
         swap                                \ sqr-pr inc-lst
         \ cr ." at 3: " .stack-gbl cr cr
         square-pair-list-deallocate         \ sqr-pr
@@ -495,6 +500,7 @@
         list-deallocate
         false
     then
+    cr ." square-list-find-incompatible-pair: end: " .stack-gbl cr
 ;
 
 \ Find a square in a list, by state, if any.
@@ -757,7 +763,7 @@
 ;
 
 \ Return squares in a given region.
-: square-list-in-region ( reg1 sqr-lst0 -- sqr-lst )                                                                           
+: square-list-in-region ( reg1 sqr-lst0 -- sqr-lst )
     \ Check args.
     assert-tos-is-square-list
     assert-nos-is-region

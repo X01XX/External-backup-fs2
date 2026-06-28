@@ -615,7 +615,7 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
 ;
 
 \ Return true if a square state matches a value.
-: square-state-eq ( sta1 sqr0 -- flag )                                                                                                       
+: square-state-eq ( sta1 sqr0 -- flag )
     \ Check args.
     assert-tos-is-square
     assert-nos-is-state
@@ -625,7 +625,7 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
 ;
 
 \ Return true if a square state is a subset of a region.
-: square-in-region? ( reg1 sqr0 -- flag )                                                                              
+: square-in-region? ( reg1 sqr0 -- flag )
     \ Check args.
     assert-tos-is-square
     assert-nos-is-region

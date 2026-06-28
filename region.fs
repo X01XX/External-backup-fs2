@@ -721,7 +721,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 ;
 
 \ Return the union of a region and a state.
-: region-union-state ( sta1 reg0 -- reg )                                                                                                                     
+: region-union-state ( sta1 reg0 -- reg )
     \ Check args.
     assert-tos-is-region
     assert-nos-is-state

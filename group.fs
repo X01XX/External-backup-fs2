@@ -14,8 +14,8 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 
 \ Init group mma, return the addr of allocated memory.
 : group-mma-init ( num-items -- ) \ sets group-mma.
-    dup 1 < 
-    if  
+    dup 1 <
+    if
         ." group-mma-init: Invalid number of items."
         abort
     then
@@ -27,7 +27,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 \ Check instance type.
 : is-allocated-group? ( addr -- bool )
     dup group-mma mma-is-item   \ addr bool
-    if  
+    if
         struct-get-id
         group-id =              \ bool
     else
@@ -300,7 +300,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
         exit
     then
     -rot                            \ s-reg' sqrs1 reg0
-    
+
     \ Get square rules, and check all squares are compatible.
     over square-list-calc-rules     \ s-reg' sqrs1 reg0, ruls' t | f
     if
@@ -418,7 +418,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
         \ cr ." group-check-changed-square: exit 1: " .stack-gbl cr
         exit
     then
-    
+
     \ Check that the square is already in the square list.
     2dup                            \ sqr1 grp0 sqr1 grp0
     group-get-squares               \ sqr1 grp0 sqr1 sqr-lst
@@ -497,7 +497,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     \ cr ." group-add-new-square: at 2: " .stack-gbl cr
 
     \ Check if the square will invalidate the group.
-    
+
     2dup group-get-squares                  \ sqr1 grp0 sqr1 sqr-lst
     square-list-square-compatible?          \ sqr1 grp0 valid-bool
     \ cr ." group-add-new-square: at 3: " .stack-gbl cr
@@ -546,4 +546,13 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     swap square-get-state
     swap group-get-region
     region-superset-of-state?
+;
+
+\ Return an incompatible square pair from a group, if any.
+: group-get-incompatible-pair ( grp0 -- sqr-pr' t | f )
+    \ Check arg.
+    assert-tos-is-group
+
+    group-get-squares                   \ sqr-lst
+    square-list-find-incompatible-pair  \ sqr-pr t | f )
 ;

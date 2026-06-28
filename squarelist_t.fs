@@ -168,7 +168,7 @@
     else
         cr ." no incompatible pairs?" abort
     then
-    
+
     \ Deallocate.                       \ sqr2 sqr1a sqr1b lst sqr-pr
     \ cr ." at end: " .stack-gbl cr
     \ cr .s cr
@@ -273,7 +273,7 @@
     over square-add-sample                  \ lst sqr2a bool
     \ Check for change to pn.
     if else ." add sample 1 did not cause change?" abort then
-    
+
     dup #2 pick list-push-struct            \ lst sqr2a
     swap                                    \ sqr2a lst
 
@@ -284,13 +284,13 @@
     over square-add-sample                  \ sqr2a lst sqr2b bool
     \ Check for change to pn.
     if else ." add sample 2 did not cause change?" abort then
-    
+
     \ Add another sample.
     s" s0111->s0111" sample-from-string-a   \ sqr2a lst sqr2b smpl
     over square-add-sample                  \ sqr2a lst sqr2b bool
     \ Check for change to pn.
     if ." add sample 3 caused change?" abort then
-    
+
     swap                                    \ sqr2a sqr2b lst
     2dup list-push-struct                   \ sqr2a sqr2b lst
 
