@@ -45,10 +45,18 @@
 : square-pair-list-deallocate ( sqr-pr-lst0 -- )
     \ Check arg.
     assert-tos-is-list
-    cr ." square-pair-list-deallocate: start: " .stack-gbl cr
-    [ ' square-deallocate ] literal     \ sqr-pr-lst0 xt
-    swap                                \ xt sqr-pr-lst0
-    list-deallocate-recursive-struct    \
+
+    dup struct-get-use-count                      \ sqr-pr-lst0 uc
+    #2 <
+    if
+        cr ." square-pair-list-deallocate: start: " .stack-gbl cr
+        [ ' square-list-deallocate ] literal    \ sqr-pr-lst0 xt
+        over                                    \ sqr-pr-lst0 xt sqr-pr-lst0
+        list-apply                              \ sqr-pr-lst
+        list-deallocate
+    else
+        struct-dec-use-count
+    then
 
     cr ." square-pair-list-deallocate: end: " .stack-gbl cr
 ;
@@ -225,7 +233,7 @@
     dup list-get-length                     \ pr-lst0 len
     1 =
     if
-        dup list-pop-struct                 \ pr-lst0, sqr-pr t | f
+        dup list-get-first-item             \ pr-lst0, sqr-pr t | f
         if
             nip                             \ sqr-pr
             cr ." square-list-choose-square-pair: exit 2: " dup .list-raw
@@ -293,7 +301,9 @@
     if
         dup list-pop-struct                 \ pr-lst2, sqr-pr t | f
         if
+            cr ." square-list-choose-square-pair: exit 3.1: " .stack-gbl cr
             swap list-deallocate            \ sqr-pr
+            cr ." square-list-choose-square-pair: exit 3.2: " .stack-gbl cr
             cr ." square-list-choose-square-pair: exit 3: " dup .list-raw
             true
             \ cr ." square-list-choose-square-pair: exit 3" cr
@@ -322,7 +332,7 @@
     repeat
                                             \ pr-lst2 max-ns
 
-    \ cr ." max samples: " dup dec. cr
+    cr ." max samples: " dup dec. cr
     \ Gather square pairs with max number samples.
 
     \ Init new pair list.
@@ -489,8 +499,19 @@
     cr ." square-list-find-incompatible-pair: at 99: " .stack-gbl cr
 
     dup                                     \ inc-lst inc-lst
-    square-list-choose-square-pair          \ inc-lst, sqr-lst t | f
+    square-list-choose-square-pair          \ inc-lst, sqr-pr t | f
     if
+        \ Remove chosen square pair from the list.
+        [ ' = ] literal                     \ inc-lst sqr-pr xt
+        over                                \ inc-lst sqr-pr xt sqr-pr
+        #3 pick                             \ inc-lst sqr-pr xt sqr-pr inc-lst
+        list-remove                         \ inc-lst sqr-pr, sqr-pr t | f
+        if
+            struct-dec-use-count            \ inc-lst sqr-pr
+        else
+            cr ." list-remove failed?" cr abort
+        then
+        
         swap                                \ sqr-pr inc-lst
         \ cr ." at 3: " .stack-gbl cr cr
         square-pair-list-deallocate         \ sqr-pr
