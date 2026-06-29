@@ -20,6 +20,14 @@
 
     cr dup .action cr
 
+    s" (rX0XX rXXX0 rX1XX rXXX1)" list-from-string-a    \ act reg-lst'
+    over action-get-groups group-list-regions           \ act reg-lst' grp-regs'
+    2dup region-lists-eq?                               \ act reg-lst' grp-regs' bool
+    if
+        region-list-deallocate
+        region-list-deallocate
+    then
+
     action-deallocate
 
     \ Check for memory leaks.
@@ -30,4 +38,5 @@
 
 : action-tests
     action-test-basic
+    cr
 ;

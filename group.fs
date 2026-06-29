@@ -556,3 +556,13 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     group-get-squares                   \ sqr-lst
     square-list-find-incompatible-pair  \ sqr-pr t | f )
 ;
+
+\ Return true if a group region is equal to a given region.
+: group-region-eq? ( reg1 grp0 -- bool )
+    \ Check args.
+    assert-tos-is-group
+    assert-nos-is-region
+
+    group-get-region    \ reg1 g-reg
+    regions-eq?
+;
