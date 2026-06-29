@@ -304,6 +304,89 @@ action-possible-regions-disp    cell+   constant action-groups-disp             
     2drop drop
 ;
 
+\ Scan the group list to delete groups that have a region
+\ that is not in the possible regions list.
+: _action-delete-non-possible-groups ( act0 -- )
+    \ Check arg.
+    assert-tos-is-action
+
+    \ Init group list to delete.
+    list-new                            \ act0 del-grps
+
+    \ Scan group list, gathering groups to remove from the list.
+    over action-get-possible-regions    \ act0 del-grps poss-regs
+    #2 pick action-get-groups           \ act0 del-grps poss-regs grp-lst
+    list-get-links                      \ act0 del-grps poss-regs grp-lnk
+
+    begin
+        ?dup
+    while
+        [ ' regions-eq? ] literal       \ act0 del-grps poss-regs grp-lnk xt
+        over link-get-data              \ act0 del-grps poss-regs grp-lnk xt grpx
+        group-get-region                \ act0 del-grps poss-regs grp-lnk xt regx
+        #3 pick                         \ act0 del-grps poss-regs grp-lnk xt regx poss-regs
+        list-member?                    \ act0 del-grps poss-regs grp-lnk bool
+        if
+        else
+            dup link-get-data           \ act0 del-grps poss-regs grp-lnk grpx
+            #3 pick                     \ act0 del-grps poss-regs grp-lnk grpx del-grps
+            list-push-struct            \ act0 del-grps poss-regs grp-lnk
+        then
+
+        link-get-next
+    repeat
+
+    \ Remove the groups from the action group list.
+                                        \ act0 del-grps poss-regs
+    drop                                \ act0 del-grps
+    over action-get-groups              \ act0 del-grps grps-lst
+    over                                \ act0 del-grps grps-lst del-grps
+    list-get-links                      \ act0 del-grps grp-lst del-lnk
+
+    begin
+        ?dup
+    while
+        [ ' = ] literal                 \ act0 del-grps grp-lst del-lnk xt
+        over link-get-data              \ act0 del-grps grp-lst del-lnk xt grpx
+        #3 pick                         \ act0 del-grps grp-lst del-lnk xt grpx grp-lst
+        list-remove                     \ act0 del-grps grp-lst del-lnk, grpx t | f
+        if
+            struct-dec-use-count        \ act0 del-grps grp-lst del-lnk
+        else
+            cr ." remove failed?" cr abort
+        then
+
+        link-get-next
+    repeat
+                                        \ act0 grp-lst grp-lst
+                                        \ act0 del-grps grp-lst
+    drop                                \ act0 del-grps
+    group-list-deallocate               \ act0      The groups are deallocated here.
+    drop
+;
+
+\ Scan the possible regions list, when a region is not represented in the
+\ group list, and has at least one square subset to it,
+\ add the group. 
+: _action-add-possible-groups ( act0 -- )
+    \ Check arg.
+    assert-tos-is-action
+
+    \ Scan group list.
+    dup action-get-groups               \ act0 grp-lst
+    over action-get-possible-regions    \ act0 grp-lst poss-regs
+    list-get-links                      \ act0 grp-lst poss-lnk
+
+    begin
+        ?dup
+    while
+
+        link-get-next
+    repeat
+                                        \ act0 poss-regs
+    2drop
+;
+
 : _action-add-incompatible-pair ( sqr-pr act0 -- )
     \ cr ." _action-add-incompatible-pair: start: " .stack-gbl cr
     \ Check args.
@@ -317,7 +400,7 @@ action-possible-regions-disp    cell+   constant action-groups-disp             
     action-get-incompatible-pairs       \ act0 reg' reg' pr-lst
     region-list-push-nosubs             \ act0 reg' bool
     if
-        \ Adjust action-passible-regions.
+        \ Adjust action-possible-regions.
         dup region-get-state-0          \ act0 reg sta0
         swap region-get-state-1         \ act0 sta0 sta1
         #2 pick                         \ act0 sta0 sta1 act0
@@ -325,8 +408,12 @@ action-possible-regions-disp    cell+   constant action-groups-disp             
         regionlist-cumulative-~a+~b     \ act0 pos-regs2
         over                            \ act0 pas-regs2 act0
         _action-update-possible-regions \ act0
-        drop
 
+        \ Update groups.
+        dup _action-delete-non-possible-groups
+        dup _action-add-possible-groups
+
+        drop
         cr ." todo 5" cr
     else
         cr ." problem? push-nosubs failed?"
