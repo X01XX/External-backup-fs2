@@ -155,7 +155,7 @@ list-header-disp    cell+   constant list-links-disp
     \ Init fields.
     0 over _list-set-length     \ list
     0 over _list-set-links      \ list
-    cr ." list-new: " dup hex. cr
+    \ cr ." list-new: " dup hex. cr
 ;
 
 \ Return true if a list is empty.

@@ -146,4 +146,8 @@
 
 ' xtabort value structinfo-list-deallocate-struct-xt
 
+' xtabort value square-pair-list-choose-pair-xt
+
+' xtabort value square-pair-list-deallocate-xt
+
 

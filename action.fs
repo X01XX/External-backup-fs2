@@ -308,7 +308,7 @@ action-possible-regions-disp    cell+   constant action-groups-disp             
     \ Check args.
     assert-tos-is-action
     assert-nos-is-group-list
-    cr ." _action-check-for-invalidated-groups: start" cr
+    \ cr ." _action-check-for-invalidated-groups: start" cr
 
     \ Prep for loop.
     swap group-list-get-invalidated-groups  \ act0, grp-lst' t | f
@@ -316,7 +316,7 @@ action-possible-regions-disp    cell+   constant action-groups-disp             
         cr ." invalidated groups: " dup .group-list-regions cr
         \ Init incompatible pair list.
         list-new                        \ act0 grp-lst' ipr-lst'
-        cr ." at 1" cr
+        \ cr ." at 1" cr
 
         \ Process each group.
         over list-get-links             \ act0 grp-lst' ipr-lst' grp-lnk
@@ -328,7 +328,7 @@ action-possible-regions-disp    cell+   constant action-groups-disp             
             group-get-incompatible-pair \ act0 grp-lst' ipr-lst' grp-lnk, sqr-pr' t | f
             if
             cr ." inc pair: " dup .square-list cr
-            cr dup .list-raw cr
+            \ cr dup .list-raw cr
                 \ cr ." square pair: " dup .square-list cr
                 #2 pick                 \ act0 grp-lst' ipr-lst' grp-lnk sqr-pr' ipr-lst'
                 list-push-struct        \ act0 grp-lst' ipr-lst' grp-lnk
@@ -338,11 +338,18 @@ action-possible-regions-disp    cell+   constant action-groups-disp             
 
             link-get-next
         repeat
-
+                                        \ act0 grp-lst' ipr-lst'
         cr ." incompatible pairs: " [ ' .square ] literal over .list cr
-        cr dup .list-raw cr
+        dup square-pair-list-choose-pair    \ act0 grp-lst' ipr-lst', sqr-pr t | f
+        if
+        else
+            cr ." choose failed?" abort
+        then
+        
+        \ cr dup .list-raw cr
 
         cr ." todo 5" cr
+        drop                            \ drep square-pair, which is in ipr-lst'
         square-pair-list-deallocate
 
         \ This deallocates the groups.
@@ -351,7 +358,7 @@ action-possible-regions-disp    cell+   constant action-groups-disp             
     else
         drop
     then
-    cr ." _action-check-for-invalidated-groups: end" cr
+    \ cr ." _action-check-for-invalidated-groups: end" cr
 ;
 
 \ Check a new square.
