@@ -304,6 +304,38 @@ action-possible-regions-disp    cell+   constant action-groups-disp             
     2drop drop
 ;
 
+: _action-add-incompatible-pair ( sqr-pr act0 -- )
+    \ cr ." _action-add-incompatible-pair: start: " .stack-gbl cr
+    \ Check args.
+    assert-tos-is-action
+    assert-nos-is-square-pair
+    
+    \ Add square pair to action-incompatible-pairs.
+    swap square-pair-to-region          \ act0 reg'
+    dup                                 \ act0 reg' reg'
+    #2 pick                             \ act0 reg' reg' act0
+    action-get-incompatible-pairs       \ act0 reg' reg' pr-lst
+    region-list-push-nosubs             \ act0 reg' bool
+    if
+        \ Adjust action-passible-regions.
+        dup region-get-state-0          \ act0 reg sta0
+        swap region-get-state-1         \ act0 sta0 sta1
+        #2 pick                         \ act0 sta0 sta1 act0
+        action-get-possible-regions     \ act0 sta0 sta1 pos-regs
+        regionlist-cumulative-~a+~b     \ act0 pos-regs2
+        over                            \ act0 pas-regs2 act0
+        _action-update-possible-regions \ act0
+        drop
+
+        cr ." todo 5" cr
+    else
+        cr ." problem? push-nosubs failed?"
+        region-deallocate
+        drop
+    then
+    \ cr ." _action-add-incompatible-pair: end: " .stack-gbl cr
+;
+
 : _action-check-for-invalidated-groups ( grp-lst1 act0 -- )
     \ Check args.
     assert-tos-is-action
@@ -327,8 +359,8 @@ action-possible-regions-disp    cell+   constant action-groups-disp             
             dup link-get-data           \ act0 grp-lst' ipr-lst' grp-lnk grpx
             group-get-incompatible-pair \ act0 grp-lst' ipr-lst' grp-lnk, sqr-pr' t | f
             if
-            cr ." inc pair: " dup .square-list cr
-            \ cr dup .list-raw cr
+                cr ." inc pair: " dup .square-list cr
+                \ cr dup .list-raw cr
                 \ cr ." square pair: " dup .square-list cr
                 #2 pick                 \ act0 grp-lst' ipr-lst' grp-lnk sqr-pr' ipr-lst'
                 list-push-struct        \ act0 grp-lst' ipr-lst' grp-lnk
@@ -338,18 +370,17 @@ action-possible-regions-disp    cell+   constant action-groups-disp             
 
             link-get-next
         repeat
-                                        \ act0 grp-lst' ipr-lst'
+                                                \ act0 grp-lst' ipr-lst'
         cr ." incompatible pairs: " [ ' .square ] literal over .list cr
-        dup square-pair-list-choose-pair    \ act0 grp-lst' ipr-lst', sqr-pr t | f
+        dup square-pair-list-choose-pair        \ act0 grp-lst' ipr-lst', sqr-pr t | f
         if
+            #3 pick                             \ act0 grp-lst' ipr-lst' sqr-pr act0
+            _action-add-incompatible-pair       \ act0 grp-lst' ipr-lst'
         else
-            cr ." choose failed?" abort
+            cr ." choose pair failed?" abort
         then
         
         \ cr dup .list-raw cr
-
-        cr ." todo 5" cr
-        drop                            \ drep square-pair, which is in ipr-lst'
         square-pair-list-deallocate
 
         \ This deallocates the groups.

@@ -5,6 +5,21 @@
     assert-tos-is-square-list
     dup list-get-length
     #2 =
+    if exit then
+
+    s" TOS is not an allocated square-pair"
+    .abort-xt execute
+;
+
+\ Return true if nos is a square-pair.
+: assert-nos-is-square-pair ( lst0 -- bool )
+    assert-nos-is-square-list
+    over list-get-length
+    #2 =
+    if exit then
+
+    s" NOS is not an allocated square-pair"
+    .abort-xt execute
 ;
 
 \ Deallocate a square list.
@@ -29,7 +44,7 @@
 \ Return the distance of two squares.
 : square-pair-get-distance ( sqr-pr0 -- u )
     \ Check arg.
-    assert-tos-is-square-list
+    assert-tos-is-square-pair
 
     dup list-get-first-item square-get-state    \ sqr-pr0 sta1
     swap list-get-second-item square-get-state  \ sta1 sta2
@@ -44,4 +59,15 @@
     dup list-get-first-item square-get-num-samples      \ sqr-pr0 ns1
     swap list-get-second-item square-get-num-samples    \ ns1 sn2
     +
+;
+
+\ Return a region, using a square-pair's square regions.
+: square-pair-to-region ( sqr-pr0 --- reg )
+    \ cr ." square-pair-to-region: " .stack-gbl cr
+    \ Check arg.
+    assert-tos-is-square-pair
+
+    dup list-get-first-item square-get-state    \ sqr-pr0 sta1
+    swap list-get-second-item square-get-state  \ sta1 sta2
+    region-new
 ;

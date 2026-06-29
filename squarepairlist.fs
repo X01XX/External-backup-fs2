@@ -1,3 +1,5 @@
+\ Process a list of square pairs.
+
 \ Deallocate a list of square pairs.
 : square-pair-list-deallocate ( sqr-pr-lst0 -- )
     \ Check arg.
