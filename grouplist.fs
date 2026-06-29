@@ -156,3 +156,21 @@
     then
 ;
 
+\ Return true if a group region is equal to a given region.
+: group-region-eq? ( reg1 grp0 -- bool )
+    \ Check args.
+    assert-tos-is-group
+    assert-nos-is-region
+
+    group-get-region    \ reg1 g-reg
+    regions-eq?
+;
+
+\ Find a group in a list, by region, if any.
+: group-list-member? ( sta1 list0 -- bool )
+    \ Check args.
+    assert-tos-is-group-list
+    assert-nos-is-region
+
+    [ ' group-region-eq? ] literal -rot list-member?
+;

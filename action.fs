@@ -314,30 +314,30 @@ action-possible-regions-disp    cell+   constant action-groups-disp             
     list-new                            \ act0 del-grps
 
     \ Scan group list, gathering groups to remove from the list.
-    over action-get-possible-regions    \ act0 del-grps poss-regs
-    #2 pick action-get-groups           \ act0 del-grps poss-regs grp-lst
-    list-get-links                      \ act0 del-grps poss-regs grp-lnk
+    over action-get-possible-regions    \ act0 del-grps pos-regs
+    #2 pick action-get-groups           \ act0 del-grps pos-regs grp-lst
+    list-get-links                      \ act0 del-grps pos-regs grp-lnk
 
     begin
         ?dup
     while
-        [ ' regions-eq? ] literal       \ act0 del-grps poss-regs grp-lnk xt
-        over link-get-data              \ act0 del-grps poss-regs grp-lnk xt grpx
-        group-get-region                \ act0 del-grps poss-regs grp-lnk xt regx
-        #3 pick                         \ act0 del-grps poss-regs grp-lnk xt regx poss-regs
-        list-member?                    \ act0 del-grps poss-regs grp-lnk bool
+        [ ' regions-eq? ] literal       \ act0 del-grps pos-regs grp-lnk xt
+        over link-get-data              \ act0 del-grps pos-regs grp-lnk xt grpx
+        group-get-region                \ act0 del-grps pos-regs grp-lnk xt regx
+        #3 pick                         \ act0 del-grps pos-regs grp-lnk xt regx pos-regs
+        list-member?                    \ act0 del-grps pos-regs grp-lnk bool
         if
         else
-            dup link-get-data           \ act0 del-grps poss-regs grp-lnk grpx
-            #3 pick                     \ act0 del-grps poss-regs grp-lnk grpx del-grps
-            list-push-struct            \ act0 del-grps poss-regs grp-lnk
+            dup link-get-data           \ act0 del-grps pos-regs grp-lnk grpx
+            #3 pick                     \ act0 del-grps pos-regs grp-lnk grpx del-grps
+            list-push-struct            \ act0 del-grps pos-regs grp-lnk
         then
 
         link-get-next
     repeat
 
     \ Remove the groups from the action group list.
-                                        \ act0 del-grps poss-regs
+                                        \ act0 del-grps pos-regs
     drop                                \ act0 del-grps
     over action-get-groups              \ act0 del-grps grps-lst
     over                                \ act0 del-grps grps-lst del-grps
@@ -369,21 +369,48 @@ action-possible-regions-disp    cell+   constant action-groups-disp             
 \ group list, and has at least one square subset to it,
 \ add the group. 
 : _action-add-possible-groups ( act0 -- )
+    \ cr ." _action-add-possible-groups: start" cr
     \ Check arg.
     assert-tos-is-action
 
     \ Scan group list.
     dup action-get-groups               \ act0 grp-lst
-    over action-get-possible-regions    \ act0 grp-lst poss-regs
-    list-get-links                      \ act0 grp-lst poss-lnk
+    over action-get-possible-regions    \ act0 grp-lst pos-regs
+    list-get-links                      \ act0 grp-lst pos-lnk
 
     begin
         ?dup
     while
+        dup link-get-data               \ act0 grp-lst pos-lnk pos-reg
+        #2 pick                         \ act0 grp-lst pos-lnk pos-reg grp-lst
+        group-list-member?              \ act0 grp-lst pos-lnk bool
+        if
+        else
+            \ Get squares in region.
+            dup link-get-data           \ act0 grp-lst pos-lnk pos-reg
+            #3 pick                     \ act0 grp-lst pos-lnk pos-reg act0
+            action-get-squares          \ act0 grp-lst pos-lnk pos-reg sqr-lst
+            square-list-in-region       \ act0 grp-lst pos-lnk in-lst'
+            dup list-is-empty?
+            if
+                list-deallocate
+            else
+                dup                     \ act0 grp-lst pos-lnk in-lst' in-lst'
+                #2 pick link-get-data   \ act0 grp-lst pos-lnk in-lst' in-lst' pos-reg
+                group-new               \ act0 grp-lst pos-lnk in-lst', grp t | f
+                if
+                    nip                 \ act0 grp-lst pos-lnk grp
+                    #3 pick             \ act0 grp-lst pos-lnk grp act0
+                    action-add-group    \ act0 grp-lst pos-lnk
+                else
+                    square-list-deallocate  \ act0 grp-lst pos-lnk
+                then
+            then
+        then
 
         link-get-next
     repeat
-                                        \ act0 poss-regs
+                                        \ act0 pos-regs
     2drop
 ;
 
@@ -414,7 +441,6 @@ action-possible-regions-disp    cell+   constant action-groups-disp             
         dup _action-add-possible-groups
 
         drop
-        cr ." todo 5" cr
     else
         cr ." problem? push-nosubs failed?"
         region-deallocate
