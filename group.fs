@@ -383,14 +383,6 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 
 ;
 
-\ Print a group region.
-: .group-region ( grp0 -- )
-    \ Check arg.
-    assert-tos-is-group
-
-    group-get-region .region
-;
-
 \ Return true if a group's region equals its s-region.
 : _group-region-eq-s-region? ( grp0 -- bool )
     \ Check arg.

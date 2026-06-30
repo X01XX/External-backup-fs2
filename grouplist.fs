@@ -139,7 +139,17 @@
     assert-tos-is-group-list
 
     ." ("
-    [ ' .group-region ] literal swap list-apply
+    list-get-links          \ lnk
+    begin
+        ?dup
+    while
+        dup link-get-data   \ lnk grp
+        group-get-region    \ lnk reg
+        .region             \ lnk
+
+        link-get-next       \ lnk
+        dup 0<> if space then
+    repeat
     ." )"
 ;
 
