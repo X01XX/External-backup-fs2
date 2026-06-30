@@ -211,17 +211,64 @@ action-possible-regions-disp    cell+   constant action-groups-disp             
     list-new over _action-set-groups    \ act
 ;
 
+: action-squares-in-one-region ( act0 -- sqr-lst t | f )
+    \ Check arg.
+    assert-tos-is-action
+
+    \ Init return list.
+    list-new                    \ act0 ret-lst
+
+    \ Prep for loop.
+    over action-get-possible-regions    \ act0 ret-lst pos-lst
+    #2 pick action-get-squares          \ act0 ret-lst pos-lst sqr-lst
+    list-get-links                      \ act0 ret-lst pos-lst sqr-lnk
+
+    begin
+        ?dup
+    while
+        dup link-get-data               \ act0 ret-lst pos-lst sqr-lnk sqrx
+        square-get-state                \ act0 ret-lst pos-lst sqr-lnk sta
+        #2 pick                         \ act0 ret-lst pos-lst sqr-lnk sta pos-lst
+        region-list-num-state-in        \ act0 ret-lst pos-lst sqr-lnk u
+        1 =                             \ act0 ret-lst pos-lst sqr-lnk bool
+        if
+            dup link-get-data           \ act0 ret-lst pos-lst sqr-lnk sqrx
+            #3 pick                     \ act0 ret-lst pos-lst sqr-lnk sqrx ret-lst
+            list-push-struct            \ act0 ret-lst pos-lst sqr-lnk
+        then
+
+        link-get-next
+    repeat
+                                \ act0 ret-lst pos-lst
+    drop nip                    \ ret-lst
+    dup list-is-empty?
+    if
+        list-deallocate
+        false
+    else
+        true
+    then
+;
+
 \ Print a action.
 : .action ( act0 -- )
     \ Check arg.
     assert-tos-is-action
 
     cr ." Action: "
-    cr #4 spaces ." Squares:        " dup action-get-squares .square-list
+    s"     Squares:        " #2 pick action-get-squares .square-list-prefix
     cr #4 spaces ." Incompat pairs: " dup action-get-incompatible-pairs .region-list
-    cr #4 spaces ." Poss regions:   " dup action-get-possible-regions .region-list
-    cr #4 spaces ." Groups:         " action-get-groups .group-list
-    cr
+    cr cr #4 spaces ." Poss regions:   " dup action-get-possible-regions .region-list
+    cr cr #4 spaces ." Sqrs in one: " dup action-squares-in-one-region      \ act0, sqr-lst t | f
+    if
+        #3 spaces dup .square-list-states
+        square-list-deallocate
+    else
+        #3 spaces ." None."
+    then
+
+    cr s"     Groups:         " #2 pick action-get-groups .group-list-prefix
+    drop
 ;
 
 \ Deallocate a action.
@@ -367,7 +414,7 @@ action-possible-regions-disp    cell+   constant action-groups-disp             
 
 \ Scan the possible regions list, when a region is not represented in the
 \ group list, and has at least one square subset to it,
-\ add the group. 
+\ add the group.
 : _action-add-possible-groups ( act0 -- )
     \ cr ." _action-add-possible-groups: start" cr
     \ Check arg.
@@ -419,13 +466,13 @@ action-possible-regions-disp    cell+   constant action-groups-disp             
     \ Check args.
     assert-tos-is-action
     assert-nos-is-square-pair
-    
+
     \ Add square pair to action-incompatible-pairs.
     swap square-pair-to-region          \ act0 reg'
     dup                                 \ act0 reg' reg'
     #2 pick                             \ act0 reg' reg' act0
     action-get-incompatible-pairs       \ act0 reg' reg' pr-lst
-    region-list-push-nosubs             \ act0 reg' bool
+    region-list-push-nosups             \ act0 reg' bool
     if
         \ Adjust action-possible-regions.
         dup region-get-state-0          \ act0 reg sta0
@@ -442,7 +489,7 @@ action-possible-regions-disp    cell+   constant action-groups-disp             
 
         drop
     else
-        cr ." problem? push-nosubs failed?"
+        cr ." problem? push-nosups failed?"
         region-deallocate
         drop
     then
@@ -492,7 +539,7 @@ action-possible-regions-disp    cell+   constant action-groups-disp             
         else
             cr ." choose pair failed?" abort
         then
-        
+
         \ cr dup .list-raw cr
         square-pair-list-deallocate
 

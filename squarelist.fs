@@ -49,6 +49,30 @@
     [ ' .square ] literal swap .list
 ;
 
+: .square-list-prefix ( c-addr u list0 -- )
+    \ Check arg.
+    assert-tos-is-square-list
+    cr
+    rot                 \ u list0 c-addr
+    #2 pick             \ u list0 c-addr u
+    type                \ u list0
+    list-get-links      \ u lnk
+
+    begin
+        ?dup
+    while
+        dup link-get-data .square
+
+        link-get-next
+        dup 0<> if
+            over cr spaces
+        then
+    repeat
+                        \ u
+    drop
+    cr
+;
+
 \ Print square list states.
 : .square-list-states ( sqr-lst -- )
     \ Check arg.
@@ -276,7 +300,7 @@
     if
         \ cr ." inc-lst: " over .list-raw cr
         \ cr ." sqcr-pnr: " dup .list-raw cr
-    
+
         \ Remove chosen square pair from the list.
         [ ' = ] literal                     \ inc-lst sqr-pr xt
         over                                \ inc-lst sqr-pr xt sqr-pr
@@ -287,7 +311,7 @@
         else
             cr ." list-remove failed?" cr abort
         then
-        
+
         swap                                \ sqr-pr inc-lst
         \ cr ." at 3: " .stack-gbl cr cr
         square-pair-list-deallocate-xt execute  \ sqr-pr

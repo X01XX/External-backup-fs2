@@ -175,6 +175,8 @@
     true
 ;
 
+
+
 \ Return a list of region intersections with a region-list, no subsets.
 : region-list-intersections-nosubs ( list1 list0 -- list-result )
     \ Check args.
@@ -804,4 +806,55 @@
     region-max-x        \ reg-max
     list-new tuck       \ ret-lst reg-max ret-lst
     list-push-struct    \ ret-lst
+;
+
+\ Remove the first subset region from a region-list, and deallocate.
+\ xt signature is ( item list-data -- flag )
+\ Return true if a region was removed.
+: region-list-remove-superset ( reg list -- bool )
+    \ Check args.
+    assert-tos-is-region-list
+    assert-nos-is-region
+
+    [ ' region-superset? ] literal      \ reg1 list0  xt
+    -rot                                \ xt reg1 list0
+
+    list-remove                         \ reg2 t | f
+    if
+        region-deallocate
+        true
+    else
+        false
+    then
+;
+
+\ Push a region onto a list.
+\ If there are no subsets in the list, delete any supersets and push the region,
+\ return true.
+: region-list-push-nosups ( reg1 list0 -- flag )
+    \ Check args.
+    assert-tos-is-region-list
+    assert-nos-is-region
+
+    \ Return if any region in the list is a superset of reg1.
+    2dup                                    \ reg1 list0 reg1 list0
+    [ ' region-subset? ] literal            \ reg1 list0 reg1 list0 xt
+    -rot                                    \ reg1 list0 xt reg1 list0
+    list-member?                            \ reg1 list0 flag
+    if
+        2drop
+        false
+        exit
+    then
+                                            \ reg1 list0
+    \ Remove all supersets.
+    begin
+        2dup                                \ reg1 list0 reg1 list0
+        region-list-remove-superset         \ reg1 list0 | flag
+    while
+    repeat
+
+    \ Store region in list.                 \ reg1 list0
+    region-list-push
+    true
 ;
