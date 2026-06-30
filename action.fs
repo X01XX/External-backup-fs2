@@ -310,8 +310,36 @@ action-possible-regions-disp    cell+   constant action-groups-disp             
     assert-tos-is-action
     assert-nos-is-square
 
+    over square-get-state over          \ sqr1 act0 sta act0
+    action-get-groups                   \ sqr1 act0 sta grp-lst
+
+    group-list-superset-of-state        \ sqr1 act0, grp-lst' t | f
+    if
+        cr ." action-check-changed-square: square in groups: " dup .group-list-regions space ." todo" cr
+
+        \ Check groups.
+        dup                             \ sqr1 act0 grp-lst' grp-lst'
+        list-get-links                  \ sqr1 act0 grp-lst' grp-lnk
+
+        begin
+            ?dup
+        while
+            #3 pick                     \ sqr1 act0 grp-lst' grp-lnk sqr1
+            over link-get-data          \ sqr1 act0 grp-lst' grp-lnk sqr1 grpx
+            group-check-changed-square  \ sqr1 act0 grp-lst' grp-lnk
+
+            link-get-next
+        repeat
+
+        cr ." Check for invalidated groups: todo" cr
+
+        group-list-deallocate
+    else
+        cr ." action-check-changed-square: square not in any groups. todo" cr
+    then
+
     2drop
-    cr ." action-check-changed-square: todo" cr
+    \ cr ." action-check-changed-square: todo" cr
 ;
 
 \ Add a group to the group list.
@@ -565,17 +593,17 @@ action-possible-regions-disp    cell+   constant action-groups-disp             
 
     group-list-superset-of-state    \ sqr1 act0, grp-lst' t | f
     if
-        cr ." action-check-new-square: new square in groups: " dup .group-list-regions cr
+        cr ." action-check-new-square: square in groups: " dup .group-list-regions cr
         #2 pick over #3 pick                \ sqr1 act0 grp-lst' sqr1 grp-lst1' act0
         _action-add-new-square-to-groups    \ sqr1 act0 grp-lst'
         2dup swap _action-check-for-invalidated-groups
         group-list-deallocate
     else
-        cr ." action-check-new-square: new square not in any groups. " cr
+        cr ." action-check-new-square: square not in any groups. " cr
         over square-get-state               \ sqr1 act0 sta
         over action-get-possible-regions    \ sqr1 act0 sta reg-lst
         region-list-regions-state-in        \ sqr1 act0 regs-in-lst
-        cr ." action-check-new-square: new square in possible regions: " dup .region-list cr
+        cr ." action-check-new-square: square in possible regions: " dup .region-list cr
 
         \ Check each region for new group, or new incompatible pair.
         dup list-get-links                  \ sqr1 act0 regs-in-lst' regs-lnk
@@ -646,6 +674,7 @@ action-possible-regions-disp    cell+   constant action-groups-disp             
     \ Check args.
     assert-tos-is-action
     assert-nos-is-sample
+    cr ." Action: add sample: " over .sample cr
     \ cr ." action-add-sample: start: " .stack-gbl cr
 
     over sample-get-initial     \ smpl1 act0 initial
@@ -653,6 +682,7 @@ action-possible-regions-disp    cell+   constant action-groups-disp             
     if
         rot                     \ act0 sqr smpl1
         over                    \ act0 sqr smpl1 sqr
+        cr ." Action: Updating square: " dup .square cr
         square-add-sample       \ act0 sqr bool
         if
             swap                        \ sqr act0
@@ -665,6 +695,7 @@ action-possible-regions-disp    cell+   constant action-groups-disp             
     else
         over                    \ smpl1 act0 smpl1
         square-new              \ smpl1 act0 sqr1
+        cr ." Action: Adding new square: " dup .square cr
         over                    \ smpl1 act0 sqr1 act0
         action-add-new-square   \ smpl1 act0
         2drop

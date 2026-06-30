@@ -39,6 +39,14 @@
     cr dup .action cr
     \ cr ." at 2: " .stack-gbl cr
 
+    \ Add to B->B
+    s" s1011->s1010" sample-from-string-a   \ act smpl1
+    over action-add-sample                  \ act bool
+    if else ." Did not return true?" abort then
+
+    \ cr ." at 1: " .stack-gbl cr
+    cr dup .action cr
+    \ cr ." at 2: " .stack-gbl cr
     action-deallocate
 
     \ Check for memory leaks.
