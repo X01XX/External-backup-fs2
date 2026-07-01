@@ -381,8 +381,19 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
     sample-get-initial      \ sta
 ;
 
+\ Return the number of samples stored by a square.
+: square-get-num-samples ( square -- 1-4 )
+    \ Check arg.
+    assert-tos-is-square
+
+    _square-get-samples
+    list-get-length
+;
+
 \ Add a sample to a square.
-\ Return true if the square pn, or pnc, value changed.
+\ Return true if the square pn, or pnc, value changed,
+\ or a pn=1 square goes from one sample to two, which
+\ would make it incompatible with any pn/2 square.
 : square-add-sample ( smpl sqr0 -- bool )
     \ Check args.
     assert-tos-is-square
@@ -422,6 +433,15 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
         _square-calc-rules
         true
     else
+        \ Check pn=1 square.
+        dup square-get-pn       \ sqr0 pn
+        1 = if
+            dup square-get-num-samples  \ sqr0 ns
+            2 = if
+                true swap _square-set-changed
+                true exit
+            then
+        then
         drop
         false
     then
@@ -456,17 +476,9 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
     s" (" type
     dup square-get-state .state
     space s" pnc: " type dup square-get-pnc .bool
-    space square-get-rules .rule-list
+    space dup square-get-rules .rule-list
+    space square-get-num-samples dec.
     s" )" type
-;
-
-\ Return the number of samples stored by a square.
-: square-get-num-samples ( square -- 1-4 )
-    \ Check arg.
-    assert-tos-is-square
-
-    _square-get-samples
-    list-get-length
 ;
 
 \ Compare a pn0 square with a pn1, or pn2, square.
