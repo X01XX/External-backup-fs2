@@ -60,6 +60,7 @@ include group.fs
 include grouplist.fs
 
 include action.fs
+include actionxts.fs
 include corner.fs
 include frame.fs
 

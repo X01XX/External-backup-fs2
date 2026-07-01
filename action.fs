@@ -1,7 +1,7 @@
 \ Implement an Action struct and functions.
 
 #29717 constant action-id
-    #5 constant action-struct-number-cells
+    #6 constant action-struct-number-cells
 
 \ Struct fields
 0                                       constant action-header-disp             \ 16 bits, [0] Struct id, [1] Use count [2] Number bits ( 8 bits ).
@@ -9,6 +9,7 @@ action-header-disp              cell+   constant action-squares-disp            
 action-squares-disp             cell+   constant action-incompatible-pairs-disp \ A region list.  States that define the regions are incompatible.
 action-incompatible-pairs-disp  cell+   constant action-possible-regions-disp   \ A region list.
 action-possible-regions-disp    cell+   constant action-groups-disp             \ A group list.
+action-groups-disp              cell+   constant action-function-disp           \ A function to run to get a sample for a state.
 
 0 value action-mma \ Storage for action mma instance.
 
@@ -179,36 +180,59 @@ action-possible-regions-disp    cell+   constant action-groups-disp             
     !struct                 \ Set the field.
 ;
 
+\ Return the function xt that implements the action.
+: action-get-function ( act0 -- xt )                                                                                                                           
+    \ Check arg.
+    assert-tos-is-action
+
+    action-function-disp +  \ Add offset.
+    @                       \ Fetch the field.
+;   
+        
+\ Set the function xt that implements an action.
+: _action-set-function ( xt act0 -- )
+    \ Check args.
+    assert-tos-is-action
+    
+    action-function-disp +  \ Add offset.
+    !                       \ Set the field.
+;
+
 \ End accessors
 
-: action-new ( num-bits -- addr)
+\ Return a new action, given a functian to run to get a sample,
+\ and the number of bits being used.
+: action-new ( xt num-bits -- addr)
 
     \ Allocate space.
-    action-id action-mma                \ nb id mma
-    struct-allocate                     \ nb act
+    action-id action-mma                \ xt nb id mma
+    struct-allocate                     \ xt nb act
 
     \ Set number bits.
-    2dup _action-set-num-bits           \ nb act
+    2dup _action-set-num-bits           \ xt nb act
 
     \ Set squares list.
-    list-new                            \ nb act lst
-    over _action-set-squares            \ nb act
+    list-new                            \ xt nb act lst
+    over _action-set-squares            \ xt nb act
 
     \ Set incompatible-pairs list.
-    list-new                            \ nb act lst
-    over                                \ nb act lst act
-    _action-set-incompatible-pairs      \ nb act
+    list-new                            \ xt nb act lst
+    over                                \ xt nb act lst act
+    _action-set-incompatible-pairs      \ xt nb act
 
     \ Set possible-regions list.
-    list-new                            \ nb act lst
-    rot                                 \ act lst nb
-    region-max-x                        \ act lst reg-max
-    over list-push-struct               \ act lst
-    over                                \ act lst act
-    _action-set-possible-regions        \ act
+    list-new                            \ xt nb act lst
+    rot                                 \ xt act lst nb
+    region-max-x                        \ xt act lst reg-max
+    over list-push-struct               \ xt act lst
+    over                                \ xt act lst act
+    _action-set-possible-regions        \ xt act
 
     \ Set initial group list.
-    list-new over _action-set-groups    \ act
+    list-new over _action-set-groups    \ xt act
+
+    \ Set function.
+    tuck _action-set-function           \ act
 ;
 
 : action-squares-in-one-region ( act0 -- sqr-lst t | f )
