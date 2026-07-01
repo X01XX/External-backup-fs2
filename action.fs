@@ -304,44 +304,6 @@ action-possible-regions-disp    cell+   constant action-groups-disp             
     square-list-find        \ sqr t | f
 ;
 
-\ Check an existing square, changed by a new result.
-: action-check-changed-square ( sqr1 act0 -- )
-    \ Check args.
-    assert-tos-is-action
-    assert-nos-is-square
-
-    over square-get-state over          \ sqr1 act0 sta act0
-    action-get-groups                   \ sqr1 act0 sta grp-lst
-
-    group-list-superset-of-state        \ sqr1 act0, grp-lst' t | f
-    if
-        cr ." action-check-changed-square: square in groups: " dup .group-list-regions space ." todo" cr
-
-        \ Check groups.
-        dup                             \ sqr1 act0 grp-lst' grp-lst'
-        list-get-links                  \ sqr1 act0 grp-lst' grp-lnk
-
-        begin
-            ?dup
-        while
-            #3 pick                     \ sqr1 act0 grp-lst' grp-lnk sqr1
-            over link-get-data          \ sqr1 act0 grp-lst' grp-lnk sqr1 grpx
-            group-check-changed-square  \ sqr1 act0 grp-lst' grp-lnk
-
-            link-get-next
-        repeat
-
-        cr ." Check for invalidated groups: todo" cr
-
-        group-list-deallocate
-    else
-        cr ." action-check-changed-square: square not in any groups. todo" cr
-    then
-
-    2drop
-    \ cr ." action-check-changed-square: todo" cr
-;
-
 \ Add a group to the group list.
 : action-add-group ( grp1 act0 -- )
     \ Check args.
@@ -353,30 +315,50 @@ action-possible-regions-disp    cell+   constant action-groups-disp             
     list-push-struct
 ;
 
-\ Add anew square to a list of groups the square is known to be in.
-: _action-add-new-square-to-groups ( sqr2 grp-lst act0 -- )
+\ Check if a square in no groups can form a group from the
+\ possible regions.
+: action-new-groups-from-square ( sqr act0 -- )
     \ Check args.
     assert-tos-is-action
-    assert-nos-is-group-list
-    assert-3os-is-square
+    assert-nos-is-square
 
-    over list-get-links             \ sqr2 grp-lst act0 grp-lnk
+    over square-get-state               \ sqr1 act0 sta
+    over action-get-possible-regions    \ sqr1 act0 sta reg-lst
+    region-list-regions-state-in        \ sqr1 act0 regs-in-lst
+    cr ." action-new-groups-from-square: square in possible regions: " dup .region-list cr
+
+    \ Check each region for new group, or new incompatible pair.
+    dup list-get-links                  \ sqr1 act0 regs-in-lst' regs-lnk
 
     begin
         ?dup
     while
-        #3 pick over link-get-data  \ sqr2 grp-lst act0 grp-lnk sqr2 grpx
-        group-superset-square?      \ sqr2 grp-lst act0 grp-lnk sqr2 grpx
+        dup link-get-data               \ sqr1 act0 regs-in-lst' regs-lnk regx
+        #3 pick                         \ sqr1 act0 regs-in-lst' regs-lnk regx act0
+        action-get-squares              \ sqr1 act0 regs-in-lst' regs-lnk regx sqr-lst
+        square-list-in-region           \ sqr1 act0 regs-in-lst' regs-lnk sqr-in-lst'
+        dup                             \ sqr1 act0 regs-in-lst' regs-lnk sqr-in-lst' sqr-in-lst'
+
+        \ Make new group.
+        #2 pick link-get-data           \ sqr1 act0 regs-in-lst' regs-lnk sqr-is-lst' sqr-in-lst' regx
+        group-new                       \ sqr1 act0 regs-in-lst' regs-lnk sqr-lst', grp t | f
         if
-            #3 pick over            \ sqr2 grp-lst act0 grp-lnk sqr2 grp-lnk
-            link-get-data           \ sqr2 grp-lst act0 grp-lnk sqr2 grpx
-            group-add-new-square    \ sqr2 grp-lst act0 grp-lnk
+            nip                         \ sqr1 act0 regs-in-lst' regs-lnk grp
+            #3 pick                     \ sqr1 act0 regs-in-lst' regs-lnk grp act0
+            action-add-group            \ sqr1 act0 regs-in-lst' regs-lnk
+        else
+                                        \ sqr1 act0 regs-in-lst' regs-lnk sqr-lst'
+                cr ." action-new-groups-from-square: possible group: "
+                over link-get-data .region space ." containing: " dup .square-list-states space ." is invalid" cr
+
+                square-list-deallocate  \ sqr1 act0 regs-in-lst' regs-lnk
         then
+
         link-get-next
     repeat
-
-    \ cr ." action-add-new-square-to-groups: end" cr
-    2drop drop
+                                        \ sqr1 act0 regs-in-lst'
+    region-list-deallocate              \ sqr1 act0
+    2drop
 ;
 
 \ Scan the group list to delete groups that have a region
@@ -489,6 +471,7 @@ action-possible-regions-disp    cell+   constant action-groups-disp             
     2drop
 ;
 
+\ Add an incompatible pair, updating incompatible pair list and possible regions list.
 : _action-add-incompatible-pair ( sqr-pr act0 -- )
     \ cr ." _action-add-incompatible-pair: start: " .stack-gbl cr
     \ Check args.
@@ -524,6 +507,8 @@ action-possible-regions-disp    cell+   constant action-groups-disp             
     \ cr ." _action-add-incompatible-pair: end: " .stack-gbl cr
 ;
 
+\ Check for deallocated groups.
+\ If found, delete groups and update incompatible pair list, possible regions list.
 : _action-check-for-invalidated-groups ( grp-lst1 act0 -- )
     \ Check args.
     assert-tos-is-action
@@ -580,6 +565,74 @@ action-possible-regions-disp    cell+   constant action-groups-disp             
     \ cr ." _action-check-for-invalidated-groups: end" cr
 ;
 
+\ Check an existing square, changed by a new result.
+: action-check-changed-square ( sqr1 act0 -- )
+    \ Check args.
+    assert-tos-is-action
+    assert-nos-is-square
+
+    over square-get-state over              \ sqr1 act0 sta act0
+    action-get-groups                       \ sqr1 act0 sta grp-lst
+
+    group-list-superset-of-state            \ sqr1 act0, grp-lst' t | f
+    if
+        cr ." action-check-changed-square: square in groups: " dup .group-list-regions cr
+
+        \ Check groups.
+        dup                                 \ sqr1 act0 grp-lst' grp-lst'
+        list-get-links                      \ sqr1 act0 grp-lst' grp-lnk
+
+        begin
+            ?dup
+        while
+            #3 pick                         \ sqr1 act0 grp-lst' grp-lnk sqr1
+            over link-get-data              \ sqr1 act0 grp-lst' grp-lnk sqr1 grpx
+            group-check-changed-square      \ sqr1 act0 grp-lst' grp-lnk
+
+            link-get-next
+        repeat
+
+        cr ." Check for invalidated groups" cr
+        dup                                 \ sqr1 act0 grp-lst' grp-lst'
+        #2 pick                             \ sqr1 act0 grp-lst' grp-lst' act0
+        _action-check-for-invalidated-groups
+
+        group-list-deallocate
+    else
+        cr ." action-check-changed-square: square not in any groups." cr
+        2dup action-new-groups-from-square
+    then
+
+    2drop
+    \ cr ." action-check-changed-square: end" cr
+;
+
+\ Add anew square to a list of groups the square is known to be in.
+: _action-add-new-square-to-groups ( sqr2 grp-lst act0 -- )
+    \ Check args.
+    assert-tos-is-action
+    assert-nos-is-group-list
+    assert-3os-is-square
+
+    over list-get-links             \ sqr2 grp-lst act0 grp-lnk
+
+    begin
+        ?dup
+    while
+        #3 pick over link-get-data  \ sqr2 grp-lst act0 grp-lnk sqr2 grpx
+        group-superset-square?      \ sqr2 grp-lst act0 grp-lnk sqr2 grpx
+        if
+            #3 pick over            \ sqr2 grp-lst act0 grp-lnk sqr2 grp-lnk
+            link-get-data           \ sqr2 grp-lst act0 grp-lnk sqr2 grpx
+            group-add-new-square    \ sqr2 grp-lst act0 grp-lnk
+        then
+        link-get-next
+    repeat
+
+    \ cr ." action-add-new-square-to-groups: end" cr
+    2drop drop
+;
+
 \ Check a new square.
 : action-check-new-square ( sqr1 act0 -- )
     \ Check args.
@@ -600,47 +653,7 @@ action-possible-regions-disp    cell+   constant action-groups-disp             
         group-list-deallocate
     else
         cr ." action-check-new-square: square not in any groups. " cr
-        over square-get-state               \ sqr1 act0 sta
-        over action-get-possible-regions    \ sqr1 act0 sta reg-lst
-        region-list-regions-state-in        \ sqr1 act0 regs-in-lst
-        cr ." action-check-new-square: square in possible regions: " dup .region-list cr
-
-        \ Check each region for new group, or new incompatible pair.
-        dup list-get-links                  \ sqr1 act0 regs-in-lst' regs-lnk
-
-        begin
-            ?dup
-        while
-            dup link-get-data                   \ sqr1 act0 regs-in-lst' regs-lnk regx
-            #3 pick                             \ sqr1 act0 regs-in-lst' regs-lnk regx act0
-            action-get-squares                  \ sqr1 act0 regs-in-lst' regs-lnk regx sqr-lst
-            square-list-in-region               \ sqr1 act0 regs-in-lst' regs-lnk sqr-in-lst'
-            dup                                 \ sqr1 act0 regs-in-lst' regs-lnk sqr-in-lst' sqr-in-lst'
-            square-list-find-incompatible-pair  \ sqr1 act0 regs-in-lst' regs-lnk sqr-in-lst', sqr-pr t | f
-            if
-                \ Process incompatible pair.
-                cr ." action-check-new-square: process incompatible pair, todo" abort
-            else
-                \ Add new group.
-                over link-get-data              \ sqr1 act0 regs-in-lst' regs-lnk sqr-is-lst' regx
-                group-new                       \ sqr1 act0 regs-in-lst' regs-lnk, grp t | f
-                if
-                    dup group-get-valid
-                    if
-                        #3 pick                     \ sqr1 act0 regs-in-lst' regs-lnk grp act0
-                        action-add-group            \ sqr1 act0 regs-in-lst' regs-lnk
-                    else
-                        cr ." action-check-new-square: process invalid new group, todo" cr
-                    then
-                else
-                    cr ." action-check-new-square: problem?" cr abort
-                then
-            then
-
-            link-get-next
-        repeat
-
-        region-list-deallocate
+        2dup action-new-groups-from-square
     then
 
     2drop
