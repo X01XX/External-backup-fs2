@@ -1,6 +1,6 @@
 \ A square is a memory of a recent samples for a single state.
 
-#23197 constant square-id
+#23197 constant square-struct-id
     #3 constant square-struct-number-cells
     #4 constant square-number-samples
 
@@ -41,7 +41,7 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
     dup square-mma mma-is-item  \ addr bool
     if
         struct-get-id
-        square-id =             \ bool
+        square-struct-id =      \ bool
     else
         drop
         false                   \ f
@@ -197,7 +197,7 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
     list-push-struct                \ rul-lst smpl-lst
 
     \ Allocate space.
-    square-id square-mma
+    square-struct-id square-mma
     struct-allocate                 \ rul-lst smpl-lst sqr
 
     \ Set header fields.

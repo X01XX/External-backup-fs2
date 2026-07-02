@@ -1,11 +1,13 @@
 \ Implement an Action struct and functions.
 
-#29717 constant action-id
-    #6 constant action-struct-number-cells
+#29717 constant action-struct-id
+    #7 constant action-struct-number-cells
 
 \ Struct fields
-0                                       constant action-header-disp             \ 16 bits, [0] Struct id, [1] Use count [2] Number bits ( 8 bits ).
-action-header-disp              cell+   constant action-squares-disp            \ A square list.
+0                                       constant action-header-disp             \ 16 bits, [0] Struct id, [1] Use count [2] Number bits ( 8 bits )
+                                                                                \ Action instance ID ( 8 bits ).
+action-header-disp              cell+   constant action-parent-disp             \ Domain ref, or 0.
+action-parent-disp              cell+   constant action-squares-disp            \ A square list.
 action-squares-disp             cell+   constant action-incompatible-pairs-disp \ A region list.  States that define the regions are incompatible.
 action-incompatible-pairs-disp  cell+   constant action-possible-regions-disp   \ A region list.
 action-possible-regions-disp    cell+   constant action-groups-disp             \ A group list.
@@ -27,7 +29,7 @@ action-groups-disp              cell+   constant action-function-disp           
     dup action-mma mma-is-item  \ addr bool
     if
         struct-get-id
-        action-id =             \ bool
+        action-struct-id =      \ bool
     else
         drop
         false                   \ f
@@ -67,6 +69,22 @@ action-groups-disp              cell+   constant action-function-disp           
 
 \ Start accessors.
 
+\ Return the parent from an action instance.
+: action-get-parent ( act0 -- dom )
+    \ Check arg.
+    assert-tos-is-action
+
+    action-parent-disp +    \ Add offset.
+    @                       \ Fetch the field.
+;
+
+\ Set the parent of an action instance, use only in this file.
+\ Do not inc parent use count.
+: _action-set-parent ( dom1 act0 -- )
+    action-parent-disp +    \ Add offset.
+    !                       \ Set the field.
+;
+
 \ Get the number of bits.
 : action-get-num-bits ( act0 -- nb )
     \ Check arg.
@@ -78,6 +96,19 @@ action-groups-disp              cell+   constant action-function-disp           
 \ Set the number of bits.
 : _action-set-num-bits ( nb act0 -- )
     4c!
+;
+
+\ Get the action id.
+: action-get-inst-id ( act0 -- id )
+    \ Check arg.
+    assert-tos-is-action
+
+    5c@
+;
+
+\ Set the action id.
+: _action-set-inst-id ( id act0 -- )
+    5c!
 ;
 
 \ Return the square-list from an action instance.
@@ -161,7 +192,7 @@ action-groups-disp              cell+   constant action-function-disp           
     region-list-deallocate
 ;
 
-\ Return the square-list from an action instance.
+\ Return the group-list from an action instance.
 : action-get-groups ( act0 -- lst )
     \ Check arg.
     assert-tos-is-action
@@ -170,7 +201,7 @@ action-groups-disp              cell+   constant action-function-disp           
     @                       \ Fetch the field.
 ;
 
-\ Set the square-list of an action instance, use only in this file.
+\ Set the group-list of an action instance, use only in this file.
 : _action-set-groups ( grp-lst1 act0 -- )
     \ Check args.
     assert-tos-is-action
@@ -202,11 +233,18 @@ action-groups-disp              cell+   constant action-function-disp           
 
 \ Return a new action, given a functian to run to get a sample,
 \ and the number of bits being used.
-: action-new ( xt num-bits -- addr)
+: action-new ( xt num-bits inst-id -- addr)
+    dup 0< abort" action-new: invalid instance id"
+    dup 255 > abort" action-new: invalid instance id"
+    over 1 < abort" action-new: invalid number bits"
+    over 64 > abort" action-new: invalid number bits"
 
     \ Allocate space.
-    action-id action-mma                \ xt nb id mma
-    struct-allocate                     \ xt nb act
+    action-struct-id action-mma         \ xt nb inst-id struct-id mma
+    struct-allocate                     \ xt nb inst-id act
+
+    \ Set inst id.
+    tuck _action-set-inst-id            \ xt nb act
 
     \ Set number bits.
     2dup _action-set-num-bits           \ xt nb act
@@ -272,6 +310,21 @@ action-groups-disp              cell+   constant action-function-disp           
     else
         true
     then
+;
+
+\ Print parent domain id, if any.
+\ Action parent domain ref may be zero.
+: .action-parent ( act0 -- )
+   \ Check arg.
+    assert-tos-is-action
+
+    action-get-parent           \ dom
+    dup 0= if drop exit then         \ Print nothing.
+
+    cr ." .action-parent: todo " cr
+    drop
+    \ domain-get-id             \ dom-id
+    \ ." Dom: " dec.
 ;
 
 \ Print a action.
@@ -365,6 +418,7 @@ action-groups-disp              cell+   constant action-function-disp           
 
         \ Make new group.
         #2 pick link-get-data           \ sqr1 act0 regs-in-lst' regs-lnk sqr-is-lst' sqr-in-lst' regx
+        #5 pick                         \ sqr1 act0 regs-in-lst' regs-lnk sqr-is-lst' sqr-in-lst' regx act0
         group-new                       \ sqr1 act0 regs-in-lst' regs-lnk sqr-lst', grp t | f
         if
             nip                         \ sqr1 act0 regs-in-lst' regs-lnk grp
@@ -478,6 +532,7 @@ action-groups-disp              cell+   constant action-function-disp           
             else
                 dup                     \ act0 grp-lst pos-lnk in-lst' in-lst'
                 #2 pick link-get-data   \ act0 grp-lst pos-lnk in-lst' in-lst' pos-reg
+                #5 pick                 \ act0 grp-lst pos-lnk in-lst' in-lst' pos-reg act0
                 group-new               \ act0 grp-lst pos-lnk in-lst', grp t | f
                 if
                     nip                 \ act0 grp-lst pos-lnk grp

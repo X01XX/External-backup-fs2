@@ -1,11 +1,12 @@
 \ Implement a group struct and functions.
 
-#43717 constant group-id
-    #5 constant group-struct-number-cells
+#43717 constant group-struct-id
+    #6 constant group-struct-number-cells
 
 \ Struct fields
 0                           constant group-header-disp      \ 16 bits, [0] struct id, [1] use count (16), [2] pnc (8 bits), valid (8 bits)
-group-header-disp   cell+   constant group-region-disp      \ The group region.
+group-header-disp   cell+   constant group-parent-disp      \ Parent action, may be zero for testing.
+group-parent-disp   cell+   constant group-region-disp      \ The group region.
 group-region-disp   cell+   constant group-s-region-disp    \ A Region covered by the group's base-pn squares, often a proper subset of the group-region.
 group-s-region-disp cell+   constant group-squares-disp     \ A square-list.
 group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
@@ -29,7 +30,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     dup group-mma mma-is-item   \ addr bool
     if
         struct-get-id
-        group-id =              \ bool
+        group-struct-id =       \ bool
     else
         drop
         false                   \ f
@@ -57,6 +58,22 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 ' assert-nos-is-group to assert-nos-is-group-xt
 
 \ Start accessors.
+
+\ Return the group parent.
+: group-get-parent ( grp0 -- par )
+    \ Check arg.
+    assert-tos-is-group
+
+    group-parent-disp + \ Add offset.
+    @                   \ Fetch the field.
+;
+
+\ Set the parent of a group instance, use only in this file.
+\ Do not inc parent use count.
+: _group-set-parent ( par1 grp0 -- )
+    group-parent-disp + \ Add offset.
+    !                   \ Set the field, don't increment use count of parent.
+;
 
 \ Return the group region.
 : group-get-region ( grp0 -- reg )
@@ -159,9 +176,27 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
    _group-set-valid
 ;
 
+\ Print parent domain id, action id, if any.
+\ Group parent action ref may be zero, action parent ref may be zero.
+: .group-parents ( grp0 -- )
+   \ Check arg.
+    assert-tos-is-group
+
+    group-get-parent            \ act
+    dup 0= if drop exit then         \ Print nothing.
+
+    cr ." .group-parent: todo " cr
+    drop
+    \ dup action-get-id swap    \ act-id act
+    \ .action-parent            \ act-id
+    \ ." Act: " dec.
+;
+
 \ Set the valid flag to false.
 : _group-set-to-invalid ( grp0 -- )
-    cr ." Group: " dup group-get-region .region space ." invalidated" cr
+    cr
+    dup .group-parents
+    ." Group: " dup group-get-region .region space ." invalidated" cr
     false swap
     _group-set-valid
 ;
@@ -269,74 +304,76 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     then
 ;
 
-\ Return a new group, given a region and square-list.
+\ Return a new group, given a parent action ( may be zero ), region and square-list.
 \ Return false if the given square list is empty,
 \ or contains an incompatible pair,
 \ or are not all within the given region.
-: group-new    ( sqrs1 reg0 -- grp t | f )
+: group-new    ( sqrs2 reg1 act0 -- grp t | f )
     \ Check args.
-    assert-tos-is-region
-    assert-nos-is-list
-
-    \ Check for empty list.
-    over list-is-empty?
+    dup 0<>
     if
-        2drop
-        false
-        \ cr ." group-new: exit 1" cr
-        exit
+        assert-tos-is-action-xt execute
     then
+    assert-nos-is-region
+    assert-3os-is-square-list
+
+    -rot                            \ act0 sqrs2 reg1
 
     \ Check squares are in region, save the square's region.
-    over square-list-region         \ sqrs1 reg0, s-reg t | f
+    over square-list-region         \ act0 sqrs2 reg1, s-reg t | f
     invert abort" group-new: square-list-region failed?"
-    2dup swap                       \ sqrs1 reg0 s-reg' s-reg reg0
-    region-superset?                \ sqrs1 reg0 s-reg' bool
+    2dup swap                       \ act0 sqrs2 reg1 s-reg' s-reg reg1
+    region-superset?                \ act0 sqrs2 reg1 s-reg' bool
     if
     else
         region-deallocate
-        2drop
+        2drop drop
         false
         exit
     then
-    -rot                            \ s-reg' sqrs1 reg0
+    -rot                            \ s-reg' sqrs2 reg1
 
     \ Get square rules, and check all squares are compatible.
-    over square-list-calc-rules     \ s-reg' sqrs1 reg0, ruls' t | f
+    over square-list-calc-rules     \ act0 s-reg' sqrs2 reg1, ruls' t | f
     if
     else
         2drop
         region-deallocate
+        drop
         false
         \ cr ." group-new: exit 2" cr
         exit
     then
 
-    -rot                            \ s-reg' ruls' sqrs1 reg0
+    -rot                            \ act0 s-reg' ruls' sqrs2 reg1
 
     \ Allocate instance.
-    group-id group-mma              \ s-reg' ruls' sqrs1 reg0 id mma
-    struct-allocate                 \ s-reg' ruls' sqrs1 reg0 grp
+    group-struct-id group-mma       \ act0 s-reg' ruls' sqrs2 reg1 id mma
+    struct-allocate                 \ act0 s-reg' ruls' sqrs2 reg1 grp
 
     \ Set group to valid.
-    dup _group-set-to-valid         \ s-reg' ruls' sqrs1 reg0 grp
+    dup _group-set-to-valid         \ act0 s-reg' ruls' sqrs2 reg1 grp
 
     \ Set region.
-    tuck                            \ s-reg' ruls' sqrs1 grp reg0 grp
-    _group-set-region               \ s-reg' ruls' sqrs1 grp
+    tuck                            \ act0 s-reg' ruls' sqrs2 grp reg1 grp
+    _group-set-region               \ act0 s-reg' ruls' sqrs2 grp
 
     \ Set squares.
-    tuck                            \ s-reg' ruls' grp sqrs1 grp
-    _group-set-squares              \ s-reg' ruls' grp
+    tuck                            \ act0 s-reg' ruls' grp sqrs2 grp
+    _group-set-squares              \ act0 s-reg' ruls' grp
 
     \ Set rules
-    tuck _group-set-rules           \ s-reg' grp
+    tuck _group-set-rules           \ act0 s-reg' grp
 
     \ Set s-region
-    tuck _group-set-s-region        \ grp
+    tuck _group-set-s-region        \ act0 grp
 
     \ Set pnc
-    dup _group-calc-set-pnc         \ grp
+    dup _group-calc-set-pnc         \ act0 grp
+
+    \ Set parent.
+    tuck _group-set-parent          \ grp
+
     true
 ;
 

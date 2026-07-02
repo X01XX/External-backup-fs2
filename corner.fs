@@ -3,7 +3,7 @@
 \ A state, and closest dissimilar states.
 \ Once developed, the anchor square-state should be in only one region.
 
-#53719 constant corner-id
+#53719 constant corner-struct-id
     #5 constant corner-struct-number-cells
 
 \ Struct fields
@@ -29,7 +29,7 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
     dup corner-mma mma-is-item  \ addr bool
     if
         struct-get-id
-        corner-id =             \ bool
+        corner-struct-id =      \ bool
     else
         drop
         false                   \ f
@@ -158,7 +158,7 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
     assert-tos-is-square
 
     \ Allocate space.
-    corner-id corner-mma                \ sta1 id mma
+    corner-struct-id corner-mma         \ sta1 id mma
     struct-allocate                     \ sta1 crn
 
     \ Store anchor square.

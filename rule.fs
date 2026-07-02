@@ -2,7 +2,7 @@
 \
 \ Represent how a rule changes bits.
 
-#23131 constant rule-id
+#23131 constant rule-struct-id
     #5 constant rule-struct-number-cells
 
 \ Struct fields.
@@ -28,7 +28,7 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
     dup rule-mma mma-is-item    \ addr bool
     if
         struct-get-id
-        rule-id =               \ bool
+        rule-struct-id =        \ bool
     else
         drop
         false                   \ f
@@ -136,7 +136,7 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
     assert-tos-is-state
     assert-nos-is-state
 
-    rule-id rule-mma        \ s-r s-i id mma
+    rule-struct-id rule-mma \ s-r s-i id mma
     struct-allocate         \ s-r s-i rul
 
     \ Store fields.
@@ -492,7 +492,7 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
     drop                        \ m00 m01 m11 m10
 
     \ Allocate a new rule.
-    rule-id rule-mma
+    rule-struct-id rule-mma
     struct-allocate             \ m00 m01 m11 m10 rul
 
     \ Load masks.
@@ -618,7 +618,7 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
     2drop                   \ m00' m01' m11' m10'
 
     \ Init rule.
-    rule-id rule-mma        \ m00' m01' m11' m10' id mma
+    rule-struct-id rule-mma \ m00' m01' m11' m10' id mma
     struct-allocate         \ m00' m01' m11' m10' rul
 
     \ Load rule.
@@ -668,7 +668,7 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
     2drop                   \ m00' m01' m11' m10'
 
     \ Init rule.
-    rule-id rule-mma        \ m00' m01' m11' m10' id mma
+    rule-struct-id rule-mma \ m00' m01' m11' m10' id mma
     struct-allocate         \ m00' m01' m11' m10' rul
 
     \ Load rule.

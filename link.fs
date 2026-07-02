@@ -1,4 +1,4 @@
-#17137 constant link-id
+#17137 constant link-struct-id
     #3 constant link-struct-number-cells
 
 \ Link struct fields.
@@ -22,7 +22,7 @@ link-next-disp      cell+   constant link-data-disp
     dup link-mma mma-is-item    \ addr bool
     if
         struct-get-id
-        link-id =               \ bool
+        link-struct-id =               \ bool
     else
         drop
         false                   \ f
@@ -69,7 +69,7 @@ link-next-disp      cell+   constant link-data-disp
 
 \ Return a new link struct instance address, with given data value, zero next-value.
 : link-new ( data-val -- link-addr )
-    link-id link-mma            \ data-val id mma
+    link-struct-id link-mma     \ data-val id mma
     struct-allocate             \ data-val link
 
     tuck                        \ link data-val link

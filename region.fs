@@ -16,7 +16,7 @@
 \ Order of the states does not matter, although it can be seen in a printed region.
 \ XxXx is state-0: 1010 and state-1: 0101.
 
-#19317 constant region-id
+#19317 constant region-struct-id
     #3 constant region-struct-number-cells
 
 \ Struct fields
@@ -40,7 +40,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     dup region-mma mma-is-item  \ addr bool
     if
         struct-get-id
-        region-id =             \ bool
+        region-struct-id =      \ bool
     else
         drop
         false                   \ f
@@ -144,7 +144,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     2dup states-dif-num-bits? abort" region-new: numb bits ne?"
 
     \ Allocate space.
-    region-id region-mma        \ sta1 sta0 id mma
+    region-struct-id region-mma \ sta1 sta0 id mma
     struct-allocate             \ sta1 sta0 reg
 
     \ Prepare to store states.

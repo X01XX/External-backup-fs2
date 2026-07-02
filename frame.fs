@@ -1,7 +1,7 @@
 \ The frame struct, storing up to 5 cells for temporary use within a function.
 \ I dislike the r> and >r commands, just as I dislike storing data in the word list.
 
-#61379 constant frame-id
+#61379 constant frame-struct-id
     #6 constant frame-struct-number-cells
 
 \ Frame struct fields.
@@ -27,7 +27,7 @@ frame-header-disp cell+ constant frame-disp
     dup frame-mma mma-is-item  \ addr bool
     if
         struct-get-id           \ id
-        frame-id =              \ bool
+        frame-struct-id =       \ bool
     else
         drop
         false                   \ f
@@ -147,7 +147,7 @@ frame-header-disp cell+ constant frame-disp
 
 \ Return a new frame struct instance address, with given data value.
 : frame-new ( -- frm0 )
-    frame-id frame-mma
+    frame-struct-id frame-mma
     struct-allocate             \ frm
 ;
 

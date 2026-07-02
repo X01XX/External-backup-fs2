@@ -5,7 +5,7 @@
 \ A initial/result problem, that may be solved with one, or many, actions, all within
 \ a single domain.
 
-#23719 constant sample-id
+#23719 constant sample-struct-id
     #3 constant sample-struct-number-cells
 
 \ Struct fields
@@ -29,7 +29,7 @@ sample-initial-disp cell+   constant sample-result-disp     \ Result state.
     dup sample-mma mma-is-item  \ addr bool
     if
         struct-get-id
-        sample-id =             \ bool
+        sample-struct-id =      \ bool
     else
         drop
         false                   \ f
@@ -105,7 +105,7 @@ sample-initial-disp cell+   constant sample-result-disp     \ Result state.
     2dup states-dif-num-bits? abort" States num bits mismatch?"
 
     \ Allocate space.
-    sample-id sample-mma
+    sample-struct-id sample-mma
     struct-allocate             \ u1 u2 smpl
 
     \ Store states

@@ -1,7 +1,7 @@
 \ The structinfo struct, storing information about structs.
 \ This is an add-on to the memory managment code, it is not required for memory management
 \ unless you want the functions it provides.
-#53731 constant structinfo-id
+#53731 constant structinfo-struct-id
    #11 constant structinfo-struct-number-cells
 
 \ Struct info struct fields.
@@ -33,7 +33,7 @@ structinfo-eq-xt-disp           cell+   constant structinfo-name-disp           
     dup structinfo-mma mma-is-item  \ addr bool
     if
         struct-get-id
-        structinfo-id =             \ bool
+        structinfo-struct-id =             \ bool
     else
         drop
         false                       \ f
@@ -169,7 +169,7 @@ structinfo-eq-xt-disp           cell+   constant structinfo-name-disp           
 \ Return a new structinfo struct instance address, with given data value.
 : structinfo-new ( eq-xt from-string-xt deallocate-xt print-xt c-addr u mma1 id0 -- snf )
 
-    structinfo-id structinfo-mma
+    structinfo-struct-id structinfo-mma
     struct-allocate                     \ eq-xt fs-xt d-xt p-xt c-addr u snf
 
     \ Set struct instance id.

@@ -1,5 +1,5 @@
 \ The token struct, storing a token of up to 15 characters.
-#59797 constant token-id
+#59797 constant token-struct-id
    #11 constant token-struct-number-cells
 
 \ Token struct fields.
@@ -25,7 +25,7 @@ token-header-disp cell+ constant token-string-disp
     dup token-mma mma-is-item  \ addr bool
     if
         struct-get-id           \ id
-        token-id =              \ bool
+        token-struct-id =              \ bool
     else
         drop
         false                   \ f
@@ -82,7 +82,7 @@ token-header-disp cell+ constant token-string-disp
 
 \ Return a new token struct instance address, with given data value.
 : token-new ( c-addr u -- tkn )
-    token-id token-mma
+    token-struct-id token-mma
     struct-allocate             \ c-addr u tkn
 
     \ Store string.

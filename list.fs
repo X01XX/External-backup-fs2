@@ -30,7 +30,7 @@
 \       link-get-next                   \ link
 \   repeat
 
-#17971 constant list-id
+#17971 constant list-struct-id
     #2 constant list-struct-number-cells
 
 \ List struct fields.
@@ -53,7 +53,7 @@ list-header-disp    cell+   constant list-links-disp
     dup list-mma mma-is-item    \ addr bool
     if
         struct-get-id
-        list-id =               \ bool
+        list-struct-id =        \ bool
     else
         drop
         false                   \ f
@@ -149,7 +149,7 @@ list-header-disp    cell+   constant list-links-disp
 \ Return an new list struct instance address.
 : list-new ( -- addr )
     \ Allocate space.
-    list-id list-mma            \ id mma
+    list-struct-id list-mma     \ id mma
     struct-allocate             \ list
 
     \ Init fields.

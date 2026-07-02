@@ -1,5 +1,5 @@
 \ The mask struct, storing a mask number.
-#61719 constant mask-id
+#61719 constant mask-struct-id
     #2 constant mask-struct-number-cells
 
 \ mask struct fields.
@@ -27,7 +27,7 @@ mask-header-disp cell+  constant mask-number-disp
     dup mask-mma mma-is-item    \ addr bool
     if
         struct-get-id
-        mask-id =               \ bool
+        mask-struct-id =        \ bool
     else
         drop
         false                   \ f
@@ -108,7 +108,7 @@ mask-header-disp cell+  constant mask-number-disp
     u> abort" Number too large for number bits given"
 
     \ Allocate a mask instance.
-    mask-id mask-mma        \ num1 nb0 id mma
+    mask-struct-id mask-mma \ num1 nb0 id mma
     struct-allocate         \ num1 nb0 msk
 
     \ Set number bits.

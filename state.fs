@@ -1,5 +1,5 @@
 \ The state struct, storing a state number.
-#61717 constant state-id
+#61717 constant state-struct-id
     #2 constant state-struct-number-cells
 
 \ State struct fields.
@@ -25,7 +25,7 @@ state-header-disp cell+   constant state-number-disp
     dup state-mma mma-is-item  \ addr bool
     if
         struct-get-id
-        state-id =              \ bool
+        state-struct-id =      \ bool
     else
         drop
         false                   \ f
@@ -93,21 +93,21 @@ state-header-disp cell+   constant state-number-disp
     dup cell-bits > abort" Number bits too large"
 
     \ Check number.
-    2dup                    \ num1 nb0 num1 nb0
-    _max-num-from-num-bits  \ num1 nb0 num1 max
+    2dup                        \ num1 nb0 num1 nb0
+    _max-num-from-num-bits      \ num1 nb0 num1 max
     u> abort" Number too large for number bits given"
 
     \ Allocate a state instance.
-    state-id state-mma      \ num1 nb0 id mma
-    struct-allocate         \ num1 nb0 sta
+    state-struct-id state-mma   \ num1 nb0 id mma
+    struct-allocate             \ num1 nb0 sta
 
     \ Set number bits.
-    tuck                    \ num1 sta nb0 sta
-    _state-set-num-bits  \ num1 sta
+    tuck                        \ num1 sta nb0 sta
+    _state-set-num-bits         \ num1 sta
 
     \ Store number given.
-    tuck                     \ sta num1 sta
-    _state-set-number        \ sta
+    tuck                        \ sta num1 sta
+    _state-set-number           \ sta
 ;
 
 \ Print a state struct instance.

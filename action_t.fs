@@ -1,8 +1,8 @@
 
 : action-test-basic
     \ Init action.
-    [ ' action-x-get-sample ] literal
-    #4 action-new      \ act
+    [ ' calc-result-x ] literal
+    #4 0 action-new      \ act
 
     cr dup .action cr
 

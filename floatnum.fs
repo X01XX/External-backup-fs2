@@ -1,5 +1,5 @@
 \ The floatnum struct, storing a float number.
-#61979 constant floatnum-id
+#61979 constant floatnum-struct-id
     #2 constant floatnum-struct-number-cells
 
 \ Float struct fields.
@@ -25,7 +25,7 @@ floatnum-header-disp cell+   constant floatnum-number-disp
     dup floatnum-mma mma-is-item  \ addr bool
     if
         struct-get-id
-        floatnum-id =
+        floatnum-struct-id =
     else
         drop
         false                   \ f
@@ -80,7 +80,7 @@ floatnum-header-disp cell+   constant floatnum-number-disp
 
 \ Return a new float struct instance address, with given data value.
 : floatnum-new ( F: r -- fnum )
-    floatnum-id floatnum-mma
+    floatnum-struct-id floatnum-mma
     struct-allocate             \ F: r fnum
     dup                         \ F: r fum fnum
     floatnum-set-number         \ fnum
