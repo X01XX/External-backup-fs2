@@ -218,7 +218,7 @@
 \ The incompatible pair selection is intended to minimize the effort of resolving
 \ a pair. That is, getting samples so the pair are pnc, then finding samples between
 \ them, if they are not adjacent.
-: square-list-find-incompatible-pair ( sqr-lst0 -- sqr-lst t | f )
+: square-list-find-incompatible-pair ( sqr-lst0 -- sqr-pr t | f )
     \ Check arg.
     assert-tos-is-square-list
 \    cr ." square-list-find-incompatible-pair: start: " .stack-gbl cr
