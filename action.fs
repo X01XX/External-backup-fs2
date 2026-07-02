@@ -235,9 +235,9 @@ action-groups-disp              cell+   constant action-function-disp           
 \ and the number of bits being used.
 : action-new ( xt num-bits inst-id -- addr)
     dup 0< abort" action-new: invalid instance id"
-    dup 255 > abort" action-new: invalid instance id"
+    dup #255 > abort" action-new: invalid instance id"
     over 1 < abort" action-new: invalid number bits"
-    over 64 > abort" action-new: invalid number bits"
+    over 1 cells #8 * > abort" action-new: invalid number bits"
 
     \ Allocate space.
     action-struct-id action-mma         \ xt nb inst-id struct-id mma
@@ -644,11 +644,36 @@ action-groups-disp              cell+   constant action-function-disp           
     \ cr ." _action-check-for-invalidated-groups: end" cr
 ;
 
+\ Check incompatible pairs due to a changed pn, or pnc, square.
+\ Return true if an incompatible pair is no longer incompatible,
+\ and recalculation was required.
+: action-check-incompatible-pairs ( sqr1 act0 -- bool )
+    \ Check args.
+    assert-tos-is-action
+    assert-nos-is-square
+
+    cr ." action-check-incompatible-pairs: todo" cr
+    2drop
+    false
+;
+
 \ Check an existing square, changed by a new result.
 : action-check-changed-square ( sqr1 act0 -- )
     \ Check args.
     assert-tos-is-action
     assert-nos-is-square
+
+    \ Check incompatible pairs, if needed.
+    over square-pn1-samples2                \ sqr1 act0 bool
+    if
+    else
+        \ Check incompatible pairs.
+        2dup action-check-incompatible-pairs
+        if
+            2drop
+            exit
+        then
+    then
 
     over square-get-state over              \ sqr1 act0 sta act0
     action-get-groups                       \ sqr1 act0 sta grp-lst

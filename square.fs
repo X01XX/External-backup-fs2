@@ -390,10 +390,27 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
     list-get-length
 ;
 
+\ Return true if a square has a pn value of 1,
+\ and 2 samples.
+: square-pn1-samples2 ( sqr0 -- bool )
+    \ Check arg.
+    assert-tos-is-square
+
+    dup square-get-pn           \ sqr0 pn
+    1 =                         \ sqr0 bool
+    if
+        square-get-num-samples  \ num
+        #2 =
+    else
+        drop
+        false
+    then
+;
+
 \ Add a sample to a square.
 \ Return true if the square pn, or pnc, value changed,
 \ or a pn=1 square goes from one sample to two, which
-\ would make it incompatible with any pn/2 square.
+\ would make it incompatible with any pn=2 square.
 : square-add-sample ( smpl sqr0 -- bool )
     \ Check args.
     assert-tos-is-square
@@ -433,14 +450,13 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
         _square-calc-rules
         true
     else
+        \ Check pn=1 square, two samples.
+        dup                     \ sqr0 sqr0
+        square-pn1-samples2     \ sqc0 bool
         \ Check pn=1 square.
-        dup square-get-pn       \ sqr0 pn
-        1 = if
-            dup square-get-num-samples  \ sqr0 ns
-            2 = if
-                true swap _square-set-changed
-                true exit
-            then
+        if
+            true swap _square-set-changed
+            true exit
         then
         drop
         false
