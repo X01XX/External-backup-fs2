@@ -227,3 +227,16 @@
     list-apply-recursive        \ lst0 ( may now be invalid )
     list-deallocate-recursive
 ;
+
+: list-remove-struct ( xt item list -- data t | f )
+    \ Check arg.
+    assert-tos-is-list
+
+    list-remove         \ data t | f
+    if
+        dup struct-dec-use-count
+        true
+    else
+        false
+    then
+;

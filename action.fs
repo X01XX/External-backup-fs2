@@ -623,17 +623,74 @@ action-groups-disp              cell+   constant action-function-disp           
             region-get-state-0      \ sqr1 act0 del-lst sta1 pr-lnk regx r-sta0
             #3 pick                 \ sqr1 act0 del-lst sta1 pr-lnk regx r-sta0 sta1
             states-eq?              \ sqr1 act0 del-lst sta1 pr-lnk regx bool
+            \ Get the other state.
             if
+                \ Check state 1
+                region-get-state-1  \ sqr1 act0 del-lst sta1 pr-lnk r-sta
             else
+                \ Check state 0
+                region-get-state-0  \ sqr1 act0 del-lst sta1 pr-lnk r-sta
+            then
+            \ Compare with sqr1.
+            #4 pick             \ sqr1 act0 del-lst sta1 pr-lnk r-sta1 act0
+            action-find-square  \ sqr1 act0 del-lst sta1 pr-lnk, sqr t | f
+            if
+                #5 pick         \ sqr1 act0 del-lst sta1 pr-lnk sqr sqr1
+                squares-compare \ sqr1 act0 del-lst sta1 pr-lnk char
+                [char] C =
+                if
+                    dup link-get-data   \ sqr1 act0 del-lst sta1 pr-lnk regx
+                    #3 pick             \ sqr1 act0 del-lst sta1 pr-lnk regx det-lst
+                    list-push-struct    \ sqr1 act0 del-lst sta1 pr-lnk
+                then
+            else
+                cr ." square not found?" abort
             then
         then
 
         link-get-next
     repeat
                                     \ sqr1 act0 del-lst sta1
-    cr ." todo" cr
-    2drop 2drop
+    drop                            \ sqr1 act0 del-lst
+
+    \ Process del list.
+    dup list-is-empty?              \ sqr1 act0 del-lst bool
+    if
+        list-deallocate
+        2drop
+        exit
+    then
+
+    \ Remove pairs.
+    dup list-get-links              \ sqr1 act0 del-lst del-lnk
+
+    begin
+        ?dup
+    while
+        [ ' = ] literal                 \ sqr1 act0 del-lst del-lnk xt
+        over link-get-data              \ sqr1 act0 del-lst del-lnk xt regx
+        #4 pick                         \ sqr1 act0 del-lst del-lnk xt regx act0
+        action-get-incompatible-pairs   \ sqr1 act0 del-lst del-lnk xt regx pr-lst
+        list-remove-struct              \ sqr1 act0 del-lst del-lnk, reg t | f
+        if
+            drop
+        else
+            cr ." problem? region not found"
+        then
+
+        link-get-next
+    repeat
+                                        \ sqr1 act0 del-lst
+    region-list-deallocate              \ sqr1 act0
+
+    \ Recalc possible regions.
+
+    \ Delete groups that no longer match a possible region.
+
+    cr ." action-incompatible-pairs-check-changed-square: todo" cr
+    2drop
 ;
+cr ." todo: Allow incompatible pairs to go from Incompatible to More samples needed, then get more samples." cr
 
 \ Check the possible region list for problems with a ginven square.
 \ Return true if all affected regions are Ok.
