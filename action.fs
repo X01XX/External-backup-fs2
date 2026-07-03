@@ -587,8 +587,10 @@ action-groups-disp              cell+   constant action-function-disp           
 ;
 
 \ Check the effect on incompatible pairs of a changed square.
-\ If any pairs are deleted, recalc possible regions and delete
-\ groups that no longer match a possible region.
+\ If any pairs become Compatible, then are deleted, recalc possible
+\ regions and delete groups that no longer match a possible region.
+\ This may be intensive, since every pair must be recalculated and
+\ intersected.
 : action-incompatible-pairs-check-changed-square ( sqr1 act0 -- )
     \ Check arg.
     assert-tos-is-action
@@ -637,6 +639,11 @@ action-groups-disp              cell+   constant action-function-disp           
             if
                 #5 pick         \ sqr1 act0 del-lst sta1 pr-lnk sqr sqr1
                 squares-compare \ sqr1 act0 del-lst sta1 pr-lnk char
+                \ Allow pairs to go to More Samples Needed. The normal
+                \ confirmation by seeking pnc for each square will push
+                \ it to Compatible or Incompatible.
+                \ If it goes to Incompatible, a complete recalc will be
+                \ avoided.
                 [char] C =
                 if
                     dup link-get-data   \ sqr1 act0 del-lst sta1 pr-lnk regx
@@ -684,13 +691,66 @@ action-groups-disp              cell+   constant action-function-disp           
     region-list-deallocate              \ sqr1 act0
 
     \ Recalc possible regions.
+    list-new                            \ sqr1 act0 pos-new
+    over action-get-num-bits            \ sqr1 act0 pos-new nb
+    region-max-x                        \ sqr1 act0 pos-new reg-max
+    over list-push-struct               \ sqr1 act0 pos-new
+
+    over action-get-incompatible-pairs  \ sqr1 act0 pos-new pr-lst
+    list-get-links                      \ sqr1 act0 pos-new pr-lnk
+
+    begin
+        ?dup
+    while
+        dup link-get-data                   \ sqr1 act0 pos-new pr-lnk regx
+        region-get-states                   \ sqr1 act0 pos-new pr-lnk sta1 sta1
+        state-~a+~b                         \ sqr1 act0 pos-new pr-lnk reg-lst'
+        dup                                 \ sqr1 act0 pos-new pr-lnk reg-lst' reg-lst'
+        #3 pick                             \ sqr1 act0 pos-new pr-lnk reg-lst' reg-lst' pos-new
+        region-list-intersections-nosubs    \ sqr1 act0 pos-new pr-lnk reg-lst' pos-new2
+
+        \ Clean up.
+        swap region-list-deallocate     \ sqr1 act0 pos-new pr-lnk pos-new2
+        rot region-list-deallocate      \ sqr1 act0 pr-lnk pos-new2
+        swap                            \ sqr1 act0 pos-new2 pr-lnk
+
+        link-get-next
+    repeat
+                                        \ sqr1 act0 pos-new2
+    over
+    _action-update-possible-regions     \ sqr1 act0
 
     \ Delete groups that no longer match a possible region.
+
+    \ Init delete list.
+    list-new                            \ sqr1 act0 del-lst
+    over action-get-groups              \ sqr1 act0 del-lst grp-lst
+    list-get-links                      \ sqr1 act0 del-lst grp-lnk
+
+    begin
+        ?dup
+    while
+        dup list-get-data               \ sqr1 act0 del-lst grp-lnk grpx
+        group-get-region                \ sqr1 act0 del-lst grp-lnk grp-reg
+        #3 pick                         \ sqr1 act0 del-lst grp-lnk grp-reg act0
+        action-get-possible-regions     \ sqr1 act0 del-lst grp-lnk grp-reg poss-lst
+        region-list-member?             \ sqr1 act0 del-lst grp-lnk bool
+        if
+        else
+            dup link-get-data           \ sqr1 act0 del-lst grp-lnk grpx
+            #2 pick                     \ sqr1 act0 del-lst grp-lnk grpx del-lst
+            list-push-struct            \ sqr1 act0 del-lst grp-lnk
+        then
+
+        link-get-next
+    repeat
+                                        \ sqr1 act0 del-lst
+
+    \ Delete groups.
 
     cr ." action-incompatible-pairs-check-changed-square: todo" cr
     2drop
 ;
-cr ." todo: Allow incompatible pairs to go from Incompatible to More samples needed, then get more samples." cr
 
 \ Check the possible region list for problems with a ginven square.
 \ Return true if all affected regions are Ok.

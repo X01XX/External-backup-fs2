@@ -858,3 +858,12 @@
     region-list-push
     true
 ;
+
+\ Return true if a region is in a region-list.
+: region-list-member? ( reg1 list0 -- flag )                                                                                          
+    \ Check args.
+    assert-tos-is-region-list
+    assert-nos-is-region
+
+    [ ' regions-eq? ] literal -rot list-member
+;
