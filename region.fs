@@ -421,6 +421,25 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     region-get-state-0      \ sta1 sta0
 ;
 
+\ Return true if a region uses a given state.
+: region-uses-state? ( sta1 reg0 -- flag )
+    \ Check args.
+    assert-tos-is-region
+    assert-nos-is-state
+
+    region-get-states           \ sta1 reg-sta1 reg-sta0
+    #2 pick                     \ sta1 reg-sta1 reg-sta0 sta1
+    =                           \ sta1 reg-sta1 flag
+    if                          \ sta1 reg-sta1
+        2drop
+        true
+        exit
+    then
+
+                                \ sta1 reg-sta1
+    =                           \ flag
+;
+
 \ Return a new region with some X positions set to zero.
 \ Change 1-0 or 0-1 to 0-0.
 \ Mask will usually have a single bit, called from region-subtract.

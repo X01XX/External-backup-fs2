@@ -9,7 +9,7 @@ UES definitions
 
 decimal
 \ #2 base !  \ Test all numbers GT 1, LT -1, have a base prefix.
-
+\ include /usr/share/gforth/0.7.3/objects.fs
 include xtindirect.fs
 include bool.fs
 
