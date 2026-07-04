@@ -591,7 +591,7 @@ action-groups-disp              cell+   constant action-function-disp           
 \ regions and delete groups that no longer match a possible region.
 \ This may be intensive, since every pair must be recalculated and
 \ intersected.
-: action-incompatible-pairs-check-changed-square ( sqr1 act0 -- )
+: action-check-incompatible-pairs-for-changed-square ( sqr1 act0 -- )
     \ Check arg.
     assert-tos-is-action
     assert-nos-is-square
@@ -730,7 +730,7 @@ action-groups-disp              cell+   constant action-function-disp           
     begin
         ?dup
     while
-        dup list-get-data               \ sqr1 act0 del-lst grp-lnk grpx
+        dup link-get-data               \ sqr1 act0 del-lst grp-lnk grpx
         group-get-region                \ sqr1 act0 del-lst grp-lnk grp-reg
         #3 pick                         \ sqr1 act0 del-lst grp-lnk grp-reg act0
         action-get-possible-regions     \ sqr1 act0 del-lst grp-lnk grp-reg poss-lst
@@ -747,8 +747,23 @@ action-groups-disp              cell+   constant action-function-disp           
                                         \ sqr1 act0 del-lst
 
     \ Delete groups.
+    over action-get-groups              \ sqr1 act0 del-lst grp-lst
+    over list-get-links                 \ sqr1 act0 del-lst grp-lst del-lnk
 
-    cr ." action-incompatible-pairs-check-changed-square: todo" cr
+    [ ' = ] literal                     \ sqr1 act0 del-lst grp-lst del-lnk xt
+    over link-get-data                  \ sqr1 act0 del-lst grp-lst del-lnk xt del-grp
+    #3 pick                             \ sqr1 act0 del-lst grp-lst del-lnk xt del-grp grp-lst
+
+    list-remove-struct                  \ sqr1 act0 del-lst grp-lst del-lnk, grp t | f
+    if
+        drop
+    else
+        cr ." group not found?" abort
+    then
+                                        \ sqr1 act0 del-lst grp-lst
+    drop                                \ sqr1 act0 del-lst
+    group-list-deallocate               \ sqr1 act0 ( groups really get deallocated here )
+
     2drop
 ;
 
@@ -840,7 +855,7 @@ action-groups-disp              cell+   constant action-function-disp           
     drop
 ;
 
-\ Check for deallocated groups.
+\ Check for invalidated groups.
 \ If found, delete groups and update incompatible pair list, possible regions list.
 : _action-check-for-invalidated-groups ( grp-lst1 act0 -- )
     \ Check args.
@@ -898,19 +913,6 @@ action-groups-disp              cell+   constant action-function-disp           
     \ cr ." _action-check-for-invalidated-groups: end" cr
 ;
 
-\ Check incompatible pairs due to a changed pn, or pnc, square.
-\ Return true if an incompatible pair is no longer incompatible,
-\ and recalculation was required.
-: action-check-incompatible-pairs ( sqr1 act0 -- bool )
-    \ Check args.
-    assert-tos-is-action
-    assert-nos-is-square
-
-    cr ." action-check-incompatible-pairs: todo" cr
-    2drop
-    false
-;
-
 \ Check an existing square, changed by a new result.
 : action-check-changed-square ( sqr1 act0 -- )
     \ Check args.
@@ -922,7 +924,7 @@ action-groups-disp              cell+   constant action-function-disp           
     if
     else
         \ Check incompatible pairs.
-        2dup action-check-incompatible-pairs
+        2dup action-check-incompatible-pairs-for-changed-square
         if
             2drop
             exit

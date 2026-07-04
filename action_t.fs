@@ -61,7 +61,25 @@
     cr ." action-test-basic - Ok"
 ;
 
+\ Set up an incompatible pair, then use updates to
+\ change them to more sample needed, then compatible.
+: action-test-check-incompatible-pairs-for-changed-square
+        \ Init action.
+    [ ' calc-result-x ] literal
+    #4 0 action-new      \ act
+
+    cr dup .action cr
+
+    action-deallocate
+
+    \ Check for memory leaks.
+    structinfo-list-store structinfo-list-project-deallocated
+
+    cr ." action-test-check-incompatible-pairs-for-changed-square - Ok"
+;
+
 : action-tests
     action-test-basic
+    action-test-check-incompatible-pairs-for-changed-square
     cr
 ;

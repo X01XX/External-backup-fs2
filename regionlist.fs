@@ -865,5 +865,5 @@
     assert-tos-is-region-list
     assert-nos-is-region
 
-    [ ' regions-eq? ] literal -rot list-member
+    [ ' regions-eq? ] literal -rot list-member?
 ;
