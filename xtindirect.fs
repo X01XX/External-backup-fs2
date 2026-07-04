@@ -150,4 +150,8 @@
 
 ' xtabort value square-pair-list-deallocate-xt
 
+' xtabort value action-get-inst-id-xt
+
+' xtabort value .action-parent-xt
+
 

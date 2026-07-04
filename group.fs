@@ -183,13 +183,16 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     assert-tos-is-group
 
     group-get-parent            \ act
-    dup 0= if drop exit then         \ Print nothing.
+    dup 0= if drop exit then    \ Print nothing.
 
-    cr ." .group-parent: todo " cr
-    drop
-    \ dup action-get-id swap    \ act-id act
-    \ .action-parent            \ act-id
-    \ ." Act: " dec.
+    \ cr ." .group-parent: todo " cr
+    \ drop
+    dup                         \ act act
+    action-get-inst-id-xt       \ act act xt
+    execute                     \ act act-id
+    swap                        \ act-id act
+    .action-parent-xt execute   \ act-id
+    ." Act: " dec.
 ;
 
 \ Set the valid flag to false.
@@ -506,7 +509,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     \ Check args.
     assert-tos-is-group
     assert-nos-is-square
-    \ cr ." group-add-new-square: start: " .stack-gbl cr
+    cr ." group-add-new-square: start: " over square-get-state .state cr \ .stack-gbl cr
 
     \ Check that square is new.
     over square-get-num-samples 1 <> abort" New square gt 1 samples?"

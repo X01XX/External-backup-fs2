@@ -80,20 +80,20 @@ include action_t.fs
 include group_t.fs
 
 \ Init array-stacks.
-#101 link-mma-init
-#102 list-mma-init
+#301 link-mma-init
+#302 list-mma-init
 #030 structinfo-mma-init
-#100 mask-mma-init
-#100 state-mma-init
-#100 region-mma-init
-#100 rule-mma-init
-#100 sample-mma-init
+#200 mask-mma-init
+#200 state-mma-init
+#200 region-mma-init
+#200 rule-mma-init
+#200 sample-mma-init
 #100 token-mma-init
 #100 floatnum-mma-init
-#100 square-mma-init
+#200 square-mma-init
 #010 action-mma-init
-#010 corner-mma-init
-#030 group-mma-init
+#110 corner-mma-init
+#130 group-mma-init
 #010 frame-mma-init
 cr cr
 

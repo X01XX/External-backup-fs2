@@ -376,6 +376,9 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
 
 \ Return the quare state.
 : square-get-state ( sqr0 -- sta )
+    \ Check arg.
+    assert-tos-is-square
+
     _square-get-samples     \ smpl-lst
     list-get-first-item     \ smpl
     sample-get-initial      \ sta

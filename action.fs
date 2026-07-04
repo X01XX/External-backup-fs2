@@ -106,6 +106,8 @@ action-groups-disp              cell+   constant action-function-disp           
     5c@
 ;
 
+' action-get-inst-id to action-get-inst-id-xt
+
 \ Set the action id.
 : _action-set-inst-id ( id act0 -- )
     5c!
@@ -327,6 +329,8 @@ action-groups-disp              cell+   constant action-function-disp           
     \ ." Dom: " dec.
 ;
 
+' .action-parent to .action-parent-xt
+
 \ Print a action.
 : .action ( act0 -- )
     \ Check arg.
@@ -502,7 +506,7 @@ action-groups-disp              cell+   constant action-function-disp           
 
 \ Scan the possible regions list, when a region is not represented in the
 \ group list, and has at least one square subset to it,
-\ add the group.
+\ try to add the group.
 : _action-add-possible-groups ( act0 -- )
     \ cr ." _action-add-possible-groups: start" cr
     \ Check arg.
@@ -575,11 +579,11 @@ action-groups-disp              cell+   constant action-function-disp           
 
         \ Update groups.
         dup _action-delete-non-possible-groups
-        dup _action-add-possible-groups
+        \ dup _action-add-possible-groups
 
         drop
     else
-        cr ." problem? push-nosups failed?"
+        cr ." problem? push-nosups action-check-possible-regions-for-incompatible-pairfailed?"
         region-deallocate
         drop
     then
@@ -592,6 +596,7 @@ action-groups-disp              cell+   constant action-function-disp           
 \ This may be intensive, since every pair must be recalculated and
 \ intersected.
 : action-check-incompatible-pairs-for-changed-square ( sqr1 act0 -- )
+    \ cr ." action-check-incompatible-pairs-for-changed-square: start: " .stack-gbl cr
     \ Check arg.
     assert-tos-is-action
     assert-nos-is-square
@@ -600,6 +605,7 @@ action-groups-disp              cell+   constant action-function-disp           
     if
         \ This change should not affect incompatible pairs.
         2drop
+        \ cr ." action-check-incompatible-pairs-for-changed-square: exit 1: " .stack-gbl cr
         exit
     then
 
@@ -622,7 +628,7 @@ action-groups-disp              cell+   constant action-function-disp           
         region-uses-state?          \ sqr1 act0 del-lst sta1 pr-lnk bool
         if
             dup link-get-data       \ sqr1 act0 del-lst sta1 pr-lnk regx
-            region-get-state-0      \ sqr1 act0 del-lst sta1 pr-lnk regx r-sta0
+            dup region-get-state-0  \ sqr1 act0 del-lst sta1 pr-lnk regx r-sta0
             #3 pick                 \ sqr1 act0 del-lst sta1 pr-lnk regx r-sta0 sta1
             states-eq?              \ sqr1 act0 del-lst sta1 pr-lnk regx bool
             \ Get the other state.
@@ -660,11 +666,14 @@ action-groups-disp              cell+   constant action-function-disp           
                                     \ sqr1 act0 del-lst sta1
     drop                            \ sqr1 act0 del-lst
 
+    \ cr ." action-check-incompatible-pairs-for-changed-square: process del list: " .stack-gbl cr
+
     \ Process del list.
     dup list-is-empty?              \ sqr1 act0 del-lst bool
     if
         list-deallocate
         2drop
+        \ cr ." action-check-incompatible-pairs-for-changed-square: exit 2: " .stack-gbl cr
         exit
     then
 
@@ -676,6 +685,7 @@ action-groups-disp              cell+   constant action-function-disp           
     while
         [ ' = ] literal                 \ sqr1 act0 del-lst del-lnk xt
         over link-get-data              \ sqr1 act0 del-lst del-lnk xt regx
+        cr ." Deleting incompatible pair, it became compatible: " dup .region cr
         #4 pick                         \ sqr1 act0 del-lst del-lnk xt regx act0
         action-get-incompatible-pairs   \ sqr1 act0 del-lst del-lnk xt regx pr-lst
         list-remove-struct              \ sqr1 act0 del-lst del-lnk, reg t | f
@@ -689,6 +699,8 @@ action-groups-disp              cell+   constant action-function-disp           
     repeat
                                         \ sqr1 act0 del-lst
     region-list-deallocate              \ sqr1 act0
+
+    \ cr ." action-check-incompatible-pairs-for-changed-square: recalc possible regions: " .stack-gbl cr
 
     \ Recalc possible regions.
     list-new                            \ sqr1 act0 pos-new
@@ -720,57 +732,19 @@ action-groups-disp              cell+   constant action-function-disp           
     over
     _action-update-possible-regions     \ sqr1 act0
 
+    \ cr ." action-check-incompatible-pairs-for-changed-square: del groups that no longer match" cr
+
     \ Delete groups that no longer match a possible region.
-
-    \ Init delete list.
-    list-new                            \ sqr1 act0 del-lst
-    over action-get-groups              \ sqr1 act0 del-lst grp-lst
-    list-get-links                      \ sqr1 act0 del-lst grp-lnk
-
-    begin
-        ?dup
-    while
-        dup link-get-data               \ sqr1 act0 del-lst grp-lnk grpx
-        group-get-region                \ sqr1 act0 del-lst grp-lnk grp-reg
-        #3 pick                         \ sqr1 act0 del-lst grp-lnk grp-reg act0
-        action-get-possible-regions     \ sqr1 act0 del-lst grp-lnk grp-reg poss-lst
-        region-list-member?             \ sqr1 act0 del-lst grp-lnk bool
-        if
-        else
-            dup link-get-data           \ sqr1 act0 del-lst grp-lnk grpx
-            #2 pick                     \ sqr1 act0 del-lst grp-lnk grpx del-lst
-            list-push-struct            \ sqr1 act0 del-lst grp-lnk
-        then
-
-        link-get-next
-    repeat
-                                        \ sqr1 act0 del-lst
-
-    \ Delete groups.
-    over action-get-groups              \ sqr1 act0 del-lst grp-lst
-    over list-get-links                 \ sqr1 act0 del-lst grp-lst del-lnk
-
-    [ ' = ] literal                     \ sqr1 act0 del-lst grp-lst del-lnk xt
-    over link-get-data                  \ sqr1 act0 del-lst grp-lst del-lnk xt del-grp
-    #3 pick                             \ sqr1 act0 del-lst grp-lst del-lnk xt del-grp grp-lst
-
-    list-remove-struct                  \ sqr1 act0 del-lst grp-lst del-lnk, grp t | f
-    if
-        drop
-    else
-        cr ." group not found?" abort
-    then
-                                        \ sqr1 act0 del-lst grp-lst
-    drop                                \ sqr1 act0 del-lst
-    group-list-deallocate               \ sqr1 act0 ( groups really get deallocated here )
+    dup _action-delete-non-possible-groups
 
     2drop
+    \ cr ." action-check-incompatible-pairs-for-changed-square: end: " .stack-gbl cr
 ;
 
 \ Check the possible region list for problems with a ginven square.
 \ Return true if all affected regions are Ok.
 : action-check-possible-regions-for-incompatible-pairs2 ( sta1 act0 -- bool )
-    \ cr ." check-possible-regions-for-incompatible-pairs2: start" cr
+    cr ." check-possible-regions-for-incompatible-pairs2: start" cr
     \ Check args.
     assert-tos-is-action
     assert-nos-is-state
@@ -815,7 +789,7 @@ action-groups-disp              cell+   constant action-function-disp           
                                                     \ pr-lst sta1 act0 sqr-lst
     drop                                            \ pr-lst sta1 act0
     nip                                             \ pr-lst act0
-    2dup square-pair-list-choose-pair               \ pr-lst act0, sqr-pr t | f
+    over square-pair-list-choose-pair               \ pr-lst act0, sqr-pr t | f
     if
         \ Add the incompatible square pair, altering possible regions.
         over _action-add-incompatible-pair          \ pr-lst act0
@@ -827,12 +801,13 @@ action-groups-disp              cell+   constant action-function-disp           
         square-pair-list-deallocate
         true
     then
+    cr ." check-possible-regions-for-incompatible-pairs2: end" cr
 ;
 
 \ Check possible regions, containing a given state,
 \ for incompatible square pairs, until no more found.
 : action-check-possible-regions-for-incompatible-pairs ( sta1 act0 -- )
-    \ cr ." check-possible-regions-for-incompatible-pairs: start" cr
+    cr ." check-possible-regions-for-incompatible-pairs: start" cr
     \ Check arg.
     assert-tos-is-action
     assert-nos-is-state
@@ -849,15 +824,18 @@ action-groups-disp              cell+   constant action-function-disp           
     begin
         2dup action-check-possible-regions-for-incompatible-pairs2
     until
+                                                                \ sta1 act0
 
-    cr ." action-check-possible-regions-for-incompatible-pairs: todo: alter groups" cr
-    nip                                                         \ act0
-    drop
+    dup _action-delete-non-possible-groups                      \ sta1 act0
+
+    2drop
+    cr ." check-possible-regions-for-incompatible-pairs: end" cr
 ;
 
 \ Check for invalidated groups.
 \ If found, delete groups and update incompatible pair list, possible regions list.
 : _action-check-for-invalidated-groups ( grp-lst1 act0 -- )
+    \ cr ." _action-check-for-invalidated-groups: start: " .stack-gbl cr
     \ Check args.
     assert-tos-is-action
     assert-nos-is-group-list
@@ -910,11 +888,12 @@ action-groups-disp              cell+   constant action-function-disp           
     else
         drop
     then
-    \ cr ." _action-check-for-invalidated-groups: end" cr
+    \ cr ." _action-check-for-invalidated-groups: end: " .stack-gbl cr
 ;
 
 \ Check an existing square, changed by a new result.
 : action-check-changed-square ( sqr1 act0 -- )
+    \ cr ." action-check-changed-square: start: " .stack-gbl cr
     \ Check args.
     assert-tos-is-action
     assert-nos-is-square
@@ -925,10 +904,6 @@ action-groups-disp              cell+   constant action-function-disp           
     else
         \ Check incompatible pairs.
         2dup action-check-incompatible-pairs-for-changed-square
-        if
-            2drop
-            exit
-        then
     then
 
     over square-get-state over              \ sqr1 act0 sta act0
@@ -964,7 +939,7 @@ action-groups-disp              cell+   constant action-function-disp           
     then
 
     2drop
-    \ cr ." action-check-changed-square: end" cr
+    \ cr ." action-check-changed-square: end: " .stack-gbl cr
 ;
 
 \ Add anew square to a list of groups the square is known to be in.
@@ -995,29 +970,35 @@ action-groups-disp              cell+   constant action-function-disp           
 
 \ Check a new square.
 : action-check-new-square ( sqr1 act0 -- )
+    cr ." action-check-new-square: start: " .stack-gbl cr
     \ Check args.
     assert-tos-is-action
     assert-nos-is-square
     over square-get-num-samples 1 > abort" action-check-new-square: new square has gt 1 samples?"
-    \ cr ." action-check-new-square: start: " .stack-gbl cr
+
+    over square-get-state over                              \ sqr1 act0 sta1 act0
+
+    cr ." before: " cr dup .action cr
+    action-check-possible-regions-for-incompatible-pairs    \ sqr1 act0
+    cr ." after: " cr dup .action cr
 
     over square-get-state over      \ sqr1 act0 sta act0
     action-get-groups               \ sqr1 act0 sta grp-lst
-
     group-list-superset-of-state    \ sqr1 act0, grp-lst' t | f
     if
         cr ." action-check-new-square: square in groups: " dup .group-list-regions cr
+        
         #2 pick over #3 pick                \ sqr1 act0 grp-lst' sqr1 grp-lst1' act0
         _action-add-new-square-to-groups    \ sqr1 act0 grp-lst'
-        2dup swap _action-check-for-invalidated-groups
         group-list-deallocate
-    else
-        cr ." action-check-new-square: square not in any groups. " cr
-        2dup action-new-groups-from-square
     then
 
-    2drop
-    \ cr ." action-check-new-square: end: " .stack-gbl cr
+    \ Some possible regions may only have the new square in them.
+    _action-add-possible-groups             \ sqr1
+    \ action-new-groups-from-square
+    drop
+
+    cr ." action-check-new-square: end: " .stack-gbl cr
 ;
 
 \ Add a new square to the action square list.
@@ -1025,7 +1006,7 @@ action-groups-disp              cell+   constant action-function-disp           
     \ Check args.
     assert-tos-is-action
     assert-nos-is-square
-    \ cr ." action-add-new-square: start: " .stack-gbl cr
+    cr ." action-add-new-square: start: " .stack-gbl cr
 
     over square-get-state       \ sqr1 act0 sta
     over action-find-square     \ sqr1 act0, sqr t | f
@@ -1038,7 +1019,7 @@ action-groups-disp              cell+   constant action-function-disp           
     list-push-struct            \ sqr1 act0
 
     action-check-new-square
-    \ cr ." action-add-new-square: end: " .stack-gbl cr
+    cr ." action-add-new-square: end: " .stack-gbl cr
 ;
 
 \ Add a sample, return true if the sample changed
@@ -1047,7 +1028,7 @@ action-groups-disp              cell+   constant action-function-disp           
     \ Check args.
     assert-tos-is-action
     assert-nos-is-sample
-    cr ." Action: add sample: " over .sample cr
+    \ cr ." Action: add sample: " over .sample cr
     \ cr ." action-add-sample: start: " .stack-gbl cr
 
     over sample-get-initial     \ smpl1 act0 initial
