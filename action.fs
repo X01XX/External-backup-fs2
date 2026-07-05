@@ -916,34 +916,9 @@ action-groups-disp              cell+   constant action-function-disp           
         2dup action-check-incompatible-pairs-for-changed-square
     then
 
-    over square-get-state over              \ sqr1 act0 sta act0
-    action-get-groups                       \ sqr1 act0 sta grp-lst
-
-    group-list-superset-of-state            \ sqr1 act0, grp-lst' t | f
-    if
-        cr ." action-check-changed-square: square in groups: " dup .group-list-regions cr
-
-        \ Check groups.
-        dup                                 \ sqr1 act0 grp-lst' grp-lst'
-        list-get-links                      \ sqr1 act0 grp-lst' grp-lnk
-
-        begin
-            ?dup
-        while
-            #3 pick                     \ sqr1 act0 grp-lst' grp-lnk sqr1
-            over link-get-data          \ sqr1 act0 grp-lst' grp-lnk sqr1 grpx
-            group-check-changed-square  \ sqr1 act0 grp-lst' grp-lnk
-
-            link-get-next
-        repeat
-
-        cr ." Check for invalidated groups" cr
-        dup                                 \ sqr1 act0 grp-lst' grp-lst'
-        #2 pick                             \ sqr1 act0 grp-lst' grp-lst' act0
-        _action-check-for-invalidated-groups
-
-        group-list-deallocate
-    then
+    over square-get-state                   \ sqr1 act0 sta
+    over                                    \ sqr1 act0 sta act0
+    action-check-possible-regions-for-incompatible-pairs
     
     \ Check for new groups.
     2dup action-new-groups-from-square
