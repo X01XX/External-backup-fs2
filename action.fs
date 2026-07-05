@@ -842,65 +842,6 @@ action-groups-disp              cell+   constant action-function-disp           
     \ cr ." check-possible-regions-for-incompatible-pairs: end" cr
 ;
 
-\ Check for invalidated groups.
-\ If found, delete groups and update incompatible pair list, possible regions list.
-: _action-check-for-invalidated-groups ( grp-lst1 act0 -- )
-    \ cr ." _action-check-for-invalidated-groups: start: " .stack-gbl cr
-    \ Check args.
-    assert-tos-is-action
-    assert-nos-is-group-list
-    \ cr ." _action-check-for-invalidated-groups: start" cr
-
-    \ Prep for loop.
-    swap group-list-get-invalidated-groups  \ act0, grp-lst' t | f
-    if
-        cr ." invalidated groups: " dup .group-list-regions cr
-        \ Init incompatible pair list.
-        list-new                        \ act0 grp-lst' ipr-lst'
-        \ cr ." at 1" cr
-
-        \ Process each group.
-        over list-get-links             \ act0 grp-lst' ipr-lst' grp-lnk
-
-        begin
-            ?dup
-        while
-            dup link-get-data           \ act0 grp-lst' ipr-lst' grp-lnk grpx
-            group-get-incompatible-pair \ act0 grp-lst' ipr-lst' grp-lnk, sqr-pr' t | f
-            if
-                cr ." inc pair: " dup .square-list cr
-                \ cr dup .list-raw cr
-                \ cr ." square pair: " dup .square-list cr
-                #2 pick                 \ act0 grp-lst' ipr-lst' grp-lnk sqr-pr' ipr-lst'
-                list-push-struct        \ act0 grp-lst' ipr-lst' grp-lnk
-            else
-                cr ." problem, incompatible pair not found?" cr
-            then
-
-            link-get-next
-        repeat
-                                                \ act0 grp-lst' ipr-lst'
-        cr ." incompatible pairs: " [ ' .square ] literal over .list cr
-        dup square-pair-list-choose-pair        \ act0 grp-lst' ipr-lst', sqr-pr t | f
-        if
-            #3 pick                             \ act0 grp-lst' ipr-lst' sqr-pr act0
-            _action-add-incompatible-pair       \ act0 grp-lst' ipr-lst'
-        else
-            cr ." choose pair failed?" abort
-        then
-
-        \ cr dup .list-raw cr
-        square-pair-list-deallocate
-
-        \ This deallocates the groups.
-        group-list-deallocate
-        drop
-    else
-        drop
-    then
-    \ cr ." _action-check-for-invalidated-groups: end: " .stack-gbl cr
-;
-
 \ Check an existing square, changed by a new result.
 : action-check-changed-square ( sqr1 act0 -- )
     \ cr ." action-check-changed-square: start: " .stack-gbl cr

@@ -153,43 +153,6 @@
     ." )"
 ;
 
-\ Return a list of invalidated groups.
-: group-list-get-invalidated-groups ( grp-lst0 -- grp-lst t | f )
-    \ Check arg.
-    assert-tos-is-group-list
-
-    \ Init return list.
-    list-new swap               \ ret-lst grp-lst0
-
-    \ Prep for loop.
-    list-get-links              \ ret-lst grp-lnk
-
-    \ Check each group.
-    begin
-        ?dup
-    while
-        dup link-get-data       \ ret-lst grp-lnk grpx
-        group-get-valid         \ ret-lst grp-lnk bool
-        if
-        else
-            dup link-get-data   \ ret-lst grp-lnk grpx
-            #2 pick             \ ret-lst grp-lnk grpx ret-lst
-            list-push-struct    \ ret-lst grp-lnk
-        then
-
-        link-get-next
-    repeat
-
-                                \ ret-lst
-    dup list-is-empty?
-    if
-        list-deallocate
-        false
-    else
-        true
-    then
-;
-
 \ Find a group in a list, by region, if any.
 : group-list-member? ( reg1 list0 -- bool )
     \ Check args.

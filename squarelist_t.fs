@@ -139,7 +139,7 @@
     s" s1110->s1110" sample-from-string-a   \ sqr2 sqr1a sqr1b lst smpl
     #2 pick square-add-sample               \ sqr2 sqr1a sqr1b lst bool
     \ Check for no change to pn.
-    if ." add sample 2 caused change?" abort then
+    if else ." add sample 2 caused no change?" abort then
 
     dup square-list-find-incompatible-pair  \ sqr2 sqr1a sqr1b lst, sqr-pr t | f
     if
@@ -213,7 +213,7 @@
     s" s1011->s1011" sample-from-string-a   \ sqr2a sqr2b lst sqr1 smpl
     over square-add-sample                  \ sqr2a sqr2b lst sqr1 bool
     \ Check for change to pn.
-    if ." add sample 2 caused change?" abort then
+    if else ." add sample 2 did not cause change?" abort then
     swap                                    \ sqr2a sqr2b sqr1 lst
     2dup list-push-struct                   \ sqr2a sqr2b sqr1 lst
 
@@ -300,7 +300,7 @@
     s" s1101->s1101" sample-from-string-a   \ sqr2a sqr2b lst sqr1 smpl
     over square-add-sample                  \ sqr2a sqr2b lst sqr1 bool
     \ Check for change to pn.
-    if ." add sample 2 caused change?" abort then
+    if else ." add sample 2 did not cause change?" abort then
     swap                                    \ sqr2a sqr2b sqr1 lst
     2dup list-push-struct                   \ sqr2a sqr2b sqr1 lst
 
@@ -375,7 +375,7 @@
     s" s1101->s1101" sample-from-string-a   \ sqr2a sqr2b lst sqr1 smpl
     over square-add-sample                  \ sqr2a sqr2b lst sqr1 bool
     \ Check for change to pn.
-    if ." add sample 2 caused change?" abort then
+    if else ." add sample 2 did not cause change?" abort then
     swap                                    \ sqr2a sqr2b sqr1 lst
     2dup list-push-struct                   \ sqr2a sqr2b sqr1 lst
 

@@ -11,13 +11,6 @@
 
     cr ." group: " dup .group
 
-    \ Check the group is valid.
-    dup group-get-valid                         \ grp bool
-    if
-    else
-        cr ." group-test-new: group not valid? " cr abort
-    then
-
     \ Clean up.
     group-deallocate
 
@@ -85,7 +78,6 @@
     cr ." initial group: " dup .group cr
 
     \ Check group.
-    dup group-get-valid invert abort" Group not valid?"
     dup group-get-pn 1 <> abort" Group pn ne 1?"
     s" r1XXX" region-from-string-a                      \ sqr8 sqrf grp reg-tmp'
     over group-get-s-region over                        \ sqr8 sqrf grp reg-tmp' grp-reg reg-tmp'
@@ -102,7 +94,6 @@
     cr ." after changing sqr8: " dup .group cr
 
     \ Check group.
-    dup group-get-valid invert abort" Group not valid?"
     dup group-get-pn #2 <> abort" Group pn ne 2?"
     s" r1000" region-from-string-a                      \ sqr8 sqrf grp reg-tmp'
     over group-get-s-region over                        \ sqr8 sqrf grp reg-tmp' grp-reg reg-tmp'
@@ -115,7 +106,6 @@
     drop
     2dup group-check-changed-square                     \ sqr8 sqrf grp
     cr ." after changing sqrf: " dup .group cr
-    dup group-get-valid abort" Group valid?"
 
     \ Deallocate.
     \ cr ." at 3: " .stack-gbl cr
@@ -181,8 +171,6 @@
 
     cr ." initial group: " dup .group cr
     \ cr .stack-gbl cr
-    \ Check group.
-    dup group-get-valid invert abort" Group not valid?"
 
     \ Add a compatible square.
     s" s1001->s1001" square-from-string-a                               \ grp sqr9
@@ -193,7 +181,6 @@
     cr ." group + sqr9: " dup .group cr
 
     \ Check group.
-    dup group-get-valid invert abort" Group not valid?"
     s" r100X" region-from-string-a                      \ grp reg-tmp'
     over group-get-s-region over                        \ grp reg-tmp' grp-reg reg-tmp'
     regions-eq? invert abort" r-region invalid?"        \ grp reg-tmp'

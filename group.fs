@@ -4,7 +4,7 @@
     #6 constant group-struct-number-cells
 
 \ Struct fields
-0                           constant group-header-disp      \ 16 bits, [0] struct id, [1] use count (16), [2] pnc (8 bits), valid (8 bits)
+0                           constant group-header-disp      \ 16 bits, [0] struct id, [1] use count (16), [2] pnc (8 bits)
 group-header-disp   cell+   constant group-parent-disp      \ Parent action, may be zero for testing.
 group-parent-disp   cell+   constant group-region-disp      \ The group region.
 group-region-disp   cell+   constant group-s-region-disp    \ A Region covered by the group's base-pn squares, often a proper subset of the group-region.
@@ -118,20 +118,6 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     4c!
 ;
 
-\ Return group 8-bit valid value, as a bool.
-: group-get-valid ( sqr0 -- bool )
-    \ Check arg.
-    assert-tos-is-group
-
-    5c@
-    0<>     \ Change 255 to -1
-;
-
-\ Set the valid flag to the given bool value.
-: _group-set-valid ( bool sqr -- )
-    5c!
-;
-
 : group-get-rules ( sqr0 -- rul-lst )
     \ Check arg.
     assert-tos-is-group
@@ -170,12 +156,6 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 
 \ End accessors.
 
-\ Set the valid flag to true.
-: _group-set-to-valid ( grp0 -- )
-   true swap
-   _group-set-valid
-;
-
 \ Print parent domain id, action id, if any.
 \ Group parent action ref may be zero, action parent ref may be zero.
 : .group-parents ( grp0 -- )
@@ -193,15 +173,6 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     swap                        \ act-id act
     .action-parent-xt execute   \ act-id
     ." Act: " dec.
-;
-
-\ Set the valid flag to false.
-: _group-set-to-invalid ( grp0 -- )
-    cr
-    dup .group-parents
-    ." Group: " dup group-get-region .region space ." invalidated" cr
-    false swap
-    _group-set-valid
 ;
 
 \ Calc, and set, group s-region, based on group square list.
@@ -234,7 +205,6 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 ;
 
 \ Calc, and set, group rules, based on group square list.
-\ Also set group-valid flag.
 : _group-calc-set-rules ( grp0 -- )
     \ Check arg.
     assert-tos-is-group
@@ -243,10 +213,9 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     square-list-calc-rules  \ grp0, ruls t | f
     if
         swap                \ ruls grp0
-        dup _group-set-to-valid
         _group-set-rules
     else
-        _group-set-to-invalid
+        cr ." Invalid group?" abort
     then
 ;
 
@@ -354,9 +323,6 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     group-struct-id group-mma       \ act0 s-reg' ruls' sqrs2 reg1 id mma
     struct-allocate                 \ act0 s-reg' ruls' sqrs2 reg1 grp
 
-    \ Set group to valid.
-    dup _group-set-to-valid         \ act0 s-reg' ruls' sqrs2 reg1 grp
-
     \ Set region.
     tuck                            \ act0 s-reg' ruls' sqrs2 grp reg1 grp
     _group-set-region               \ act0 s-reg' ruls' sqrs2 grp
@@ -409,15 +375,11 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     dup group-get-region .region
     space ." pnc: " dup group-get-pnc .bool
 
-    dup group-get-valid             \ grp0 valid
-    if
-        space ." - "
-        dup group-get-s-region .region
-        space
-        dup group-get-rules  .rule-list
-    else
-        space ." Invalid"
-    then
+    space ." - "
+    dup group-get-s-region .region
+    space
+    dup group-get-rules  .rule-list
+    
     space
     group-get-squares   .square-list-states
 
@@ -448,16 +410,6 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     assert-tos-is-group
     assert-nos-is-square
     \ cr ." group-check-changed-square: start: " .stack-gbl cr
-
-    \ Check if square is valid.
-    dup group-get-valid             \ sqr1 grp0 bool
-    if
-    else
-        cr ." problem? group-check-changed-square: group is invalid." cr
-        2drop
-        \ cr ." group-check-changed-square: exit 1: " .stack-gbl cr
-        exit
-    then
 
     \ Check square in group.
     over square-get-state           \ sqr1 grp0 sta
@@ -514,8 +466,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
             then
         then
     else                            \ sqr1 grp0
-        _group-set-to-invalid       \ sqr1
-        drop
+        2drop
     then
 
     \ cr ." group-check-changed-square: exit 2: " .stack-gbl cr
@@ -582,8 +533,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     else                                    \ sqr1 grp0 r-bool
         drop                                \ sqr1 grp0
         \ Set the valid flag to false
-        _group-set-to-invalid               \ sqr1
-        drop
+        2drop
     then
 ;
 
