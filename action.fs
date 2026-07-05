@@ -396,7 +396,7 @@ action-groups-disp              cell+   constant action-function-disp           
     list-push-struct
 ;
 
-\ Check if a square in no groups can form a group from the
+\ Check if a square can form new groups from the
 \ possible regions.
 : action-new-groups-from-square ( sqr act0 -- )
     \ Check args.
@@ -414,26 +414,35 @@ action-groups-disp              cell+   constant action-function-disp           
     begin
         ?dup
     while
+        \ Check if group exists.
         dup link-get-data               \ sqr1 act0 regs-in-lst' regs-lnk regx
         #3 pick                         \ sqr1 act0 regs-in-lst' regs-lnk regx act0
-        action-get-squares              \ sqr1 act0 regs-in-lst' regs-lnk regx sqr-lst
-        square-list-in-region           \ sqr1 act0 regs-in-lst' regs-lnk sqr-in-lst'
-        dup                             \ sqr1 act0 regs-in-lst' regs-lnk sqr-in-lst' sqr-in-lst'
-
-        \ Make new group.
-        #2 pick link-get-data           \ sqr1 act0 regs-in-lst' regs-lnk sqr-is-lst' sqr-in-lst' regx
-        #5 pick                         \ sqr1 act0 regs-in-lst' regs-lnk sqr-is-lst' sqr-in-lst' regx act0
-        group-new                       \ sqr1 act0 regs-in-lst' regs-lnk sqr-lst', grp t | f
+        action-get-groups               \ sqr1 act0 regs-in-lst' regs-lnk regx grp-lst
+        group-list-member?              \ sqr1 act0 regs-in-lst' regs-lnk bool
         if
-            nip                         \ sqr1 act0 regs-in-lst' regs-lnk grp
-            #3 pick                     \ sqr1 act0 regs-in-lst' regs-lnk grp act0
-            action-add-group            \ sqr1 act0 regs-in-lst' regs-lnk
         else
+            \ Try adding new group.
+            dup link-get-data               \ sqr1 act0 regs-in-lst' regs-lnk regx
+            #3 pick                         \ sqr1 act0 regs-in-lst' regs-lnk regx act0
+            action-get-squares              \ sqr1 act0 regs-in-lst' regs-lnk regx sqr-lst
+            square-list-in-region           \ sqr1 act0 regs-in-lst' regs-lnk sqr-in-lst'
+            dup                             \ sqr1 act0 regs-in-lst' regs-lnk sqr-in-lst' sqr-in-lst'
+
+            \ Make new group.
+            #2 pick link-get-data           \ sqr1 act0 regs-in-lst' regs-lnk sqr-is-lst' sqr-in-lst' regx
+            #5 pick                         \ sqr1 act0 regs-in-lst' regs-lnk sqr-is-lst' sqr-in-lst' regx act0
+            group-new                       \ sqr1 act0 regs-in-lst' regs-lnk sqr-lst', grp t | f
+            if
+            nip                         \ sqr1 act0 regs-in-lst' regs-lnk grp
+                #3 pick                     \ sqr1 act0 regs-in-lst' regs-lnk grp act0
+                action-add-group            \ sqr1 act0 regs-in-lst' regs-lnk
+            else
                                         \ sqr1 act0 regs-in-lst' regs-lnk sqr-lst'
                 cr ." action-new-groups-from-square: possible group: "
                 over link-get-data .region space ." containing: " dup .square-list-states space ." is invalid" cr
 
                 square-list-deallocate  \ sqr1 act0 regs-in-lst' regs-lnk
+            then
         then
 
         link-get-next
@@ -490,6 +499,7 @@ action-groups-disp              cell+   constant action-function-disp           
         #3 pick                         \ act0 del-grps grp-lst del-lnk xt grpx grp-lst
         list-remove                     \ act0 del-grps grp-lst del-lnk, grpx t | f
         if
+            cr ." Orphan group deleted: " dup .group-region cr
             struct-dec-use-count        \ act0 del-grps grp-lst del-lnk
         else
             cr ." remove failed?" cr abort
@@ -920,9 +930,9 @@ action-groups-disp              cell+   constant action-function-disp           
         begin
             ?dup
         while
-            #3 pick                         \ sqr1 act0 grp-lst' grp-lnk sqr1
-            over link-get-data              \ sqr1 act0 grp-lst' grp-lnk sqr1 grpx
-            group-check-changed-square      \ sqr1 act0 grp-lst' grp-lnk
+            #3 pick                     \ sqr1 act0 grp-lst' grp-lnk sqr1
+            over link-get-data          \ sqr1 act0 grp-lst' grp-lnk sqr1 grpx
+            group-check-changed-square  \ sqr1 act0 grp-lst' grp-lnk
 
             link-get-next
         repeat
@@ -933,10 +943,10 @@ action-groups-disp              cell+   constant action-function-disp           
         _action-check-for-invalidated-groups
 
         group-list-deallocate
-    else
-        cr ." action-check-changed-square: square not in any groups." cr
-        2dup action-new-groups-from-square
     then
+    
+    \ Check for new groups.
+    2dup action-new-groups-from-square
 
     2drop
     \ cr ." action-check-changed-square: end: " .stack-gbl cr

@@ -423,6 +423,14 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 
 ;
 
+: .group-region ( grp0 -- )
+    \ Check arg.
+    assert-tos-is-group
+
+    group-get-region        \ reg
+    .region
+;
+
 \ Return true if a group's region equals its s-region.
 : _group-region-eq-s-region? ( grp0 -- bool )
     \ Check arg.
@@ -448,6 +456,16 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
         cr ." problem? group-check-changed-square: group is invalid." cr
         2drop
         \ cr ." group-check-changed-square: exit 1: " .stack-gbl cr
+        exit
+    then
+
+    \ Check square in group.
+    over square-get-state           \ sqr1 grp0 sta
+    over group-get-region           \ sqr1 grp0 sta reg0
+    region-superset-of-state?       \ sqr1 grp0 bool
+    if
+    else
+        2drop
         exit
     then
 

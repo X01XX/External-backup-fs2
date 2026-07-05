@@ -191,7 +191,7 @@
 ;
 
 \ Find a group in a list, by region, if any.
-: group-list-member? ( sta1 list0 -- bool )
+: group-list-member? ( reg1 list0 -- bool )
     \ Check args.
     assert-tos-is-group-list
     assert-nos-is-region
