@@ -754,7 +754,7 @@ action-groups-disp              cell+   constant action-function-disp           
 \ Check the possible region list for problems with a ginven square.
 \ Return true if all affected regions are Ok.
 : action-check-possible-regions-for-incompatible-pairs2 ( sta1 act0 -- bool )
-    cr ." check-possible-regions-for-incompatible-pairs2: start" cr
+    \ cr ." check-possible-regions-for-incompatible-pairs2: start" cr
     \ Check args.
     assert-tos-is-action
     assert-nos-is-state
@@ -811,13 +811,13 @@ action-groups-disp              cell+   constant action-function-disp           
         square-pair-list-deallocate
         true
     then
-    cr ." check-possible-regions-for-incompatible-pairs2: end" cr
+    \ cr ." check-possible-regions-for-incompatible-pairs2: end" cr
 ;
 
 \ Check possible regions, containing a given state,
 \ for incompatible square pairs, until no more found.
 : action-check-possible-regions-for-incompatible-pairs ( sta1 act0 -- )
-    cr ." check-possible-regions-for-incompatible-pairs: start" cr
+    \ cr ." check-possible-regions-for-incompatible-pairs: start" cr
     \ Check arg.
     assert-tos-is-action
     assert-nos-is-state
@@ -839,7 +839,7 @@ action-groups-disp              cell+   constant action-function-disp           
     dup _action-delete-non-possible-groups                      \ sta1 act0
 
     2drop
-    cr ." check-possible-regions-for-incompatible-pairs: end" cr
+    \ cr ." check-possible-regions-for-incompatible-pairs: end" cr
 ;
 
 \ Check for invalidated groups.
@@ -955,7 +955,7 @@ action-groups-disp              cell+   constant action-function-disp           
 
 \ Check a new square.
 : action-check-new-square ( sqr1 act0 -- )
-    cr ." action-check-new-square: start: " .stack-gbl cr
+    \ cr ." action-check-new-square: start: " .stack-gbl cr
     \ Check args.
     assert-tos-is-action
     assert-nos-is-square
@@ -963,9 +963,7 @@ action-groups-disp              cell+   constant action-function-disp           
 
     over square-get-state over                              \ sqr1 act0 sta1 act0
 
-    cr ." before: " cr dup .action cr
     action-check-possible-regions-for-incompatible-pairs    \ sqr1 act0
-    cr ." after: " cr dup .action cr
 
     over square-get-state over      \ sqr1 act0 sta act0
     action-get-groups               \ sqr1 act0 sta grp-lst
@@ -983,7 +981,7 @@ action-groups-disp              cell+   constant action-function-disp           
     \ action-new-groups-from-square
     drop
 
-    cr ." action-check-new-square: end: " .stack-gbl cr
+    \ cr ." action-check-new-square: end: " .stack-gbl cr
 ;
 
 \ Add a new square to the action square list.
@@ -991,7 +989,7 @@ action-groups-disp              cell+   constant action-function-disp           
     \ Check args.
     assert-tos-is-action
     assert-nos-is-square
-    cr ." action-add-new-square: start: " .stack-gbl cr
+    \ cr ." action-add-new-square: start: " .stack-gbl cr
 
     over square-get-state       \ sqr1 act0 sta
     over action-find-square     \ sqr1 act0, sqr t | f
@@ -1004,7 +1002,7 @@ action-groups-disp              cell+   constant action-function-disp           
     list-push-struct            \ sqr1 act0
 
     action-check-new-square
-    cr ." action-add-new-square: end: " .stack-gbl cr
+    \ cr ." action-add-new-square: end: " .stack-gbl cr
 ;
 
 \ Add a sample, return true if the sample changed
