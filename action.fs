@@ -151,18 +151,6 @@ action-groups-disp              cell+   constant action-function-disp           
     !struct                             \ Set the field.
 ;
 
-\ Update the incompatible-pairs list of an action instance, use only in this file.
-: _action-update-incompatible-pairs ( reg-lst1 act0 -- )
-    \ Check args.
-    assert-tos-is-action
-    assert-nos-is-region-list
-
-    dup action-get-incompatible-pairs     \ reg-lst1 act0 pos-regs
-    -rot                                \ pos-regs reg-lst1 act0
-    _action-set-incompatible-pairs        \ pos-regs
-    region-list-deallocate
-;
-
 \ Return the possible-regions list from an action instance.
 : action-get-possible-regions ( act0 -- lst )
     \ Check arg.
@@ -394,62 +382,6 @@ action-groups-disp              cell+   constant action-function-disp           
 
     action-get-groups        \ grp1 grp-lst
     list-push-struct
-;
-
-\ Check if a square can form new groups from the
-\ possible regions.
-: action-new-groups-from-square ( sqr act0 -- )
-    \ Check args.
-    assert-tos-is-action
-    assert-nos-is-square
-
-    over square-get-state               \ sqr1 act0 sta
-    over action-get-possible-regions    \ sqr1 act0 sta reg-lst
-    region-list-regions-state-in        \ sqr1 act0 regs-in-lst
-    cr ." action-new-groups-from-square: square in possible regions: " dup .region-list cr
-
-    \ Check each region for new group, or new incompatible pair.
-    dup list-get-links                  \ sqr1 act0 regs-in-lst' regs-lnk
-
-    begin
-        ?dup
-    while
-        \ Check if group exists.
-        dup link-get-data               \ sqr1 act0 regs-in-lst' regs-lnk regx
-        #3 pick                         \ sqr1 act0 regs-in-lst' regs-lnk regx act0
-        action-get-groups               \ sqr1 act0 regs-in-lst' regs-lnk regx grp-lst
-        group-list-member?              \ sqr1 act0 regs-in-lst' regs-lnk bool
-        if
-        else
-            \ Try adding new group.
-            dup link-get-data               \ sqr1 act0 regs-in-lst' regs-lnk regx
-            #3 pick                         \ sqr1 act0 regs-in-lst' regs-lnk regx act0
-            action-get-squares              \ sqr1 act0 regs-in-lst' regs-lnk regx sqr-lst
-            square-list-in-region           \ sqr1 act0 regs-in-lst' regs-lnk sqr-in-lst'
-            dup                             \ sqr1 act0 regs-in-lst' regs-lnk sqr-in-lst' sqr-in-lst'
-
-            \ Make new group.
-            #2 pick link-get-data           \ sqr1 act0 regs-in-lst' regs-lnk sqr-is-lst' sqr-in-lst' regx
-            #5 pick                         \ sqr1 act0 regs-in-lst' regs-lnk sqr-is-lst' sqr-in-lst' regx act0
-            group-new                       \ sqr1 act0 regs-in-lst' regs-lnk sqr-lst', grp t | f
-            if
-            nip                         \ sqr1 act0 regs-in-lst' regs-lnk grp
-                #3 pick                     \ sqr1 act0 regs-in-lst' regs-lnk grp act0
-                action-add-group            \ sqr1 act0 regs-in-lst' regs-lnk
-            else
-                                        \ sqr1 act0 regs-in-lst' regs-lnk sqr-lst'
-                cr ." action-new-groups-from-square: possible group: "
-                over link-get-data .region space ." containing: " dup .square-list-states space ." is invalid" cr
-
-                square-list-deallocate  \ sqr1 act0 regs-in-lst' regs-lnk
-            then
-        then
-
-        link-get-next
-    repeat
-                                        \ sqr1 act0 regs-in-lst'
-    region-list-deallocate              \ sqr1 act0
-    2drop
 ;
 
 \ Scan the group list to delete groups that have a region
@@ -862,7 +794,7 @@ action-groups-disp              cell+   constant action-function-disp           
     action-check-possible-regions-for-incompatible-pairs
     
     \ Check for new groups.
-    2dup action-new-groups-from-square
+    dup _action-add-possible-groups         \ sqr1 act0
 
     2drop
     \ cr ." action-check-changed-square: end: " .stack-gbl cr
@@ -918,9 +850,10 @@ action-groups-disp              cell+   constant action-function-disp           
     then
 
     \ Some possible regions may only have the new square in them.
-    _action-add-possible-groups             \ sqr1
-    \ action-new-groups-from-square
-    drop
+    \ cr ." at 1: " .stack-gbl cr
+    dup _action-add-possible-groups         \ sqr1 act0
+    2drop
+   \  cr ." at 2: " .stack-gbl cr
 
     \ cr ." action-check-new-square: end: " .stack-gbl cr
 ;
