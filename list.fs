@@ -49,8 +49,8 @@ list-header-disp    cell+   constant list-links-disp
 ;
 
 \  Return true if TOS is an allocated list.
-: is-allocated-list? ( list -- flag )
-    dup list-mma mma-is-item    \ addr bool
+: is-allocated-list? ( tos -- flag )
+    dup list-mma mma-is-item?   \ addr bool
     if
         struct-get-id
         list-struct-id =        \ bool
@@ -58,6 +58,15 @@ list-header-disp    cell+   constant list-links-disp
         drop
         false                   \ f
     then
+;
+
+\ Check TOS for list.
+: is-list? ( tos -- t )
+    dup is-allocated-list?
+    if drop true exit then
+
+    s" not an allocated list"
+    .abort-xt execute
 ;
 
 \ Check TOS for list, unconventional, leaves stack unchanged.

@@ -26,7 +26,7 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
 
 \ Check instance type.
 : is-allocated-corner? ( addr -- bool )
-    dup corner-mma mma-is-item  \ addr bool
+    dup corner-mma mma-is-item? \ addr bool
     if
         struct-get-id
         corner-struct-id =      \ bool
@@ -105,7 +105,7 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
 : _corner-set-anchor-square ( sta1 crn0 -- )
     \ Check args.
     assert-tos-is-corner
-    assert-nos-is-square
+    assert( nos is-square? )
 
     corner-anchor-square-disp +     \ Add offset.
     !struct                         \ Set the field.
@@ -135,7 +135,7 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
 : _corner-set-regions ( reg-lst1 crn0 -- )
     \ Check args.
     assert-tos-is-corner
-    assert-nos-is-region-list
+    assert( nos is-region-list? )
 
     corner-regions-disp +               \ Add offset.
     !struct                             \ Set the field.
@@ -155,7 +155,7 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
 \ Create a corner, given an anchor square.
 : corner-new ( sqr0 -- crn )
     \ Check args.
-    assert-tos-is-square
+    assert( tos is-square? )
 
     \ Allocate space.
     corner-struct-id corner-mma         \ sta1 id mma
@@ -225,7 +225,7 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
 : corner-uses-square? ( sqr1 crn0 -- bool )
     \ Check args.
     assert-tos-is-corner
-    assert-nos-is-square
+    assert( nos is-square? )
 
     \ Check sqr1 eq anchor.
     dup corner-get-anchor-square    \ sqr1 crn0 anc
@@ -266,12 +266,8 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
 : corner-can-square-be-added? ( sqr1 crn0 -- bool )
     \ Check args.
     assert-tos-is-corner
-    assert-nos-is-square
-
-    \ Check number bits.
-    over square-get-num-bits
-    over corner-get-num-bits
-    <> abort" number bit difference?"
+    assert( nos is-square? )
+    assert( over square-get-num-bits over corner-get-num-bits = )
 
     \ Check if square is already used.
     2dup corner-uses-square?                \ sqr1 crn0 bool
@@ -381,7 +377,7 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
 : corner-update-regions ( reg-lst1 crn0 -- )
     \ Check args.
     assert-tos-is-corner
-    assert-nos-is-region-list
+    assert( nos is-region-list? )
 
     dup corner-get-regions  \ reg-lst1 crn0 crn-regs'
     -rot                    \ crn-regs' reg-lst1 crn0
@@ -393,7 +389,7 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
 : corner-adjust-regions ( sqr1 crn0 -- )
     \ Check args.
     assert-tos-is-corner
-    assert-nos-is-square
+    assert( nos is-square? )
 
     swap square-get-state               \ crn0 sta1
     over corner-get-anchor-square       \ crn0 sta1 anc
@@ -415,7 +411,7 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
 : corner-add-square ( sqr1 crn0 -- bool )
     \ Check args.
     assert-tos-is-corner
-    assert-nos-is-square
+    assert( nos is-square? )
     \ cr ." corner-add-square: start: " .stack-gbl cr
 
     2dup corner-can-square-be-added?        \ sqr1 crn0 bool
@@ -523,7 +519,7 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
 : corner-check-anchor ( sqr1 crn0 -- )
     \ Check args.
     assert-tos-is-corner
-    assert-nos-is-square
+    assert( nos is-square? )
 
     true abort" TODO"
 ;
@@ -532,7 +528,7 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
 : corner-check-similar-square ( sqr1 crn0 -- )
     \ Check args.
     assert-tos-is-corner
-    assert-nos-is-square
+    assert( nos is-square? )
 
     true abort" TODO"
 ;
@@ -541,7 +537,7 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
 : corner-check-dissimilar-square ( sqr1 crn0 -- )
     \ Check args.
     assert-tos-is-corner
-    assert-nos-is-square
+    assert( nos is-square? )
 
     true abort" TODO"
 ;
@@ -550,7 +546,7 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
 : corner-check-new-square ( sqr1 crn0 -- )
     \ Check args.
     assert-tos-is-corner
-    assert-nos-is-square
+    assert( nos is-square? )
 
     \ Check if a square can be added.
     over                                    \ sqr1 crn0 sqr1
@@ -605,7 +601,7 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
 : corner-square-is-anchor? ( sqr1 crn0 -- bool )
     \ Check args.
     assert-tos-is-corner
-    assert-nos-is-square
+    assert( nos is-square? )
 
     dup corner-get-anchor-square    \ sqr1 anc
     =
@@ -615,7 +611,7 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
 : corner-square-is-in-similar-squares? ( sqr1 crn0 -- bool )
     \ Check args.
     assert-tos-is-corner
-    assert-nos-is-square
+    assert( nos is-square? )
 
     [ ' = ] literal                 \ sqr1 crn0 xt
     -rot                            \ xt sqr1 crn0
@@ -627,7 +623,7 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
 : corner-square-is-in-dissimilar-squares? ( sqr1 crn0 -- bool )
     \ Check args.
     assert-tos-is-corner
-    assert-nos-is-square
+    assert( nos is-square? )
 
     [ ' = ] literal                     \ sqr1 crn0 xt
     -rot                                \ xt sqr1 crn0
@@ -640,10 +636,8 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
 : corner-check-changed-square ( sqr1 crn0 -- )
     \ Check args.
     assert-tos-is-corner
-    assert-nos-is-square
-    over square-get-num-bits
-    over corner-get-num-bits
-    <> abort" number bit difference?"
+    assert( nos is-square? )
+    assert( over square-get-num-bits over corner-get-num-bits = )
 
     2dup corner-square-is-anchor?                   \ sqr1 crn0 bool
     if

@@ -6,7 +6,7 @@
     dup list-is-not-empty?
     if
         dup list-get-links link-get-data
-        assert-tos-is-square
+        assert( tos is-square? )
         drop
     then
 ;
@@ -17,7 +17,7 @@
     over list-is-not-empty?
     if
         over list-get-links link-get-data
-        assert-tos-is-square
+        assert( tos is-square? )
         drop
     then
 ;
@@ -28,7 +28,7 @@
     #2 pick list-is-not-empty?
     if
         #2 pick list-get-links link-get-data
-        assert-tos-is-square
+        assert( tos is-square? )
         drop
     then
 ;
@@ -96,8 +96,8 @@
 : square-list-any-between? ( sqr2 sqr1 btw-lst0 -- bool )
     \ Check args.
     assert-tos-is-square-list
-    assert-nos-is-square
-    assert-3os-is-square
+    assert( nos is-square? )
+    assert( 3os is-square? )
 
     list-get-links          \ sqr2 sqr1 btw-lnk
 
@@ -126,8 +126,8 @@
 : square-list-between-any ( sqr2 btw1 sqr-lst0 -- sqr-lst )
     \ Check args.
     assert-tos-is-square-list
-    assert-nos-is-square
-    assert-3os-is-square
+    assert( nos is-square? )
+    assert( 3os is-square? )
 
     \ Init return list.
     list-new                \ sqr2 btw1 sqr-lst0 ret-lst
@@ -339,7 +339,7 @@
 : square-list-find ( sta1 list0 -- sqr t | f )
     \ Check args.
     assert-tos-is-square-list
-    assert-nos-is-state
+    assert( nos is-state? )
 
     [ ' square-state-eq ] literal -rot list-find
 ;
@@ -598,7 +598,7 @@
 : square-list-in-region ( reg1 sqr-lst0 -- sqr-lst )
     \ Check args.
     assert-tos-is-square-list
-    assert-nos-is-region
+    assert( nos is-region? )
 
     [ ' square-in-region? ] literal -rot            \ xt reg1 sqr-lst0
     list-find-all-struct                            \ ret-list
@@ -608,7 +608,7 @@
 : square-list-square-compatible? ( sqr1 sqr-lst0 -- bool )
     \ Check args.
     assert-tos-is-square-list
-    assert-nos-is-square
+    assert( nos is-square? )
 
     \ Check for empty list.
     dup list-is-empty?
@@ -700,7 +700,7 @@
 : square-list-member? ( sqr1 sqr-lst0 -- bool )
     \ Check args.
     assert-tos-is-square-list
-    assert-nos-is-square
+    assert( nos is-square? )
 
     [ ' = ] literal -rot    \ xt sqr1 sqr-lst0
     list-member?

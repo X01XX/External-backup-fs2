@@ -26,7 +26,7 @@ sample-initial-disp cell+   constant sample-result-disp     \ Result state.
 
 \ Check instance type.
 : is-allocated-sample? ( addr -- flag )
-    dup sample-mma mma-is-item  \ addr bool
+    dup sample-mma mma-is-item? \ addr bool
     if
         struct-get-id
         sample-struct-id =      \ bool
@@ -78,7 +78,7 @@ sample-initial-disp cell+   constant sample-result-disp     \ Result state.
 : _sample-set-initial ( sta1 smp0 -- )
     \ Check args.
     assert-tos-is-sample
-    assert-nos-is-state
+    assert( nos is-state? )
 
     sample-initial-disp +   \ Add offset.
     !struct                 \ Set initial field.
@@ -88,7 +88,7 @@ sample-initial-disp cell+   constant sample-result-disp     \ Result state.
 : _sample-set-result ( sta1 smpl0 -- )
     \ Check args.
     assert-tos-is-sample
-    assert-nos-is-state
+    assert( nos is-state? )
 
     sample-result-disp +    \ Add offset.
     !struct                 \ Set result field.
@@ -100,8 +100,8 @@ sample-initial-disp cell+   constant sample-result-disp     \ Result state.
 \ The numbers may be the same.
 : sample-new ( rslt1 init0 -- smpl )
     \ Check args.
-    assert-tos-is-state
-    assert-nos-is-state
+    assert( tos is-state? )
+    assert( nos is-state? )
     2dup states-dif-num-bits? abort" States num bits mismatch?"
 
     \ Allocate space.

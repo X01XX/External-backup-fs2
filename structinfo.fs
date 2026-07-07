@@ -30,7 +30,7 @@ structinfo-eq-xt-disp           cell+   constant structinfo-name-disp           
 
 \ Check instance type.
 : is-allocated-structinfo? ( tos -- flag )
-    dup structinfo-mma mma-is-item  \ addr bool
+    dup structinfo-mma mma-is-item? \ addr bool
     if
         struct-get-id
         structinfo-struct-id =             \ bool

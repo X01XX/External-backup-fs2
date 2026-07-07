@@ -26,7 +26,7 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
 
 \ Check instance type.
 : is-allocated-domain? ( addr -- bool )
-    dup domain-mma mma-is-item  \ addr bool
+    dup domain-mma mma-is-item? \ addr bool
     if
         struct-get-id
         domain-struct-id =      \ bool

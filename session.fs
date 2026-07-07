@@ -22,13 +22,13 @@ session-header-disp                     cell+   constant session-domains-disp   
 
 \ Check instance type.
 : is-allocated-session? ( addr -- bool )
-    dup session-mma mma-is-item	\ addr bool
+    dup session-mma mma-is-item?    \ addr bool
     if
         struct-get-id
-        session-id =            \ bool
+        session-id =                \ bool
     else
         drop
-        false                   \ f
+        false                       \ f
     then
 ;
 

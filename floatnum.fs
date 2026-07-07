@@ -22,7 +22,7 @@ floatnum-header-disp cell+   constant floatnum-number-disp
 
 \ Check instance type.
 : is-allocated-floatnum? ( addr -- flag )
-    dup floatnum-mma mma-is-item  \ addr bool
+    dup floatnum-mma mma-is-item? \ addr bool
     if
         struct-get-id
         floatnum-struct-id =
@@ -62,21 +62,7 @@ floatnum-header-disp cell+   constant floatnum-number-disp
     floatnum-number-disp + f!
 ;
 
-\ Check TOS for float. Unconventional, no change in stack.
-: assert-tos-is-float ( arg0 --  arg0 )
-    dup is-allocated-floatnum?
-    if
-    else
-        s" TOS is not an allocated floatnum."
-       .abort-xt execute
-    then
-;
-
-\ Check list mma usage.
-: assert-floatnum-mma-none-in-use ( -- )
-    floatnum-mma mma-in-use 0<>
-    abort" floatnum-mma use GT 0"
-;
+\ Start accessors.
 
 \ Return a new float struct instance address, with given data value.
 : floatnum-new ( F: r -- fnum )

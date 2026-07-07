@@ -38,7 +38,7 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
 
 \ Check instance type.
 : is-allocated-square? ( addr -- bool )
-    dup square-mma mma-is-item  \ addr bool
+    dup square-mma mma-is-item? \ addr bool
     if
         struct-get-id
         square-struct-id =      \ bool
@@ -48,31 +48,13 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
     then
 ;
 
-\ Check TOS for square, unconventional, leaves stack unchanged.
-: assert-tos-is-square ( tos -- tos )
+\ Check TOS for square.
+: is-square? ( tos -- t )
     dup is-allocated-square?
-    false? if
-        s" TOS is not an allocated square"
-        .abort-xt execute
-    then
-;
+    if drop true exit then
 
-\ Check NOS for square, unconventional, leaves stack unchanged.
-: assert-nos-is-square ( nos tos -- nos tos )
-    over is-allocated-square?
-    false? if
-        s" NOS is not an allocated square"
-        .abort-xt execute
-    then
-;
-
-\ Check 3OS for square, unconventional, leaves stack unchanged.
-: assert-3os-is-square ( 3os nos tos -- 3os nos tos )
-    #2 pick is-allocated-square?
-    false? if
-        s" 3OS is not an allocated square"
-        .abort-xt execute
-    then
+    s" not an allocated square"
+    .abort-xt execute
 ;
 
 \ Check nos is a valid pn value.
@@ -89,14 +71,14 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
 
 : square-get-pn ( sqr0 -- pn )
     \ Check arg.
-    assert-tos-is-square
+    assert( tos is-square? )
 
     4c@
 ;
 
 : _square-set-pn ( pn sqr0 -- )
     \ Check args.
-    assert-tos-is-square
+    assert( tos is-square? )
     assert-nos-is-pn
 
     4c!
@@ -104,7 +86,7 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
 
 : square-get-pnc ( sqr0 -- bool )
     \ Check arg.
-    assert-tos-is-square
+    assert( tos is-square? )
 
     5c@
     if
@@ -116,7 +98,7 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
 
 : _square-set-pnc ( bool sqr0 -- )
     \ Check args.
-    assert-tos-is-square
+    assert( tos is-square? )
     assert-nos-is-bool
 
     swap        \ sqr0 bool
@@ -130,14 +112,14 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
 
 : square-get-changed ( sqr0 -- bool )
     \ Check arg.
-    assert-tos-is-square
+    assert( tos is-square? )
 
     6c@
 ;
 
 : _square-set-changed ( bool sqr0 -- )
     \ Check args.
-    assert-tos-is-square
+    assert( tos is-square? )
     assert-nos-is-bool
 
     6c!
@@ -145,14 +127,14 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
 
 : _square-get-samples ( sqr0 -- smpl-lst )
     \ Check arg.
-    assert-tos-is-square
+    assert( tos is-square? )
 
     square-samples-disp + @
 ;
 
 : _square-set-samples ( smpl-lst1 sqr0 -- )
     \ Check args.
-    assert-tos-is-square
+    assert( tos is-square? )
     assert-nos-is-sample-list
     over list-get-length #4 > abort" rule list too long?"
 
@@ -162,14 +144,14 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
 
 : square-get-rules ( sqr0 -- rul-lst )
     \ Check arg.
-    assert-tos-is-square
+    assert( tos is-square? )
 
     square-rules-disp + @
 ;
 
 : _square-set-rules ( rul-lst1 sqr0 -- )
     \ Check args.
-    assert-tos-is-square
+    assert( tos is-square? )
     assert-nos-is-rule-list
     over list-get-length #2 > abort" rule list too long?"
 
@@ -214,7 +196,7 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
 
 : _square-update-pn ( pn sqr0 -- )
     \ Check args.
-    assert-tos-is-square
+    assert( tos is-square? )
     assert-nos-is-pn
 
     dup square-get-pn           \ pn-new sqr0 pn-old
@@ -230,7 +212,7 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
 
 : _square-update-pnc ( bool sqr0 -- )
     \ Check args.
-    assert-tos-is-square
+    assert( tos is-square? )
     assert-nos-is-bool
 
     dup square-get-pnc          \ pn-new sqr0 pn-old
@@ -247,7 +229,7 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
 \ Update the rules of a square.
 : _square-update-rules ( rul-lst1 sqr0 -- )
     \ Check args.
-    assert-tos-is-square
+    assert( tos is-square? )
     assert-nos-is-rule-list
     over list-get-length #2 > abort" rule list too long?"
 
@@ -260,7 +242,7 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
 \ Calculate, and update, the square pn value.
 : _square-calc-pn ( sqr0 -- )
     \ Check arg.
-    assert-tos-is-square
+    assert( tos is-square? )
 
     dup _square-get-samples     \ sqr0 smpl-lst
 
@@ -321,7 +303,7 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
 \ Run after _square-calc-pn.
 : _square-calc-pnc ( sqr0 -- )
     \ Check args.
-    assert-tos-is-square
+    assert( tos is-square? )
 
     \ Check for pn 0.
     dup square-get-pn       \ sqr0 pn
@@ -340,7 +322,7 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
 \ Calculate, and update, square rules.
 : _square-calc-rules ( sqr0 -- )
     \ Check args.
-    assert-tos-is-square
+    assert( tos is-square? )
 
     dup square-get-pn       \ sqr0 pn
     case
@@ -377,7 +359,7 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
 \ Return the quare state.
 : square-get-state ( sqr0 -- sta )
     \ Check arg.
-    assert-tos-is-square
+    assert( tos is-square? )
 
     _square-get-samples     \ smpl-lst
     list-get-first-item     \ smpl
@@ -387,7 +369,7 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
 \ Return the number of samples stored by a square.
 : square-get-num-samples ( square -- 1-4 )
     \ Check arg.
-    assert-tos-is-square
+    assert( tos is-square? )
 
     _square-get-samples
     list-get-length
@@ -397,7 +379,7 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
 \ and 2 samples.
 : square-pn1-samples2 ( sqr0 -- bool )
     \ Check arg.
-    assert-tos-is-square
+    assert( tos is-square? )
 
     dup square-get-pn           \ sqr0 pn
     1 =                         \ sqr0 bool
@@ -416,7 +398,7 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
 \ would make it incompatible with any pn=2 square.
 : square-add-sample ( smpl sqr0 -- bool )
     \ Check args.
-    assert-tos-is-square
+    assert( tos is-square? )
     assert-nos-is-sample
 
     \ Check number bits.
@@ -469,7 +451,7 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
 \ Deallocate a square.
 : square-deallocate ( sqr0 -- )
     \ Check arg.
-    assert-tos-is-square
+    assert( tos is-square? )
 
     dup struct-get-use-count      \ sqr0 count
     dup 0< abort" square-deallocate: Invalid use count"
@@ -490,7 +472,7 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
 \ Print a square.
 : .square ( sqr0 -- )
     \ Check arg.
-    assert-tos-is-square
+    assert( tos is-square? )
 
     s" (" type
     dup square-get-state .state
@@ -564,8 +546,8 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
 \ Return char C for Compatible, I for Incompatible, M for More samples needed.
 : squares-compare ( sqr1 sqr0 -- char )
     \ Check args.
-    assert-tos-is-square
-    assert-nos-is-square
+    assert( tos is-square? )
+    assert( nos is-square? )
 
     over square-get-pn      \ sqr1 sqr0 pn1
     over square-get-pn      \ sqr1 sqr0 pn1 pn0
@@ -616,7 +598,7 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
 \ Return the number of bits used in square states.
 : square-get-num-bits ( sqr0 -- nb )
     \ Check arg.
-    assert-tos-is-square
+    assert( tos is-square? )
 
     square-get-state        \ sta
     state-get-num-bits      \ nb
@@ -625,7 +607,7 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
 \ Print a square's state.
 : .square-state ( sqr0 -- )
     \ Check arg.
-    assert-tos-is-square
+    assert( tos is-square? )
 
     square-get-state        \ sta
     .state
@@ -634,9 +616,9 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
 \ Return true if a square (tos) is between two other squares.
 : square-between? ( sqr2 sqr1 sqr0 -- bool )
     \ Check args.
-    assert-tos-is-square
-    assert-nos-is-square
-    assert-3os-is-square
+    assert( tos is-square? )
+    assert( nos is-square? )
+    assert( 3os is-square? )
 
     rot square-get-state    \ sqr1 sqr0 sta2
     rot square-get-state    \ sqr0 sta2 sta1
@@ -648,8 +630,8 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
 \ Return true if a square state matches a value.
 : square-state-eq ( sta1 sqr0 -- flag )
     \ Check args.
-    assert-tos-is-square
-    assert-nos-is-state
+    assert( tos is-square? )
+    assert( nos is-state? )
 
     square-get-state
     states-eq?
@@ -658,8 +640,8 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
 \ Return true if a square state is a subset of a region.
 : square-in-region? ( reg1 sqr0 -- flag )
     \ Check args.
-    assert-tos-is-square
-    assert-nos-is-region
+    assert( tos is-square? )
+    assert( nos is-region? )
 
     square-get-state
     swap

@@ -1,7 +1,7 @@
 \ Process square pairs, a list of two squares.
 
 \ Return true if tos is a square-pair.
-: assert-tos-is-square-pair ( lst0 -- bool )
+: assert-tos-is-square-pair ( lst0 -- )
     assert-tos-is-square-list
     dup list-get-length
     #2 =
@@ -12,7 +12,7 @@
 ;
 
 \ Return true if nos is a square-pair.
-: assert-nos-is-square-pair ( lst0 -- bool )
+: assert-nos-is-square-pair ( lst0 -- )
     assert-nos-is-square-list
     over list-get-length
     #2 =

@@ -22,7 +22,7 @@ token-header-disp cell+ constant token-string-disp
 
 \ Check instance type.
 : is-allocated-token? ( tos -- bool )
-    dup token-mma mma-is-item  \ addr bool
+    dup token-mma mma-is-item? \ addr bool
     if
         struct-get-id           \ id
         token-struct-id =              \ bool

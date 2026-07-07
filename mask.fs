@@ -24,7 +24,7 @@ mask-header-disp cell+  constant mask-number-disp
 
 \ Check instance type.
 : is-allocated-mask? ( tos -- bool )
-    dup mask-mma mma-is-item    \ addr bool
+    dup mask-mma mma-is-item?   \ addr bool
     if
         struct-get-id
         mask-struct-id =        \ bool
@@ -34,21 +34,12 @@ mask-header-disp cell+  constant mask-number-disp
     then
 ;
 
-\ Check TOS for mask, unconventional, leaves stack unchanged.
-: assert-tos-is-mask ( tos -- tos )
+\ Check TOS for mask.
+: is-mask? ( tos -- t )
     dup is-allocated-mask?
-    if exit then
+    if drop true exit then
 
-    s" TOS is not an allocated mask"
-    .abort-xt execute
-;
-
-\ Check NOS for mask, unconventional, leaves stack unchanged.
-: assert-nos-is-mask ( nos tos -- nos tos )
-    over is-allocated-mask?
-    if exit then
-
-    s" NOS is not an allocated mask"
+    s" not an allocated mask"
     .abort-xt execute
 ;
 
@@ -57,7 +48,7 @@ mask-header-disp cell+  constant mask-number-disp
 \ Get the number of bits.
 : mask-get-num-bits ( msk0 -- nb )
     \ Check arg.
-    assert-tos-is-mask
+    assert( tos is-mask? )
 
     4c@
 ;
@@ -122,10 +113,8 @@ mask-header-disp cell+  constant mask-number-disp
 
 \ Return a copy of a mask.
 : mask-copy ( msk0 -- msk )
-    debug if
-        \ Check arg.
-        assert-tos-is-mask
-    then
+    \ Check arg.
+    assert( tos is-mask? )
 
     dup mask-get-number         \ msk0 num1
     swap mask-get-num-bits   \ num1 nb
@@ -134,10 +123,8 @@ mask-header-disp cell+  constant mask-number-disp
 
 \ Return mask remainder and mask lsb, if mask is non-zero.
 : mask-split-lsb ( msk0 -- msk-rem msk-lsb t | f )
-    debug if
-        \ Check arg.
-        assert-tos-is-mask
-    then
+    \ Check arg.
+    assert( tos is-mask? )
 
     \ Get mask remainder and lsb.
     dup mask-get-number         \ msk0 num
@@ -163,7 +150,7 @@ mask-header-disp cell+  constant mask-number-disp
 \ of the string.
 : mask-str ( addr1 msk0 --  nc )
     \ Check arg.
-    assert-tos-is-mask
+    assert( tos is-mask? )
 
     \ Save string length.
     dup mask-get-num-bits    \ addr1 msk0 nc
@@ -209,10 +196,8 @@ mask-header-disp cell+  constant mask-number-disp
 
 \ Print a mask.
 : .mask ( msk0 -- )
-    debug if
-        \ Check arg.
-        assert-tos-is-mask
-    then
+    \ Check arg.
+    assert( tos is-mask? )
 
     \ Calc string target address.
     pad 1+ swap         \ addr msk0
@@ -232,10 +217,8 @@ mask-header-disp cell+  constant mask-number-disp
 
 \ Deallocate a mask.
 : mask-deallocate ( msk -- )
-    debug if
-        \ Check arg.
-        assert-tos-is-mask
-    then
+    \ Check arg.
+    assert( tos is-mask? )
 
     dup struct-get-use-count    \ msk count
 
@@ -251,11 +234,9 @@ mask-header-disp cell+  constant mask-number-disp
 
 \ Return true if two masks have a different number of bits.
 : masks-dif-num-bits? ( msk1 msk0 -- flag )
-    debug if
-        \ Check args.
-        assert-tos-is-mask
-        assert-nos-is-mask
-    then
+    \ Check args.
+    assert( tos is-mask? )
+    assert( nos is-mask? )
 
     mask-get-num-bits    \ msk1 nb0
     swap                 \ nb0 msk1
@@ -263,14 +244,24 @@ mask-header-disp cell+  constant mask-number-disp
     <>
 ;
 
+\ Return true if two masks have the same number of bits.
+: masks-same-num-bits? ( msk1 msk0 -- flag )
+    \ Check args.
+    assert( tos is-mask? )
+    assert( nos is-mask? )
+
+    mask-get-num-bits    \ msk1 nb0
+    swap                 \ nb0 msk1
+    mask-get-num-bits    \ nb0 nb1
+    =
+;
+
 \ Return true if two masks are equal.
 : masks-eq? ( msk1 msk0 -- flag )
-    debug if
-        \ Check args.
-        assert-tos-is-mask
-        assert-nos-is-mask
-        2dup masks-dif-num-bits? abort" masks-eq?: num bits ne?"
-    then
+    \ Check args.
+    assert( tos is-mask? )
+    assert( nos is-mask? )
+    assert( 2dup masks-same-num-bits? )
 
     mask-get-number     \ msk1 lst0
     swap                \ lst0 msk1
@@ -281,10 +272,8 @@ mask-header-disp cell+  constant mask-number-disp
 
 \ Return a mask inverted.
 : mask-invert ( msk0 -- msk )
-    debug if
-        \ Check arg.
-        assert-tos-is-mask
-    then
+    \ Check arg.
+    assert( tos is-mask? )
 
     dup                         \ msk0 msk0
     mask-get-num-bits           \ msk0 nb
@@ -302,12 +291,10 @@ mask-header-disp cell+  constant mask-number-disp
 
 \ Return the Boolean AND of two masks.
 : mask-and ( msk1 msk0 -- msk )
-    debug if
-        \ Check args.
-        assert-tos-is-mask
-        assert-nos-is-mask
-        2dup masks-dif-num-bits? abort" mask-and: num bits ne?"
-    then
+    \ Check args.
+    assert( tos is-mask? )
+    assert( nos is-mask? )
+    assert( 2dup masks-same-num-bits? )
 
     over mask-get-number   \ msk1 msk0 num1
     swap mask-get-number   \ msk1 num1 num0
@@ -319,12 +306,10 @@ mask-header-disp cell+  constant mask-number-disp
 
 \ Return the Boolean OR of two masks.
 : mask-or ( msk1 msk0 -- msk )
-    debug if
-        \ Check args.
-        assert-tos-is-mask
-        assert-nos-is-mask
-        2dup masks-dif-num-bits? abort" mask-or: num bits ne?"
-    then
+    \ Check args.
+    assert( tos is-mask? )
+    assert( nos is-mask? )
+    assert( 2dup masks-same-num-bits? )
 
     over mask-get-number   \ msk1 msk0 num1
     swap mask-get-number   \ msk1 num1 num0
@@ -336,10 +321,8 @@ mask-header-disp cell+  constant mask-number-disp
 
 \ Return the mask of a given bit number.
 : mask-bit ( u1 msk0 -- bit )
-    debug if
-        \ Check arg.
-        assert-tos-is-mask
-    then
+    \ Check arg.
+    assert( tos is-mask? )
 
     over                \ u1 msk0 u1
     0< abort" Invalid bit number?"
@@ -452,10 +435,8 @@ mask-header-disp cell+  constant mask-number-disp
 
 \ Return true if mask is zero.
 : mask-is-zero? ( msk0 -- bool )
-    debug if
-        \ Check arg.
-        assert-tos-is-mask
-    then
+    \ Check arg.
+    assert( tos is-mask? )
 
     mask-get-number     \ num
     0=                  \ bool
@@ -463,10 +444,8 @@ mask-header-disp cell+  constant mask-number-disp
 
 \ Shift a mask 1 bit to the left.
 : mask-lshift-1 ( msk0 -- )
-    debug if
-        \ Check arg.
-        assert-tos-is-mask
-    then
+    \ Check arg.
+    assert( tos is-mask? )
 
     \ Shift 1.
     dup mask-get-number     \ msk0 num
@@ -483,10 +462,8 @@ mask-header-disp cell+  constant mask-number-disp
 
 \ Add one to a mask.
 : mask-add-1 ( msk0 -- )
-    debug if
-        \ Check arg.
-        assert-tos-is-mask
-    then
+    \ Check arg.
+    assert( tos is-mask? )
 
     dup mask-get-number     \ msk0 num
     1+                      \ msk0 num+
@@ -502,10 +479,8 @@ mask-header-disp cell+  constant mask-number-disp
 
 \ Return true if a mask has all bits set.
 : mask-all-bits? ( msk0 -- bool )
-    debug if
-        \ Check arg.
-        assert-tos-is-mask
-    then
+    \ Check arg.
+    assert( tos is-mask? )
 
     dup mask-get-num-bits   \ msk0 nb
     all-bits                \ msk0 all
@@ -515,10 +490,8 @@ mask-header-disp cell+  constant mask-number-disp
 
 \ Return the number of bits set to one.
 : mask-count-bits ( msk0 -- u )
-    debug if
-        \ Check arg.
-        assert-tos-is-mask
-    then
+    \ Check arg.
+    assert( tos is-mask? )
 
     mask-get-number     \ u
     num-bits-set

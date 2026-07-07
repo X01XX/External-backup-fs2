@@ -26,7 +26,7 @@ action-groups-disp              cell+   constant action-function-disp           
 
 \ Check instance type.
 : is-allocated-action? ( addr -- bool )
-    dup action-mma mma-is-item  \ addr bool
+    dup action-mma mma-is-item? \ addr bool
     if
         struct-get-id
         action-struct-id =      \ bool
@@ -145,7 +145,7 @@ action-groups-disp              cell+   constant action-function-disp           
 : _action-set-incompatible-pairs ( reg-lst1 act0 -- )
     \ Check args.
     assert-tos-is-action
-    assert-nos-is-region-list
+    assert( nos is-region-list? )
 
     action-incompatible-pairs-disp +    \ Add offset.
     !struct                             \ Set the field.
@@ -164,7 +164,7 @@ action-groups-disp              cell+   constant action-function-disp           
 : _action-set-possible-regions ( reg-lst1 act0 -- )
     \ Check args.
     assert-tos-is-action
-    assert-nos-is-region-list
+    assert( nos is-region-list? )
 
     action-possible-regions-disp +  \ Add offset.
     !struct                         \ Set the field.
@@ -174,7 +174,7 @@ action-groups-disp              cell+   constant action-function-disp           
 : _action-update-possible-regions ( reg-lst1 act0 -- )
     \ Check args.
     assert-tos-is-action
-    assert-nos-is-region-list
+    assert( nos is-region-list? )
 
     dup action-get-possible-regions     \ reg-lst1 act0 pos-regs
     -rot                                \ pos-regs reg-lst1 act0
@@ -195,7 +195,7 @@ action-groups-disp              cell+   constant action-function-disp           
 : _action-set-groups ( grp-lst1 act0 -- )
     \ Check args.
     assert-tos-is-action
-    assert-nos-is-group-list
+    assert( nos is-group-list? )
 
     action-groups-disp +    \ Add offset.
     !struct                 \ Set the field.
@@ -309,7 +309,7 @@ action-groups-disp              cell+   constant action-function-disp           
     assert-tos-is-action
 
     action-get-parent           \ dom
-    dup 0= if drop exit then         \ Print nothing.
+    dup 0= if drop exit then    \ Print nothing.
 
     cr ." .action-parent: todo " cr
     drop
@@ -367,7 +367,7 @@ action-groups-disp              cell+   constant action-function-disp           
 : action-find-square ( sta1 act0 -- sqr t | f )
     \ Check args.
     assert-tos-is-action
-    assert-nos-is-state
+    assert( nos is-state? )
 
     action-get-squares      \ sta1 sqr-lst
     square-list-find        \ sqr t | f
@@ -377,7 +377,7 @@ action-groups-disp              cell+   constant action-function-disp           
 : action-add-group ( grp1 act0 -- )
     \ Check args.
     assert-tos-is-action
-    assert-nos-is-group
+    assert( nos is-group? )
     cr ." Action " space ." Adding group: " over .group cr
 
     action-get-groups        \ grp1 grp-lst
@@ -516,7 +516,7 @@ action-groups-disp              cell+   constant action-function-disp           
         #2 pick                         \ act0 sta0 sta1 act0
         action-get-possible-regions     \ act0 sta0 sta1 pos-regs
         regionlist-cumulative-~a+~b     \ act0 pos-regs2
-        over                            \ act0 pas-regs2 act0
+        over                            \ act0 pos-regs2 act0
         _action-update-possible-regions \ act0
 
         \ Update groups.
@@ -532,18 +532,54 @@ action-groups-disp              cell+   constant action-function-disp           
     \ cr ." _action-add-incompatible-pair: end: " .stack-gbl cr
 ;
 
+\ Using action-incompatible-pairs, recalc all possible regions.
+: action-recalc-possible-regions ( act0 -- )
+    \ Check arg.
+    assert-tos-is-action
+
+    \ Recalc possible regions.
+    list-new                                \ act0 pos-new
+    over action-get-num-bits                \ act0 pos-new nb
+    region-max-x                            \ act0 pos-new reg-max
+    over list-push-struct                   \ act0 pos-new
+
+    over action-get-incompatible-pairs      \ act0 pos-new pr-lst
+    list-get-links                          \ act0 pos-new pr-lnk
+
+    begin
+        ?dup
+    while
+        dup link-get-data                   \ act0 pos-new pr-lnk regx
+        region-get-states                   \ act0 pos-new pr-lnk sta1 sta1
+        state-~a+~b                         \ act0 pos-new pr-lnk reg-lst'
+        dup                                 \ act0 pos-new pr-lnk reg-lst' reg-lst'
+        #3 pick                             \ act0 pos-new pr-lnk reg-lst' reg-lst' pos-new
+        region-list-intersections-nosubs    \ act0 pos-new pr-lnk reg-lst' pos-new2
+
+        \ Clean up.
+        swap region-list-deallocate         \ act0 pos-new pr-lnk pos-new2
+        rot region-list-deallocate          \ act0 pr-lnk pos-new2
+        swap                                \ act0 pos-new2 pr-lnk
+
+        link-get-next
+    repeat
+                                            \ act0 pos-new
+    swap                                    \ pos-new act0
+    _action-update-possible-regions         \
+;
+
 \ Check the effect on incompatible pairs of a changed square.
-\ If any pairs become Compatible, then are deleted, recalc possible
+\ If any pairs become Compatible, they are deleted, recalc possible
 \ regions and delete groups that no longer match a possible region.
 \ This may be intensive, since every pair must be recalculated and
 \ intersected.
 : action-check-incompatible-pairs-for-changed-square ( sqr1 act0 -- )
     \ cr ." action-check-incompatible-pairs-for-changed-square: start: " .stack-gbl cr
-    \ Check arg.
+    \ Check args.
     assert-tos-is-action
-    assert-nos-is-square
+    assert( nos is-square? )
 
-    over square-pn1-samples2        \ sqr1 act0 bool
+    over square-pn1-samples2            \ sqr1 act0 bool
     if
         \ This change should not affect incompatible pairs.
         2drop
@@ -554,39 +590,39 @@ action-groups-disp              cell+   constant action-function-disp           
     \ Check each pair, accumulate pairs to delete.
 
     \ Init delete list.
-    list-new                        \ sqr1 act0 del-lst
+    list-new                            \ sqr1 act0 del-lst
 
     \ Prep for loop.
-    #2 pick square-get-state        \ sqr1 act0 del-lst sta1
-    #2 pick                         \ sqr1 act0 del-lst sta1 act0
-    action-get-incompatible-pairs   \ sqr1 act0 del-lst sta1 pr-lst
-    list-get-links                  \ sqr1 act0 del-lst sta1 pr-lnk
+    #2 pick square-get-state            \ sqr1 act0 del-lst sta1
+    #2 pick                             \ sqr1 act0 del-lst sta1 act0
+    action-get-incompatible-pairs       \ sqr1 act0 del-lst sta1 pr-lst
+    list-get-links                      \ sqr1 act0 del-lst sta1 pr-lnk
 
     begin
         ?dup
     while
-        over                        \ sqr1 act0 del-lst sta1 pr-lnk sta1
-        over link-get-data          \ sqr1 act0 del-lst sta1 pr-lnk sta1 regx
-        region-uses-state?          \ sqr1 act0 del-lst sta1 pr-lnk bool
+        over                            \ sqr1 act0 del-lst sta1 pr-lnk sta1
+        over link-get-data              \ sqr1 act0 del-lst sta1 pr-lnk sta1 regx
+        region-uses-state?              \ sqr1 act0 del-lst sta1 pr-lnk bool
         if
-            dup link-get-data       \ sqr1 act0 del-lst sta1 pr-lnk regx
-            dup region-get-state-0  \ sqr1 act0 del-lst sta1 pr-lnk regx r-sta0
-            #3 pick                 \ sqr1 act0 del-lst sta1 pr-lnk regx r-sta0 sta1
-            states-eq?              \ sqr1 act0 del-lst sta1 pr-lnk regx bool
+            dup link-get-data           \ sqr1 act0 del-lst sta1 pr-lnk regx
+            dup region-get-state-0      \ sqr1 act0 del-lst sta1 pr-lnk regx r-sta0
+            #3 pick                     \ sqr1 act0 del-lst sta1 pr-lnk regx r-sta0 sta1
+            states-eq?                  \ sqr1 act0 del-lst sta1 pr-lnk regx bool
             \ Get the other state.
             if
                 \ Check state 1
-                region-get-state-1  \ sqr1 act0 del-lst sta1 pr-lnk r-sta
+                region-get-state-1      \ sqr1 act0 del-lst sta1 pr-lnk r-sta
             else
                 \ Check state 0
-                region-get-state-0  \ sqr1 act0 del-lst sta1 pr-lnk r-sta
+                region-get-state-0      \ sqr1 act0 del-lst sta1 pr-lnk r-sta
             then
             \ Compare with sqr1.
-            #4 pick             \ sqr1 act0 del-lst sta1 pr-lnk r-sta1 act0
-            action-find-square  \ sqr1 act0 del-lst sta1 pr-lnk, sqr t | f
+            #4 pick                     \ sqr1 act0 del-lst sta1 pr-lnk r-sta1 act0
+            action-find-square          \ sqr1 act0 del-lst sta1 pr-lnk, sqr t | f
             if
-                #5 pick         \ sqr1 act0 del-lst sta1 pr-lnk sqr sqr1
-                squares-compare \ sqr1 act0 del-lst sta1 pr-lnk char
+                #5 pick                 \ sqr1 act0 del-lst sta1 pr-lnk sqr sqr1
+                squares-compare         \ sqr1 act0 del-lst sta1 pr-lnk char
                 \ Allow pairs to go to More Samples Needed. The normal
                 \ confirmation by seeking pnc for each square will push
                 \ it to Compatible or Incompatible.
@@ -605,13 +641,13 @@ action-groups-disp              cell+   constant action-function-disp           
 
         link-get-next
     repeat
-                                    \ sqr1 act0 del-lst sta1
-    drop                            \ sqr1 act0 del-lst
+                                        \ sqr1 act0 del-lst sta1
+    drop                                \ sqr1 act0 del-lst
 
     \ cr ." action-check-incompatible-pairs-for-changed-square: process del list: " .stack-gbl cr
 
     \ Process del list.
-    dup list-is-empty?              \ sqr1 act0 del-lst bool
+    dup list-is-empty?                  \ sqr1 act0 del-lst bool
     if
         list-deallocate
         2drop
@@ -620,7 +656,7 @@ action-groups-disp              cell+   constant action-function-disp           
     then
 
     \ Remove pairs.
-    dup list-get-links              \ sqr1 act0 del-lst del-lnk
+    dup list-get-links                  \ sqr1 act0 del-lst del-lnk
 
     begin
         ?dup
@@ -644,52 +680,26 @@ action-groups-disp              cell+   constant action-function-disp           
 
     \ cr ." action-check-incompatible-pairs-for-changed-square: recalc possible regions: " .stack-gbl cr
 
-    \ Recalc possible regions.
-    list-new                            \ sqr1 act0 pos-new
-    over action-get-num-bits            \ sqr1 act0 pos-new nb
-    region-max-x                        \ sqr1 act0 pos-new reg-max
-    over list-push-struct               \ sqr1 act0 pos-new
-
-    over action-get-incompatible-pairs  \ sqr1 act0 pos-new pr-lst
-    list-get-links                      \ sqr1 act0 pos-new pr-lnk
-
-    begin
-        ?dup
-    while
-        dup link-get-data                   \ sqr1 act0 pos-new pr-lnk regx
-        region-get-states                   \ sqr1 act0 pos-new pr-lnk sta1 sta1
-        state-~a+~b                         \ sqr1 act0 pos-new pr-lnk reg-lst'
-        dup                                 \ sqr1 act0 pos-new pr-lnk reg-lst' reg-lst'
-        #3 pick                             \ sqr1 act0 pos-new pr-lnk reg-lst' reg-lst' pos-new
-        region-list-intersections-nosubs    \ sqr1 act0 pos-new pr-lnk reg-lst' pos-new2
-
-        \ Clean up.
-        swap region-list-deallocate     \ sqr1 act0 pos-new pr-lnk pos-new2
-        rot region-list-deallocate      \ sqr1 act0 pr-lnk pos-new2
-        swap                            \ sqr1 act0 pos-new2 pr-lnk
-
-        link-get-next
-    repeat
-                                        \ sqr1 act0 pos-new2
-    over
-    _action-update-possible-regions     \ sqr1 act0
-
+    dup
+    action-recalc-possible-regions      \ sqr1 act0
+    
     \ cr ." action-check-incompatible-pairs-for-changed-square: del groups that no longer match" cr
 
     \ Delete groups that no longer match a possible region.
-    dup _action-delete-non-possible-groups
+    dup
+    _action-delete-non-possible-groups  \ sqr1 act0
 
     2drop
     \ cr ." action-check-incompatible-pairs-for-changed-square: end: " .stack-gbl cr
 ;
 
-\ Check the possible region list for problems with a ginven square.
+\ Check the possible region list for problems with a given state.
 \ Return true if all affected regions are Ok.
 : action-check-possible-regions-for-incompatible-pairs2 ( sta1 act0 -- bool )
     \ cr ." check-possible-regions-for-incompatible-pairs2: start" cr
     \ Check args.
     assert-tos-is-action
-    assert-nos-is-state
+    assert( nos is-state? )
 
     \ Init square pair list.
     list-new -rot                                   \ pr-lst sta1 act0
@@ -752,7 +762,7 @@ action-groups-disp              cell+   constant action-function-disp           
     \ cr ." check-possible-regions-for-incompatible-pairs: start" cr
     \ Check arg.
     assert-tos-is-action
-    assert-nos-is-state
+    assert( nos is-state? )
 
     \ Try once.
     2dup action-check-possible-regions-for-incompatible-pairs2  \ sta1 act0 bool
@@ -779,20 +789,20 @@ action-groups-disp              cell+   constant action-function-disp           
     \ cr ." action-check-changed-square: start: " .stack-gbl cr
     \ Check args.
     assert-tos-is-action
-    assert-nos-is-square
+    assert( nos is-square? )
 
     \ Check incompatible pairs, if needed.
     over square-pn1-samples2                \ sqr1 act0 bool
     if
     else
-        \ Check incompatible pairs.
+        \ Check incompatible pairs due to a pn, or pnc, change.
         2dup action-check-incompatible-pairs-for-changed-square
     then
 
     over square-get-state                   \ sqr1 act0 sta
     over                                    \ sqr1 act0 sta act0
     action-check-possible-regions-for-incompatible-pairs
-    
+
     \ Check for new groups.
     dup _action-add-possible-groups         \ sqr1 act0
 
@@ -804,8 +814,8 @@ action-groups-disp              cell+   constant action-function-disp           
 : _action-add-new-square-to-groups ( sqr2 grp-lst act0 -- )
     \ Check args.
     assert-tos-is-action
-    assert-nos-is-group-list
-    assert-3os-is-square
+    assert( nos is-group-list? )
+    assert( 3os is-square? )
 
     over list-get-links             \ sqr2 grp-lst act0 grp-lnk
 
@@ -831,19 +841,18 @@ action-groups-disp              cell+   constant action-function-disp           
     \ cr ." action-check-new-square: start: " .stack-gbl cr
     \ Check args.
     assert-tos-is-action
-    assert-nos-is-square
+    assert( nos is-square? )
     over square-get-num-samples 1 > abort" action-check-new-square: new square has gt 1 samples?"
 
     over square-get-state over                              \ sqr1 act0 sta1 act0
 
     action-check-possible-regions-for-incompatible-pairs    \ sqr1 act0
 
-    over square-get-state over      \ sqr1 act0 sta act0
-    action-get-groups               \ sqr1 act0 sta grp-lst
-    group-list-superset-of-state    \ sqr1 act0, grp-lst' t | f
+    over square-get-state over              \ sqr1 act0 sta act0
+    action-get-groups                       \ sqr1 act0 sta grp-lst
+    group-list-superset-of-state            \ sqr1 act0, grp-lst' t | f
     if
         cr ." action-check-new-square: square in groups: " dup .group-list-regions cr
-        
         #2 pick over #3 pick                \ sqr1 act0 grp-lst' sqr1 grp-lst1' act0
         _action-add-new-square-to-groups    \ sqr1 act0 grp-lst'
         group-list-deallocate
@@ -862,7 +871,7 @@ action-groups-disp              cell+   constant action-function-disp           
 : action-add-new-square ( sqr1 act0 -- )
     \ Check args.
     assert-tos-is-action
-    assert-nos-is-square
+    assert( nos is-square? )
     \ cr ." action-add-new-square: start: " .stack-gbl cr
 
     over square-get-state       \ sqr1 act0 sta

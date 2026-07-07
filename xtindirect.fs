@@ -100,8 +100,6 @@
 
 ' xtabort value region-list-push-xt
 
-' xtabort value assert-nos-is-group-xt
-
 
 ' xtabort value .regioncorrrate-xt
 

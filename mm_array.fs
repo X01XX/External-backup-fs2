@@ -410,7 +410,7 @@ array-end-disp      cell+   constant array-items-disp   \ The start of the array
 
 \ Check if an address is an item of the array,
 \ on an exact item boundary.
-: mma-is-item ( addr mma0 -- bool )
+: mma-is-item? ( addr mma0 -- bool )
     2dup mma-within-array       \ addr mma0 bool
     if
         swap                    \ mma0 addr

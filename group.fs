@@ -27,7 +27,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 
 \ Check instance type.
 : is-allocated-group? ( addr -- bool )
-    dup group-mma mma-is-item   \ addr bool
+    dup group-mma mma-is-item?  \ addr bool
     if
         struct-get-id
         group-struct-id =       \ bool
@@ -37,32 +37,21 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     then
 ;
 
-\ Check TOS for group, unconventional, leaves stack unchanged.
-: assert-tos-is-group ( tos -- tos )
+\ Check TOS for group.
+: is-group? ( tos -- t )
     dup is-allocated-group?
-    false? if
-        s" TOS is not an allocated group"
-       .abort-xt execute
-    then
-;
+    if drop true exit then
 
-\ Check NOS for group, unconventional, leaves stack unchanged.
-: assert-nos-is-group ( nos tos -- nos tos )
-    over is-allocated-group?
-    false? if
-        s" NOS is not an allocated group"
-       .abort-xt execute
-    then
+    s" not an allocated group"
+    .abort-xt execute
 ;
-
-' assert-nos-is-group to assert-nos-is-group-xt
 
 \ Start accessors.
 
 \ Return the group parent.
 : group-get-parent ( grp0 -- par )
     \ Check arg.
-    assert-tos-is-group
+    assert( tos is-group? )
 
     group-parent-disp + \ Add offset.
     @                   \ Fetch the field.
@@ -78,7 +67,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 \ Return the group region.
 : group-get-region ( grp0 -- reg )
     \ Check arg.
-    assert-tos-is-group
+    assert( tos is-group? )
 
     group-region-disp + \ Add offset.
     @                   \ Fetch the field.
@@ -93,7 +82,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 \ Return the group squares region.
 : group-get-s-region ( grp0 -- reg )
     \ Check arg.
-    assert-tos-is-group
+    assert( tos is-group? )
 
     group-s-region-disp +   \ Add offset.
     @                       \ Fetch the field.
@@ -108,7 +97,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 \ Return group's pnc value.
 : group-get-pnc ( sqr0 -- bool )
     \ Check arg.
-    assert-tos-is-group
+    assert( tos is-group? )
 
     4c@
     0<>     \ Change 255 to -1
@@ -120,7 +109,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 
 : group-get-rules ( sqr0 -- rul-lst )
     \ Check arg.
-    assert-tos-is-group
+    assert( tos is-group? )
 
     group-rules-disp + @
 ;
@@ -133,7 +122,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 \ Return the group squares.
 : group-get-squares ( grp0 -- reg )
     \ Check arg.
-    assert-tos-is-group
+    assert( tos is-group? )
 
     group-squares-disp +    \ Add offset.
     @                       \ Fetch the field.
@@ -148,7 +137,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 \ Return a group's pn value.
 : group-get-pn ( grp0 -- pn )
     \ Check arg.
-    assert-tos-is-group
+    assert( tos is-group? )
 
     group-get-rules
     list-get-length
@@ -160,7 +149,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 \ Group parent action ref may be zero, action parent ref may be zero.
 : .group-parents ( grp0 -- )
    \ Check arg.
-    assert-tos-is-group
+    assert( tos is-group? )
 
     group-get-parent            \ act
     dup 0= if drop exit then    \ Print nothing.
@@ -178,7 +167,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 \ Calc, and set, group s-region, based on group square list.
 : _group-calc-set-s-region ( grp0 -- )
     \ Check arg.
-    assert-tos-is-group
+    assert( tos is-group? )
 
     dup group-get-squares       \ grp0 sqr-lst
     square-list-region          \ grp0, r-reg t | f
@@ -197,7 +186,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 \ Replace current s-region with new region.
 : _group-update-s-region ( grp0 -- )
     \ Check arg.
-    assert-tos-is-group
+    assert( tos is-group? )
 
     dup group-get-s-region swap \ reg-old reg1 grp0
     _group-calc-set-s-region    \ reg-old
@@ -207,7 +196,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 \ Calc, and set, group rules, based on group square list.
 : _group-calc-set-rules ( grp0 -- )
     \ Check arg.
-    assert-tos-is-group
+    assert( tos is-group? )
 
     dup group-get-squares   \ grp0 sqr-lst
     square-list-calc-rules  \ grp0, ruls t | f
@@ -222,7 +211,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 \ Replace current rules with new rules.
 : _group-update-rules ( grp0 -- )
     \ Check arg.
-    assert-tos-is-group
+    assert( tos is-group? )
 
     dup group-get-rules swap    \ ruls-old grp0
     _group-calc-set-rules       \ ruls-old
@@ -232,7 +221,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 \ Calc, and set, group pnc, based on group square list.
 : _group-calc-set-pnc ( grp0 -- )
     \ Check arg.
-    assert-tos-is-group
+    assert( tos is-group? )
 
     \ Check if group region EQ group s-region.
     dup group-get-region            \ grp0 reg
@@ -286,7 +275,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     if
         assert-tos-is-action-xt execute
     then
-    assert-nos-is-region
+    assert( nos is-region? )
     assert-3os-is-square-list
 
     -rot                            \ act0 sqrs2 reg1
@@ -348,7 +337,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 
 : group-deallocate ( grp0 -- )
     \ Check arg.
-    assert-tos-is-group
+    assert( tos is-group? )
 
     dup struct-get-use-count    \ grp0 count
     dup 0< abort" invalid use count"
@@ -369,7 +358,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 
 : .group ( grp0 -- )
     \ Check arg.
-    assert-tos-is-group
+    assert( tos is-group? )
 
     ." Grp: "
     dup group-get-region .region
@@ -379,15 +368,14 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     dup group-get-s-region .region
     space
     dup group-get-rules  .rule-list
-    
+
     space
     group-get-squares   .square-list-states
-
 ;
 
 : .group-region ( grp0 -- )
     \ Check arg.
-    assert-tos-is-group
+    assert( tos is-group? )
 
     group-get-region        \ reg
     .region
@@ -396,7 +384,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 \ Return true if a group's region equals its s-region.
 : _group-region-eq-s-region? ( grp0 -- bool )
     \ Check arg.
-    assert-tos-is-group
+    assert( tos is-group? )
 
     dup group-get-region        \ grp0 reg
     swap group-get-s-region     \ reg s-reg
@@ -407,8 +395,8 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 \ The change may invalidate the group.
 : group-check-changed-square ( sqr1 grp0 -- )
     \ Check args.
-    assert-tos-is-group
-    assert-nos-is-square
+    assert( tos is-group? )
+    assert( nos is-square? )
     \ cr ." group-check-changed-square: start: " .stack-gbl cr
 
     \ Check square in group.
@@ -476,8 +464,8 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 \ The addition may invalidate the group.
 : group-add-new-square ( sqr1 grp0 -- )
     \ Check args.
-    assert-tos-is-group
-    assert-nos-is-square
+    assert( tos is-group? )
+    assert( nos is-square? )
     \ cr ." group-add-new-square: start: " over square-get-state .state cr \ .stack-gbl cr
 
     \ Check that square is new.
@@ -540,8 +528,8 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 \ Return true if a group's region is superset of a square's state.
 : group-superset-square? ( sqr1 grp0 -- bool )
     \ Check args.
-    assert-tos-is-group
-    assert-nos-is-square
+    assert( tos is-group? )
+    assert( nos is-square? )
 
     swap square-get-state
     swap group-get-region
@@ -551,7 +539,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 \ Return an incompatible square pair from a group, if any.
 : group-get-incompatible-pair ( grp0 -- sqr-pr' t | f )
     \ Check arg.
-    assert-tos-is-group
+    assert( tos is-group? )
 
     group-get-squares                   \ sqr-lst
     square-list-find-incompatible-pair  \ sqr-pr t | f )
@@ -560,8 +548,8 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 \ Return true if a group region is equal to a given region.
 : group-region-eq? ( reg1 grp0 -- bool )
     \ Check args.
-    assert-tos-is-group
-    assert-nos-is-region
+    assert( tos is-group? )
+    assert( nos is-region? )
 
     group-get-region    \ reg1 g-reg
     regions-eq?

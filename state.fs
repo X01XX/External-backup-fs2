@@ -22,7 +22,7 @@ state-header-disp cell+   constant state-number-disp
 
 \ Check instance type.
 : is-allocated-state? ( tos -- flag )
-    dup state-mma mma-is-item  \ addr bool
+    dup state-mma mma-is-item? \ addr bool
     if
         struct-get-id
         state-struct-id =      \ bool
@@ -32,30 +32,12 @@ state-header-disp cell+   constant state-number-disp
     then
 ;
 
-\ Check TOS for state, unconventional, leaves stack unchanged.
-: assert-tos-is-state ( tos -- tos )
+\ Check TOS for state.
+: is-state? ( tos -- t )
     dup is-allocated-state?
-    if exit then
+    if drop true exit then
 
-    s" TOS is not an allocated state"
-    .abort-xt execute
-;
-
-\ Check NOS for state, unconventional, leaves stack unchanged.
-: assert-nos-is-state ( nos tos -- nos tos )
-    over is-allocated-state?
-    if exit then
-
-    s" NOS is not an allocated state"
-    .abort-xt execute
-;
-
-\ Check 3OS for state, unconventional, leaves stack unchanged.
-: assert-3os-is-state ( 3os nos tos -- 3os nos tos )
-    #2 pick is-allocated-state?
-    if exit then
-
-    s" NOS is not an allocated state"
+    s" not an allocated state"
     .abort-xt execute
 ;
 
@@ -64,7 +46,7 @@ state-header-disp cell+   constant state-number-disp
 \ Get the number of bits.
 : state-get-num-bits ( sta0 -- nb )
     \ Check arg.
-    assert-tos-is-state
+    assert( tos is-state? )
 
     4c@
 ;
@@ -113,7 +95,7 @@ state-header-disp cell+   constant state-number-disp
 \ Print a state struct instance.
 : .state (  sta0 -- )
     \ Check arg.
-    assert-tos-is-state
+    assert( tos is-state? )
 
     \ Print prefix.
     [char] s emit
@@ -146,7 +128,7 @@ state-header-disp cell+   constant state-number-disp
 \ Deallocate a state.
 : state-deallocate ( sta -- )
     \ Check arg.
-    assert-tos-is-state
+    assert( tos is-state? )
 
     dup struct-get-use-count    \ sta count
 
@@ -163,8 +145,8 @@ state-header-disp cell+   constant state-number-disp
 \ Return true if two states have a different number of bits.
 : states-dif-num-bits? ( sta1 sta0 -- flag )
     \ Check args.
-    assert-tos-is-state
-    assert-nos-is-state
+    assert( tos is-state? )
+    assert( nos is-state? )
 
     state-get-num-bits   \ sta1 nb0
     swap                 \ nb0 sta1
@@ -172,10 +154,22 @@ state-header-disp cell+   constant state-number-disp
     <>
 ;
 
+\ Return true if two states have the same number of bits.
+: states-same-num-bits? ( sta1 sta0 -- flag )
+    \ Check args.
+    assert( tos is-state? )
+    assert( nos is-state? )
+
+    state-get-num-bits   \ sta1 nb0
+    swap                 \ nb0 sta1
+    state-get-num-bits   \ nb0 nb1
+    =
+;
+
 \ Return a state inverted, as a mask.
 : state-invert-to-mask ( sta0 -- mask )
     \ Check arg.
-    assert-tos-is-state
+    assert( tos is-state? )
 
     dup                         \ sta0 sta0
     state-get-num-bits       \ sta0 nb
@@ -194,9 +188,9 @@ state-header-disp cell+   constant state-number-disp
 \ Return the Boolean AND of two states, as a mask.
 : state-and-state-to-mask ( sta1 sta0 -- mask )
     \ Check args.
-    assert-tos-is-state
-    assert-nos-is-state
-    2dup states-dif-num-bits? abort" state-and-state-to-mask: num bits ne?"
+    assert( tos is-state? )
+    assert( nos is-state? )
+    assert( 2dup states-same-num-bits? )
 
     over state-get-number   \ sta1 sta0 num1
     swap state-get-number   \ sta1 num1 num0
@@ -209,9 +203,9 @@ state-header-disp cell+   constant state-number-disp
 \ Return the Boolean XOR of two states, as a mask.
 : state-xor-to-mask ( sta1 sta0 -- mask )
     \ Check args.
-    assert-tos-is-state
-    assert-nos-is-state
-    2dup states-dif-num-bits? abort" state-xor-to-mask: num bits ne?"
+    assert( tos is-state? )
+    assert( nos is-state? )
+    assert( 2dup states-same-num-bits? )
 
     over state-get-number   \ sta1 sta0 num1
     swap state-get-number   \ sta1 num1 num0
@@ -224,9 +218,9 @@ state-header-disp cell+   constant state-number-disp
 \ Return the Boolean OR of two states, as a state
 : state-or ( sta1 sta0 -- sta )
     \ Check args.
-    assert-tos-is-state
-    assert-nos-is-state
-    2dup states-dif-num-bits? abort" state-or: num bits ne?"
+    assert( tos is-state? )
+    assert( nos is-state? )
+    assert( 2dup states-same-num-bits? )
 
     over state-get-number   \ sta1 sta0 num1
     swap state-get-number   \ sta1 num1 num0
@@ -239,11 +233,9 @@ state-header-disp cell+   constant state-number-disp
 \ Return the Boolean OR of two states, as a state.
 : state-or-mask ( msk1 sta0 -- sta )
     \ Check args.
-    assert-tos-is-state
-    assert-nos-is-mask
-    over mask-get-num-bits
-    over state-get-num-bits
-    <> abort" state-or-mask: num bits ne?"
+    assert( tos is-state? )
+    assert( nos is-mask? )
+    assert( over mask-get-num-bits over state-get-num-bits = )
 
     over mask-get-number    \ msk1 sta0 num1
     swap state-get-number   \ msk1 num1 num0
@@ -256,9 +248,9 @@ state-header-disp cell+   constant state-number-disp
 \ Return the Boolean AND of two states, as a state.
 : state-and ( sta1 sta0 -- sta )
     \ Check args.
-    assert-tos-is-state
-    assert-nos-is-state
-    2dup states-dif-num-bits? abort" state-and: num bits ne?"
+    assert( tos is-state? )
+    assert( nos is-state? )
+    assert( 2dup states-same-num-bits? )
 
     over state-get-number   \ sta1 sta0 num1
     swap state-get-number   \ sta1 num1 num0
@@ -271,11 +263,9 @@ state-header-disp cell+   constant state-number-disp
 \ Return the Boolean AND of two states, as a state.
 : state-and-mask ( msk1 sta0 -- sta )
     \ Check args.
-    assert-tos-is-state
-    assert-nos-is-mask
-    over mask-get-num-bits
-    over state-get-num-bits
-    <> abort" state-and-mask: num bits ne?"
+    assert( tos is-state? )
+    assert( nos is-mask? )
+    assert( over mask-get-num-bits over state-get-num-bits = )
 
     over mask-get-number    \ msk1 sta0 num1
     swap state-get-number   \ msk1 num1 num0
@@ -288,11 +278,9 @@ state-header-disp cell+   constant state-number-disp
 \ Return the Boolean and of two states, as a mask.
 : state-and-mask-to-mask ( msk1 sta0 -- mask )
     \ Check args.
-    assert-tos-is-state
-    assert-nos-is-mask
-    over mask-get-num-bits
-    over state-get-num-bits
-    <> abort" state-and-mask-to-mask: num bits ne?"
+    assert( tos is-state? )
+    assert( nos is-mask? )
+    assert( over mask-get-num-bits over state-get-num-bits = )
 
     over mask-get-number    \ msk1 sta0 num1
     swap state-get-number   \ msk1 num1 num0
@@ -305,7 +293,7 @@ state-header-disp cell+   constant state-number-disp
 \ Return the state of a given bit number.
 : state-bit ( u1 sta0 -- bit )
     \ Check arg.
-    assert-tos-is-state
+    assert( tos is-state? )
 
     over                \ u1 sta0 u1
     0< abort" Invalid bit number?"
@@ -419,9 +407,9 @@ state-header-disp cell+   constant state-number-disp
 \ Return true if two states are equal.
 : states-eq? ( sta1 sta0 -- bool )
     \ Check args.
-    assert-tos-is-state
-    assert-nos-is-state
-    2dup states-dif-num-bits? abort" states-eq?: num bits ne?"
+    assert( tos is-state? )
+    assert( nos is-state? )
+    assert( 2dup states-same-num-bits? )
 
     state-get-number        \ sta1 num0
     swap state-get-number   \ num0 num1
@@ -431,9 +419,9 @@ state-header-disp cell+   constant state-number-disp
 \ Return true if two states are adjacent.
 : states-adjacent? ( sta1 sta0 -- bool )
     \ Check args.
-    assert-tos-is-state
-    assert-nos-is-state
-    2dup states-dif-num-bits? abort" states-adjacent?: num bits ne?"
+    assert( tos is-state? )
+    assert( nos is-state? )
+    assert( 2dup states-same-num-bits? )
 
     state-get-number        \ sta1 num0
     swap state-get-number   \ num0 num1
@@ -444,7 +432,7 @@ state-header-disp cell+   constant state-number-disp
 \ Return the copy of a state.
 : state-copy ( sta0 -- sta )
     \ Check arg.
-    assert-tos-is-state
+    assert( tos is-state? )
 
     dup state-get-number    \ sta0 num
     swap state-get-num-bits \ num nb
@@ -454,9 +442,9 @@ state-header-disp cell+   constant state-number-disp
 \ Return a different bit mask.
 : state-dif-mask ( sta1 sta0 -- msk )
     \ Check args.
-    assert-tos-is-state
-    assert-nos-is-state
-    2dup states-dif-num-bits? abort" states-dif-mask: num bits ne?"
+    assert( tos is-state? )
+    assert( nos is-state? )
+    assert( 2dup states-same-num-bits? )
 
     \ Save number bits.
     dup state-get-num-bits -rot \ nb sta1 sta0
@@ -475,11 +463,11 @@ state-header-disp cell+   constant state-number-disp
 \ Return true if a state (tos) is between two other states.
 : state-between? ( sta2 sta1 sta0 -- bool )
     \ Check args.
-    assert-tos-is-state
-    assert-nos-is-state
-    assert-3os-is-state
-    2dup states-dif-num-bits? abort" states-between?: num bits ne?"
-    #2 pick over states-dif-num-bits? abort" states-between?: num bits ne?"
+    assert( tos is-state? )
+    assert( nos is-state? )
+    assert( 3os is-state? )
+    assert( 2dup states-same-num-bits? )
+    assert( #2 pick over states-same-num-bits? )
 
     \ Get sta0 dif masks.
     tuck                    \ sta2 sta0 sta1 sta0
@@ -499,9 +487,9 @@ state-header-disp cell+   constant state-number-disp
 
 : states-distance ( sta1 sta0 -- u )
     \ Check args.
-    assert-tos-is-state
-    assert-nos-is-state
-    2dup states-dif-num-bits? abort" states-distance: num bits ne?"
+    assert( tos is-state? )
+    assert( nos is-state? )
+    assert( 2dup states-same-num-bits? )
 
     state-dif-mask      \ msk'
     dup mask-count-bits \ msk' u

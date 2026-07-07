@@ -6,7 +6,7 @@
     dup list-is-not-empty?
     if
         dup list-get-links link-get-data
-        assert-tos-is-rule
+        assert( tos is-rule? )
         drop
     then
 ;
@@ -17,7 +17,7 @@
     over list-is-not-empty?
     if
         over list-get-links link-get-data
-        assert-tos-is-rule
+        assert( tos is-rule? )
         drop
     then
 ;
@@ -88,7 +88,7 @@
 : rule-list-union-superset? ( rul1 rul-lst0 -- bool )
     \ Check args.
     assert-tos-is-rule-list
-    assert-nos-is-rule
+    assert( nos is-rule? )
     dup list-get-length #2 < abort" rule list too short?"
 
     \ Check union with first list rule.

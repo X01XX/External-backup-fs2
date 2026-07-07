@@ -24,7 +24,7 @@ frame-header-disp cell+ constant frame-disp
 
 \ Check instance type.
 : is-allocated-frame? ( tos -- bool )
-    dup frame-mma mma-is-item  \ addr bool
+    dup frame-mma mma-is-item? \ addr bool
     if
         struct-get-id           \ id
         frame-struct-id =       \ bool

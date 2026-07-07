@@ -25,7 +25,7 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
 \ Check instance type.
 
 : is-allocated-rule? ( addr -- flag )    \ Check if an address is within the rule array.
-    dup rule-mma mma-is-item    \ addr bool
+    dup rule-mma mma-is-item?   \ addr bool
     if
         struct-get-id
         rule-struct-id =        \ bool
@@ -35,35 +35,20 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
     then
 ;
 
-: assert-tos-is-rule ( tos -- tos ) \ Check TOS for rule, unconventional, leaves stack unchanged.
+\ Check TOS for rule.
+: is-rule? ( tos -- t )
     dup is-allocated-rule?
-    false? if
-        s" TOS is not an allocated rule."
-        .abort-xt execute
-    then
-;
+    if drop true exit then
 
-: assert-nos-is-rule ( nos tos -- nos tos ) \ Check NOS for rule, unconventional, leaves stack unchanged.
-    over is-allocated-rule?
-    false? if
-        s" NOS is not an allocated rule."
-        .abort-xt execute
-    then
-;
-
-: assert-3os-is-rule ( 3os nos tos -- 3os nos tos ) \ Check 3OS for rule, unconventional, leaves stack unchanged.
-    #2 pick is-allocated-rule?
-    false? if
-        s" 3OS is not an allocated rule."
-        .abort-xt execute
-    then
+    s" not an allocated rule"
+    .abort-xt execute
 ;
 
 \ Start accessors.
 
 : rule-get-m00 ( rul0 -- msk ) \ Return the m00 field of a rule instance.
     \ Check arg.
-    assert-tos-is-rule
+    assert( tos is-rule? )
 
     rule-m00-disp + \ Add offset.
     @               \ Fetch the field.
@@ -71,8 +56,8 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
 
 : _rule-set-m00 ( sta1 rul0 -- )  \ Set the m00 field of a rule instance, use only in this file.
     \ Check args.
-    assert-tos-is-rule
-    assert-nos-is-mask
+    assert( tos is-rule? )
+    assert( nos is-mask? )
 
     rule-m00-disp + \ Add offset.
     !struct         \ Set the field.
@@ -80,7 +65,7 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
 
 : rule-get-m01 ( rul0 -- msk ) \ Return the m01 field of a rule instance.
     \ Check arg.
-    assert-tos-is-rule
+    assert( tos is-rule? )
 
     rule-m01-disp + \ Add offset.
     @               \ Fetch the field.
@@ -88,8 +73,8 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
 
 : _rule-set-m01 ( sta1 rul0 -- )  \ Set the m01 field of a rule instance, use only in this file.
     \ Check args.
-    assert-tos-is-rule
-    assert-nos-is-mask
+    assert( tos is-rule? )
+    assert( nos is-mask? )
 
     rule-m01-disp + \ Add offset.
     !struct         \ Set the field.
@@ -97,7 +82,7 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
 
 : rule-get-m11 ( rul0 -- msk ) \ Return the m11 field of a rule instance.
     \ Check arg.
-    assert-tos-is-rule
+    assert( tos is-rule? )
 
     rule-m11-disp + \ Add offset.
     @               \ Fetch the field.
@@ -105,8 +90,8 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
 
 : _rule-set-m11 ( sta1 rul0 -- )  \ Set the m11 field of a rule instance, use only in this file.
     \ Check args.
-    assert-tos-is-rule
-    assert-nos-is-mask
+    assert( tos is-rule? )
+    assert( nos is-mask? )
 
     rule-m11-disp + \ Add offset.
     !struct         \ Set the field.
@@ -114,7 +99,7 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
 
 : rule-get-m10 ( rul0 -- msk ) \ Return the m10 field of a rule instance.
     \ Check arg.
-    assert-tos-is-rule
+    assert( tos is-rule? )
 
     rule-m10-disp + \ Add offset.
     @               \ Fetch the field.
@@ -122,8 +107,8 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
 
 : _rule-set-m10 ( sta1 rul0 -- )  \ Set the m10 field of a rule instance, use only in this file.
     \ Check args.
-    assert-tos-is-rule
-    assert-nos-is-mask
+    assert( tos is-rule? )
+    assert( nos is-mask? )
 
     rule-m10-disp + \ Add offset.
     !struct         \ Set the field.
@@ -133,8 +118,8 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
 
 : rule-new ( sta-result sta-initial -- rul )    \ Create a rule from two masks on the stack.
     \ Check args.
-    assert-tos-is-state
-    assert-nos-is-state
+    assert( tos is-state? )
+    assert( nos is-state? )
 
     rule-struct-id rule-mma \ s-r s-i id mma
     struct-allocate         \ s-r s-i rul
@@ -186,7 +171,7 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
 
 : .rule ( rul0 -- ) \ Print a rule.
     \ Check arg.
-    assert-tos-is-rule
+    assert( tos is-rule? )
 
     \ Get the bit-change masks.
     dup rule-get-m00 swap   \ m00 rul0
@@ -266,7 +251,7 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
 
 : rule-deallocate ( rul0 -- )   \ Deallocate a rule.
     \ Check arg.
-    assert-tos-is-rule
+    assert( tos is-rule? )
 
     dup struct-get-use-count      \ rule-addr count
     dup 0< abort" rule-deallocate: Invalid use count"
@@ -513,7 +498,7 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
 \ Return the number of bits used for a rule.
 : rule-get-num-bits ( rul0 -- nb )
     \ Check arg.
-    assert-tos-is-rule
+    assert( tos is-rule? )
 
     rule-get-m00            \ m00
     mask-get-num-bits       \ nb
@@ -522,8 +507,8 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
 \ Return true if two rules have a different number of bits.
 : rules-dif-num-bits? ( rul1 rul0 -- flag )
     \ Check args.
-    assert-tos-is-rule
-    assert-nos-is-rule
+    assert( tos is-rule? )
+    assert( nos is-rule? )
 
     rule-get-num-bits  \ rul1 nb0
     swap               \ nb0 rul1
@@ -531,10 +516,22 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
     <>
 ;
 
+\ Return true if two rules have the same number of bits.
+: rules-same-num-bits? ( rul1 rul0 -- flag )
+    \ Check args.
+    assert( tos is-rule? )
+    assert( nos is-rule? )
+
+    rule-get-num-bits  \ rul1 nb0
+    swap               \ nb0 rul1
+    rule-get-num-bits  \ nb0 nb1
+    =
+;
+
 \ Return true if a rule is valid after a union.
 : rule-valid-union? ( rul0 -- bool )
     \ Check arg.
-    assert-tos-is-rule
+    assert( tos is-rule? )
 
     \ Check for 1X.
     dup rule-get-m11        \ rul0 m11
@@ -562,7 +559,7 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
 \ Return true if a rule is valid after an intersection.
 : rule-valid-intersection? ( rul0 -- bool )
     \ Check arg.
-    assert-tos-is-rule
+    assert( tos is-rule? )
 
     \ Get mask for 0X.
     dup rule-get-m00        \ rul0 m00
@@ -590,9 +587,9 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
 \ Return the union of two rules.
 : rule-union ( rul1 rul0 -- rul t | f )
     \ Check args.
-    assert-tos-is-rule
-    assert-nos-is-rule
-    2dup rules-dif-num-bits? abort" Rules have different bits?"
+    assert( tos is-rule? )
+    assert( nos is-rule? )
+    assert( 2dup rules-same-num-bits? )
 
     \ Get union m00.
     over rule-get-m00
@@ -640,9 +637,9 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
 \ Return the intersection of two rules.
 : rule-intersection ( rul1 rul0 -- rul t | f )
     \ Check args.
-    assert-tos-is-rule
-    assert-nos-is-rule
-    2dup rules-dif-num-bits? abort" Rules have different bits?"
+    assert( tos is-rule? )
+    assert( nos is-rule? )
+    assert( 2dup rules-same-num-bits? )
 
     \ Get intersection m00.
     over rule-get-m00
@@ -690,9 +687,9 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
 \ Return true if two rules are equal.
 : rules-eq? ( rul1 rul0 -- bool )
     \ Check args.
-    assert-tos-is-rule
-    assert-nos-is-rule
-    2dup rules-dif-num-bits? abort" Rules have different bits?"
+    assert( tos is-rule? )
+    assert( nos is-rule? )
+    assert( 2dup rules-same-num-bits? )
 
     \ Check m00.
     over rule-get-m00 over rule-get-m00 masks-eq?   \ rul1 rul0 bool

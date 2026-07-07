@@ -1,31 +1,24 @@
 \ Functions for group lists.
 
-\ Check if tos is an empty list, or has a group instance as its first item.
-: assert-tos-is-group-list ( tos -- tos )
-    assert-tos-is-list
-    dup list-is-not-empty?
+\ Check TOS for group-list.
+: is-group-list? ( tos -- t )
+    assert( tos is-list? )
+    
+    dup list-is-empty?
     if
-        dup list-get-links link-get-data
-        assert-tos-is-group
         drop
-    then
-;
-
-\ Check if nos is an empty list, or has a group instance as its first item.
-: assert-nos-is-group-list ( nos tos -- nos tos )
-    assert-nos-is-list
-    over list-is-not-empty?
-    if
-        over list-get-links link-get-data
-        assert-tos-is-group
-        drop
+        true
+    else
+        list-get-links link-get-data
+        assert( is-group? )
+        true
     then
 ;
 
 \ Deallocate a group list.
 : group-list-deallocate ( lst0 -- )
     \ Check arg.
-    assert-tos-is-group-list
+    assert( tos is-group-list? )
 
     \ Check if the list will be deallocated for the last time.
     dup struct-get-use-count                        \ lst0 uc
@@ -44,7 +37,7 @@
 \ Print a group list.
 : .group-list ( grp-lst0 -- )
     \ Check arg.
-    assert-tos-is-group-list
+    assert( tos is-group-list? )
 
     list-get-links          \ grp-lnk
 
@@ -60,7 +53,7 @@
 
 : .group-list-prefix ( c-addr u list0 -- )
     \ Check arg.
-    assert-tos-is-group-list
+    assert( tos is-group-list? )
     cr
     rot                 \ u list0 c-addr
     #2 pick             \ u list0 c-addr u
@@ -85,8 +78,8 @@
 \ Return a list of groups a state should be in.
 : group-list-superset-of-state ( sta1 grp-lst0 -- grp-lst t | f )
     \ Check args.
-    assert-tos-is-group-list
-    assert-nos-is-state
+    assert( tos is-group-list? )
+    assert( nos is-state? )
 
     \ Init return list.
     list-new swap                   \ sta1 ret-lst grp-lst0
@@ -126,8 +119,8 @@
 \ Return a list of groups a square should be in.
 : group-list-superset-of-square ( sqr1 grp-lst0 -- grp-lst t | f )
     \ Check args.
-    assert-tos-is-group-list
-    assert-nos-is-square
+    assert( tos is-group-list? )
+    assert( nos is-square? )
 
     swap square-get-state swap  \ sta grp-lst0
     group-list-superset-of-state
@@ -136,7 +129,7 @@
 \ Print a list of group regions.
 : .group-list-regions ( grp-lst0 -- )
     \ Check args.
-    assert-tos-is-group-list
+    assert( tos is-group-list? )
 
     ." ("
     list-get-links          \ lnk
@@ -156,15 +149,15 @@
 \ Find a group in a list, by region, if any.
 : group-list-member? ( reg1 list0 -- bool )
     \ Check args.
-    assert-tos-is-group-list
-    assert-nos-is-region
+    assert( tos is-group-list? )
+    assert( nos is-region? )
 
     [ ' group-region-eq? ] literal -rot list-member?
 ;
 
 : group-list-regions ( grp-lst0 -- reg-lst )
     \ Check arg.
-    assert-tos-is-group-list
+    assert( tos is-group-list? )
 
     \ Init return list.
     list-new swap           \ ret-lst grp-lst0

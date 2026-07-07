@@ -3,7 +3,7 @@
 \ Result x
 : calc-result-x ( sta -- rslt )
     \ Check arg.
-    assert-tos-is-state
+    assert( tos is-state? )
 
     dup state-get-num-bits      \ sta nb
     swap state-get-number       \ nb num

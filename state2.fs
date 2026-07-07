@@ -2,7 +2,7 @@
 \ Return the complement of a state.
 : state-complement ( sta0 -- reg-list )
     \ Check arg.
-    assert-tos-is-state
+    assert( tos is-state? )
 
     \ Get state of all bits.
     dup state-get-num-bits      \ sta0 nb
@@ -30,8 +30,8 @@
 \ Return the union of, the complements of, two states.
 : state-~a+~b ( sta1 sta0 -- reg-lst )
     \ Check arg.
-    assert-tos-is-state
-    assert-nos-is-state
+    assert( tos is-state? )
+    assert( nos is-state? )
 
     \ Get state 0 complement.
     state-complement            \ sta1 reg-lst0'
@@ -53,7 +53,7 @@
 \ a state and a list of dissimilar states. ( sta0 ( sta1 sta2 ... ))
 : state-regions-from-corner ( sta-lst0 -- reg-lst )
     \ Check arg.
-    assert-tos-is-state-list
+    assert( tos is-state-list? )
 
     \ Split input list.
     dup list-get-first-item                 \ sta-lst0 anc
