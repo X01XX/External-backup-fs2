@@ -36,22 +36,13 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
     then
 ;
 
-\ Check TOS for corner, unconventional, leaves stack unchanged.
-: assert-tos-is-corner ( tos -- tos )
+\ Check TOS for corner.
+: is-corner? ( tos -- t )
     dup is-allocated-corner?
-    false? if
-        s" TOS is not an allocated corner"
-        .abort-xt execute
-    then
-;
+    if drop true exit then
 
-\ Check NOS for corner, unconventional, leaves stack unchanged.
-: assert-nos-is-corner ( nos tos -- nos tos )
-    over is-allocated-corner?
-    false? if
-        s" NOS is not an allocated corner"
-        .abort-xt execute
-    then
+    s" not an allocated corner"
+    .abort-xt execute
 ;
 
 \ Start accessors.
@@ -59,7 +50,7 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
 \ Return the anchor-square field from a corner instance.
 : corner-get-anchor-square ( crn0 -- sqr )
     \ Check arg.
-    assert-tos-is-corner
+    assert( tos is-corner? )
 
     corner-anchor-square-disp + \ Add offset.
     @                           \ Fetch the field.
@@ -68,7 +59,7 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
 \ Return the anchor-square field state from a corner instance.
 : corner-get-anchor-state ( crn0 -- sta )
     \ Check arg.
-    assert-tos-is-corner
+    assert( tos is-corner? )
 
     corner-get-anchor-square    \ sqr
     square-get-state
@@ -77,7 +68,7 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
 \ Return the dissimilar-squares list field from a corner instance.
 : corner-get-dissimilar-squares ( crn0 -- sta-lst )
     \ Check arg.
-    assert-tos-is-corner
+    assert( tos is-corner? )
 
     corner-dissimilar-squares-disp +    \ Add offset.
     @                                   \ Fetch the field.
@@ -86,7 +77,7 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
 \ Return the similar-squares list field from a corner instance.
 : corner-get-similar-squares ( crn0 -- sta-lst )
     \ Check arg.
-    assert-tos-is-corner
+    assert( tos is-corner? )
 
     corner-similar-squares-disp +   \ Add offset.
     @                               \ Fetch the field.
@@ -95,7 +86,7 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
 \ Return the regions list field from a corner instance.
 : corner-get-regions ( crn0 -- sta-lst )
     \ Check arg.
-    assert-tos-is-corner
+    assert( tos is-corner? )
 
     corner-regions-disp +           \ Add offset.
     @                               \ Fetch the field.
@@ -104,7 +95,7 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
 \ Set the anchor-square field from a corner instance, use only in this file.
 : _corner-set-anchor-square ( sta1 crn0 -- )
     \ Check args.
-    assert-tos-is-corner
+    assert( tos is-corner? )
     assert( nos is-square? )
 
     corner-anchor-square-disp +     \ Add offset.
@@ -114,8 +105,8 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
 \ Set the dissimilar-squares list field from a corner instance, use only in this file.
 : _corner-set-dissimilar-squares ( sta-lst1 crn0 -- )
     \ Check args.
-    assert-tos-is-corner
-    assert-nos-is-square-list
+    assert( tos is-corner? )
+    assert( nos is-square-list? )
 
     corner-dissimilar-squares-disp +    \ Add offset.
     !struct                             \ Set the field.
@@ -124,8 +115,8 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
 \ Set the similar-squares list field from a corner instance, use only in this file.
 : _corner-set-similar-squares ( sta-lst1 crn0 -- )
     \ Check args.
-    assert-tos-is-corner
-    assert-nos-is-square-list
+    assert( tos is-corner? )
+    assert( nos is-square-list? )
 
     corner-similar-squares-disp +       \ Add offset.
     !struct                             \ Set the field.
@@ -134,7 +125,7 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
 \ Set the regions list field from a corner instance, use only in this file.
 : _corner-set-regions ( reg-lst1 crn0 -- )
     \ Check args.
-    assert-tos-is-corner
+    assert( tos is-corner? )
     assert( nos is-region-list? )
 
     corner-regions-disp +               \ Add offset.
@@ -146,7 +137,7 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
 \ Return a corner's number bits.
 : corner-get-num-bits ( crn0 -- nb )
     \ Check args.
-    assert-tos-is-corner
+    assert( tos is-corner? )
 
     corner-get-anchor-square        \ sta
     square-get-num-bits
@@ -181,7 +172,7 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
 \ Return a list of regions the anchor is in.
 : corner-anchor-regions ( crn0 -- reg-lst )
     \ Check arg.
-    assert-tos-is-corner
+    assert( tos is-corner? )
 
     dup corner-get-anchor-square    \ crn0 anc-sqr
     square-get-state                \ crn0 anc-sta
@@ -192,7 +183,7 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
 \ Print a corner.
 : .corner ( crn0 -- )
     \ Check arg.
-    assert-tos-is-corner
+    assert( tos is-corner? )
 
     ." (anchor: "
 
@@ -224,7 +215,7 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
 \ Return true if a square is used by a corner.
 : corner-uses-square? ( sqr1 crn0 -- bool )
     \ Check args.
-    assert-tos-is-corner
+    assert( tos is-corner? )
     assert( nos is-square? )
 
     \ Check sqr1 eq anchor.
@@ -265,7 +256,7 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
 \ Return true if any similar, or dissimilar, square is between the anchor and a given square.
 : corner-can-square-be-added? ( sqr1 crn0 -- bool )
     \ Check args.
-    assert-tos-is-corner
+    assert( tos is-corner? )
     assert( nos is-square? )
     assert( over square-get-num-bits over corner-get-num-bits = )
 
@@ -313,8 +304,8 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
 \ remove them from the list.
 : corner-remove-similar-squares ( sqr-lst1 crn0 -- )
     \ Check args.
-    assert-tos-is-corner
-    assert-nos-is-square-list
+    assert( tos is-corner? )
+    assert( nos is-square-list? )
 
     \ Prep for loop.
     corner-get-similar-squares      \ sqr-lst1 sim-lst
@@ -345,8 +336,8 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
 \ remove them from the list.
 : corner-remove-dissimilar-squares ( sqr-lst1 crn0 -- )
     \ Check args.
-    assert-tos-is-corner
-    assert-nos-is-square-list
+    assert( tos is-corner? )
+    assert( nos is-square-list? )
 
     \ Prep for loop.
     corner-get-dissimilar-squares   \ sqr-lst1 dis-lst
@@ -376,7 +367,7 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
 \ Update corner regions with new regions.
 : corner-update-regions ( reg-lst1 crn0 -- )
     \ Check args.
-    assert-tos-is-corner
+    assert( tos is-corner? )
     assert( nos is-region-list? )
 
     dup corner-get-regions  \ reg-lst1 crn0 crn-regs'
@@ -388,7 +379,7 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
 \ Adjust regions for a new dissimilar square.
 : corner-adjust-regions ( sqr1 crn0 -- )
     \ Check args.
-    assert-tos-is-corner
+    assert( tos is-corner? )
     assert( nos is-square? )
 
     swap square-get-state               \ crn0 sta1
@@ -410,7 +401,7 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
 \ Return true if added.
 : corner-add-square ( sqr1 crn0 -- bool )
     \ Check args.
-    assert-tos-is-corner
+    assert( tos is-corner? )
     assert( nos is-square? )
     \ cr ." corner-add-square: start: " .stack-gbl cr
 
@@ -471,7 +462,7 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
 \ A closer dissimilar square requires only an extra intersection with the existing regions.
 : corner-recalc ( crn0 -- )
     \ Check arg.
-    assert-tos-is-corner
+    assert( tos is-corner? )
 
 ;
 
@@ -479,7 +470,7 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
 \ Recalc if needed.
 : corner-is-validate ( crn0 -- )
     \ Check arg.
-    assert-tos-is-corner
+    assert( tos is-corner? )
 
     abort" TODO"
 ;
@@ -487,7 +478,7 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
 \ Return a character, T - True, F - False, M - More samples needed.
 : corner-is-valid? ( crn0 -- char )
     \ Check arg.
-    assert-tos-is-corner
+    assert( tos is-corner? )
 
     abort" TODO"
 ;
@@ -495,7 +486,7 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
 \ Deallocate a corner.
 : corner-deallocate ( crn0 -- )
     \ Check arg.
-    assert-tos-is-corner
+    assert( tos is-corner? )
 
     dup struct-get-use-count      \ smp0 count
     dup 0< abort" invalid use count"
@@ -518,7 +509,7 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
 \ Check the anchor, after a change.
 : corner-check-anchor ( sqr1 crn0 -- )
     \ Check args.
-    assert-tos-is-corner
+    assert( tos is-corner? )
     assert( nos is-square? )
 
     true abort" TODO"
@@ -527,7 +518,7 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
 \ Check a similar square, after a change.
 : corner-check-similar-square ( sqr1 crn0 -- )
     \ Check args.
-    assert-tos-is-corner
+    assert( tos is-corner? )
     assert( nos is-square? )
 
     true abort" TODO"
@@ -536,7 +527,7 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
 \ Check a dissimilar square, after a change.
 : corner-check-dissimilar-square ( sqr1 crn0 -- )
     \ Check args.
-    assert-tos-is-corner
+    assert( tos is-corner? )
     assert( nos is-square? )
 
     true abort" TODO"
@@ -545,7 +536,7 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
 \ Check if a new square can be added.
 : corner-check-new-square ( sqr1 crn0 -- )
     \ Check args.
-    assert-tos-is-corner
+    assert( tos is-corner? )
     assert( nos is-square? )
 
     \ Check if a square can be added.
@@ -600,7 +591,7 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
 \ Return true if a square is the corner anchor.
 : corner-square-is-anchor? ( sqr1 crn0 -- bool )
     \ Check args.
-    assert-tos-is-corner
+    assert( tos is-corner? )
     assert( nos is-square? )
 
     dup corner-get-anchor-square    \ sqr1 anc
@@ -610,7 +601,7 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
 \ Return true if a square is in the similar squares list.
 : corner-square-is-in-similar-squares? ( sqr1 crn0 -- bool )
     \ Check args.
-    assert-tos-is-corner
+    assert( tos is-corner? )
     assert( nos is-square? )
 
     [ ' = ] literal                 \ sqr1 crn0 xt
@@ -622,7 +613,7 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
 \ Return true if a square is in the dissimilar squares list.
 : corner-square-is-in-dissimilar-squares? ( sqr1 crn0 -- bool )
     \ Check args.
-    assert-tos-is-corner
+    assert( tos is-corner? )
     assert( nos is-square? )
 
     [ ' = ] literal                     \ sqr1 crn0 xt
@@ -635,7 +626,7 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
 \ Divide and conquer.
 : corner-check-changed-square ( sqr1 crn0 -- )
     \ Check args.
-    assert-tos-is-corner
+    assert( tos is-corner? )
     assert( nos is-square? )
     assert( over square-get-num-bits over corner-get-num-bits = )
 

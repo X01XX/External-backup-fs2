@@ -36,22 +36,13 @@ sample-initial-disp cell+   constant sample-result-disp     \ Result state.
     then
 ;
 
-\ Check TOS for sample, unconventional, leaves stack unchanged.
-: assert-tos-is-sample ( tos -- tos )
+\ Check TOS for sample.
+: is-sample? ( tos -- t )
     dup is-allocated-sample?
-    false? if
-        s" TOS is not an allocated sample"
-        .abort-xt execute
-    then
-;
+    if drop true exit then
 
-\ Check NOS for sample, unconventional, leaves stack unchanged.
-: assert-nos-is-sample ( nos tos -- nos tos )
-    over is-allocated-sample?
-    false? if
-        s" NOS is not an allocated sample"
-        .abort-xt execute
-    then
+    s" not an allocated sample"
+    .abort-xt execute
 ;
 
 \ Start accessors.
@@ -59,7 +50,7 @@ sample-initial-disp cell+   constant sample-result-disp     \ Result state.
 \ Return the initial field from a sample instance.
 : sample-get-initial ( smp0 -- state )
     \ Check arg.
-    assert-tos-is-sample
+    assert( tos is-sample? )
 
     sample-initial-disp +   \ Add offset.
     @                       \ Fetch the field.
@@ -68,7 +59,7 @@ sample-initial-disp cell+   constant sample-result-disp     \ Result state.
 \ Return the result field from a sample instance.
 : sample-get-result ( smp0 -- state )
     \ Check arg.
-    assert-tos-is-sample
+    assert( tos is-sample? )
 
     sample-result-disp +    \ Add offset.
     @                       \ Fetch the field.
@@ -77,7 +68,7 @@ sample-initial-disp cell+   constant sample-result-disp     \ Result state.
 \ Set the initial field from a sample instance, use only in this file.
 : _sample-set-initial ( sta1 smp0 -- )
     \ Check args.
-    assert-tos-is-sample
+    assert( tos is-sample? )
     assert( nos is-state? )
 
     sample-initial-disp +   \ Add offset.
@@ -87,7 +78,7 @@ sample-initial-disp cell+   constant sample-result-disp     \ Result state.
 \ Set the result field of a sample instance, use only in this file.
 : _sample-set-result ( sta1 smpl0 -- )
     \ Check args.
-    assert-tos-is-sample
+    assert( tos is-sample? )
     assert( nos is-state? )
 
     sample-result-disp +    \ Add offset.
@@ -116,7 +107,7 @@ sample-initial-disp cell+   constant sample-result-disp     \ Result state.
 \ Print a sample.
 : .sample ( smpl0 -- )
     \ Check arg.
-    assert-tos-is-sample
+    assert( tos is-sample? )
 
     \ Print the initial state.
     dup sample-get-initial  \ smpl0 initial
@@ -133,7 +124,7 @@ sample-initial-disp cell+   constant sample-result-disp     \ Result state.
 \ Deallocate a sample.
 : sample-deallocate ( smpl0 -- )
     \ Check arg.
-    assert-tos-is-sample
+    assert( tos is-sample? )
 
     dup struct-get-use-count      \ smp0 count
     dup 0< abort" sample-deallocate: Invalid use count"

@@ -3,7 +3,7 @@
 \ Deallocate a list of square pairs.
 : square-pair-list-deallocate ( sqr-pr-lst0 -- )
     \ Check arg.
-    assert-tos-is-list
+    assert( tos is-list? )
 
     dup struct-get-use-count                      \ sqr-pr-lst0 uc
     #2 <
@@ -32,7 +32,7 @@
 \ and may need to be removed if you want te deallocate the given square-pair-list.
 : square-pair-list-choose-pair ( pr-lst0 -- sqr-pr t | f )
     \ Check arg.
-    assert-tos-is-list
+    assert( tos is-list? )
     \ cr ." square-pair-list-choose-pair: start: " .stack-gbl cr
 
     \ Check for an empty list.

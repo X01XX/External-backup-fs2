@@ -32,22 +32,22 @@ session-header-disp                     cell+   constant session-domains-disp   
     then
 ;
 
-\ Check TOS for session, unconventional, leaves stack unchanged.
-: assert-tos-is-session ( tos -- tos )
+\ Check TOS for square.
+: is-session? ( tos -- t )
     dup is-allocated-session?
-    false? if
-        s" TOS is not an allocated session"
-        .abort-xt execute
-    then
+    if drop true exit then
+
+    s" not an allocated session"
+    .abort-xt execute
 ;
 
-' assert-tos-is-session to assert-tos-is-session-xt
+' is-session? to is-session?-xt
 
 \ Start accessors.
 
 : session-get-domains ( sess0 -- lst )  \ Return the domain-list from an session instance.
     \ Check arg.
-    assert-tos-is-session
+    assert( tos is-session? )
 
     session-domains-disp +  \ Add offset.
     @                       \ Fetch the field.
@@ -57,8 +57,8 @@ session-header-disp                     cell+   constant session-domains-disp   
 
 : _session-set-domains ( lst sess0 -- ) \ Set the domain-list for an session instance.
     \ Check arg.
-    assert-tos-is-session
-    assert-nos-is-list
+    assert( tos is-session? )
+    assert( nos is-list? )
 
     session-domains-disp +  \ Add offset.
     !struct                 \ Set the field.
@@ -121,7 +121,7 @@ session-header-disp                     cell+   constant session-domains-disp   
 \ Print a session.
 : .session ( sess0 -- )
     \ Check arg.
-    assert-tos-is-session
+    assert( tos is-session? )
 
     cr ." Sess: "
     dup session-get-domains
@@ -147,7 +147,7 @@ session-header-disp                     cell+   constant session-domains-disp   
 
 : session-deallocate ( sess0 -- ) \ Deallocate a session.
     \ Check arg.
-    assert-tos-is-session
+    assert( tos is-session? )
 
     \ Clear fields.
     dup session-get-domains domain-list-deallocate
@@ -163,7 +163,7 @@ session-header-disp                     cell+   constant session-domains-disp   
 \ Return a list of states, one for each domain, in domain list order.
 : session-get-current-states ( sess0 -- sta-corr-lst )
     \ Check args.
-    assert-tos-is-session
+    assert( tos is-session? )
 
     list-new                        \ cur-dom sess0 sat-lst
     over session-get-domains        \ cur-dom sess0 sta-lst dom-lst
@@ -192,7 +192,7 @@ session-header-disp                     cell+   constant session-domains-disp   
 
 : session-get-current-regions ( sess0 -- regcorr )  \ Return a list of regions, one for each domain state, in domain list order.
     \ Check args.
-    assert-tos-is-session
+    assert( tos is-session? )
 
     \ Save current domain.
     dup session-get-current-domain  \ sess0 cur-dom
@@ -228,7 +228,7 @@ session-header-disp                     cell+   constant session-domains-disp   
 
 : .session-current-states ( sess0 -- )  \ Print a list of current states.
     \ Check args.
-    assert-tos-is-session
+    assert( tos is-session? )
 
     \ Save current domain.
     dup session-get-current-domain  \ sess0 cur-dom
@@ -263,7 +263,7 @@ session-header-disp                     cell+   constant session-domains-disp   
 \ Return a domain, given a domain ID.
 : session-find-domain ( u1 sess0 -- dom t | f )
     \ Check args.
-    assert-tos-is-session
+    assert( tos is-session? )
     over 0< if
         2drop
         false
@@ -286,7 +286,7 @@ session-header-disp                     cell+   constant session-domains-disp   
 
 : session-add-domain ( dom1 sess0 -- )
     \ Check args.
-    assert-tos-is-session
+    assert( tos is-session? )
     assert-nos-is-domain
     \ cr ." session-add-domain: start " .stack-gbl execute cr
 
@@ -304,7 +304,7 @@ session-header-disp                     cell+   constant session-domains-disp   
 \ Return the numebr of domains.
 : session-get-number-domains ( sess0 -- u )
     \ Check arg.
-    assert-tos-is-session
+    assert( tos is-session? )
 
     session-get-domains
     list-get-length
@@ -316,8 +316,8 @@ session-header-disp                     cell+   constant session-domains-disp   
 \ Return true if the read-eval loop should continue.
 : session-eval-user-input ( cmd-lst1 sess0 -- bool )
     \ Check args.
-    assert-tos-is-session
-    assert-nos-is-list
+    assert( tos is-session? )
+    assert( nos is-list? )
 
     \ Check for no tokens
     over list-is-empty?                 \ cmd-lst1 sess0 bool
@@ -374,7 +374,7 @@ session-header-disp                     cell+   constant session-domains-disp   
 \ Return false if the user enterd the q (quit) command, else true.
 : session-get-user-input ( sess0 -- bool )
     \ Check arg.
-    assert-tos-is-session
+    assert( tos is-session? )
 
     \ Display needs.
     dup session-set-all-needs   \ sess0

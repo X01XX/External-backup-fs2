@@ -32,21 +32,12 @@ token-header-disp cell+ constant token-string-disp
     then
 ;
 
-\ Check TOS for token, unconventional, leaves stack unchanged.
-: assert-tos-is-token ( tos -- tos )
+\ Check TOS for token.
+: is-token? ( tos -- t )
     dup is-allocated-token?
-    if exit then
+    if drop true exit then
 
-    s" TOS is not an allocated token"
-    .abort-xt execute
-;
-
-\ Check NOS for token, unconventional, leaves stack unchanged.
-: assert-nos-is-token ( nos tos -- nos tos )
-    over is-allocated-token?
-    if exit then
-
-    s" NOS is not an allocated token"
+    s" not an allocated token"
     .abort-xt execute
 ;
 
@@ -55,7 +46,7 @@ token-header-disp cell+ constant token-string-disp
 \ Get token data cell.
 : token-get-string ( tkn -- c-addr u )
     \ Check arg.
-    assert-tos-is-token
+    assert( tos is-token? )
 
     token-string-disp + string@
 ;
@@ -63,7 +54,7 @@ token-header-disp cell+ constant token-string-disp
 \ Set token data cell.
 : token-set-string ( c-addr u tkn -- )
     \ Check args.
-    assert-tos-is-token
+    assert( tos is-token? )
 
     over #80 >
     if
@@ -94,7 +85,7 @@ token-header-disp cell+ constant token-string-disp
 \ Print a token struct instance.
 : .token ( tkn -- )
     \ Check arg.
-    assert-tos-is-token
+    assert( tos is-token? )
 
     [char] " emit
     token-get-string type
@@ -104,8 +95,8 @@ token-header-disp cell+ constant token-string-disp
 \ Return true if two tokens are equal.
 : tokens-eq? ( tkn1 tkn2 -- flag )
     \ Check args.
-    assert-tos-is-token
-    assert-nos-is-token
+    assert( tos is-token? )
+    assert( nos is-token? )
 
     token-get-string        \ tkn1 c-addr2 u2
     rot                     \ c-addr2 u2 tkn1
@@ -116,7 +107,7 @@ token-header-disp cell+ constant token-string-disp
 \ Return true if a token is equal to a string.
 : token-eq-string ( c-addr u tkn0 -- flag )
     \ Check args.
-    assert-tos-is-token
+    assert( tos is-token? )
 
     token-get-string        \ c-addr u c-addr u
     str=                    \ flag
@@ -125,7 +116,7 @@ token-header-disp cell+ constant token-string-disp
 \ Deallocate a token.
 : token-deallocate ( tkn0 -- )
     \ Check arg.
-    assert-tos-is-token
+    assert( tos is-token? )
 
     dup struct-get-use-count    \ tkn count
     dup 0< abort" token-deallocate: Invalid use count"

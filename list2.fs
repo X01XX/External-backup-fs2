@@ -2,7 +2,7 @@
 \ xt signature is: c-addr u -- result t | f
 : list-from-token-list ( xt tkn-lst -- int-lst t | f )
     \ Check arg.
-    assert-tos-is-token-list
+    assert( tos is-token-list? )
 
     \ Init stack.
     dup token-list-depth                    \ xt tkn-lst depth
@@ -180,8 +180,8 @@
 \ Sub-lists are Ok.
 : lists-eq? ( lst1 lst0 -- bool )
     \ Check args.
-    assert-tos-is-list
-    assert-nos-is-list
+    assert( tos is-list? )
+    assert( nos is-list? )
 
     \ cr ." lists-eq?: "
     \ over structinfo-list-print-struct-list-xt execute

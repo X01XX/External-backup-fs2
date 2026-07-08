@@ -273,10 +273,10 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     \ Check args.
     dup 0<>
     if
-        assert-tos-is-action-xt execute
+        assert( tos is-action?-xt execute )
     then
     assert( nos is-region? )
-    assert-3os-is-square-list
+    assert( 3os is-square-list? )
 
     -rot                            \ act0 sqrs2 reg1
 

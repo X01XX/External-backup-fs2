@@ -1,42 +1,24 @@
 \ Functions for square lists.
 
-\ Check if tos is an empty list, or has a square instance as its first item.
-: assert-tos-is-square-list ( tos -- tos )
-    assert-tos-is-list
-    dup list-is-not-empty?
+\ Check TOS for square-list.
+: is-square-list? ( tos -- t )
+    assert( tos is-list? )
+    
+    dup list-is-empty?
     if
-        dup list-get-links link-get-data
-        assert( tos is-square? )
         drop
-    then
-;
-
-\ Check if nos is an empty list, or has a square instance as its first item.
-: assert-nos-is-square-list ( nos tos -- nos tos )
-    assert-nos-is-list
-    over list-is-not-empty?
-    if
-        over list-get-links link-get-data
-        assert( tos is-square? )
-        drop
-    then
-;
-
-\ Check if 3os is a list, if non-empty, with the first item being a square.
-: assert-3os-is-square-list ( 3os nos tos -- 3os nos tos )
-    assert-3os-is-list
-    #2 pick list-is-not-empty?
-    if
-        #2 pick list-get-links link-get-data
-        assert( tos is-square? )
-        drop
+        true
+    else
+        list-get-links link-get-data
+        assert( is-square? )
+        true
     then
 ;
 
 \ Deallocate a square list.
 : square-list-deallocate ( lst0 -- )
     \ Check arg.
-    assert-tos-is-square-list
+    assert( tos is-square-list? )
 
     \ Check if the list will be deallocated for the last time.
     dup struct-get-use-count                        \ lst0 uc
@@ -55,14 +37,14 @@
 \ Print a square-list
 : .square-list ( list0 -- )
     \ Check arg.
-    assert-tos-is-square-list
+    assert( tos is-square-list? )
 
     [ ' .square ] literal swap .list
 ;
 
 : .square-list-prefix ( c-addr u list0 -- )
     \ Check arg.
-    assert-tos-is-square-list
+    assert( tos is-square-list? )
     cr
     rot                 \ u list0 c-addr
     #2 pick             \ u list0 c-addr u
@@ -87,7 +69,7 @@
 \ Print square list states.
 : .square-list-states ( sqr-lst -- )
     \ Check arg.
-    assert-tos-is-square-list
+    assert( tos is-square-list? )
 
     [ ' .square-state ] literal swap .list
 ;
@@ -95,7 +77,7 @@
 \ Return true if anf square in a list is between twe given squares.
 : square-list-any-between? ( sqr2 sqr1 btw-lst0 -- bool )
     \ Check args.
-    assert-tos-is-square-list
+    assert( tos is-square-list? )
     assert( nos is-square? )
     assert( 3os is-square? )
 
@@ -125,7 +107,7 @@
 \ squares.
 : square-list-between-any ( sqr2 btw1 sqr-lst0 -- sqr-lst )
     \ Check args.
-    assert-tos-is-square-list
+    assert( tos is-square-list? )
     assert( nos is-square? )
     assert( 3os is-square? )
 
@@ -155,7 +137,7 @@
 \ Return true if any square in a list has a pn value equal to a given pn value.
 : square-list-any-pn-eq? ( pn1 sqr-lst0 -- bool )
     \ Check args.
-    assert-tos-is-square-list
+    assert( tos is-square-list? )
     over 0< abort" Invalid pn value"
     over #2 > abort" Invalid pn value"
 
@@ -184,7 +166,7 @@
 \ Return the base pn value, from a non-empty list.
 : square-list-base-pn ( sqr-lst0 -- pn )
     \ Check arg.
-    assert-tos-is-square-list
+    assert( tos is-square-list? )
 
     \ Check list length.
     dup                                 \ sqr-lst0 len
@@ -220,7 +202,7 @@
 \ them, if they are not adjacent.
 : square-list-find-incompatible-pair ( sqr-lst0 -- sqr-pr t | f )
     \ Check arg.
-    assert-tos-is-square-list
+    assert( tos is-square-list? )
 \    cr ." square-list-find-incompatible-pair: start: " .stack-gbl cr
 
     \ Check list length.
@@ -338,7 +320,7 @@
 \ Find a square in a list, by state, if any.
 : square-list-find ( sta1 list0 -- sqr t | f )
     \ Check args.
-    assert-tos-is-square-list
+    assert( tos is-square-list? )
     assert( nos is-state? )
 
     [ ' square-state-eq ] literal -rot list-find
@@ -347,7 +329,7 @@
 \ Return a region built from squares of the highest pn value, in a list.
 : square-list-region ( sqr-lst0 -- reg t | f )
     \ Check arg.
-    assert-tos-is-square-list
+    assert( tos is-square-list? )
     dup list-is-empty?
     if
         drop
@@ -410,7 +392,7 @@
 \ Return the first square matching a given pn value.
 : square-list-first-pn-eq ( pn sqr-lst0 -- sqr t | f )
     \ Check arg.square-list-
-    assert-tos-is-square-list
+    assert( tos is-square-list? )
 
     \ Prep for loop.
     list-get-links          \ pn sqr-lnk
@@ -439,7 +421,7 @@
 \ Base-pn: 0 if any pn-0 squares, else 2 if any pn-2 squares, else 1.
 : square-list-all-compatible? ( sqr-lst0 -- bool )
     \ Check arg.
-    assert-tos-is-square-list
+    assert( tos is-square-list? )
     \ cr ." square-list-any-incompatible-pair?: start: " .stack-gbl cr
 
     \ Check list length.
@@ -508,7 +490,7 @@
 \ Return rules for a square-list.
 : square-list-calc-rules ( sqr-lst0 -- rul-lst t | f )
     \ Check arg.
-    assert-tos-is-square-list
+    assert( tos is-square-list? )
     \ cr ." square-list-get-rules: start: " .stack-gbl cr
     \ cr dup .square-list cr
 
@@ -597,7 +579,7 @@
 \ Return squares in a given region.
 : square-list-in-region ( reg1 sqr-lst0 -- sqr-lst )
     \ Check args.
-    assert-tos-is-square-list
+    assert( tos is-square-list? )
     assert( nos is-region? )
 
     [ ' square-in-region? ] literal -rot            \ xt reg1 sqr-lst0
@@ -607,7 +589,7 @@
 \ Return true if base-pn elements of a square-list are compatible with a given square.
 : square-list-square-compatible? ( sqr1 sqr-lst0 -- bool )
     \ Check args.
-    assert-tos-is-square-list
+    assert( tos is-square-list? )
     assert( nos is-square? )
 
     \ Check for empty list.
@@ -654,7 +636,7 @@
 \ Return a region built from squares of the highest pn value, in a list.
 : square-list-pnc-squares ( sqr-lst0 -- sqr-lst t | f )
     \ Check arg.
-    assert-tos-is-square-list
+    assert( tos is-square-list? )
 
     dup list-is-empty?
     if
@@ -699,7 +681,7 @@
 \ but address equality should work.
 : square-list-member? ( sqr1 sqr-lst0 -- bool )
     \ Check args.
-    assert-tos-is-square-list
+    assert( tos is-square-list? )
     assert( nos is-square? )
 
     [ ' = ] literal -rot    \ xt sqr1 sqr-lst0

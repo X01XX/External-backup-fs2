@@ -25,7 +25,7 @@
 
 ' xtabort value session-get-domains-xt
 
-' xtabort value assert-tos-is-session-xt
+' xtabort value is-session?-xt
 
 ' xtabort value session-update-points-xt
 
@@ -65,9 +65,7 @@
 
 ' xtabort value action-get-inst-id-xt
 
-' xtabort value assert-tos-is-action-xt
-
-' xtabort value assert-nos-is-action-xt
+' xtabort value is-action?-xt
 
 ' xtabort value action-make-need-xt
 

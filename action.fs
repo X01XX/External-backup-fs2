@@ -36,43 +36,23 @@ action-groups-disp              cell+   constant action-function-disp           
     then
 ;
 
-\ Check TOS for action, unconventional, leaves stack unchanged.
-: assert-tos-is-action ( tos -- tos )
+\ Check TOS for action.
+: is-action? ( tos -- t )
     dup is-allocated-action?
-    false? if
-        s" TOS is not an allocated action"
-       .abort-xt execute
-    then
+    if drop true exit then
+
+    s" not an allocated action"
+    .abort-xt execute
 ;
 
-' assert-tos-is-action to assert-tos-is-action-xt
-
-\ Check NOS for action, unconventional, leaves stack unchanged.
-: assert-nos-is-action ( nos tos -- nos tos )
-    over is-allocated-action?
-    false? if
-        s" NOS is not an allocated action"
-       .abort-xt execute
-    then
-;
-
-' assert-nos-is-action to assert-nos-is-action-xt
-
-\ Check 3OS for action, unconventional, leaves stack unchanged.
-: assert-3os-is-action ( 3os nos tos -- 3os nos tos )
-    #2 pick is-allocated-action?
-    false? if
-        s" 3OS is not an allocated action"
-       .abort-xt execute
-    then
-;
+' is-action? to is-action?-xt
 
 \ Start accessors.
 
 \ Return the parent from an action instance.
 : action-get-parent ( act0 -- dom )
     \ Check arg.
-    assert-tos-is-action
+    assert( tos is-action? )
 
     action-parent-disp +    \ Add offset.
     @                       \ Fetch the field.
@@ -88,7 +68,7 @@ action-groups-disp              cell+   constant action-function-disp           
 \ Get the number of bits.
 : action-get-num-bits ( act0 -- nb )
     \ Check arg.
-    assert-tos-is-action
+    assert( tos is-action? )
 
     4c@
 ;
@@ -101,7 +81,7 @@ action-groups-disp              cell+   constant action-function-disp           
 \ Get the action id.
 : action-get-inst-id ( act0 -- id )
     \ Check arg.
-    assert-tos-is-action
+    assert( tos is-action? )
 
     5c@
 ;
@@ -116,7 +96,7 @@ action-groups-disp              cell+   constant action-function-disp           
 \ Return the square-list from an action instance.
 : action-get-squares ( act0 -- lst )
     \ Check arg.
-    assert-tos-is-action
+    assert( tos is-action? )
 
     action-squares-disp +   \ Add offset.
     @                       \ Fetch the field.
@@ -125,8 +105,8 @@ action-groups-disp              cell+   constant action-function-disp           
 \ Set the square-list of an action instance, use only in this file.
 : _action-set-squares ( sqr-lst1 act0 -- )
     \ Check args.
-    assert-tos-is-action
-    assert-nos-is-square-list
+    assert( tos is-action? )
+    assert( nos is-square-list? )
 
     action-squares-disp +   \ Add offset.
     !struct                 \ Set the field.
@@ -135,7 +115,7 @@ action-groups-disp              cell+   constant action-function-disp           
 \ Return the incompatible pairs list from an action instance.
 : action-get-incompatible-pairs ( act0 -- lst )
     \ Check arg.
-    assert-tos-is-action
+    assert( tos is-action? )
 
     action-incompatible-pairs-disp +    \ Add offset.
     @                                   \ Fetch the field.
@@ -144,7 +124,7 @@ action-groups-disp              cell+   constant action-function-disp           
 \ Set the incompatible-pairs list of an action instance, use only in this file.
 : _action-set-incompatible-pairs ( reg-lst1 act0 -- )
     \ Check args.
-    assert-tos-is-action
+    assert( tos is-action? )
     assert( nos is-region-list? )
 
     action-incompatible-pairs-disp +    \ Add offset.
@@ -154,7 +134,7 @@ action-groups-disp              cell+   constant action-function-disp           
 \ Return the possible-regions list from an action instance.
 : action-get-possible-regions ( act0 -- lst )
     \ Check arg.
-    assert-tos-is-action
+    assert( tos is-action? )
 
     action-possible-regions-disp +  \ Add offset.
     @                               \ Fetch the field.
@@ -163,7 +143,7 @@ action-groups-disp              cell+   constant action-function-disp           
 \ Set the possible-regions list of an action instance, use only in this file.
 : _action-set-possible-regions ( reg-lst1 act0 -- )
     \ Check args.
-    assert-tos-is-action
+    assert( tos is-action? )
     assert( nos is-region-list? )
 
     action-possible-regions-disp +  \ Add offset.
@@ -173,7 +153,7 @@ action-groups-disp              cell+   constant action-function-disp           
 \ Update the possible-regions list of an action instance, use only in this file.
 : _action-update-possible-regions ( reg-lst1 act0 -- )
     \ Check args.
-    assert-tos-is-action
+    assert( tos is-action? )
     assert( nos is-region-list? )
 
     dup action-get-possible-regions     \ reg-lst1 act0 pos-regs
@@ -185,7 +165,7 @@ action-groups-disp              cell+   constant action-function-disp           
 \ Return the group-list from an action instance.
 : action-get-groups ( act0 -- lst )
     \ Check arg.
-    assert-tos-is-action
+    assert( tos is-action? )
 
     action-groups-disp +    \ Add offset.
     @                       \ Fetch the field.
@@ -194,7 +174,7 @@ action-groups-disp              cell+   constant action-function-disp           
 \ Set the group-list of an action instance, use only in this file.
 : _action-set-groups ( grp-lst1 act0 -- )
     \ Check args.
-    assert-tos-is-action
+    assert( tos is-action? )
     assert( nos is-group-list? )
 
     action-groups-disp +    \ Add offset.
@@ -204,7 +184,7 @@ action-groups-disp              cell+   constant action-function-disp           
 \ Return the function xt that implements the action.
 : action-get-function ( act0 -- xt )
     \ Check arg.
-    assert-tos-is-action
+    assert( tos is-action? )
 
     action-function-disp +  \ Add offset.
     @                       \ Fetch the field.
@@ -213,7 +193,7 @@ action-groups-disp              cell+   constant action-function-disp           
 \ Set the function xt that implements an action.
 : _action-set-function ( xt act0 -- )
     \ Check args.
-    assert-tos-is-action
+    assert( tos is-action? )
 
     action-function-disp +  \ Add offset.
     !                       \ Set the field.
@@ -265,7 +245,7 @@ action-groups-disp              cell+   constant action-function-disp           
 
 : action-squares-in-one-region ( act0 -- sqr-lst t | f )
     \ Check arg.
-    assert-tos-is-action
+    assert( tos is-action? )
 
     \ Init return list.
     list-new                    \ act0 ret-lst
@@ -306,7 +286,7 @@ action-groups-disp              cell+   constant action-function-disp           
 \ Action parent domain ref may be zero.
 : .action-parent ( act0 -- )
    \ Check arg.
-    assert-tos-is-action
+    assert( tos is-action? )
 
     action-get-parent           \ dom
     dup 0= if drop exit then    \ Print nothing.
@@ -322,7 +302,7 @@ action-groups-disp              cell+   constant action-function-disp           
 \ Print a action.
 : .action ( act0 -- )
     \ Check arg.
-    assert-tos-is-action
+    assert( tos is-action? )
 
     cr ." Action: "
     s"     Squares:        " #2 pick action-get-squares .square-list-prefix
@@ -343,7 +323,7 @@ action-groups-disp              cell+   constant action-function-disp           
 \ Deallocate a action.
 : action-deallocate ( act0 -- )
     \ Check arg.
-    assert-tos-is-action
+    assert( tos is-action? )
 
     dup struct-get-use-count      \ act0 count
     dup 0< abort" invalid use count"
@@ -366,7 +346,7 @@ action-groups-disp              cell+   constant action-function-disp           
 \ Find a square, given a state.
 : action-find-square ( sta1 act0 -- sqr t | f )
     \ Check args.
-    assert-tos-is-action
+    assert( tos is-action? )
     assert( nos is-state? )
 
     action-get-squares      \ sta1 sqr-lst
@@ -376,7 +356,7 @@ action-groups-disp              cell+   constant action-function-disp           
 \ Add a group to the group list.
 : action-add-group ( grp1 act0 -- )
     \ Check args.
-    assert-tos-is-action
+    assert( tos is-action? )
     assert( nos is-group? )
     cr ." Action " space ." Adding group: " over .group cr
 
@@ -388,7 +368,7 @@ action-groups-disp              cell+   constant action-function-disp           
 \ that is not in the possible regions list.
 : _action-delete-non-possible-groups ( act0 -- )
     \ Check arg.
-    assert-tos-is-action
+    assert( tos is-action? )
 
     \ Init group list to delete.
     list-new                            \ act0 del-grps
@@ -452,7 +432,7 @@ action-groups-disp              cell+   constant action-function-disp           
 : _action-add-possible-groups ( act0 -- )
     \ cr ." _action-add-possible-groups: start" cr
     \ Check arg.
-    assert-tos-is-action
+    assert( tos is-action? )
 
     \ Scan group list.
     dup action-get-groups               \ act0 grp-lst
@@ -500,8 +480,8 @@ action-groups-disp              cell+   constant action-function-disp           
 : _action-add-incompatible-pair ( sqr-pr act0 -- )
     \ cr ." _action-add-incompatible-pair: start: " .stack-gbl cr
     \ Check args.
-    assert-tos-is-action
-    assert-nos-is-square-pair
+    assert( tos is-action? )
+    assert( nos is-square-pair? )
 
     \ Add square pair to action-incompatible-pairs.
     swap square-pair-to-region          \ act0 reg'
@@ -535,7 +515,7 @@ action-groups-disp              cell+   constant action-function-disp           
 \ Using action-incompatible-pairs, recalc all possible regions.
 : action-recalc-possible-regions ( act0 -- )
     \ Check arg.
-    assert-tos-is-action
+    assert( tos is-action? )
 
     \ Recalc possible regions.
     list-new                                \ act0 pos-new
@@ -576,7 +556,7 @@ action-groups-disp              cell+   constant action-function-disp           
 : action-check-incompatible-pairs-for-changed-square ( sqr1 act0 -- )
     \ cr ." action-check-incompatible-pairs-for-changed-square: start: " .stack-gbl cr
     \ Check args.
-    assert-tos-is-action
+    assert( tos is-action? )
     assert( nos is-square? )
 
     over square-pn1-samples2            \ sqr1 act0 bool
@@ -698,7 +678,7 @@ action-groups-disp              cell+   constant action-function-disp           
 : action-check-possible-regions-for-incompatible-pairs2 ( sta1 act0 -- bool )
     \ cr ." check-possible-regions-for-incompatible-pairs2: start" cr
     \ Check args.
-    assert-tos-is-action
+    assert( tos is-action? )
     assert( nos is-state? )
 
     \ Init square pair list.
@@ -761,7 +741,7 @@ action-groups-disp              cell+   constant action-function-disp           
 : action-check-possible-regions-for-incompatible-pairs ( sta1 act0 -- )
     \ cr ." check-possible-regions-for-incompatible-pairs: start" cr
     \ Check arg.
-    assert-tos-is-action
+    assert( tos is-action? )
     assert( nos is-state? )
 
     \ Try once.
@@ -788,7 +768,7 @@ action-groups-disp              cell+   constant action-function-disp           
 : action-check-changed-square ( sqr1 act0 -- )
     \ cr ." action-check-changed-square: start: " .stack-gbl cr
     \ Check args.
-    assert-tos-is-action
+    assert( tos is-action? )
     assert( nos is-square? )
 
     \ Check incompatible pairs, if needed.
@@ -813,7 +793,7 @@ action-groups-disp              cell+   constant action-function-disp           
 \ Add anew square to a list of groups the square is known to be in.
 : _action-add-new-square-to-groups ( sqr2 grp-lst act0 -- )
     \ Check args.
-    assert-tos-is-action
+    assert( tos is-action? )
     assert( nos is-group-list? )
     assert( 3os is-square? )
 
@@ -840,7 +820,7 @@ action-groups-disp              cell+   constant action-function-disp           
 : action-check-new-square ( sqr1 act0 -- )
     \ cr ." action-check-new-square: start: " .stack-gbl cr
     \ Check args.
-    assert-tos-is-action
+    assert( tos is-action? )
     assert( nos is-square? )
     over square-get-num-samples 1 > abort" action-check-new-square: new square has gt 1 samples?"
 
@@ -870,7 +850,7 @@ action-groups-disp              cell+   constant action-function-disp           
 \ Add a new square to the action square list.
 : action-add-new-square ( sqr1 act0 -- )
     \ Check args.
-    assert-tos-is-action
+    assert( tos is-action? )
     assert( nos is-square? )
     \ cr ." action-add-new-square: start: " .stack-gbl cr
 
@@ -892,8 +872,8 @@ action-groups-disp              cell+   constant action-function-disp           
 \ a square.
 : action-add-sample ( smpl1 act0 -- bool )
     \ Check args.
-    assert-tos-is-action
-    assert-nos-is-sample
+    assert( tos is-action? )
+    assert( nos is-sample? )
     \ cr ." Action: add sample: " over .sample cr
     \ cr ." action-add-sample: start: " .stack-gbl cr
 

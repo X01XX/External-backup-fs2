@@ -135,7 +135,7 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
 : _square-set-samples ( smpl-lst1 sqr0 -- )
     \ Check args.
     assert( tos is-square? )
-    assert-nos-is-sample-list
+    assert( nos is-sample-list? )
     over list-get-length #4 > abort" rule list too long?"
 
     square-samples-disp +
@@ -164,7 +164,7 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
 \ Return a new square, given a state and a sample.
 : square-new    ( smpl -- sqr )
     \ Check args.
-    assert-tos-is-sample
+    assert( tos is-sample? )
 
     \ Calc rule.
     dup rule-new-from-sample        \ smpl rule
@@ -399,7 +399,7 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
 : square-add-sample ( smpl sqr0 -- bool )
     \ Check args.
     assert( tos is-square? )
-    assert-nos-is-sample
+    assert( nos is-sample? )
 
     \ Check number bits.
     dup square-get-state        \ smpl sqr0 sta1

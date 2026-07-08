@@ -2,7 +2,7 @@
 
 \ Check if tos is an empty list, or has a domain instance as its first item.
 : assert-tos-is-domain-list ( tos -- tos )
-    assert-tos-is-list
+    assert( tos is-list? )
     dup list-is-not-empty?
     if
         dup list-get-links link-get-data

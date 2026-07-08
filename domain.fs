@@ -93,7 +93,7 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
 : _domain-set-actions ( lst dom0 -- )
     \ Check arg.
     assert-tos-is-domain
-    assert-nos-is-action-list
+    assert( nos is-action-list? )
 
     domain-actions-disp +   \ Add offset.
     !struct                 \ Set the field.
@@ -244,7 +244,7 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
 \ The current state defaults to zero, but can be set with domain-set-current-state.
 : domain-new ( nb1 ses0 -- dom )
     \ Check arg.
-    assert-tos-is-session-xt execute
+    assert( tos is-session?-xt execute )
 
     \ Check number bits.
     over 1 < abort" Number bits < 1?"
@@ -367,7 +367,7 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
 : domain-get-sample ( act1 dom0 -- smpl )
      \ Check args.
     assert-tos-is-domain
-    assert-nos-is-action
+    assert( nos is-action? )
 
     \ Get action sample.
     dup domain-get-current-state    \ act1 dom0 | d-sta

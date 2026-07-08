@@ -162,7 +162,7 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
 \ Return a rule from a sample.
 : rule-new-from-sample ( smpl0 -- rul )
     \ Check arg.
-    assert-tos-is-sample
+    assert( tos is-sample? )
 
     dup sample-get-result       \ smpl0 rslt
     swap sample-get-initial     \ rslt init

@@ -6,7 +6,7 @@
 
 \ Check if tos is an empty list, or has a structinfo instance as its first item.
 : assert-tos-is-structinfo-list ( tos -- tos )
-    assert-tos-is-list
+    assert( tos is-list? )
     dup list-is-empty?
     if
     else
@@ -470,7 +470,7 @@
 \ Print a list of structures.
 : structinfo-list-print-struct-list ( lst0 -- )
     \ Check args.
-    assert-tos-is-list
+    assert( tos is-list? )
 
     ." ("
 
@@ -526,7 +526,7 @@
 \ Deallocate a list of structures.
 : structinfo-list-deallocate-struct-list ( lst0 -- )
     \ Check arg.
-    assert-tos-is-list
+    assert( tos is-list? )
     dup struct-get-use-count                \ lst0 uc
     0< abort" structinfo-list-deallocate-struct-list: Invalid use count"
 
@@ -648,7 +648,7 @@
 \ Hopefully, this will work for lists within lists.
 : structinfo-list-member? ( item list -- flag )
     \ Check arg.
-    assert-tos-is-list
+    assert( tos is-list? )
     \ cr ." structinfo-list-member?: "
     \ over structinfo-list-print-struct
     \ space
