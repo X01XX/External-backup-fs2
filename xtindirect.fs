@@ -50,9 +50,7 @@
 
 ' xtabort value domain-get-number-actions-xt
 
-' xtabort value assert-tos-is-domain-xt
-
-' xtabort value assert-nos-is-domain-xt
+' xtabort value is-domain?-xt
 
 ' xtabort value domain-get-num-bits-xt
 
@@ -109,9 +107,7 @@
 
 ' xtabort value regioncorr-list-deallocate-xt
 
-' xtabort value assert-tos-is-regioncorr-xt
-
-' xtabort value assert-nos-is-regioncorr-xt
+' xtabort value is-regioncorr?-xt
 
 ' xtabort value regioncorr-get-list-xt
 
@@ -134,7 +130,7 @@
 
 ' xtabort value structinfo-list-deallocate-struct-list-xt
 
-' xtabort value assert-nos-is-plan-xt
+' xtabort value is-plan?-xt
 
 ' xtabort value list-from-string-xt
 

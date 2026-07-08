@@ -40,21 +40,12 @@ structinfo-eq-xt-disp           cell+   constant structinfo-name-disp           
     then
 ;
 
-\ Check TOS for structinfo. Unconventional, no change in stack.
-: assert-tos-is-structinfo ( tos --  tos )
+\ Check TOS for strectinfo.
+: is-structinfo? ( tos -- t )
     dup is-allocated-structinfo?
-    if exit then
+    if drop true exit then
 
-    s" TOS is not an allocated structinfo"
-    .abort-xt execute
-;
-
-\ Check NOS for structinfo. Unconventional, no change in stack.
-: assert-nos-is-structinfo ( nos tos --  nos tos )
-    over is-allocated-structinfo?
-    if exit then
-
-    s" NOS is not an allocated structinfo"
+    s" not an allocated structinfo"
     .abort-xt execute
 ;
 
@@ -63,7 +54,7 @@ structinfo-eq-xt-disp           cell+   constant structinfo-name-disp           
 \ Get structinfo instance id name cell.
 : structinfo-get-inst-id ( snf0 -- id )
     \ Check arg.
-    assert-tos-is-structinfo
+    assert( tos is-structinfo? )
 
     structinfo-inst-id-disp + @
 ;
@@ -76,7 +67,7 @@ structinfo-eq-xt-disp           cell+   constant structinfo-name-disp           
 \ Get structinfo mma cell.
 : structinfo-get-mma ( snf0 -- mma )
     \ Check arg.
-    assert-tos-is-structinfo
+    assert( tos is-structinfo? )
 
     structinfo-mma-disp + @
 ;
@@ -91,7 +82,7 @@ structinfo-eq-xt-disp           cell+   constant structinfo-name-disp           
 \ Get structinfo name cell.
 : structinfo-get-name ( snf0 -- c-addr u )
     \ Check arg.
-    assert-tos-is-structinfo
+    assert( tos is-structinfo? )
 
     structinfo-name-disp + string@
 ;
@@ -121,7 +112,7 @@ structinfo-eq-xt-disp           cell+   constant structinfo-name-disp           
 \ Get structinfo print-xt cell, may be ' noop.
 : structinfo-get-print-xt ( snf0 -- xt )
     \ Check arg.
-    assert-tos-is-structinfo
+    assert( tos is-structinfo? )
 
     structinfo-print-xt-disp + @
 ;
@@ -134,7 +125,7 @@ structinfo-eq-xt-disp           cell+   constant structinfo-name-disp           
 \ Get structinfo deallocate-xt cell, may be ' noop.
 : structinfo-get-deallocate-xt ( snf0 -- xt )
     \ Check arg.
-    assert-tos-is-structinfo
+    assert( tos is-structinfo? )
 
     structinfo-deallocate-xt-disp + @
 ;
@@ -147,7 +138,7 @@ structinfo-eq-xt-disp           cell+   constant structinfo-name-disp           
 \ Get structinfo from-string-xt cell, may be ' noop.
 : structinfo-get-from-string-xt ( snf0 -- xt )
     \ Check arg.
-    assert-tos-is-structinfo
+    assert( tos is-structinfo? )
 
     structinfo-from-string-xt-disp + @
 ;
@@ -160,7 +151,7 @@ structinfo-eq-xt-disp           cell+   constant structinfo-name-disp           
 \ Get structinfo eq-xt cell, may be ' noop.
 : structinfo-get-eq-xt ( snf0 -- xt )
     \ Check arg.
-    assert-tos-is-structinfo
+    assert( tos is-structinfo? )
 
     structinfo-eq-xt-disp + @
 ;
@@ -214,7 +205,7 @@ structinfo-eq-xt-disp           cell+   constant structinfo-name-disp           
 \ Deallocate a structinfo.
 : structinfo-deallocate ( snf0 -- )
     \ Check arg.
-    assert-tos-is-structinfo
+    assert( tos is-structinfo? )
 
     dup struct-get-use-count    \ structinfo-addr count
     dup 0< abort" structinfo-deallocate: Invalid use count"
@@ -230,7 +221,7 @@ structinfo-eq-xt-disp           cell+   constant structinfo-name-disp           
 \ Return true if a structinfo-inst-id matches a number.
 : structinfo-inst-id-eq ( id1 snf0 -- flag )
     \ Check args.
-    assert-tos-is-structinfo
+    assert( tos is-structinfo? )
 
     structinfo-get-inst-id
     =

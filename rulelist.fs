@@ -1,31 +1,24 @@
 \ Functions for rule lists.
 
-\ Check if tos is an empty list, or has a rule instance as its first item.
-: assert-tos-is-rule-list ( tos -- tos )
+\ Check TOS for rule-list.
+: is-rule-list? ( tos -- t )
     assert( tos is-list? )
-    dup list-is-not-empty?
+    
+    dup list-is-empty?
     if
-        dup list-get-links link-get-data
-        assert( tos is-rule? )
         drop
-    then
-;
-
-\ Check if nos is an empty list, or has a rule instance as its first item.
-: assert-nos-is-rule-list ( nos tos -- nos tos )
-    assert( nos is-list? )
-    over list-is-not-empty?
-    if
-        over list-get-links link-get-data
-        assert( tos is-rule? )
-        drop
+        true
+    else
+        list-get-links link-get-data
+        assert( is-rule? )
+        true
     then
 ;
 
 \ Deallocate a rule list.
 : rule-list-deallocate ( lst0 -- )
     \ Check arg.
-    assert-tos-is-rule-list
+    assert( tos is-rule-list? )
 
     \ Check if the list will be deallocated for the last time.
     dup struct-get-use-count                        \ lst0 uc
@@ -44,7 +37,7 @@
 \ Print a rule-list
 : .rule-list ( list0 -- )
     \ Check arg.
-    assert-tos-is-rule-list
+    assert( tos is-rule-list? )
 
     [ ' .rule ] literal swap .list
 ;
@@ -76,8 +69,8 @@
 \ Return true if two rule lists are equal.
 : rule-lists-eq? ( reg-lst1 reg-lst0 -- bool )
     \ Check args.
-    assert-tos-is-rule-list
-    assert-nos-is-rule-list
+    assert( tos is-rule-list? )
+    assert( nos is-rule-list? )
 
     [ ' rules-eq? ] literal -rot    \ xt reg-lst1 reg-lst0
     struct-lists-eq?                \ bool
@@ -87,7 +80,7 @@
 \ least one region in a region list pair.
 : rule-list-union-superset? ( rul1 rul-lst0 -- bool )
     \ Check args.
-    assert-tos-is-rule-list
+    assert( tos is-rule-list? )
     assert( nos is-rule? )
     dup list-get-length #2 < abort" rule list too short?"
 
@@ -121,10 +114,9 @@
 \ leading to X->1/X->0 in one union, X->X/X->x in the other union.
 : rule-list-union ( rul-lst1 rul-lst0 -- rul-lst t | f )
     \ Check args.
-    assert-tos-is-rule-list
-    assert-nos-is-rule-list
-    over list-get-length
-    over list-get-length <> abort" rule-list-pair-union: rule list lengths ne?"
+    assert( tos is-rule-list? )
+    assert( nos is-rule-list? )
+    assert( over list-get-length over list-get-length = )
 
     \ Check order one.
     list-new -rot                   \ ret-lst1 rul-lst1 rul-lst0
@@ -212,7 +204,7 @@
 \ Return a copy of a rule-list.
 : rule-list-copy ( lst0 -- lst-copy )
     \ Check arg.
-    assert-tos-is-rule-list
+    assert( tos is-rule-list? )
 
     list-new swap           \ lst-n lst0
 

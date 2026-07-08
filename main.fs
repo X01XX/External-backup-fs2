@@ -11,12 +11,12 @@ decimal
 \ #2 base !  \ Test all numbers GT 1, LT -1, have a base prefix.
 \ include /usr/share/gforth/0.7.3/objects.fs
 include xtindirect.fs
+include globals.fs
 include bool.fs
 include tools.fs
 
 include mm_array.fs
 include struct.fs
-include globals.fs
 include link.fs
 include list.fs
 include structlist.fs

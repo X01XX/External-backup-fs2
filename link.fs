@@ -30,9 +30,11 @@ link-next-disp      cell+   constant link-data-disp
 ;
 
 \ Check TOS for link, unconventional, leaves stack unchanged.
-: assert-tos-is-link ( tos -- tos )
+: is-link? ( tos -- t )
     dup is-allocated-link?
-    0= if
+    if
+        drop true
+    else
         s" TOS is not an allocated link."
        .abort-xt execute
     then
@@ -43,7 +45,7 @@ link-next-disp      cell+   constant link-data-disp
 \ Get link data cell.
 : link-get-data ( link-addr -- link-data-value )
     \ Check arg.
-    assert-tos-is-link
+    assert( tos is-link? )
 
     link-data-disp + @
 ;
@@ -56,7 +58,7 @@ link-next-disp      cell+   constant link-data-disp
 \ Get link next cell.
 : link-get-next ( link-addr -- link-next-value )
     \ Check arg.
-    assert-tos-is-link
+    assert( tos is-link? )
 
     link-next-disp + @
 ;
@@ -81,7 +83,7 @@ link-next-disp      cell+   constant link-data-disp
 \ Print a link in hex.
 : .link ( link-addr -- )
     \ Check arg.
-    assert-tos-is-link
+    assert( tos is-link? )
 
     ." Link: "
     dup hex.
@@ -100,7 +102,7 @@ link-next-disp      cell+   constant link-data-disp
 \ Deallocate a link.
 : link-deallocate ( link-addr -- )
     \ Check arg.
-    assert-tos-is-link
+    assert( tos is-link? )
 
     dup struct-get-use-count    \ link-addr count
 

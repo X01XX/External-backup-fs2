@@ -287,7 +287,7 @@ session-header-disp                     cell+   constant session-domains-disp   
 : session-add-domain ( dom1 sess0 -- )
     \ Check args.
     assert( tos is-session? )
-    assert-nos-is-domain
+    assert( nos is-domain? )
     \ cr ." session-add-domain: start " .stack-gbl execute cr
 
     \ Add domain

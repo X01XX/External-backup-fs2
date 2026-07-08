@@ -57,14 +57,18 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
     .abort-xt execute
 ;
 
-\ Check nos is a valid pn value.
-: assert-nos-is-pn ( nos tos -- nos tos )
-    over dup 0 < swap
-    #2 > or
+\ Check tos is a valid pn value.
+: is-pn? ( tos -- t )
+    dup 0<      \ tos bool
+    over        \ tos bool tos
+    #2 >        \ tos bool bool
+    or          \ tos bool
     if
         s" nos is not a valid pn value"
         .abort-xt execute
     then
+    drop
+    true
 ;
 
 \ Start accessors.
@@ -79,7 +83,7 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
 : _square-set-pn ( pn sqr0 -- )
     \ Check args.
     assert( tos is-square? )
-    assert-nos-is-pn
+    assert( nos is-pn? )
 
     4c!
 ;
@@ -99,7 +103,7 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
 : _square-set-pnc ( bool sqr0 -- )
     \ Check args.
     assert( tos is-square? )
-    assert-nos-is-bool
+    assert( nos is-bool? )
 
     swap        \ sqr0 bool
     if
@@ -120,7 +124,7 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
 : _square-set-changed ( bool sqr0 -- )
     \ Check args.
     assert( tos is-square? )
-    assert-nos-is-bool
+    assert( nos is-bool? )
 
     6c!
 ;
@@ -152,7 +156,7 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
 : _square-set-rules ( rul-lst1 sqr0 -- )
     \ Check args.
     assert( tos is-square? )
-    assert-nos-is-rule-list
+    assert( nos is-rule-list? )
     over list-get-length #2 > abort" rule list too long?"
 
     square-rules-disp +
@@ -197,7 +201,7 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
 : _square-update-pn ( pn sqr0 -- )
     \ Check args.
     assert( tos is-square? )
-    assert-nos-is-pn
+    assert( nos is-pn? )
 
     dup square-get-pn           \ pn-new sqr0 pn-old
     #2 pick                     \ pn-new sqr0 pn-old pn-new
@@ -213,7 +217,7 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
 : _square-update-pnc ( bool sqr0 -- )
     \ Check args.
     assert( tos is-square? )
-    assert-nos-is-bool
+    assert( nos is-bool? )
 
     dup square-get-pnc          \ pn-new sqr0 pn-old
     #2 pick                     \ pn-new sqr0 pn-old pn-new
@@ -230,7 +234,7 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
 : _square-update-rules ( rul-lst1 sqr0 -- )
     \ Check args.
     assert( tos is-square? )
-    assert-nos-is-rule-list
+    assert( nos is-rule-list? )
     over list-get-length #2 > abort" rule list too long?"
 
     dup square-get-rules    \ rul-lst1 sqr0 rul-lst-old

@@ -36,34 +36,23 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
     then
 ;
 
-\ Check TOS for domain, unconventional, leaves stack unchanged.
-: assert-tos-is-domain ( tos -- tos )
+\ Check TOS for domain.
+: is-domain? ( tos -- t )
     dup is-allocated-domain?
-    false? if
-        s" TOS is not an allocated domain"
-       .abort-xt execute
-    then
+    if drop true exit then
+
+    s" not an allocated domain"
+    .abort-xt execute
 ;
 
-' assert-tos-is-domain to assert-tos-is-domain-xt
-
-\ Check NOS for domain, unconventional, leaves stack unchanged.
-: assert-nos-is-domain ( nos tos -- nos tos )
-    over is-allocated-domain?
-    false? if
-        s" NOS is not an allocated domain"
-       .abort-xt execute
-    then
-;
-
-' assert-nos-is-domain to assert-nos-is-domain-xt
+' is-domain? to is-domain?-xt
 
 \ Start accessors.
 
 \ Return the parent session of the domain.
 : domain-get-parent ( dom0 -- ses )
     \ Check arg.
-    assert-tos-is-domain
+    assert( tos is-domain? )
 
     domain-parent-disp +    \ Add offset.
     @                       \ Fetch the field.
@@ -74,7 +63,7 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
 \ Set the parent session of an domain.
 : _domain-set-parent ( ses1 dom0 -- )
     \ Check args.
-    assert-tos-is-domain
+    assert( tos is-domain? )
 
     domain-parent-disp +    \ Add offset.
     !                       \ Set the field.
@@ -83,7 +72,7 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
 \ Return the action-list from an domain instance.
 : domain-get-actions ( dom0 -- lst )
     \ Check arg.
-    assert-tos-is-domain
+    assert( tos is-domain? )
 
     domain-actions-disp +   \ Add offset.
     @                       \ Fetch the field.
@@ -92,7 +81,7 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
 \ Return the action-list from an domain instance.
 : _domain-set-actions ( lst dom0 -- )
     \ Check arg.
-    assert-tos-is-domain
+    assert( tos is-domain? )
     assert( nos is-action-list? )
 
     domain-actions-disp +   \ Add offset.
@@ -102,7 +91,7 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
 \ Return the instance ID from an domain instance.
 : domain-get-inst-id ( dom0 -- u)
     \ Check arg.
-    assert-tos-is-domain
+    assert( tos is-domain? )
 
     \ Get intst ID.
     4c@
@@ -113,7 +102,7 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
 \ Set the instance ID of an domain instance.
 : domain-set-inst-id ( u1 dom0 -- )
     \ Check args.
-    assert-tos-is-domain
+    assert( tos is-domain? )
 
     over 0<
     abort" Invalid instance id"
@@ -128,7 +117,7 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
 \ Return the number bits used by a domain instance.
 : domain-get-num-bits ( dom0 -- u)
     \ Check arg.
-    assert-tos-is-domain
+    assert( tos is-domain? )
 
     \ Get intst ID.
     5c@
@@ -139,7 +128,7 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
 \ Set the number bits used by a domain instance, use only in this file.
 : _domain-set-num-bits ( u1 dom0 -- )
     \ Check args.
-    assert-tos-is-domain
+    assert( tos is-domain? )
 
     over 1 <
     abort" Invalid number of bits."
@@ -154,7 +143,7 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
 \ Return the current state from a domain instance.
 : domain-get-current-state ( dom0 -- u)
     \ Check arg.
-    assert-tos-is-domain
+    assert( tos is-domain? )
 
     domain-current-state-disp +
     @
@@ -163,10 +152,10 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
 ' domain-get-current-state to domain-get-current-state-xt
 
 \ Set the current state of a domain instance.
-: domain-set-current-state ( u1 dom0 -- )
+: domain-set-current-state ( sta1 dom0 -- )
     \ Check args.
-    assert-tos-is-domain
-    assert-nos-is-value
+    assert( tos is-domain? )
+    assert( nos is-state? )
 
     \ Set inst id.
     domain-current-state-disp +
@@ -176,7 +165,7 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
 \ Return the max-region of the domain.
 : domain-get-max-region ( dom0 -- reg )
     \ Check arg.
-    assert-tos-is-domain
+    assert( tos is-domain? )
 
     domain-max-region-disp +    \ Add offset.
     @                           \ Fetch the field.
@@ -187,7 +176,7 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
 \ Set the max region of the domain.
 : _domain-set-max-region ( reg1 dom0 -- )
     \ Check args.
-    assert-tos-is-domain
+    assert( tos is-domain? )
 
     domain-max-region-disp +    \ Add offset.
     !struct                     \ Set the field.
@@ -196,7 +185,7 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
 \ Return the all-bits-mask of the domain.
 : domain-get-all-bits-mask ( dom0 -- msk )
     \ Check arg.
-    assert-tos-is-domain
+    assert( tos is-domain? )
 
     domain-all-bits-mask-disp +    \ Add offset.
     @                           \ Fetch the field.
@@ -207,7 +196,7 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
 \ Set the max region of the domain.
 : _domain-set-all-bits-mask ( msk1 dom0 -- )
     \ Check args.
-    assert-tos-is-domain
+    assert( tos is-domain? )
 
     domain-all-bits-mask-disp +    \ Add offset.
     !                               \ Set the field.
@@ -216,7 +205,7 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
 \ Return the ms-bit-mask of the domain.
 : domain-get-ms-bit-mask ( dom0 -- msk )
     \ Check arg.
-    assert-tos-is-domain
+    assert( tos is-domain? )
 
     domain-ms-bit-mask-disp +   \ Add offset.
     @                           \ Fetch the field.
@@ -227,7 +216,7 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
 \ Set the max region of the domain.
 : _domain-set-ms-bit-mask ( msk1 dom0 -- )
     \ Check args.
-    assert-tos-is-domain
+    assert( tos is-domain? )
 
     domain-ms-bit-mask-disp +   \ Add offset.
     !                           \ Set the field.
@@ -311,7 +300,7 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
 \ Print a domain.
 : .domain ( dom0 -- )
     \ Check arg.
-    assert-tos-is-domain
+    assert( tos is-domain? )
 
     dup domain-get-inst-id
     cr cr ." Dom: " dec.
@@ -328,7 +317,7 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
 \ Deallocate a domain.
 : domain-deallocate ( dom0 -- )
     \ Check arg.
-    assert-tos-is-domain
+    assert( tos is-domain? )
 
     dup struct-get-use-count      \ act0 count
     dup 0< abort" invalid use count"
@@ -348,7 +337,7 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
 
 : domain-add-action ( xt1 dom0 -- )
     \ Check args.
-    assert-tos-is-domain
+    assert( tos is-domain? )
 
     tuck                        \ dom0 xt1 dom0
 
@@ -366,7 +355,7 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
 \ Call only from session-get-sample, since current-domain in set there.
 : domain-get-sample ( act1 dom0 -- smpl )
      \ Check args.
-    assert-tos-is-domain
+    assert( tos is-domain? )
     assert( nos is-action? )
 
     \ Get action sample.
@@ -397,7 +386,7 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
 : domain-find-action ( u1 dom0 -- act t | f )
     \ cr ." domain-find-action: Dom: " dup domain-get-inst-id . space over . cr
     \ Check args.
-    assert-tos-is-domain
+    assert( tos is-domain? )
     over 0< if
         2drop
         false
@@ -420,7 +409,7 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
 
 : domain-get-number-actions ( dom -- na )
     \ Check arg.
-    assert-tos-is-domain
+    assert( tos is-domain? )
 
     domain-get-actions      \ act-lst
     list-get-length         \ len

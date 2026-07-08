@@ -34,21 +34,20 @@ frame-header-disp cell+ constant frame-disp
     then
 ;
 
-\ Check TOS for frame, unconventional, leaves stack unchanged.
-: assert-tos-is-frame ( tos -- tos )
+\ Check TOS for frame.
+: is-frame? ( tos -- t )
     dup is-allocated-frame?
-    if exit then
+    if drop true exit then
 
-    s" TOS is not an allocated frame"
+    s" not an allocated frame"
     .abort-xt execute
 ;
-
 \ Start accessors.
 
 \ Get frame data cell 0.
 : frame-cell0@ ( frm0 -- u )
     \ Check arg.
-    assert-tos-is-frame
+    assert( tos is-frame? )
 
     frame-header-disp +
     @
@@ -57,7 +56,7 @@ frame-header-disp cell+ constant frame-disp
 \ Set frame data cell 0.
 : frame-cell0! ( u frm0 -- )
     \ Check arg.
-    assert-tos-is-frame
+    assert( tos is-frame? )
 
     frame-header-disp +
     !
@@ -66,7 +65,7 @@ frame-header-disp cell+ constant frame-disp
 \ Get frame data cell 1.
 : frame-cell1@ ( frm0 -- u )
     \ Check arg.
-    assert-tos-is-frame
+    assert( tos is-frame? )
 
     frame-header-disp +
     cell+
@@ -76,7 +75,7 @@ frame-header-disp cell+ constant frame-disp
 \ Set frame data cell 1.
 : frame-cell1! ( u frm0 -- )
     \ Check arg.
-    assert-tos-is-frame
+    assert( tos is-frame? )
 
     frame-header-disp +
     cell+
@@ -86,7 +85,7 @@ frame-header-disp cell+ constant frame-disp
 \ Get frame data cell 2.
 : frame-cell2@ ( frm0 -- u )
     \ Check arg.
-    assert-tos-is-frame
+    assert( tos is-frame? )
 
     frame-header-disp +
     #2 cells +
@@ -96,7 +95,7 @@ frame-header-disp cell+ constant frame-disp
 \ Set frame data cell 2.
 : frame-cell2! ( u frm0 -- )
     \ Check arg.
-    assert-tos-is-frame
+    assert( tos is-frame? )
 
     frame-header-disp +
     #2 cells +
@@ -106,7 +105,7 @@ frame-header-disp cell+ constant frame-disp
 \ Get frame data cell 3.
 : frame-cell3@ ( frm0 -- u )
     \ Check arg.
-    assert-tos-is-frame
+    assert( tos is-frame? )
 
     frame-header-disp +
     #3 cells +
@@ -116,7 +115,7 @@ frame-header-disp cell+ constant frame-disp
 \ Set frame data cell 3.
 : frame-cell3! ( u frm0 -- )
     \ Check arg.
-    assert-tos-is-frame
+    assert( tos is-frame? )
 
     frame-header-disp +
     #3 cells +
@@ -126,7 +125,7 @@ frame-header-disp cell+ constant frame-disp
 \ Get frame data cell 4.
 : frame-cell4@ ( frm0 -- u )
     \ Check arg.
-    assert-tos-is-frame
+    assert( tos is-frame? )
 
     frame-header-disp +
     #4 cells +
@@ -136,7 +135,7 @@ frame-header-disp cell+ constant frame-disp
 \ Set frame data cell 4.
 : frame-cell4! ( u frm0 -- )
     \ Check arg.
-    assert-tos-is-frame
+    assert( tos is-frame? )
 
     frame-header-disp +
     #4 cells +
@@ -154,7 +153,7 @@ frame-header-disp cell+ constant frame-disp
 \ Print a frame struct instance.
 : .frame ( frm0 -- )
     \ Check arg.
-    assert-tos-is-frame
+    assert( tos is-frame? )
 
     ." Frame: "
     dup frame-cell0@ hex.
@@ -168,7 +167,7 @@ frame-header-disp cell+ constant frame-disp
 \ Deallocate a frame.
 : frame-deallocate ( frm0 -- )
     \ Check arg.
-    assert-tos-is-frame
+    assert( tos is-frame? )
 
     dup struct-get-use-count    \ frm0 count
     dup 0< abort" frame-deallocate: Invalid use count"

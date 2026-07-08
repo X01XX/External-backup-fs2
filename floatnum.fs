@@ -32,22 +32,13 @@ floatnum-header-disp cell+   constant floatnum-number-disp
     then
 ;
 
-\ Check TOS for floatnum, unconventional, leaves stack unchanged.
-: assert-tos-is-floatnum ( tos -- tos )
+\ Check TOS for floatnum.
+: is-floatnum? ( tos -- t )
     dup is-allocated-floatnum?
-    if exit then
+    if drop true exit then
 
-    s" TOS is not an allocated floatnum"
-    abort
-;
-
-\ Check NOS for floatnum, unconventional, leaves stack unchanged.
-: assert-nos-is-floatnum ( nos tos -- nos tos )
-    over is-allocated-floatnum?
-    if exit then
-
-    s" NOS is not an allocated floatnum"
-    abort
+    s" not an allocated floatnum"
+    .abort-xt execute
 ;
 
 \ Start accessors.
@@ -87,7 +78,7 @@ floatnum-header-disp cell+   constant floatnum-number-disp
 \ Deallocate a float.
 : floatnum-deallocate ( fnum -- )
     \ Check argument.
-    assert-tos-is-floatnum
+    assert( tos is-floatnum? )
 
     dup struct-get-use-count    \ fnum count
 
@@ -104,8 +95,8 @@ floatnum-header-disp cell+   constant floatnum-number-disp
 \ Return the addition of two floatnum instances.
 : floatnum-add ( fnum-1 fnum-0 -- fnum )
     \ Check arguments.
-    assert-tos-is-floatnum
-    assert-nos-is-floatnum
+    assert( tos is-floatnum? )
+    assert( nos is-floatnum? )
 
     floatnum-get-number      \ F: r0 fnum-1
     floatnum-get-number      \ F: r0 r1
@@ -129,8 +120,8 @@ floatnum-header-disp cell+   constant floatnum-number-disp
 : floatnums-eq? ( fltn1 fltn0 -- bool )
 
     \ Check arguments.
-    assert-tos-is-floatnum
-    assert-nos-is-floatnum
+    assert( tos is-floatnum? )
+    assert( nos is-floatnum? )
 
     floatnum-get-number      \ F: r0 fnum-1
     floatnum-get-number      \ F: r0 r1
