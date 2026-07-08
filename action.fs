@@ -41,7 +41,7 @@ action-groups-disp              cell+   constant action-function-disp           
     dup is-allocated-action?
     if drop true exit then
 
-    s" not an allocated action"
+    s" Selected arg is not an allocated action"
     .abort-xt execute
 ;
 

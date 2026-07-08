@@ -39,7 +39,7 @@ frame-header-disp cell+ constant frame-disp
     dup is-allocated-frame?
     if drop true exit then
 
-    s" not an allocated frame"
+    s" Selected arg is not an allocated frame"
     .abort-xt execute
 ;
 \ Start accessors.

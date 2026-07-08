@@ -39,7 +39,7 @@ mask-header-disp cell+  constant mask-number-disp
     dup is-allocated-mask?
     if drop true exit then
 
-    s" not an allocated mask"
+    s" Selected arg is not an allocated mask"
     .abort-xt execute
 ;
 

@@ -37,7 +37,7 @@ session-header-disp                     cell+   constant session-domains-disp   
     dup is-allocated-session?
     if drop true exit then
 
-    s" not an allocated session"
+    s" Selected arg is not an allocated session"
     .abort-xt execute
 ;
 

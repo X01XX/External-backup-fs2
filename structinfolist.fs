@@ -294,7 +294,7 @@
             dup structinfo-list-store-using-addr?
             if
             else                    \ size stack end item
-                cr dup ." In use: " hex.
+                cr dup ." In use: " #2 cells dump
             then
         then
 

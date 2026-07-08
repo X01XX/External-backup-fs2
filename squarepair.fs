@@ -7,7 +7,7 @@
     #2 =
     if exit then
 
-    s" TOS is not an allocated square-pair"
+    s" Selected arg is not an allocated square-pair"
     .abort-xt execute
 ;
 

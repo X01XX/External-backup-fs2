@@ -37,7 +37,7 @@ state-header-disp cell+   constant state-number-disp
     dup is-allocated-state?
     if drop true exit then
 
-    s" not an allocated state"
+    s" Selected arg is not an allocated state"
     .abort-xt execute
 ;
 

@@ -37,7 +37,7 @@ floatnum-header-disp cell+   constant floatnum-number-disp
     dup is-allocated-floatnum?
     if drop true exit then
 
-    s" not an allocated floatnum"
+    s" Selected arg is not an allocated floatnum"
     .abort-xt execute
 ;
 
@@ -77,7 +77,7 @@ floatnum-header-disp cell+   constant floatnum-number-disp
 
 \ Deallocate a float.
 : floatnum-deallocate ( fnum -- )
-    \ Check argument.
+    \ Check arg.
     assert( tos is-floatnum? )
 
     dup struct-get-use-count    \ fnum count
@@ -94,7 +94,7 @@ floatnum-header-disp cell+   constant floatnum-number-disp
 
 \ Return the addition of two floatnum instances.
 : floatnum-add ( fnum-1 fnum-0 -- fnum )
-    \ Check arguments.
+    \ Check args.
     assert( tos is-floatnum? )
     assert( nos is-floatnum? )
 
@@ -118,8 +118,7 @@ floatnum-header-disp cell+   constant floatnum-number-disp
 
 \ Return true if two floatnums are equal.
 : floatnums-eq? ( fltn1 fltn0 -- bool )
-
-    \ Check arguments.
+    \ Check args.
     assert( tos is-floatnum? )
     assert( nos is-floatnum? )
 

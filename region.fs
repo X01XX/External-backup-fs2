@@ -52,7 +52,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     dup is-allocated-region?
     if drop true exit then
 
-    s" not an allocated region"
+    s" Selected arg is not an allocated region"
     .abort-xt execute
 ;
 
@@ -411,7 +411,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     \ Check args.
     assert( tos is-region? )
     assert( nos is-mask? )
-    over mask-get-num-bits over region-get-num-bits <> abort" region-x-to-0: num bits ne?"
+    assert( over mask-get-num-bits over region-get-num-bits = )
 
     region-get-states       \ to-0-msk sta1 sta0
     rot mask-invert         \ sta1 sta0 keep-msk'
@@ -432,7 +432,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     \ Check args.
     assert( tos is-region? )
     assert( nos is-mask? )
-    over mask-get-num-bits over region-get-num-bits <> abort" region-x-to-1: num bits ne?"
+    assert( over mask-get-num-bits over region-get-num-bits = )
 
     region-get-states       \ to-1-msk sta1 sta0
     #2 pick swap            \ to-1-msk sta1 to-1-msk sta0
@@ -654,9 +654,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     \ Check args.
     assert( tos is-region? )
     assert( nos is-state? )
-    over state-get-num-bits
-    over region-get-num-bits
-    <> abort" region-superset-of-state?: num bits ne?"
+    assert( over state-get-num-bits over region-get-num-bits = )
 
     \ cr ." region-superset-of-state?: " over .state space dup .region cr
     region-get-states           \ sta1 reg-sta1 reg-sta0
@@ -720,7 +718,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     \ Check args.
     assert( tos is-region? )
     assert( nos is-state? )
-    over state-get-num-bits over region-get-num-bits <> abort" region-union-state: num bits ne?"
+    assert( over state-get-num-bits over region-get-num-bits = )
 
     dup region-high-state           \ sta1 reg0 sta-h
     swap region-low-state           \ sta1 sta-h' sta-l'

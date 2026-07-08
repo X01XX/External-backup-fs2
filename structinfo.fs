@@ -45,7 +45,7 @@ structinfo-eq-xt-disp           cell+   constant structinfo-name-disp           
     dup is-allocated-structinfo?
     if drop true exit then
 
-    s" not an allocated structinfo"
+    s" Selected arg is not an allocated structinfo"
     .abort-xt execute
 ;
 

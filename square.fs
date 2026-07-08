@@ -53,7 +53,7 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
     dup is-allocated-square?
     if drop true exit then
 
-    s" not an allocated square"
+    s" Selected arg is not an allocated square"
     .abort-xt execute
 ;
 

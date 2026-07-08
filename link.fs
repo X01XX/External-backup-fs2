@@ -35,7 +35,7 @@ link-next-disp      cell+   constant link-data-disp
     if
         drop true
     else
-        s" TOS is not an allocated link."
+        s" Selected arg is not an allocated link."
        .abort-xt execute
     then
 ;

@@ -41,7 +41,7 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
     dup is-allocated-domain?
     if drop true exit then
 
-    s" not an allocated domain"
+    s" Selected arg is not an allocated domain"
     .abort-xt execute
 ;
 

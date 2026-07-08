@@ -65,7 +65,7 @@ list-header-disp    cell+   constant list-links-disp
     dup is-allocated-list?
     if drop true exit then
 
-    s" not an allocated list"
+    s" Selected arg is not an allocated list"
     .abort-xt execute
 ;
 

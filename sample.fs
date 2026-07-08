@@ -41,7 +41,7 @@ sample-initial-disp cell+   constant sample-result-disp     \ Result state.
     dup is-allocated-sample?
     if drop true exit then
 
-    s" not an allocated sample"
+    s" Selected arg is not an allocated sample"
     .abort-xt execute
 ;
 

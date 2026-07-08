@@ -42,7 +42,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     dup is-allocated-group?
     if drop true exit then
 
-    s" not an allocated group"
+    s" Selected arg is not an allocated group"
     .abort-xt execute
 ;
 

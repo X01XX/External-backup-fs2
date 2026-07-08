@@ -37,8 +37,8 @@ token-header-disp cell+ constant token-string-disp
     dup is-allocated-token?
     if drop true exit then
 
-    s" not an allocated token"
-    .abort-xt execute
+    s" Selected arg is not an allocated token"
+    abort
 ;
 
 \ Start accessors.

@@ -41,7 +41,7 @@ corner-similar-squares-disp     cell+   constant corner-regions-disp            
     dup is-allocated-corner?
     if drop true exit then
 
-    s" not an allocated corner"
+    s" Selected arg is not an allocated corner"
     .abort-xt execute
 ;
 
