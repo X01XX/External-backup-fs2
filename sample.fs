@@ -93,7 +93,7 @@ sample-initial-disp cell+   constant sample-result-disp     \ Result state.
     \ Check args.
     assert( tos is-state? )
     assert( nos is-state? )
-    2dup states-dif-num-bits? abort" States num bits mismatch?"
+    assert( 2dup states-same-num-bits? )
 
     \ Allocate space.
     sample-struct-id sample-mma
