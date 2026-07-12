@@ -67,7 +67,7 @@
         #2 pick swap     \ target num1 target num2
         \ Check target vs num2.
         > if
-            2drop false exit
+            2drop false exitgrep "0=" *.fs | grep -v abort
           then
         \ Check target vs num1.
         < if
@@ -316,3 +316,7 @@
     repeat
                     \ cnt
 ;
+
+\ A replacement for "if else" or "0= if".
+: ifnot POSTPONE 0= POSTPONE if ; immediate
+

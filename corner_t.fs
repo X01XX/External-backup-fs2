@@ -18,8 +18,7 @@
 
     s" s0110->s0110" sample-from-string-a square-new    \ crn sqr6
     2dup swap corner-add-square                         \ crn sqr6 bool
-    if
-    else
+    ifnot
         true abort" add square 6 failed?"
     then
     cr ." crn: " over .corner cr
@@ -28,8 +27,7 @@
     dup                                                 \ crn sqr6 sqr9 sqr9
     #3 pick                                             \ crn sqr6 sqr9 sqr9 crn
     corner-add-square                                   \ crn sqr6 sqr9 bool
-    if
-    else
+    ifnot
         true abort" add square 9 failed?"
     then
     cr ." crn: " #2 pick .corner cr
@@ -39,8 +37,7 @@
     dup                                                 \ crn sqr6 sqr9 sqr7 sqr7
     #4 pick                                             \ crn sqr6 sqr9 sqr7 sqr7 crn
     corner-add-square                                   \ crn sqr6 sqr9 sqr7 bool
-    if
-    else
+    ifnot
         true abort" add square 4 failed?"
     then
     cr ." crn: " #3 pick .corner cr

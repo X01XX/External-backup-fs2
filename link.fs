@@ -29,7 +29,7 @@ link-next-disp      cell+   constant link-data-disp
     then
 ;
 
-\ Check TOS for link, unconventional, leaves stack unchanged.
+\ Check TOS for link.
 : is-link? ( tos -- t )
     dup is-allocated-link?
     if

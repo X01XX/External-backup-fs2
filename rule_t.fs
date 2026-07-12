@@ -11,8 +11,7 @@
         swap rule-deallocate            \ rul1 rul-u
         cr ." rule-union: " dup .rule
         2dup rules-eq?                  \ rul1 rul-u bool
-        if
-        else
+        ifnot
             ." rules ne?"
             abort
         then
@@ -61,8 +60,7 @@
         swap rule-deallocate            \ rul1 rul-i
         cr ." rule-intersection: " dup .rule
         2dup rules-eq?                  \ rul1 rul-i bool
-        if
-        else
+        ifnot
             ." rules ne?"
             abort
         then

@@ -152,7 +152,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     assert( tos is-group? )
 
     group-get-parent            \ act
-    dup 0= if drop exit then    \ Print nothing.
+    dup ifnot drop exit then    \ Print nothing.
 
     \ cr ." .group-parent: todo " cr
     \ drop
@@ -227,8 +227,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     dup group-get-region            \ grp0 reg
     over group-get-s-region         \ grp0 reg r-reg
     regions-eq?                     \ grp0 bool
-    if
-    else
+    ifnot
         false
         swap                        \ false grp0
         _group-set-pnc
@@ -285,8 +284,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     invert abort" group-new: square-list-region failed?"
     2dup swap                       \ act0 sqrs2 reg1 s-reg' s-reg reg1
     region-superset?                \ act0 sqrs2 reg1 s-reg' bool
-    if
-    else
+    ifnot
         region-deallocate
         2drop drop
         false
@@ -296,8 +294,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 
     \ Get square rules, and check all squares are compatible.
     over square-list-calc-rules     \ act0 s-reg' sqrs2 reg1, ruls' t | f
-    if
-    else
+    ifnot
         2drop
         region-deallocate
         drop
@@ -403,8 +400,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     over square-get-state           \ sqr1 grp0 sta
     over group-get-region           \ sqr1 grp0 sta reg0
     region-superset-of-state?       \ sqr1 grp0 bool
-    if
-    else
+    ifnot
         2drop
         exit
     then

@@ -1,7 +1,7 @@
 \ Implement an Action struct and functions.
 
 #29717 constant action-struct-id
-    #7 constant action-struct-number-cells
+    #8 constant action-struct-number-cells
 
 \ Struct fields
 0                                       constant action-header-disp             \ 16 bits, [0] Struct id, [1] Use count [2] Number bits ( 8 bits )
@@ -10,7 +10,8 @@ action-header-disp              cell+   constant action-parent-disp             
 action-parent-disp              cell+   constant action-squares-disp            \ A square list.
 action-squares-disp             cell+   constant action-incompatible-pairs-disp \ A region list.  States that define the regions are incompatible.
 action-incompatible-pairs-disp  cell+   constant action-possible-regions-disp   \ A region list.
-action-possible-regions-disp    cell+   constant action-groups-disp             \ A group list.
+action-possible-regions-disp    cell+   constant action-corners-disp            \ A cornor list, from incompatible pairs and possible regions.
+action-corners-disp             cell+   constant action-groups-disp             \ A group list.
 action-groups-disp              cell+   constant action-function-disp           \ A function to run to get a sample for a state.
 
 0 value action-mma \ Storage for action mma instance.
@@ -203,15 +204,19 @@ action-groups-disp              cell+   constant action-function-disp           
 
 \ Return a new action, given a functian to run to get a sample,
 \ and the number of bits being used.
-: action-new ( xt num-bits inst-id -- addr)
-    dup 0< abort" action-new: invalid instance id"
-    dup #255 > abort" action-new: invalid instance id"
-    over 1 < abort" action-new: invalid number bits"
-    over 1 cells #8 * > abort" action-new: invalid number bits"
+: action-new ( xt num-bits inst-id parent -- addr)
+    assert( dup if tos is-domain?-xt execute else true then )
+    over 0< abort" action-new: invalid instance id"
+    over #255 > abort" action-new: invalid instance id"
+    #2 pick 1 < abort" action-new: invalid number bits"
+    #2 pick 1 cells #8 * > abort" action-new: invalid number bits"
 
     \ Allocate space.
-    action-struct-id action-mma         \ xt nb inst-id struct-id mma
-    struct-allocate                     \ xt nb inst-id act
+    action-struct-id action-mma         \ xt nb inst-id parent struct-id mma
+    struct-allocate                     \ xt nb inst-id parent act
+
+    \ Set parent.
+    tuck _action-set-parent             \ xx num-bits inst-id act
 
     \ Set inst id.
     tuck _action-set-inst-id            \ xt nb act
@@ -289,7 +294,7 @@ action-groups-disp              cell+   constant action-function-disp           
     assert( tos is-action? )
 
     action-get-parent           \ dom
-    dup 0= if drop exit then    \ Print nothing.
+    dup ifnot drop exit then    \ Print nothing.
 
     cr ." .action-parent: todo " cr
     drop
@@ -386,8 +391,7 @@ action-groups-disp              cell+   constant action-function-disp           
         group-get-region                \ act0 del-grps pos-regs grp-lnk xt regx
         #3 pick                         \ act0 del-grps pos-regs grp-lnk xt regx pos-regs
         list-member?                    \ act0 del-grps pos-regs grp-lnk bool
-        if
-        else
+        ifnot
             dup link-get-data           \ act0 del-grps pos-regs grp-lnk grpx
             #3 pick                     \ act0 del-grps pos-regs grp-lnk grpx del-grps
             list-push-struct            \ act0 del-grps pos-regs grp-lnk
@@ -445,8 +449,7 @@ action-groups-disp              cell+   constant action-function-disp           
         dup link-get-data               \ act0 grp-lst pos-lnk pos-reg
         #2 pick                         \ act0 grp-lst pos-lnk pos-reg grp-lst
         group-list-member?              \ act0 grp-lst pos-lnk bool
-        if
-        else
+        ifnot
             \ Get squares in region.
             dup link-get-data           \ act0 grp-lst pos-lnk pos-reg
             #3 pick                     \ act0 grp-lst pos-lnk pos-reg act0
@@ -773,8 +776,7 @@ action-groups-disp              cell+   constant action-function-disp           
 
     \ Check incompatible pairs, if needed.
     over square-pn1-samples2                \ sqr1 act0 bool
-    if
-    else
+    ifnot
         \ Check incompatible pairs due to a pn, or pnc, change.
         2dup action-check-incompatible-pairs-for-changed-square
     then

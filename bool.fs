@@ -1,6 +1,6 @@
 ' 0= alias false?
 
-\ Check TOS for bool, unconventional, leaves stack unchanged.
+\ Check TOS for bool.
 : is-bool? ( tos -- t )
     dup 0=
     over -1 =

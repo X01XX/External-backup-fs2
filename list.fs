@@ -366,8 +366,7 @@ list-header-disp    cell+   constant list-links-disp
 
     \ Check for an empty list.
     dup list-get-length
-    0=
-    if
+    ifnot
         \ Return false.
         2drop drop
         false
@@ -410,8 +409,7 @@ list-header-disp    cell+   constant list-links-disp
 
     \ Check for an empty list.
     dup list-get-length
-    0=
-    if
+    ifnot
         \ Return false.
         2drop drop
         false
@@ -529,8 +527,7 @@ list-header-disp    cell+   constant list-links-disp
 
     \ Check for an empty list.
     dup list-get-length
-    0=
-    if
+    ifnot
         \ Return false.
         2drop drop
         false
@@ -614,7 +611,7 @@ list-header-disp    cell+   constant list-links-disp
     >= abort" index too large?" \ u1 lst0
 
     \ Check for first item
-    over 0= if
+    over ifnot
         nip                     \ lst0
         list-pop drop           \ data
         exit
@@ -755,8 +752,7 @@ list-header-disp    cell+   constant list-links-disp
 
     \ Check for an empty list.
     dup list-get-length
-    0=
-    if
+    ifnot
         \ Return false.
         2drop drop
         exit
@@ -799,8 +795,7 @@ list-header-disp    cell+   constant list-links-disp
 
     \ Check for an empty list.
     dup list-get-length
-    0=
-    if
+    ifnot
         \ Return false.
         2drop drop
         exit
@@ -866,8 +861,8 @@ list-header-disp    cell+   constant list-links-disp
         #3 pick                 \ xt list0 list-ret link1 xt
         over link-get-data      \ xt list0 list-ret link1 xt data1
         #4 pick                 \ xt list0 list-ret link1 xt data1 list0
-        list-member? 0=         \ xt list0 list-ret link1 flag
-        if
+        list-member?            \ xt list0 list-ret link1 flag
+        ifnot
                                 \ xt list0 list-ret link1
             dup link-get-data   \ xt list0 list-ret link1 data1
             #2 pick             \ xt list0 list-ret link1 data1 list-ret
@@ -903,8 +898,8 @@ list-header-disp    cell+   constant list-links-disp
         #3 pick                 \ xt list1 list-ret link0 xt
         over link-get-data      \ xt list1 list-ret link0 xt data0
         #3 pick                 \ xt list1 list-ret link0 xt data0 list-ret
-        list-member? 0=         \ xt list1 list-ret link0 flag
-        if
+        list-member?            \ xt list1 list-ret link0 flag
+        ifnot
                                 \ xt list1 list-ret link0
             dup link-get-data   \ xt list1 list-ret link0 data0 list-ret
             #2 pick             \ xt list1 list-ret link0 data0 list-ret
@@ -924,8 +919,8 @@ list-header-disp    cell+   constant list-links-disp
         #2 pick                 \ xt list-ret link1 xt
         over link-get-data      \ xt list-ret link0 xt data1
         #3 pick                 \ xt list-ret link0 xt data1 list-ret
-        list-member? 0=         \ xt list-ret link1 flag
-        if
+        list-member?            \ xt list-ret link1 flag
+        ifnot
                                 \ xt list-ret link1
             dup link-get-data   \ xt list-ret link1 data1 list-ret
             #2 pick             \ xt list-ret link1 data1 list-ret
@@ -1228,13 +1223,13 @@ list-header-disp    cell+   constant list-links-disp
     begin
         ?dup
     while
-        over 0=
+        over
         if
-            #3 pick #3 pick         \ new-item2 lst-new index1 link new-item2 lst-new
-            list-push-end           \ new-item2 lst-new index1 link
-        else
             dup link-get-data       \ new-item2 lst-new index1 link data
             #3 pick                 \ new-item2 lst-new index1 link data lst-new
+            list-push-end           \ new-item2 lst-new index1 link
+        else
+            #3 pick #3 pick         \ new-item2 lst-new index1 link new-item2 lst-new
             list-push-end           \ new-item2 lst-new index1 link
         then
 

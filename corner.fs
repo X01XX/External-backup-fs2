@@ -8,10 +8,15 @@
 
 \ Struct fields
 0                                       constant corner-header-disp             \ 16-bits, [0] struct id, [1] use count.
-corner-header-disp              cell+   constant corner-anchor-square-disp      \ The anchor state.
+corner-header-disp              cell+   constant corner-anchor-square-disp      \ The anchor square.
 corner-anchor-square-disp       cell+   constant corner-dissimilar-squares-disp \ Dissimilar, closest, square list.
-corner-dissimilar-squares-disp  cell+   constant corner-similar-squares-disp    \ Similar, closest, square list.
-corner-similar-squares-disp     cell+   constant corner-regions-disp            \ Regions the anchor is in.
+corner-dissimilar-squares-disp  cell+   constant corner-regions-disp            \ Regions the anchor is in.
+
+\ Needs: Meta, resolve needs for cornerns by some criteria. Number of possible regions in, sharing squares with other corners, ...
+\        pnc anchor.
+\        pnc dissimilar squares.
+\        Adjacent dissimilar squares, instead of non-adjacent dissimilar squares.
+\        Squares to resolve multiple possible regions.
 
 0 value corner-mma \ Storage for corner mma instance.
 

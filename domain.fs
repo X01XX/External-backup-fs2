@@ -7,7 +7,7 @@
 0                                   constant domain-header-disp         \ 16-bits [0] struct id, [1] use count, [2] instance id (8 bits), num-bits (8 bits)
 domain-header-disp          cell+   constant domain-parent-disp         \ A session ref.
 domain-parent-session-disp  cell+   constant domain-actions-disp        \ An action list.
-domain-actions-disp         cell+   constant domain-current-state-disp  \ A state/value.
+domain-actions-disp         cell+   constant domain-current-state-disp  \ A state.
 domain-current-state-disp   cell+   constant domain-max-region-disp     \ A region with all valid bits set to X.
 domain-max-region-disp      cell+   constant domain-all-bits-mask-disp  \ A mask of all bits set to 1.
 domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask with the most significant bit set to one.
@@ -233,7 +233,7 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
 \ The current state defaults to zero, but can be set with domain-set-current-state.
 : domain-new ( nb1 ses0 -- dom )
     \ Check arg.
-    assert( tos is-session?-xt execute )
+    assert( dup if tos is-session?-xt execute else true then )
 
     \ Check number bits.
     over 1 < abort" Number bits < 1?"
@@ -254,43 +254,49 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
     domain-set-inst-id              \ nb1 ses0 dom
 
     \ Set num bits.
-    rot over                        \ ses0 dom nb1 dom
-    _domain-set-num-bits            \ ses0 dom
+    #2 pick over                    \ nb1 ses0 dom nb1 dom
+    _domain-set-num-bits            \ nb1 ses0 dom
 
     \ Set parent session field.
-    tuck                            \ dom ses0 dom
-    _domain-set-parent-session      \ dom
+    tuck                            \ nb1 dom ses0 dom
+    _domain-set-parent-session      \ nb1 dom
 
     \ Set actions list.
-    list-new                        \ dom lst
-    2dup swap                       \ dom lst lst dom
-    _domain-set-actions             \ dom lst
+    list-new                        \ nb1 dom lst
+    2dup swap                       \ nb1 dom lst lst dom
+    _domain-set-actions             \ nb1 dom lst
 
     \ Add action 0.
     \ When making multi-step plans of all regions, a no-op for one domain preserves
     \ knowledge of all result states for subsequent steps.
-    [ ' act-0-get-sample ] literal  \ dom lst xt
-    #2 pick                         \ dom lst xt dom
-    action-new dup                  \ dom lst act act
-    rot                             \ dom act act lst
-    action-list-push-end            \ dom act
+    [ ' act-0-get-sample ] literal  \ nb1 dom lst xt
+    #2 pick                         \ nb1 dom lst xt dom
+    action-new dup                  \ nb1 dom lst act act
+    rot                             \ nb1 dom act act lst
+    action-list-push-end            \ nb1 dom act
 
     \ Set all bits mask.
-    dup domain-get-num-bits \ dom u
-    all-bits                \ dom mask
-    over _domain-set-all-bits-mask
+    over                            \ nb1 dom nb1
+    dup all-bits                    \ nb1 dom nb mask
+    swap mask-new                   \ nb1 dom msk
+    over _domain-set-all-bits-mask  \ nb1 dom
 
     \ Set max region.
-    dup domain-get-all-bits-mask    \ dom msk
-    0                               \ dom msk 0
-    #2 pick domain-get-num-bits     \ dom msk 0 nb
-    region-new2                     \ dom regx
-    over _domain-set-max-region     \ dom
+    over                            \ nb1 dom nb1
+    all-bits                        \ nb1 dom value
+    #2 pick state-new               \ nb1 dom sta1
+
+    0                               \ nb1 dom sta1 0
+    #3 pick                         \ nb1 dom sta1 0 nb1
+    state-new                       \ nb1 dom sta1 sta2
+    
+    region-new                      \ nb1 dom regx
+    over _domain-set-max-region     \ nb1 dom
 
     \ Set the most significant bit mask.
-    dup domain-get-num-bits \ dom u
-    1-                      \ dom u'
-    1 swap lshift           \ dom mask
+    over                            \ nb1 dom nb1
+    ms-bit                          \ nb1 dom msb
+    #2 pick mask-new                \ nb1 dom mask
     over _domain-set-ms-bit-mask    \ dom
 
     \ Set arbitrary current state.

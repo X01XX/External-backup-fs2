@@ -612,8 +612,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     states-eq?              \ reg1 reg0 reg1-h' reg0-h' bool
     swap state-deallocate   \ reg1 reg0 reg1-h' bool
     swap state-deallocate   \ reg1 reg0 bool
-    if
-    else
+    ifnot
         2drop
         false
         exit

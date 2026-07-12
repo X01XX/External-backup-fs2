@@ -22,8 +22,7 @@
     square-new                              \ anc lst sqr-c
     #2 pick over #3 pick                    \ anc lst sqr-c anc sqr-c lst
     square-list-any-between?                \ anc lst sqr-c bool
-    if
-    else
+    ifnot
         true abort" 4 is not between s0101 and s1100?"
     then
 
@@ -102,7 +101,7 @@
     s" s0010->s1110" sample-from-string-a   \ lst sqr2 smpl
     over square-add-sample                  \ lst sqr2 bool
     \ Check for change to pn.
-    if else ." add sample 1 did not cause change?" abort then
+    ifnot ." add sample 1 did not cause change?" abort then
 
     \ Add square to list. Save ref for testing results.
     2dup swap list-push-struct              \ lst sqr2
@@ -139,7 +138,7 @@
     s" s1110->s1110" sample-from-string-a   \ sqr2 sqr1a sqr1b lst smpl
     #2 pick square-add-sample               \ sqr2 sqr1a sqr1b lst bool
     \ Check for no change to pn.
-    if else ." add sample 2 caused no change?" abort then
+    ifnot ." add sample 2 caused no change?" abort then
 
     dup square-list-find-incompatible-pair  \ sqr2 sqr1a sqr1b lst, sqr-pr t | f
     if
@@ -151,8 +150,7 @@
         #5 pick                             \ sqr2 sqr1a sqr1b lst sqr-pr xt sqr2
         #2 pick                             \ sqr2 sqr1a sqr1b lst sqr-pr xt sqr2 sqr-pr
         list-member?
-        if
-        else
+        ifnot
             cr ." sqr2 not found?" abort
         then
 
@@ -161,8 +159,7 @@
         #3 pick                             \ sqr2 sqr1a sqr1b lst sqr-pr xt sqr1b
         #2 pick                             \ sqr2 sqr1a sqr1b lst sqr-pr xt sqr1b sqr-pr
         list-member?
-        if
-        else
+        ifnot
             cr ." sqr1b not found?" abort
         then
     else
@@ -193,7 +190,7 @@
     s" s0100->s0000" sample-from-string-a   \ lst sqr2a smpl
     over square-add-sample                  \ lst sqr2a bool
     \ Check for change to pn.
-    if else ." add sample 1 did not cause change?" abort then
+    ifnot ." add sample 1 did not cause change?" abort then
     dup #2 pick list-push-struct            \ lst sqr2a
     swap                                    \ sqr2a lst
 
@@ -203,7 +200,7 @@
     s" s0111->s0011" sample-from-string-a   \ sqr2a lst sqr2b smpl
     over square-add-sample                  \ sqr2a lst sqr2b bool
     \ Check for change to pn.
-    if else ." add sample 2 did not cause change?" abort then
+    ifnot ." add sample 2 did not cause change?" abort then
     swap                                    \ sqr2a sqr2b lst
     2dup list-push-struct                   \ sqr2a sqr2b lst
 
@@ -213,7 +210,7 @@
     s" s1011->s1011" sample-from-string-a   \ sqr2a sqr2b lst sqr1 smpl
     over square-add-sample                  \ sqr2a sqr2b lst sqr1 bool
     \ Check for change to pn.
-    if else ." add sample 2 did not cause change?" abort then
+    ifnot ." add sample 2 did not cause change?" abort then
     swap                                    \ sqr2a sqr2b sqr1 lst
     2dup list-push-struct                   \ sqr2a sqr2b sqr1 lst
 
@@ -236,8 +233,7 @@
     \ cr ." sqr2b: " dup .square cr
     #2 pick                                 \ sqr2a sqr2b sqr1 lst sqr-pr xt sqr2b sqr-pr
     list-member?                            \ sqr2a sqr2b sqr1 lst sqr-pr bool
-    if
-    else
+    ifnot
         cr ." sqr2b not found?" abort
     then
 
@@ -245,8 +241,7 @@
     #3 pick                                 \ sqr2a sqr2b sqr1 lst sqr-pr xt sqr1
     #2 pick                                 \ sqr2a sqr2b sqr1 lst sqr-pr xt sqr1 sqr-pr
     list-member?                            \ sqr2a sqr2b sqr1 lst sqr-pr bool
-    if
-    else
+    ifnot
         cr ." sqr1 not found?" abort
     then
 
@@ -272,7 +267,7 @@
     s" s0100->s0000" sample-from-string-a   \ lst sqr2a smpl
     over square-add-sample                  \ lst sqr2a bool
     \ Check for change to pn.
-    if else ." add sample 1 did not cause change?" abort then
+    ifnot ." add sample 1 did not cause change?" abort then
 
     dup #2 pick list-push-struct            \ lst sqr2a
     swap                                    \ sqr2a lst
@@ -283,7 +278,7 @@
     s" s0111->s0011" sample-from-string-a   \ sqr2a lst sqr2b smpl
     over square-add-sample                  \ sqr2a lst sqr2b bool
     \ Check for change to pn.
-    if else ." add sample 2 did not cause change?" abort then
+    ifnot ." add sample 2 did not cause change?" abort then
 
     \ Add another sample.
     s" s0111->s0111" sample-from-string-a   \ sqr2a lst sqr2b smpl
@@ -300,7 +295,7 @@
     s" s1101->s1101" sample-from-string-a   \ sqr2a sqr2b lst sqr1 smpl
     over square-add-sample                  \ sqr2a sqr2b lst sqr1 bool
     \ Check for change to pn.
-    if else ." add sample 2 did not cause change?" abort then
+    ifnot ." add sample 2 did not cause change?" abort then
     swap                                    \ sqr2a sqr2b sqr1 lst
     2dup list-push-struct                   \ sqr2a sqr2b sqr1 lst
 
@@ -319,8 +314,7 @@
     #4 pick                                 \ sqr2a sqr2b sqr1 lst sqr-pr xt sqr2b
     #2 pick                                 \ sqr2a sqr2b sqr1 lst sqr-pr xt sqr2b sqr-pr
     list-member?                            \ sqr2a sqr2b sqr1 lst sqr-pr bool
-    if
-    else
+    ifnot
         cr ." sqr2b not found?" abort
     then
 
@@ -328,8 +322,7 @@
     #3 pick                                 \ sqr2a sqr2b sqr1 lst sqr-pr xt sqr1
     #2 pick                                 \ sqr2a sqr2b sqr1 lst sqr-pr xt sqr1 sqr-pr
     list-member?                            \ sqr2a sqr2b sqr1 lst sqr-pr bool
-    if
-    else
+    ifnot
         cr ." sqr1 not found?" abort
     then
 
@@ -355,7 +348,7 @@
     s" s0100->s0000" sample-from-string-a   \ lst sqr2a smpl
     over square-add-sample                  \ lst sqr2a bool
     \ Check for change to pn.
-    if else ." add sample 1 did not cause change?" abort then
+    ifnot ." add sample 1 did not cause change?" abort then
     dup #2 pick list-push-struct            \ lst sqr2a
     swap                                    \ sqr2a lst
 
@@ -365,7 +358,7 @@
     s" s0111->s0011" sample-from-string-a   \ sqr2a lst sqr2b smpl
     over square-add-sample                  \ sqr2a lst sqr2b bool
     \ Check for change to pn.
-    if else ." add sample 2 did not cause change?" abort then
+    ifnot ." add sample 2 did not cause change?" abort then
     swap                                    \ sqr2a sqr2b lst
     2dup list-push-struct                   \ sqr2a sqr2b lst
 
@@ -375,7 +368,7 @@
     s" s1101->s1101" sample-from-string-a   \ sqr2a sqr2b lst sqr1 smpl
     over square-add-sample                  \ sqr2a sqr2b lst sqr1 bool
     \ Check for change to pn.
-    if else ." add sample 2 did not cause change?" abort then
+    ifnot ." add sample 2 did not cause change?" abort then
     swap                                    \ sqr2a sqr2b sqr1 lst
     2dup list-push-struct                   \ sqr2a sqr2b sqr1 lst
 
@@ -393,8 +386,7 @@
     #5 pick                                 \ sqr2a sqr2b sqr1 lst sqr-pr xt sqr2a
     #2 pick                                 \ sqr2a sqr2b sqr1 lst sqr-pr xt sqr2a sqr-pr
     list-member?                            \ sqr2a sqr2b sqr1 lst sqr-pr bool
-    if
-    else
+    ifnot
         cr ." sqr2a not found?" abort
     then
 
@@ -402,8 +394,7 @@
     #3 pick                                 \ sqr2a sqr2b sqr1 lst sqr-pr xt sqr1
     #2 pick                                 \ sqr2a sqr2b sqr1 lst sqr-pr xt sqr1 sqr-pr
     list-member?                            \ sqr2a sqr2b sqr1 lst sqr-pr bool
-    if
-    else
+    ifnot
         cr ." sqr1 not found?" abort
     then
 
