@@ -37,16 +37,8 @@ action-groups-disp              cell+   constant action-function-disp           
     then
 ;
 
-\ Check TOS for action.
-: is-action? ( tos -- t )
-    dup is-allocated-action?
-    if drop true exit then
-
-    s" Selected arg is not an allocated action"
-    .abort-xt execute
-;
-
-' is-action? to is-action?-xt
+' is-allocated-action? alias is-action?
+' is-allocated-action? to is-action?-xt
 
 \ Start accessors.
 

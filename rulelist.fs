@@ -1,18 +1,24 @@
 \ Functions for rule lists.
 
 \ Check TOS for rule-list.
-: is-rule-list? ( tos -- t )
-    assert( tos is-list? )
-    
-    dup list-is-empty?
-    if
+: is-rule-list? ( tos -- bool )
+    tos is-list?        \ tos bool                                                     
+    ifnot
+        drop
+        false
+        exit
+    then
+
+    dup list-is-empty?  \ tos bool
+    if  
         drop
         true
-    else
-        list-get-links link-get-data
-        assert( is-rule? )
-        true
+        exit
     then
+
+    list-get-links      \ link
+    link-get-data       \ data
+    is-allocated-rule?  \ bool
 ;
 
 \ Deallocate a rule list.

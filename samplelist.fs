@@ -1,18 +1,24 @@
 \ Functions for sample lists.
 
 \ Check TOS for sample-list.
-: is-sample-list? ( tos -- t )
-    assert( tos is-list? )
-    
-    dup list-is-empty?
-    if
+: is-sample-list? ( tos -- bool )
+    tos is-list?            \ tos bool                                                     
+    ifnot
+        drop
+        false
+        exit
+    then
+
+    dup list-is-empty?      \ tos bool
+    if  
         drop
         true
-    else
-        list-get-links link-get-data
-        assert( is-sample? )
-        true
+        exit
     then
+
+    list-get-links          \ link
+    link-get-data           \ data
+    is-allocated-sample?    \ bool
 ;
 
 \ Deallocate a sample list.

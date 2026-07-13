@@ -37,14 +37,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     then
 ;
 
-\ Check TOS for group.
-: is-group? ( tos -- t )
-    dup is-allocated-group?
-    if drop true exit then
-
-    s" Selected arg is not an allocated group"
-    .abort-xt execute
-;
+' is-allocated-group? alias is-group?
 
 \ Start accessors.
 

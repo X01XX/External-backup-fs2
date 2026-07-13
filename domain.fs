@@ -37,12 +37,8 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
 ;
 
 \ Check TOS for domain.
-: is-domain? ( tos -- t )
-    dup is-allocated-domain?
-    if drop true exit then
-
-    s" Selected arg is not an allocated domain"
-    .abort-xt execute
+: is-domain? ( tos -- bool )
+    is-allocated-domain?
 ;
 
 ' is-domain? to is-domain?-xt

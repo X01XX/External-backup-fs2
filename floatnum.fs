@@ -20,26 +20,19 @@ floatnum-header-disp cell+   constant floatnum-number-disp
     floatnum-struct-number-cells swap mma-new to floatnum-mma
 ;
 
-\ Check instance type.
-: is-allocated-floatnum? ( addr -- flag )
-    dup floatnum-mma mma-is-item? \ addr bool
+\ Check tos for floatnum.
+: is-allocated-floatnum? ( tos -- bool )
+    dup floatnum-mma mma-is-item? \ tos bool
     if
         struct-get-id
-        floatnum-struct-id =
+        floatnum-struct-id =    \ bool
     else
         drop
         false                   \ f
     then
 ;
 
-\ Check TOS for floatnum.
-: is-floatnum? ( tos -- t )
-    dup is-allocated-floatnum?
-    if drop true exit then
-
-    s" Selected arg is not an allocated floatnum"
-    .abort-xt execute
-;
+' is-allocated-floatnum? alias is-floatnum?
 
 \ Start accessors.
 

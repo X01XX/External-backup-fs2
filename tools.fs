@@ -67,7 +67,7 @@
         #2 pick swap     \ target num1 target num2
         \ Check target vs num2.
         > if
-            2drop false exitgrep "0=" *.fs | grep -v abort
+            2drop false exit
           then
         \ Check target vs num1.
         < if

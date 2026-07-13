@@ -1,18 +1,24 @@
 \ Functions for domain lists.
 
 \ Check TOS for domain-list.
-: is-domain-list? ( tos -- t )
-    assert( tos is-list? )
-    
-    dup list-is-empty?
-    if
+: is-domain-list? ( tos -- bool )
+   dup is-list?        \ tos bool                                                     
+    ifnot
+        drop
+        false
+        exit
+    then
+
+    dup list-is-empty?  \ tos bool
+    if  
         drop
         true
-    else
-        list-get-links link-get-data
-        assert( is-domain? )
-        true
+        exit
     then
+
+    list-get-links      \ link
+    link-get-data       \ data
+    is-domain?          \ bool
 ;
 
 \ Deallocate a domain list.

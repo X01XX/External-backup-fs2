@@ -32,14 +32,7 @@ token-header-disp cell+ constant token-string-disp
     then
 ;
 
-\ Check TOS for token.
-: is-token? ( tos -- t )
-    dup is-allocated-token?
-    if drop true exit then
-
-    s" Selected arg is not an allocated token"
-    abort
-;
+' is-allocated-token? alias is-token?
 
 \ Start accessors.
 

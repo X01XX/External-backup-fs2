@@ -36,7 +36,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 ;
 
 \ Check instance type.
-: is-allocated-region? ( addr -- flag )
+: is-allocated-region? ( tos -- flag )
     dup region-mma mma-is-item? \ addr bool
     if
         struct-get-id
@@ -47,14 +47,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     then
 ;
 
-\ Check TOS for region.
-: is-region? ( tos -- t )
-    dup is-allocated-region?
-    if drop true exit then
-
-    s" Selected arg is not an allocated region"
-    .abort-xt execute
-;
+' is-allocated-region? alias is-region?
 
 \ Start accessors.
 

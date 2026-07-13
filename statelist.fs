@@ -2,17 +2,23 @@
 
 \ Check TOS for state-list.
 : is-state-list? ( tos -- t )
-    assert( tos is-list? )
-    
-    dup list-is-empty?
-    if
+    dup is-allocated-list?  \ tos bool                                                     
+    ifnot
+        drop
+        false
+        exit
+    then
+
+    dup list-is-empty?  \ tos bool
+    if  
         drop
         true
-    else
-        list-get-links link-get-data
-        assert( is-state? )
-        true
+        exit
     then
+
+    list-get-links      \ link
+    link-get-data       \ data
+    is-allocated-state? \ bool
 ;
 
 \ Deallocate a state list.

@@ -37,7 +37,7 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
 ;
 
 \ Check instance type.
-: is-allocated-square? ( addr -- bool )
+: is-allocated-square? ( tos -- bool )
     dup square-mma mma-is-item? \ addr bool
     if
         struct-get-id
@@ -48,17 +48,10 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
     then
 ;
 
-\ Check TOS for square.
-: is-square? ( tos -- t )
-    dup is-allocated-square?
-    if drop true exit then
-
-    s" Selected arg is not an allocated square"
-    .abort-xt execute
-;
+' is-allocated-square? alias is-square?
 
 \ Check tos is a valid pn value.
-: is-pn? ( tos -- t )
+: is-pn? ( tos -- bool )
     dup 0<      \ tos bool
     over        \ tos bool tos
     #2 >        \ tos bool bool

@@ -1,18 +1,24 @@
 \ Functions for group lists.
 
 \ Check TOS for group-list.
-: is-group-list? ( tos -- t )
-    assert( tos is-list? )
-    
-    dup list-is-empty?
-    if
+: is-group-list? ( tos -- bool )
+    tos is-list?        \ tos bool                                                     
+    ifnot
+        drop
+        false
+        exit
+    then
+
+    dup list-is-empty?  \ tos bool
+    if  
         drop
         true
-    else
-        list-get-links link-get-data
-        assert( is-group? )
-        true
+        exit
     then
+
+    list-get-links      \ link
+    link-get-data       \ data
+    is-allocated-group? \ bool
 ;
 
 \ Deallocate a group list.
@@ -46,7 +52,6 @@
     while
         dup link-get-data   \ grp-lnk grpx
         cr #8 spaces .group
-
         link-get-next
     repeat
 ;
@@ -85,11 +90,11 @@
     list-new swap                   \ sta1 ret-lst grp-lst0
 
     \ Prep for loop.
-    list-get-links                  \ sta1 ret-lst grp-lnk
-
-    begin
-        ?dup
-    while
+\   list-get-links                  \ sta1 ret-lst grp-lnk
+\   begin
+\       ?dup
+\   while
+    foreach
         #2 pick                     \ sta1 ret-lst grp-lnk sta1
         over link-get-data          \ sta1 ret-lst grp-lnk sta1 grpx
         group-get-region            \ sta1 ret-lst grp-lnk sta1 grp-reg
@@ -99,9 +104,9 @@
             #2 pick                 \ sta1 ret-lst grp-lnk grpx ret-lst
             list-push-struct        \ sta1 ret-lst grp-lnk
         then
-
-        link-get-next
-    repeat
+    next
+\       link-get-next
+\   repeat
                                     \ sta1 ret-lst
     \ Clean up.
     nip                             \ ret-lst
@@ -161,16 +166,17 @@
 
     \ Init return list.
     list-new swap           \ ret-lst grp-lst0
-    list-get-links          \ ret-lst grp-lnk
 
-    begin
-        ?dup
-    while
+\   list-get-links          \ ret-lst grp-lnk
+\   begin
+\       ?dup
+\   while
+    foreach
         dup link-get-data   \ ret-lst grp-lnk grpx
         group-get-region    \ ret-lst grp-lnk grp-reg
         #2 pick             \ ret-lst grp-lnk grp-reg ret-lst
         list-push-struct    \ ret-lst grp-lnk
-
-        link-get-next
-    repeat
+    next
+\       link-get-next
+\   repeat
 ;

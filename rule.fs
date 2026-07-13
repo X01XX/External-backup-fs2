@@ -35,14 +35,7 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
     then
 ;
 
-\ Check TOS for rule.
-: is-rule? ( tos -- t )
-    dup is-allocated-rule?
-    if drop true exit then
-
-    s" Selected arg is not an allocated rule"
-    .abort-xt execute
-;
+' is-allocated-rule? alias is-rule?
 
 \ Start accessors.
 

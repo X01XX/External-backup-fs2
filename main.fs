@@ -14,18 +14,15 @@ include xtindirect.fs
 include globals.fs
 include bool.fs
 include tools.fs
-
 include mm_array.fs
 include struct.fs
 include link.fs
 include list.fs
 include structlist.fs
-
 include mask.fs
 include masklist.fs
 
 include state.fs
-
 
 include region.fs
 include statelist.fs

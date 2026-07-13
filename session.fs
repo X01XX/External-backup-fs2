@@ -33,12 +33,8 @@ session-header-disp                     cell+   constant session-domains-disp   
 ;
 
 \ Check TOS for square.
-: is-session? ( tos -- t )
-    dup is-allocated-session?
-    if drop true exit then
-
-    s" Selected arg is not an allocated session"
-    .abort-xt execute
+: is-session? ( tos -- bool )
+    is-allocated-session?
 ;
 
 ' is-session? to is-session?-xt

@@ -29,16 +29,7 @@ link-next-disp      cell+   constant link-data-disp
     then
 ;
 
-\ Check TOS for link.
-: is-link? ( tos -- t )
-    dup is-allocated-link?
-    if
-        drop true
-    else
-        s" Selected arg is not an allocated link."
-       .abort-xt execute
-    then
-;
+' is-allocated-link? alias is-link?
 
 \ Start accessors.
 

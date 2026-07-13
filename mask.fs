@@ -34,14 +34,7 @@ mask-header-disp cell+  constant mask-number-disp
     then
 ;
 
-\ Check TOS for mask.
-: is-mask? ( tos -- t )
-    dup is-allocated-mask?
-    if drop true exit then
-
-    s" Selected arg is not an allocated mask"
-    .abort-xt execute
-;
+' is-allocated-mask? alias is-mask?
 
 \ Start accessors.
 

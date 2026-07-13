@@ -25,7 +25,7 @@ sample-initial-disp cell+   constant sample-result-disp     \ Result state.
 ;
 
 \ Check instance type.
-: is-allocated-sample? ( addr -- flag )
+: is-allocated-sample? ( tos -- flag )
     dup sample-mma mma-is-item? \ addr bool
     if
         struct-get-id
@@ -36,14 +36,7 @@ sample-initial-disp cell+   constant sample-result-disp     \ Result state.
     then
 ;
 
-\ Check TOS for sample.
-: is-sample? ( tos -- t )
-    dup is-allocated-sample?
-    if drop true exit then
-
-    s" Selected arg is not an allocated sample"
-    .abort-xt execute
-;
+' is-allocated-sample? alias is-sample?
 
 \ Start accessors.
 

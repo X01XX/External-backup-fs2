@@ -1,17 +1,10 @@
 ' 0= alias false?
 
 \ Check TOS for bool.
-: is-bool? ( tos -- t )
-    dup 0=
-    over -1 =
-    or
-    if
-        drop
-        true
-    else
-        s" TOS is not bool"
-        .abort-xt execute
-    then
+: is-bool? ( tos -- bool )
+    dup 0=          \ tos bool
+    swap -1 =       \ bool bool
+    or              \ bool
 ;
 
 : .bool ( b -- )

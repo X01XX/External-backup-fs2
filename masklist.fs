@@ -2,17 +2,23 @@
 
 \ Check TOS for mask-list.
 : is-mask-list? ( tos -- t )
-    assert( tos is-list? )
-    
-    dup list-is-empty?
-    if
+    tos is-list?        \ tos bool                                                     
+    ifnot
+        drop
+        false
+        exit
+    then
+
+    dup list-is-empty?  \ tos bool
+    if  
         drop
         true
-    else
-        list-get-links link-get-data
-        assert( is-mask? )
-        true
+        exit
     then
+
+    list-get-links      \ link
+    link-get-data       \ data
+    is-allocated-mask?  \ bool
 ;
 
 \ Deallocate a mask list.
@@ -65,7 +71,7 @@
     list-from-string-xt execute \ lst t | f
     if
         \ Check items.
-        [ ' is-mask? ] literal over   \ lst xt lst
+        [ ' is-allocated-mask? ] literal over   \ lst xt lst
         list-apply-all-true?                    \ lst bool
         if
             true

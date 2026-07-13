@@ -1,14 +1,16 @@
 \ Process square pairs, a list of two squares.
 
 \ Return true if tos is a square-pair.
-: is-square-pair? ( lst0 -- t )
-    assert( tos is-square-list? )
-    dup list-get-length
-    #2 =
-    if exit then
+: is-square-pair? ( tos -- t )
+    tos is-square-list?     \ tos bool
+    ifnot
+        drop
+        false
+        exit
+    then
 
-    s" Selected arg is not an allocated square-pair"
-    .abort-xt execute
+    list-get-length         \ len
+    #2 =
 ;
 
 \ Deallocate a square list.

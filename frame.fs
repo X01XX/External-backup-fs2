@@ -34,14 +34,8 @@ frame-header-disp cell+ constant frame-disp
     then
 ;
 
-\ Check TOS for frame.
-: is-frame? ( tos -- t )
-    dup is-allocated-frame?
-    if drop true exit then
+' is-allocated-frame? alias is-frame?
 
-    s" Selected arg is not an allocated frame"
-    .abort-xt execute
-;
 \ Start accessors.
 
 \ Get frame data cell 0.

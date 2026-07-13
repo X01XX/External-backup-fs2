@@ -1,18 +1,24 @@
 \ Functions for action lists.
 
 \ Check TOS for action-list.
-: is-action-list? ( tos -- t )
-    assert( tos is-list? )
-    
-    dup list-is-empty?
-    if
+: is-action-list? ( tos -- bool )
+   dup is-list?        \ tos bool                                                     
+    ifnot
+        drop
+        false
+        exit
+    then
+
+    dup list-is-empty?  \ tos bool
+    if  
         drop
         true
-    else
-        list-get-links link-get-data
-        assert( is-action? )
-        true
+        exit
     then
+
+    list-get-links      \ link
+    link-get-data       \ data
+    is-action?          \ bool
 ;
 
 : .action-list ( actlst0 -- )

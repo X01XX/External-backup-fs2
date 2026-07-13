@@ -60,14 +60,7 @@ list-header-disp    cell+   constant list-links-disp
     then
 ;
 
-\ Check TOS for list.
-: is-list? ( tos -- t )
-    dup is-allocated-list?
-    if drop true exit then
-
-    s" Selected arg is not an allocated list"
-    .abort-xt execute
-;
+' is-allocated-list? alias is-list?
 
 \ Start accessors.
 
@@ -1429,3 +1422,8 @@ list-header-disp    cell+   constant list-links-disp
     repeat
                                 \ ret-lst
 ;
+
+\ Make simple loops, using less typing.
+: foreach ( list -- next-link | end loop ) postpone list-get-links postpone begin postpone ?dup postpone while ; immediate
+: next ( link -- next-link ) postpone link-get-next postpone repeat ; immediate
+

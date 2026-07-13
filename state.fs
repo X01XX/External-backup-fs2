@@ -32,14 +32,7 @@ state-header-disp cell+   constant state-number-disp
     then
 ;
 
-\ Check TOS for state.
-: is-state? ( tos -- t )
-    dup is-allocated-state?
-    if drop true exit then
-
-    s" Selected arg is not an allocated state"
-    .abort-xt execute
-;
+' is-allocated-state? alias is-state?
 
 \ Start accessors.
 

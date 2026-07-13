@@ -42,12 +42,8 @@ corner-dissimilar-squares-disp  cell+   constant corner-regions-disp            
 ;
 
 \ Check TOS for corner.
-: is-corner? ( tos -- t )
-    dup is-allocated-corner?
-    if drop true exit then
-
-    s" Selected arg is not an allocated corner"
-    .abort-xt execute
+: is-corner? ( tos -- bool )
+    is-allocated-corner?
 ;
 
 \ Start accessors.

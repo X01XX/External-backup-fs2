@@ -6,17 +6,23 @@
 
 \ Check TOS for strectinfo-list.
 : is-structinfo-list? ( tos -- t )
-    assert( tos is-list? )
-    
-    dup list-is-empty?
-    if
+    dup is-list?                \ tos bool                                                     
+    ifnot
+        drop
+        false
+        exit
+    then
+
+    dup list-is-empty?          \ tos bool
+    if  
         drop
         true
-    else
-        list-get-links link-get-data
-        assert( is-structinfo? )
-        true
+        exit
     then
+
+    list-get-links              \ link
+    link-get-data               \ data
+    is-allocated-structinfo?    \ bool
 ;
 
 \ Deallocate a structinfo list.
@@ -231,7 +237,7 @@
 \ for a list, link, or structinfo instance.
 : structinfo-list-store-using-addr?  ( addr -- bool )
     \ Check list itself.
-    structinfo-list-store            \ addr store
+    structinfo-list-store           \ addr store
     over =                          \ addr bool
     if
         drop
@@ -240,7 +246,7 @@
     then
 
     \ Check links and stores.
-    structinfo-list-store          \ addr store
+    structinfo-list-store           \ addr store
     list-get-links                  \ addr lnk
 
     begin
@@ -289,8 +295,7 @@
         dup                         \ size stack end item item
         #3 pick                     \ size stack end item item stack
         stack-in                    \ size stack end item flag
-        if
-        else
+        ifnot
             dup structinfo-list-store-using-addr?
             if
             else                    \ size stack end item
@@ -530,6 +535,7 @@
 : structinfo-list-deallocate-struct-list ( lst0 -- )
     \ Check arg.
     assert( tos is-list? )
+
     dup struct-get-use-count                \ lst0 uc
     0< abort" structinfo-list-deallocate-struct-list: Invalid use count"
 
@@ -591,8 +597,7 @@
 
     \ Get first word of itm1.
     over get-first-word         \ itm1 itm0, id1 t | f ( could be an integer )
-    if
-    else
+    ifnot
         \ If its an integer, it already failed the numeric test, else I don't know what it is.
         2drop false
         \ cr ." exit 2" cr
@@ -601,8 +606,7 @@
 
     \ Get first word of itm0.
     over get-first-word         \ itm1 itm0 id1, id0 t | f ( could be an integer )
-    if
-    else
+    ifnot
         \ If its an integer, it already failed the numeric test, else I don't know what it is.
         2drop drop false
         \ cr ." exit 3" cr
@@ -613,8 +617,7 @@
 
     \ Check kind of structs.    \ itm1 itm0 id1 id0
     over =                      \ itm1 itm0 id1 bool
-    if
-    else
+    ifnot
         drop 2drop false
         \ cr ." exit 4" cr
         exit
@@ -623,8 +626,7 @@
     \ Check <struct>s-eq?
     structinfo-list-store       \ itm1 itm0 id1 snf-lst
     structinfo-list-find        \ itm1 itm0, snfx t | f
-    if
-    else
+    ifnot
         \ Can't find info on an id.
         2drop false
         \ cr ." exit 5" cr

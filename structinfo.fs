@@ -40,14 +40,7 @@ structinfo-eq-xt-disp           cell+   constant structinfo-name-disp           
     then
 ;
 
-\ Check TOS for strectinfo.
-: is-structinfo? ( tos -- t )
-    dup is-allocated-structinfo?
-    if drop true exit then
-
-    s" Selected arg is not an allocated structinfo"
-    .abort-xt execute
-;
+' is-allocated-structinfo? alias is-structinfo?
 
 \ Start accessors.
 
