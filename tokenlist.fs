@@ -18,7 +18,7 @@
 
     list-get-links      \ link
     link-get-data       \ data
-    is-allocated-token? \ bool
+    is-token?           \ bool
 ;
 
 \ Deallocate a token list.

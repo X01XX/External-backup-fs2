@@ -29,8 +29,8 @@ corner-dissimilar-squares-disp  cell+   constant corner-regions-disp            
     corner-struct-number-cells swap mma-new to corner-mma
 ;
 
-\ Check instance type.
-: is-allocated-corner? ( addr -- bool )
+\ Check if tos is an allocated corner.
+: is-corner? ( addr -- bool )
     dup corner-mma mma-is-item? \ addr bool
     if
         struct-get-id
@@ -39,11 +39,6 @@ corner-dissimilar-squares-disp  cell+   constant corner-regions-disp            
         drop
         false                   \ f
     then
-;
-
-\ Check TOS for corner.
-: is-corner? ( tos -- bool )
-    is-allocated-corner?
 ;
 
 \ Start accessors.

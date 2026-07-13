@@ -20,8 +20,8 @@ token-header-disp cell+ constant token-string-disp
     token-struct-number-cells swap mma-new to token-mma
 ;
 
-\ Check instance type.
-: is-allocated-token? ( tos -- bool )
+\ Check if tos is an allocated token.
+: is-token? ( tos -- bool )
     dup token-mma mma-is-item? \ addr bool
     if
         struct-get-id           \ id
@@ -31,8 +31,6 @@ token-header-disp cell+ constant token-string-disp
         false                   \ f
     then
 ;
-
-' is-allocated-token? alias is-token?
 
 \ Start accessors.
 

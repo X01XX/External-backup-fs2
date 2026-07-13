@@ -18,7 +18,7 @@
 
     list-get-links      \ link
     link-get-data       \ data
-    is-allocated-rule?  \ bool
+    is-rule?            \ bool
 ;
 
 \ Deallocate a rule list.
@@ -53,7 +53,7 @@
     list-from-string-xt execute \ lst t | f
     if
         \ Check items.
-        [ ' is-allocated-rule? ] literal over   \ lst xt lst
+        [ ' is-rule? ] literal over             \ lst xt lst
         list-apply-all-true?                    \ lst bool
         if
             true

@@ -24,8 +24,8 @@ sample-initial-disp cell+   constant sample-result-disp     \ Result state.
     sample-struct-number-cells swap mma-new to sample-mma
 ;
 
-\ Check instance type.
-: is-allocated-sample? ( tos -- flag )
+\ Check if tos is an allocated sample.
+: is-sample? ( tos -- flag )
     dup sample-mma mma-is-item? \ addr bool
     if
         struct-get-id
@@ -35,8 +35,6 @@ sample-initial-disp cell+   constant sample-result-disp     \ Result state.
         false                   \ f
     then
 ;
-
-' is-allocated-sample? alias is-sample?
 
 \ Start accessors.
 

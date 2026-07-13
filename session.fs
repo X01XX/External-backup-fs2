@@ -20,8 +20,8 @@ session-header-disp                     cell+   constant session-domains-disp   
     session-struct-number-cells swap mma-new to session-mma
 ;
 
-\ Check instance type.
-: is-allocated-session? ( addr -- bool )
+\ Check if tos is an allocated session.
+: is-session? ( addr -- bool )
     dup session-mma mma-is-item?    \ addr bool
     if
         struct-get-id
@@ -30,11 +30,6 @@ session-header-disp                     cell+   constant session-domains-disp   
         drop
         false                       \ f
     then
-;
-
-\ Check TOS for square.
-: is-session? ( tos -- bool )
-    is-allocated-session?
 ;
 
 ' is-session? to is-session?-xt

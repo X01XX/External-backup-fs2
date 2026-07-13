@@ -24,7 +24,8 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
 
 \ Check instance type.
 
-: is-allocated-rule? ( addr -- flag )    \ Check if an address is within the rule array.
+\ Check if tos is an allocated rule.
+: is-rule? ( addr -- flag )    \ Check if an address is within the rule array.
     dup rule-mma mma-is-item?   \ addr bool
     if
         struct-get-id
@@ -34,8 +35,6 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
         false                   \ f
     then
 ;
-
-' is-allocated-rule? alias is-rule?
 
 \ Start accessors.
 

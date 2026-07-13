@@ -36,8 +36,8 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
     square-struct-number-cells swap mma-new to square-mma
 ;
 
-\ Check instance type.
-: is-allocated-square? ( tos -- bool )
+\ Check if tos is an allocated square.
+: is-square? ( tos -- bool )
     dup square-mma mma-is-item? \ addr bool
     if
         struct-get-id
@@ -47,8 +47,6 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
         false                   \ f
     then
 ;
-
-' is-allocated-square? alias is-square?
 
 \ Check tos is a valid pn value.
 : is-pn? ( tos -- bool )

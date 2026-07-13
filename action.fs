@@ -25,8 +25,8 @@ action-groups-disp              cell+   constant action-function-disp           
     action-struct-number-cells swap mma-new to action-mma
 ;
 
-\ Check instance type.
-: is-allocated-action? ( addr -- bool )
+\ Check if tos is an allocated action.
+: is-action? ( addr -- bool )
     dup action-mma mma-is-item? \ addr bool
     if
         struct-get-id
@@ -37,8 +37,7 @@ action-groups-disp              cell+   constant action-function-disp           
     then
 ;
 
-' is-allocated-action? alias is-action?
-' is-allocated-action? to is-action?-xt
+' is-action? to is-action?-xt
 
 \ Start accessors.
 

@@ -20,8 +20,8 @@ state-header-disp cell+   constant state-number-disp
     state-struct-number-cells swap mma-new to state-mma
 ;
 
-\ Check instance type.
-: is-allocated-state? ( tos -- flag )
+\ Check if tos is an allocated state.
+: is-state? ( tos -- flag )
     dup state-mma mma-is-item? \ addr bool
     if
         struct-get-id
@@ -31,8 +31,6 @@ state-header-disp cell+   constant state-number-disp
         false                   \ f
     then
 ;
-
-' is-allocated-state? alias is-state?
 
 \ Start accessors.
 

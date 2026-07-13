@@ -18,7 +18,7 @@
 
     list-get-links          \ link
     link-get-data           \ data
-    is-allocated-sample?    \ bool
+    is-sample?              \ bool
 ;
 
 \ Deallocate a sample list.

@@ -25,8 +25,8 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     group-struct-number-cells swap mma-new to group-mma
 ;
 
-\ Check instance type.
-: is-allocated-group? ( addr -- bool )
+\ Check if tos is an allocated group.
+: is-group? ( addr -- bool )
     dup group-mma mma-is-item?  \ addr bool
     if
         struct-get-id
@@ -36,8 +36,6 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
         false                   \ f
     then
 ;
-
-' is-allocated-group? alias is-group?
 
 \ Start accessors.
 

@@ -22,7 +22,7 @@
 
     list-get-links              \ link
     link-get-data               \ data
-    is-allocated-structinfo?    \ bool
+    is-structinfo?              \ bool
 ;
 
 \ Deallocate a structinfo list.

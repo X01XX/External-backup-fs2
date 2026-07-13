@@ -24,8 +24,8 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
     domain-struct-number-cells swap mma-new to domain-mma
 ;
 
-\ Check instance type.
-: is-allocated-domain? ( addr -- bool )
+\ Check if tos is an allocated domain.
+: is-domain? ( addr -- bool )
     dup domain-mma mma-is-item? \ addr bool
     if
         struct-get-id
@@ -34,11 +34,6 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
         drop
         false                   \ f
     then
-;
-
-\ Check TOS for domain.
-: is-domain? ( tos -- bool )
-    is-allocated-domain?
 ;
 
 ' is-domain? to is-domain?-xt

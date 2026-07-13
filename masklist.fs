@@ -18,7 +18,7 @@
 
     list-get-links      \ link
     link-get-data       \ data
-    is-allocated-mask?  \ bool
+    is-mask?            \ bool
 ;
 
 \ Deallocate a mask list.
@@ -71,7 +71,7 @@
     list-from-string-xt execute \ lst t | f
     if
         \ Check items.
-        [ ' is-allocated-mask? ] literal over   \ lst xt lst
+        [ ' is-mask? ] literal over             \ lst xt lst
         list-apply-all-true?                    \ lst bool
         if
             true

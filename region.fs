@@ -35,8 +35,8 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     region-struct-number-cells swap mma-new to region-mma
 ;
 
-\ Check instance type.
-: is-allocated-region? ( tos -- flag )
+\ Check if tos is an allocated region.
+: is-region? ( tos -- flag )
     dup region-mma mma-is-item? \ addr bool
     if
         struct-get-id
@@ -46,8 +46,6 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
         false                   \ f
     then
 ;
-
-' is-allocated-region? alias is-region?
 
 \ Start accessors.
 

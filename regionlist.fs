@@ -2,7 +2,7 @@
 
 \ Check TOS for region-list.
 : is-region-list? ( tos -- bool )
-    dup is-allocated-list?  \ tos bool
+    dup is-list?            \ tos bool
     ifnot
         drop
         false
@@ -18,7 +18,7 @@
 
     list-get-links          \ link
     link-get-data           \ data
-    is-allocated-region?    \ bool
+    is-region?              \ bool
 ;
 
 \ Deallocate a region list.
@@ -71,7 +71,7 @@
     list-from-string-xt execute                 \ lst t | f
     if
         \ Check items.
-        [ ' is-allocated-region? ] literal over \ lst xt lst
+        [ ' is-region? ] literal over           \ lst xt lst
         list-apply-all-true?                    \ lst bool
         if
             true

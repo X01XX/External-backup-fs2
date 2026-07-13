@@ -17,8 +17,8 @@ link-next-disp      cell+   constant link-data-disp
     link-struct-number-cells swap mma-new to link-mma
 ;
 
-\ Return true if TOS is an allocated link.
-: is-allocated-link? ( link -- flag )
+\ Check if tos is an allocated link.
+: is-link? ( link -- flag )
     dup link-mma mma-is-item?   \ addr bool
     if
         struct-get-id
@@ -28,8 +28,6 @@ link-next-disp      cell+   constant link-data-disp
         false                   \ f
     then
 ;
-
-' is-allocated-link? alias is-link?
 
 \ Start accessors.
 

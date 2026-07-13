@@ -18,7 +18,7 @@
 
     list-get-links          \ link
     link-get-data           \ data
-    is-allocated-square?    \ bool
+    is-square?              \ bool
 ;
 
 \ Deallocate a square list.

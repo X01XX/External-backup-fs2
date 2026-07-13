@@ -28,8 +28,8 @@ structinfo-eq-xt-disp           cell+   constant structinfo-name-disp           
     structinfo-struct-number-cells swap mma-new to structinfo-mma
 ;
 
-\ Check instance type.
-: is-allocated-structinfo? ( tos -- flag )
+\ Check if tos is an allocated structinfo.
+: is-structinfo? ( tos -- flag )
     dup structinfo-mma mma-is-item? \ addr bool
     if
         struct-get-id
@@ -39,8 +39,6 @@ structinfo-eq-xt-disp           cell+   constant structinfo-name-disp           
         false                       \ f
     then
 ;
-
-' is-allocated-structinfo? alias is-structinfo?
 
 \ Start accessors.
 

@@ -20,8 +20,8 @@ floatnum-header-disp cell+   constant floatnum-number-disp
     floatnum-struct-number-cells swap mma-new to floatnum-mma
 ;
 
-\ Check tos for floatnum.
-: is-allocated-floatnum? ( tos -- bool )
+\ Check if tos is an allocated floatnum.
+: is-floatnum? ( tos -- bool )
     dup floatnum-mma mma-is-item? \ tos bool
     if
         struct-get-id
@@ -31,8 +31,6 @@ floatnum-header-disp cell+   constant floatnum-number-disp
         false                   \ f
     then
 ;
-
-' is-allocated-floatnum? alias is-floatnum?
 
 \ Start accessors.
 

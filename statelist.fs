@@ -2,7 +2,7 @@
 
 \ Check TOS for state-list.
 : is-state-list? ( tos -- t )
-    dup is-allocated-list?  \ tos bool                                                     
+    dup is-list?        \ tos bool                                                     
     ifnot
         drop
         false
@@ -18,7 +18,7 @@
 
     list-get-links      \ link
     link-get-data       \ data
-    is-allocated-state? \ bool
+    is-state?           \ bool
 ;
 
 \ Deallocate a state list.
@@ -71,7 +71,7 @@
     list-from-string-xt execute \ lst t | f
     if
         \ Check items.
-        [ ' is-allocated-state? ] literal over  \ lst xt lst
+        [ ' is-state? ] literal over            \ lst xt lst
         list-apply-all-true?                    \ lst bool
         if
             true

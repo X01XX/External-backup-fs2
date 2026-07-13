@@ -22,8 +22,8 @@ frame-header-disp cell+ constant frame-disp
     frame-struct-number-cells swap mma-new to frame-mma
 ;
 
-\ Check instance type.
-: is-allocated-frame? ( tos -- bool )
+\ Check if tos is an allocated frame.
+: is-frame? ( tos -- bool )
     dup frame-mma mma-is-item? \ addr bool
     if
         struct-get-id           \ id
@@ -33,8 +33,6 @@ frame-header-disp cell+ constant frame-disp
         false                   \ f
     then
 ;
-
-' is-allocated-frame? alias is-frame?
 
 \ Start accessors.
 

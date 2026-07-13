@@ -18,7 +18,7 @@
 
     list-get-links      \ link
     link-get-data       \ data
-    is-allocated-group? \ bool
+    is-group?           \ bool
 ;
 
 \ Deallocate a group list.

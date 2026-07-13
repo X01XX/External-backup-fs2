@@ -22,8 +22,8 @@ mask-header-disp cell+  constant mask-number-disp
     mask-struct-number-cells swap mma-new to mask-mma
 ;
 
-\ Check instance type.
-: is-allocated-mask? ( tos -- bool )
+\ Check if tos is an allocated mask.
+: is-mask? ( tos -- bool )
     dup mask-mma mma-is-item?   \ addr bool
     if
         struct-get-id
@@ -33,8 +33,6 @@ mask-header-disp cell+  constant mask-number-disp
         false                   \ f
     then
 ;
-
-' is-allocated-mask? alias is-mask?
 
 \ Start accessors.
 
