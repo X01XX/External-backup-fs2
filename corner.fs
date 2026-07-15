@@ -4,19 +4,25 @@
 \ Once developed, the anchor square-state should be in only one region.
 
 #53719 constant corner-struct-id
-    #5 constant corner-struct-number-cells
+    #6 constant corner-struct-number-cells
 
 \ Struct fields
 0                                       constant corner-header-disp             \ 16-bits, [0] struct id, [1] use count.
 corner-header-disp              cell+   constant corner-anchor-square-disp      \ The anchor square.
-corner-anchor-square-disp       cell+   constant corner-dissimilar-squares-disp \ Dissimilar, closest, square list.
-corner-dissimilar-squares-disp  cell+   constant corner-regions-disp            \ Regions the anchor is in.
+corner-anchor-square-disp       cell+   constant corner-square-pairs-disp       \ A list of regions, no supersets, of the anchor and another square.
+                                                                                \ Similar to the action incompatible pairs.
+corner-square-pairs-disp        cell+   constant corner-dissimilar-squares-disp \ Dissimilar, squares, from the square-pairs list.
+                                                                                \ Some may need more samples. Some may not be adjacent.
+corner-dissimilar-squares-disp  cell+   constant corner-other-squares-disp      \ Not dissimilar squares, from the square-pair list.
+                                                                                \ Some may need more samples. Some may not be adjacent.
+corner-other-squares-disp       cell+   constant corner-possible-regions-disp   \ Possibel regions the anchor is in, according to ~A + ~B calculations.
+                                                                                \ An adjacent, similar, square, in GT one region, invalidates the corner.
 
 \ Needs: Meta, resolve needs for cornerns by some criteria. Number of possible regions in, sharing squares with other corners, ...
 \        pnc anchor.
 \        pnc dissimilar squares.
-\        Adjacent dissimilar squares, instead of non-adjacent dissimilar squares.
-\        Squares to resolve multiple possible regions.
+\        Adjacent dissimilar squares, in preference to non-adjacent dissimilar squares.
+\        Squares to resolve multiple possible regions, adjacent to the anchor, within a region intersection.
 
 0 value corner-mma \ Storage for corner mma instance.
 
@@ -52,13 +58,33 @@ corner-dissimilar-squares-disp  cell+   constant corner-regions-disp            
     @                           \ Fetch the field.
 ;
 
-\ Return the anchor-square field state from a corner instance.
-: corner-get-anchor-state ( crn0 -- sta )
+\ Set the anchor-square field from a corner instance, use only in this file.
+: _corner-set-anchor-square ( sqr1 crn0 -- )
+    \ Check args.
+    assert( tos is-corner? )
+    assert( nos is-square? )
+
+    corner-anchor-square-disp +     \ Add offset.
+    !struct                         \ Set the field.
+;
+
+\ Return the square-pairs field from a corner instance.
+: corner-get-square-pairs ( crn0 -- sqr )
     \ Check arg.
     assert( tos is-corner? )
 
-    corner-get-anchor-square    \ sqr
-    square-get-state
+    corner-square-pairs-disp +  \ Add offset.
+    @                           \ Fetch the field.
+;
+
+\ Set the square-pairs field from a corner instance, use only in this file.
+: _corner-set-square-pairs ( sqr1 crn0 -- )
+    \ Check args.
+    assert( tos is-corner? )
+    assert( nos is-square? )
+
+    corner-square-pairs-disp +      \ Add offset.
+    !struct                         \ Set the field.
 ;
 
 \ Return the dissimilar-squares list field from a corner instance.
@@ -68,34 +94,6 @@ corner-dissimilar-squares-disp  cell+   constant corner-regions-disp            
 
     corner-dissimilar-squares-disp +    \ Add offset.
     @                                   \ Fetch the field.
-;
-
-\ Return the similar-squares list field from a corner instance.
-: corner-get-similar-squares ( crn0 -- sta-lst )
-    \ Check arg.
-    assert( tos is-corner? )
-
-    corner-similar-squares-disp +   \ Add offset.
-    @                               \ Fetch the field.
-;
-
-\ Return the regions list field from a corner instance.
-: corner-get-regions ( crn0 -- sta-lst )
-    \ Check arg.
-    assert( tos is-corner? )
-
-    corner-regions-disp +           \ Add offset.
-    @                               \ Fetch the field.
-;
-
-\ Set the anchor-square field from a corner instance, use only in this file.
-: _corner-set-anchor-square ( sta1 crn0 -- )
-    \ Check args.
-    assert( tos is-corner? )
-    assert( nos is-square? )
-
-    corner-anchor-square-disp +     \ Add offset.
-    !struct                         \ Set the field.
 ;
 
 \ Set the dissimilar-squares list field from a corner instance, use only in this file.
@@ -108,8 +106,17 @@ corner-dissimilar-squares-disp  cell+   constant corner-regions-disp            
     !struct                             \ Set the field.
 ;
 
-\ Set the similar-squares list field from a corner instance, use only in this file.
-: _corner-set-similar-squares ( sta-lst1 crn0 -- )
+\ Return the other-squares list field from a corner instance.
+: corner-get-other-squares ( crn0 -- sta-lst )
+    \ Check arg.
+    assert( tos is-corner? )
+
+    corner-other-squares-disp + \ Add offset.
+    @                           \ Fetch the field.
+;
+
+\ Set the other-squares list field from a corner instance, use only in this file.
+: _corner-set-other-squares ( sta-lst1 crn0 -- )
     \ Check args.
     assert( tos is-corner? )
     assert( nos is-square-list? )
@@ -118,17 +125,35 @@ corner-dissimilar-squares-disp  cell+   constant corner-regions-disp            
     !struct                             \ Set the field.
 ;
 
-\ Set the regions list field from a corner instance, use only in this file.
-: _corner-set-regions ( reg-lst1 crn0 -- )
+\ Return the possible-regions list field from a corner instance.
+: corner-get-possible-regions ( crn0 -- reg-lst )
+    \ Check arg.
+    assert( tos is-corner? )
+
+    corner-possible-regions-disp +  \ Add offset.
+    @                               \ Fetch the field.
+;
+
+\ Set the possible-regions list field from a corner instance, use only in this file.
+: _corner-set-possible-regions ( reg-lst1 crn0 -- )
     \ Check args.
     assert( tos is-corner? )
     assert( nos is-region-list? )
 
-    corner-regions-disp +               \ Add offset.
+    corner-possible-regions-disp +      \ Add offset.
     !struct                             \ Set the field.
 ;
 
 \ End accessors.
+
+\ Return the anchor-square field state from a corner instance.
+: corner-get-anchor-state ( crn0 -- sta )
+    \ Check arg.
+    assert( tos is-corner? )
+
+    corner-get-anchor-square    \ sqr
+    square-get-state
+;
 
 \ Return a corner's number bits.
 : corner-get-num-bits ( crn0 -- nb )
@@ -149,15 +174,19 @@ corner-dissimilar-squares-disp  cell+   constant corner-regions-disp            
     struct-allocate                     \ sta1 crn
 
     \ Store anchor square.
-    tuck _corner-set-anchor-square       \ crn
+    tuck _corner-set-anchor-square      \ crn
+
+    \ Store square-pairs.
+    list-new over                       \ crn lst crn
+    _corner-set-square-pair             \ crn
 
     \ Store dissimilar square list.
     list-new                            \ crn lst
     over _corner-set-dissimilar-squares \ crn
 
-    \ Store similar square list.
+    \ Store other square list.
     list-new                            \ crn lst
-    over _corner-set-similar-squares    \ crn
+    over _corner-set-other-squares      \ crn
 
     \ Store regions list.
     dup corner-get-num-bits             \ crn nb
@@ -170,10 +199,9 @@ corner-dissimilar-squares-disp  cell+   constant corner-regions-disp            
     \ Check arg.
     assert( tos is-corner? )
 
-    dup corner-get-anchor-square    \ crn0 anc-sqr
-    square-get-state                \ crn0 anc-sta
-    swap corner-get-regions         \ anc-sta reg-lst
-    region-list-state-in            \ ret-lst
+    dup corner-get-anchor-state         \ crn0 anc-sta
+    swap corner-get-possible-regions    \ anc-sta reg-lst
+    region-list-state-in                \ ret-lst
 ;
 
 \ Print a corner.
@@ -186,22 +214,21 @@ corner-dissimilar-squares-disp  cell+   constant corner-regions-disp            
     dup corner-get-anchor-square        \ crn0 sta
     .square-state                       \ crn0
 
+    ." square pairs: "
+    dup corner-get-square-pairs         \ crn0 s-pr-lst
+    .region-list                        \ crn0
+
     ."  dissimilar squares: "
     dup corner-get-dissimilar-squares   \ crn0 ext-sta-lst
     .square-list-states                 \ crn0
 
-    ."  similar squares: "
+    ."  other squares: "
     dup corner-get-similar-squares      \ crn0 ext-sta-lst
     .square-list-states                 \ crn0
 
-    ."  regions: "
+    ." possible regions: "
     dup corner-get-regions              \ crn0 ext-sta-lst
     .region-list                        \ crn0
-
-    space ." anchor regions: "
-    dup corner-anchor-regions           \ crn0 reg-lst'
-    dup .region-list                    \ crn0 reg-lst'
-    region-list-deallocate              \ crn0
 
     ." )"
                                         \ crn0
@@ -226,7 +253,7 @@ corner-dissimilar-squares-disp  cell+   constant corner-regions-disp            
     \ Check sqr1 eq any similar square.
     [ ' = ] literal                 \ sqr1 crn0 xt
     #2 pick #2 pick                 \ sqr1 crn0 xt sqr1 crn0
-    corner-get-similar-squares      \ sqr1 crn0 sqr1 sim-lst
+    corner-get-other-squares        \ sqr1 crn0 sqr1 sim-lst
     list-member?                    \ sqr1 crn0
     if
         2drop
@@ -265,35 +292,38 @@ corner-dissimilar-squares-disp  cell+   constant corner-regions-disp            
         exit
     then
 
-    \ Check if square is More samples needed.
-    over                                    \ sqr1 crn0 sqr1
-    over corner-get-anchor-square           \ sqr1 crn0 sqr1 anc
-    squares-compare                         \ sqr1 crn0 char
+    \ Check if square is within any square-pair.
+    cr ." todo" cr
 
-    case
-        [char] C of
-            dup corner-get-anchor-square    \ sqr1 crn0 anc
-            swap                            \ sqr1 anc crn0
-            corner-get-similar-squares      \ sqr1 anc sqr-lst
-            square-list-any-between?        \ bool
-            invert
-            \ cr ." exit 2" cr
-        endof
-        [char] I of
-            dup corner-get-anchor-square    \ sqr1 crn0 anc
-            swap                            \ sqr1 anc crn0
-            corner-get-dissimilar-squares   \ sqr1 anc sqr-lst
-            square-list-any-between?        \ bool
-            invert
-            \ cr ." exit 3" .s cr
-        endof
-        [char] M of
-            2drop
-            false
-            \ cr ." exit 4" cr
-        endof
-        true abort" Invalid comparison result"
-    endcase
+    \ Check if square is More samples needed.
+\    over                                    \ sqr1 crn0 sqr1
+\    over corner-get-anchor-square           \ sqr1 crn0 sqr1 anc
+\    squares-compare                         \ sqr1 crn0 char
+\
+\    case
+\        [char] C of
+\            dup corner-get-anchor-square    \ sqr1 crn0 anc
+\            swap                            \ sqr1 anc crn0
+\            corner-get-similar-squares      \ sqr1 anc sqr-lst
+\            square-list-any-between?        \ bool
+\            invert
+\            \ cr ." exit 2" cr
+\        endof
+\        [char] I of
+\            dup corner-get-anchor-square    \ sqr1 crn0 anc
+\            swap                            \ sqr1 anc crn0
+\            corner-get-dissimilar-squares   \ sqr1 anc sqr-lst
+\            square-list-any-between?        \ bool
+\            invert
+\            \ cr ." exit 3" .s cr
+\        endof
+\        [char] M of
+\            2drop
+\            false
+\            \ cr ." exit 4" cr
+\        endof
+\        true abort" Invalid comparison result"
+\    endcase
 ;
 
 \ Given a list of squares in the corner similar square list,
@@ -464,15 +494,7 @@ corner-dissimilar-squares-disp  cell+   constant corner-regions-disp            
 
 \ Validate a corner.
 \ Recalc if needed.
-: corner-is-validate ( crn0 -- )
-    \ Check arg.
-    assert( tos is-corner? )
-
-    abort" TODO"
-;
-
-\ Return a character, T - True, F - False, M - More samples needed.
-: corner-is-valid? ( crn0 -- char )
+: corner-is-valid? ( crn0 -- )
     \ Check arg.
     assert( tos is-corner? )
 
@@ -491,9 +513,10 @@ corner-dissimilar-squares-disp  cell+   constant corner-regions-disp            
     if
         \ Clear fields.
         dup corner-get-anchor-square square-deallocate
+        dup corner-get-square-pairs region-list-deallocate
         dup corner-get-dissimilar-squares square-list-deallocate
-        dup corner-get-similar-squares square-list-deallocate
-        dup corner-get-regions region-list-deallocate
+        dup corner-get-other-squares square-list-deallocate
+        dup corner-get-possible-regions region-list-deallocate
 
         \ Deallocate instance.
         corner-mma mma-deallocate
@@ -511,8 +534,8 @@ corner-dissimilar-squares-disp  cell+   constant corner-regions-disp            
     true abort" TODO"
 ;
 
-\ Check a similar square, after a change.
-: corner-check-similar-square ( sqr1 crn0 -- )
+\ Check an othen square, after a change.
+: corner-check-other-square ( sqr1 crn0 -- )
     \ Check args.
     assert( tos is-corner? )
     assert( nos is-square? )
@@ -594,15 +617,15 @@ corner-dissimilar-squares-disp  cell+   constant corner-regions-disp            
     =
 ;
 
-\ Return true if a square is in the similar squares list.
-: corner-square-is-in-similar-squares? ( sqr1 crn0 -- bool )
+\ Return true if a square is in the other squares list.
+: corner-square-is-in-other-squares? ( sqr1 crn0 -- bool )
     \ Check args.
     assert( tos is-corner? )
     assert( nos is-square? )
 
     [ ' = ] literal                 \ sqr1 crn0 xt
     -rot                            \ xt sqr1 crn0
-    dup corner-get-similar-squares  \ xt sqr1 siw-lst
+    dup corner-get-other-squares    \ xt sqr1 siw-lst
     list-member?                    \ bool
 ;
 

@@ -6,7 +6,7 @@
 
 \ Check TOS for strectinfo-list.
 : is-structinfo-list? ( tos -- t )
-    dup is-list?                \ tos bool                                                     
+    dup is-list?                \ tos bool
     ifnot
         drop
         false
@@ -14,7 +14,7 @@
     then
 
     dup list-is-empty?          \ tos bool
-    if  
+    if
         drop
         true
         exit
@@ -382,7 +382,11 @@
         link-get-next
     repeat
                                     \ snf-lst flg
-    abort" Memory leaks found!"
+   if
+        cr ." Memory leaks found!" abort
+    else
+        cr ." No memory leaks."
+    then
 
     drop
     assert-forth-stack-empty
