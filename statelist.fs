@@ -2,7 +2,7 @@
 
 \ Check TOS for state-list.
 : is-state-list? ( tos -- t )
-    dup is-list?        \ tos bool                                                     
+    dup is-list?        \ tos bool
     ifnot
         drop
         false
@@ -10,7 +10,7 @@
     then
 
     dup list-is-empty?  \ tos bool
-    if  
+    if
         drop
         true
         exit

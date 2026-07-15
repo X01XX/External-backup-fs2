@@ -2,7 +2,7 @@
 
 \ Check TOS for action-list.
 : is-action-list? ( tos -- bool )
-   dup is-list?        \ tos bool                                                     
+    dup is-list?        \ tos bool
     ifnot
         drop
         false
@@ -10,7 +10,7 @@
     then
 
     dup list-is-empty?  \ tos bool
-    if  
+    if
         drop
         true
         exit

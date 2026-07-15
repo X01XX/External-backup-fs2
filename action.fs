@@ -656,7 +656,7 @@ action-groups-disp              cell+   constant action-function-disp           
 
     dup
     action-recalc-possible-regions      \ sqr1 act0
-    
+
     \ cr ." action-check-incompatible-pairs-for-changed-square: del groups that no longer match" cr
 
     \ Delete groups that no longer match a possible region.

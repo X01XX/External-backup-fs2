@@ -280,7 +280,7 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
     0                               \ nb1 dom sta1 0
     #3 pick                         \ nb1 dom sta1 0 nb1
     state-new                       \ nb1 dom sta1 sta2
-    
+
     region-new                      \ nb1 dom regx
     over _domain-set-max-region     \ nb1 dom
 

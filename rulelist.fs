@@ -2,7 +2,7 @@
 
 \ Check TOS for rule-list.
 : is-rule-list? ( tos -- bool )
-    tos is-list?        \ tos bool                                                     
+    tos is-list?        \ tos bool
     ifnot
         drop
         false
@@ -10,7 +10,7 @@
     then
 
     dup list-is-empty?  \ tos bool
-    if  
+    if
         drop
         true
         exit

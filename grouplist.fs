@@ -2,7 +2,7 @@
 
 \ Check TOS for group-list.
 : is-group-list? ( tos -- bool )
-    tos is-list?        \ tos bool                                                     
+    tos is-list?        \ tos bool
     ifnot
         drop
         false
@@ -10,7 +10,7 @@
     then
 
     dup list-is-empty?  \ tos bool
-    if  
+    if
         drop
         true
         exit

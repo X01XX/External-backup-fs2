@@ -50,16 +50,10 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
 
 \ Check tos is a valid pn value.
 : is-pn? ( tos -- bool )
-    dup 0<      \ tos bool
-    over        \ tos bool tos
-    #2 >        \ tos bool bool
-    or          \ tos bool
-    if
-        s" nos is not a valid pn value"
-        .abort-xt execute
-    then
-    drop
-    true
+    dup 0>      \ tos bool
+    swap        \ bool tos
+    #4 <        \ bool bool
+    and         \ bool
 ;
 
 \ Start accessors.
