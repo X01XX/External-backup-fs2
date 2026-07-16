@@ -747,3 +747,86 @@
 
     [ ' regions-eq? ] literal -rot list-member?
 ;
+
+\ Return true if a region uses a given state.
+: region-list-uses-state? ( sta1 reg-lst0 -- bool )
+    \ Check args.
+    assert( tos is-region-list? )
+    assert( nos is-state? )
+
+   [ ' region-uses-state? ] literal -rot list-member? \ lst
+;
+
+\ Return true if a state is in any region.
+: region-list-any-superset-state? ( sta1 lst0 -- bool )
+    \ Check args.
+    assert( tos is-region-list? )
+    assert( nos is-state? )
+
+    foreach                             \ sta1 lnk
+        \ Check the current region.
+        2dup                            \ sta1 lnk sta1 lnk
+        link-get-data                   \ sta1 lnk sta1 regx
+        region-superset-of-state?       \ sta1 lnk flag
+        if                              \ sta1 lnk
+            2drop
+            true
+            exit
+        then
+
+    next
+                                        \ sta1
+    drop
+    false
+;
+
+\ Return a list of regions in a region-list that are superset of a
+\ given region.
+: region-list-supersets-of  ( reg1 reg-lst0 -- reg-lst )
+    \ Check args.
+    assert( tos is-region-list? )
+    assert( nos is-region? )
+
+    [ ' region-superset? ] literal  \ reg1 reg-lst0 xt
+    -rot                            \ xt reg1 reg-lst0
+    list-find-all                   \ reg-lst
+;
+
+\ Return a list of states used to define regions in a region-list.
+: region-list-states ( reg-lst0 -- sta-lst )
+    \ Check arg.
+    assert( tos is-region-list? )
+
+    \ Init return list.
+    list-new swap                   \ sta-lst reg-lst0
+
+    foreach                         \ sta-lst reg-lnk
+        dup link-get-data           \ sta-lst reg-lnk regx
+
+        \ Check region state-0.
+        [ ' states-eq? ] literal    \ sta-lst reg-lnk regx xt
+        over region-get-state-0     \ sta-lst reg-lnk regx xt sta0
+        #4 pick                     \ sta-lst reg-lnk regx xt sta0 sta-lst
+        list-member?                \ sta-lst reg-lnk regx bool
+        ifnot
+            dup region-get-state-0  \ sta-lst reg-lnk regx sta0
+            #3 pick                 \ sta-lst reg-lnk regx sta0 sta-lst
+            list-push-struct        \ sta-lst reg-lnk regx
+        then
+
+        \ Check region state-1.
+        [ ' states-eq? ] literal    \ sta-lst reg-lnk regx xt
+        over region-get-state-1     \ sta-lst reg-lnk regx xt sta1
+        #4 pick                     \ sta-lst reg-lnk regx xt sta1 sta-lst
+        list-member?                \ sta-lst reg-lnk regx bool
+        ifnot
+            region-get-state-1      \ sta-lst reg-lnk sta1
+            #2 pick                 \ sta-lst reg-lnk sta1 sta-lst
+            list-push-struct        \ sta-lst reg-lnk
+        else
+            drop                    \ sta-lst reg-lnk
+        then
+
+    next
+;
+

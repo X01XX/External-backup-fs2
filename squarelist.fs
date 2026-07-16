@@ -693,3 +693,29 @@
     [ ' = ] literal -rot    \ xt sqr1 sqr-lst0
     list-member?
 ;
+
+\ Remove squares matching a given list of states.
+\ Return the number of squares removed.
+: square-list-remove-matching-squares ( sta-lst1 sqr-lst0 -- num )
+    \ Check args.
+    assert( tos is-square-list? )
+    assert( nos is-state-list? )
+
+    \ Init counter.
+    0                                   \ sta-lst1 sqr-lst0 cnt
+    rot                                 \ sqr-lst0 cnt sta-lst1
+
+    foreach                             \ sqr-lst0 cnt sta-lnk
+        [ ' square-state-eq? ] literal  \ sqr-lst0 cnt sta-lnk xt
+        over link-get-data              \ sqr-lst0 cnt sta-lnk xt stax
+        #4 pick                         \ sqr-lst0 cnt sta-lnk xt stax sqr-lst0
+        list-remove-struct              \ sqr-lst0 cnt sta-lnk, sqr t | f
+        if
+            drop                        \ sqr-lst0 cnt sta-lnk
+            \ Inc counter.
+            swap 1+ swap
+        then
+    next
+                                        \ sqr-lst0 cnt
+    nip
+;

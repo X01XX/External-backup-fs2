@@ -377,14 +377,14 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 ;
 
 \ Return true if a region uses a given state.
-: region-uses-state? ( sta1 reg0 -- flag )
+: region-uses-state? ( sta1 reg0 -- bool )
     \ Check args.
     assert( tos is-region? )
     assert( nos is-state? )
 
     region-get-states           \ sta1 reg-sta1 reg-sta0
     #2 pick                     \ sta1 reg-sta1 reg-sta0 sta1
-    =                           \ sta1 reg-sta1 flag
+    =                           \ sta1 reg-sta1 bool
     if                          \ sta1 reg-sta1
         2drop
         true
@@ -392,7 +392,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     then
 
                                 \ sta1 reg-sta1
-    =                           \ flag
+    =                           \ bool
 ;
 
 \ Return a new region with some X positions set to zero.

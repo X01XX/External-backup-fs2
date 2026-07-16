@@ -641,3 +641,13 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
 : square-from-string-a ( c-addr u -- sqr )
     sample-from-string-a square-new
 ;
+
+\ Return true if a square state matches a given state.
+: square-state-eq? ( sta1 sqr0 -- boll )
+    \ Check args.
+    assert( tos is-square? )
+    assert( nos is-state? )
+
+    square-get-state        \ sta1 sta0
+    states-eq?
+;

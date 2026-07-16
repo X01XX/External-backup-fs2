@@ -57,7 +57,7 @@ include grouplist.fs
 
 include actionxts.fs
 include action.fs
-\ include corner.fs
+include corner.fs
 include frame.fs
 \ include domain.fs
 
@@ -71,7 +71,7 @@ include rule_t.fs
 include sample_t.fs
 include regionlist_t.fs
 include square_t.fs
-\ include corner_t.fs
+include corner_t.fs
 include squarelist_t.fs
 include action_t.fs
 include group_t.fs
@@ -90,7 +90,7 @@ include group_t.fs
 #100 floatnum-mma-init
 #200 square-mma-init
 #010 action-mma-init
-\ #110 corner-mma-init
+#110 corner-mma-init
 #130 group-mma-init
 #010 frame-mma-init
 \ #010 domain-mma-init
@@ -112,7 +112,7 @@ list-new to structinfo-list-store
 ' rules-eq?     ' rule-from-string      ' rule-deallocate       ' .rule     s" Rule"        rule-mma        rule-struct-id      structinfo-new structinfo-list-store structinfo-list-push-end
 ' samples-eq?   ' sample-from-string    ' sample-deallocate     ' .sample   s" Sample"      sample-mma      sample-struct-id    structinfo-new structinfo-list-store structinfo-list-push-end
 ' noop          ' noop                  ' action-deallocate     ' .action   s" Action"      action-mma      action-struct-id    structinfo-new structinfo-list-store structinfo-list-push-end
-\ ' noop          ' noop                  ' corner-deallocate     ' .corner   s" Corner"      corner-mma      corner-struct-id    structinfo-new structinfo-list-store structinfo-list-push-end
+' noop          ' noop                  ' corner-deallocate     ' .corner   s" Corner"      corner-mma      corner-struct-id    structinfo-new structinfo-list-store structinfo-list-push-end
 ' =             ' noop                  ' square-deallocate     ' .square   s" Square"      square-mma      square-struct-id    structinfo-new structinfo-list-store structinfo-list-push-end
 ' =             ' noop                  ' group-deallocate      ' .group    s" Group"       group-mma       group-struct-id     structinfo-new structinfo-list-store structinfo-list-push-end
 ' noop          ' noop                  ' frame-deallocate      ' .frame    s" Frame"       frame-mma       frame-struct-id     structinfo-new structinfo-list-store structinfo-list-push-end
@@ -182,7 +182,7 @@ list-new to structinfo-list-store
     sample-tests
     state-list-tests
     region-list-tests
-   \ corner-tests
+    corner-tests
     square-list-tests
     action-tests
     group-tests
