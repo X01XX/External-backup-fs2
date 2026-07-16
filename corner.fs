@@ -320,7 +320,8 @@ corner-other-squares-disp       cell+   constant corner-possible-regions-disp   
 \ Recalculate possible-regions from square-pairs.
 \ When a close dissimilar square becomes similar, or a similar
 \ square is between the anchor and a dissimilar square.
-\ A closer dissimilar square requires only an extra intersection with the existing regions.
+\ A closer dissimilar square requires only one intersection with
+\ the existing possible regions.
 : corner-recalc-possible-regions ( crn0 -- )
     \ Check arg.
     assert( tos is-corner? )
@@ -346,7 +347,7 @@ corner-other-squares-disp       cell+   constant corner-possible-regions-disp   
         rot region-list-deallocate          \ crn0 pr-lnk new-pos-lst'
         swap                                \ crn0 new-pos-lst' pr-lnk
     next
-                                            \ crn0 new-pos-lst'
+                                            \ crn0 pos-lst'
     swap corner-update-possible-regions     \
 ;
 
@@ -457,6 +458,7 @@ corner-other-squares-disp       cell+   constant corner-possible-regions-disp   
     corner-get-dissimilar-squares       \ sqr1 crn0 sta-lst' sta-lst' dis-lst
     square-list-remove-matching-squares \ sqr1 crn0 sta-lst' num
     if
+        \ A dissimilar square was displaced, so recalc.
         over                            \ sqr1 crn0 sta-lst' crn0
         corner-recalc-possible-regions  \ sqr1 crn0 sta-lst'
     then

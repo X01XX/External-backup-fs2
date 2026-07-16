@@ -15,11 +15,8 @@
 
     \ Prep for loop.
     swap                                    \ xt stk tkn-lst
-    list-get-links                          \ xt stk tkn-link
 
-    begin
-        ?dup
-    while
+    foreach                                 \ xt stk tkn-link
         \ Check for left paren.
         s" ("                               \ xt stk tkn-link c-addr u
         #2 pick link-get-data               \ xt stk tkn-link c-addr u tkt
@@ -96,9 +93,7 @@
                 then
             then
         then
-
-        link-get-next
-    repeat
+    next
 
     \ Get highest level list.               \ xt stk
     dup stack-pop                           \ xt stk int-lst
@@ -198,12 +193,7 @@
         exit
     then
 
-    \ Prep for loop.
-    list-get-links                  \ lst1 lnk0
-
-    begin
-        ?dup
-    while
+    foreach                         \ lst1 lnk0
         \ Get next item to check.
         over                        \ lst0 lnk1 lst0
         over link-get-data          \ lst0 lnk1 lst0 stc0
@@ -215,10 +205,7 @@
         else
             2drop false exit
         then
-
-        link-get-next
-    repeat
-
+    next
                                 \ lst0
     drop
     true

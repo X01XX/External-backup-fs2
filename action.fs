@@ -249,11 +249,8 @@ action-groups-disp              cell+   constant action-function-disp           
     \ Prep for loop.
     over action-get-possible-regions    \ act0 ret-lst pos-lst
     #2 pick action-get-squares          \ act0 ret-lst pos-lst sqr-lst
-    list-get-links                      \ act0 ret-lst pos-lst sqr-lnk
 
-    begin
-        ?dup
-    while
+    foreach                             \ act0 ret-lst pos-lst sqr-lnk
         dup link-get-data               \ act0 ret-lst pos-lst sqr-lnk sqrx
         square-get-state                \ act0 ret-lst pos-lst sqr-lnk sta
         #2 pick                         \ act0 ret-lst pos-lst sqr-lnk sta pos-lst
@@ -264,9 +261,7 @@ action-groups-disp              cell+   constant action-function-disp           
             #3 pick                     \ act0 ret-lst pos-lst sqr-lnk sqrx ret-lst
             list-push-struct            \ act0 ret-lst pos-lst sqr-lnk
         then
-
-        link-get-next
-    repeat
+    next
                                 \ act0 ret-lst pos-lst
     drop nip                    \ ret-lst
     dup list-is-empty?
@@ -372,11 +367,8 @@ action-groups-disp              cell+   constant action-function-disp           
     \ Scan group list, gathering groups to remove from the list.
     over action-get-possible-regions    \ act0 del-grps pos-regs
     #2 pick action-get-groups           \ act0 del-grps pos-regs grp-lst
-    list-get-links                      \ act0 del-grps pos-regs grp-lnk
 
-    begin
-        ?dup
-    while
+    foreach                             \ act0 del-grps pos-regs grp-lnk
         [ ' regions-eq? ] literal       \ act0 del-grps pos-regs grp-lnk xt
         over link-get-data              \ act0 del-grps pos-regs grp-lnk xt grpx
         group-get-region                \ act0 del-grps pos-regs grp-lnk xt regx
@@ -387,20 +379,15 @@ action-groups-disp              cell+   constant action-function-disp           
             #3 pick                     \ act0 del-grps pos-regs grp-lnk grpx del-grps
             list-push-struct            \ act0 del-grps pos-regs grp-lnk
         then
-
-        link-get-next
-    repeat
+    next
 
     \ Remove the groups from the action group list.
                                         \ act0 del-grps pos-regs
     drop                                \ act0 del-grps
     over action-get-groups              \ act0 del-grps grps-lst
     over                                \ act0 del-grps grps-lst del-grps
-    list-get-links                      \ act0 del-grps grp-lst del-lnk
 
-    begin
-        ?dup
-    while
+    foreach                             \ act0 del-grps grp-lst del-lnk
         [ ' = ] literal                 \ act0 del-grps grp-lst del-lnk xt
         over link-get-data              \ act0 del-grps grp-lst del-lnk xt grpx
         #3 pick                         \ act0 del-grps grp-lst del-lnk xt grpx grp-lst
@@ -411,9 +398,7 @@ action-groups-disp              cell+   constant action-function-disp           
         else
             cr ." remove failed?" cr abort
         then
-
-        link-get-next
-    repeat
+    next
                                         \ act0 grp-lst grp-lst
                                         \ act0 del-grps grp-lst
     drop                                \ act0 del-grps
@@ -432,11 +417,8 @@ action-groups-disp              cell+   constant action-function-disp           
     \ Scan group list.
     dup action-get-groups               \ act0 grp-lst
     over action-get-possible-regions    \ act0 grp-lst pos-regs
-    list-get-links                      \ act0 grp-lst pos-lnk
 
-    begin
-        ?dup
-    while
+    foreach                             \ act0 grp-lst pos-lnk
         dup link-get-data               \ act0 grp-lst pos-lnk pos-reg
         #2 pick                         \ act0 grp-lst pos-lnk pos-reg grp-lst
         group-list-member?              \ act0 grp-lst pos-lnk bool
@@ -463,9 +445,7 @@ action-groups-disp              cell+   constant action-function-disp           
                 then
             then
         then
-
-        link-get-next
-    repeat
+    next
                                         \ act0 pos-regs
     2drop
 ;
@@ -518,11 +498,8 @@ action-groups-disp              cell+   constant action-function-disp           
     over list-push-struct                   \ act0 pos-new
 
     over action-get-incompatible-pairs      \ act0 pos-new pr-lst
-    list-get-links                          \ act0 pos-new pr-lnk
 
-    begin
-        ?dup
-    while
+    foreach                                 \ act0 pos-new pr-lnk
         dup link-get-data                   \ act0 pos-new pr-lnk regx
         region-get-states                   \ act0 pos-new pr-lnk sta1 sta1
         state-~a+~b                         \ act0 pos-new pr-lnk reg-lst'
@@ -534,9 +511,7 @@ action-groups-disp              cell+   constant action-function-disp           
         swap region-list-deallocate         \ act0 pos-new pr-lnk pos-new2
         rot region-list-deallocate          \ act0 pr-lnk pos-new2
         swap                                \ act0 pos-new2 pr-lnk
-
-        link-get-next
-    repeat
+    next
                                             \ act0 pos-new
     swap                                    \ pos-new act0
     _action-update-possible-regions         \
@@ -570,11 +545,8 @@ action-groups-disp              cell+   constant action-function-disp           
     #2 pick square-get-state            \ sqr1 act0 del-lst sta1
     #2 pick                             \ sqr1 act0 del-lst sta1 act0
     action-get-incompatible-pairs       \ sqr1 act0 del-lst sta1 pr-lst
-    list-get-links                      \ sqr1 act0 del-lst sta1 pr-lnk
 
-    begin
-        ?dup
-    while
+    foreach                             \ sqr1 act0 del-lst sta1 pr-lnk
         over                            \ sqr1 act0 del-lst sta1 pr-lnk sta1
         over link-get-data              \ sqr1 act0 del-lst sta1 pr-lnk sta1 regx
         region-uses-state?              \ sqr1 act0 del-lst sta1 pr-lnk bool
@@ -612,9 +584,7 @@ action-groups-disp              cell+   constant action-function-disp           
                 cr ." square not found?" abort
             then
         then
-
-        link-get-next
-    repeat
+    next
                                         \ sqr1 act0 del-lst sta1
     drop                                \ sqr1 act0 del-lst
 
@@ -630,11 +600,9 @@ action-groups-disp              cell+   constant action-function-disp           
     then
 
     \ Remove pairs.
-    dup list-get-links                  \ sqr1 act0 del-lst del-lnk
+    dup                                 \ sqr1 act0 del-lst del-lst
 
-    begin
-        ?dup
-    while
+    foreach                             \ sqr1 act0 del-lst del-lnk
         [ ' = ] literal                 \ sqr1 act0 del-lst del-lnk xt
         over link-get-data              \ sqr1 act0 del-lst del-lnk xt regx
         cr ." Deleting incompatible pair, it became compatible: " dup .region cr
@@ -646,9 +614,7 @@ action-groups-disp              cell+   constant action-function-disp           
         else
             cr ." problem? region not found"
         then
-
-        link-get-next
-    repeat
+    next
                                         \ sqr1 act0 del-lst
     region-list-deallocate              \ sqr1 act0
 
@@ -681,11 +647,8 @@ action-groups-disp              cell+   constant action-function-disp           
     \ Scan group list.
     dup action-get-squares                          \ pr-lst sta1 act0 sqr-lst
     over action-get-possible-regions                \ pr-lst sta1 act0 sqr-lst pos-regs
-    list-get-links                                  \ pr-lst sta1 act0 sqr-lst pos-lnk
 
-    begin
-        ?dup
-    while
+    foreach                                         \ pr-lst sta1 act0 sqr-lst pos-lnk
         #3 pick                                     \ pr-lst sta1 act0 sqr-lst pos-lnk sta1
         over link-get-data                          \ pr-lst sta1 act0 sqr-lst pos-lnk sta1 pos-reg
         region-superset-of-state?                   \ pr-lst sta1 act0 sqr-lst pos-lnk bool
@@ -709,9 +672,7 @@ action-groups-disp              cell+   constant action-function-disp           
                 then
             then
         then
-
-        link-get-next
-    repeat
+    next
                                                     \ pr-lst sta1 act0 sqr-lst
     drop                                            \ pr-lst sta1 act0
     nip                                             \ pr-lst act0
@@ -790,11 +751,9 @@ action-groups-disp              cell+   constant action-function-disp           
     assert( nos is-group-list? )
     assert( 3os is-square? )
 
-    over list-get-links             \ sqr2 grp-lst act0 grp-lnk
+    over                            \ sqr2 grp-lst act0 grp-lst
 
-    begin
-        ?dup
-    while
+    foreach                         \ sqr2 grp-lst act0 grp-lnk
         #3 pick over link-get-data  \ sqr2 grp-lst act0 grp-lnk sqr2 grpx
         group-superset-square?      \ sqr2 grp-lst act0 grp-lnk sqr2 grpx
         if
@@ -802,8 +761,7 @@ action-groups-disp              cell+   constant action-function-disp           
             link-get-data           \ sqr2 grp-lst act0 grp-lnk sqr2 grpx
             group-add-new-square    \ sqr2 grp-lst act0 grp-lnk
         then
-        link-get-next
-    repeat
+    next
 
     \ cr ." action-add-new-square-to-groups: end" cr
     2drop drop

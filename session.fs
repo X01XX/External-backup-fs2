@@ -66,12 +66,7 @@ session-header-disp                     cell+   constant session-domains-disp   
     \ Init return list.
     list-new swap                   \ sess0 reg-lst dom-lst
 
-    \ Prep for loop.
-    list-get-links                  \ sess0 reg-lst d-link
-
-    begin
-        ?dup
-    while
+    foreach                         \ sess0 reg-lst d-link
         \ Set current domain.
         dup link-get-data           \ sess0 reg-lst d-link domx
         #3 pick                     \ sess0 reg-lst d-link domx sess0
@@ -82,9 +77,7 @@ session-header-disp                     cell+   constant session-domains-disp   
         domain-get-max-region       \ sess0 reg-lst d-lisk max-reg
         #2 pick                     \ sess0 reg-lst d-lisk max-reg reg-lst
         region-list-push-end        \ sess0 reg-lst d-lisk
-
-        link-get-next               \ sess0 reg-lst d-link
-    repeat
+    next
                                     \ sess0 reg-lst
     nip                             \ reg-lst
     regioncorr-new
@@ -121,17 +114,12 @@ session-header-disp                     cell+   constant session-domains-disp   
     ." domains "
 
                                                 \ sess0 dom-lst
-    list-get-links                              \ sess0 link
-    begin
-        ?dup
-    while
+    foreach                                     \ sess0 link
         dup link-get-data                       \ sess0 link dom
 
         \ Print domain
         .domain
-
-        link-get-next                           \ sess0 link
-    repeat
+    next
 
     drop
 ;
@@ -159,11 +147,7 @@ session-header-disp                     cell+   constant session-domains-disp   
     list-new                        \ cur-dom sess0 sat-lst
     over session-get-domains        \ cur-dom sess0 sta-lst dom-lst
 
-    list-get-links                  \ cur-dom sess0 sta-lst link
-
-    begin
-        ?dup
-    while
+    foreach                         \ cur-dom sess0 sta-lst link
         dup link-get-data           \ cur-dom sess0 sta-lst link domx
 
         dup #4 pick session-set-current-domain
@@ -171,9 +155,7 @@ session-header-disp                     cell+   constant session-domains-disp   
         domain-get-current-state    \ cur-dom sess0 sta-lst link stax
         #2 pick                     \ cur-dom sess0 sta-lst link stax sta-lst
         list-push-end               \ cur-dom sess0 sta-lst link
-
-        link-get-next               \ cur-dom sess0 sta-lst link
-    repeat
+    next
                                     \ cur-dom sess0 sta-lst
 
     \ Restore original current domain.
@@ -193,11 +175,7 @@ session-header-disp                     cell+   constant session-domains-disp   
     list-new                        \ cur-dom sess0 sat-lst
     over session-get-domains        \ cur-dom sess0 reg-lst dom-lst
 
-    list-get-links                  \ cur-dom sess0 reg-lst link
-
-    begin
-        ?dup
-    while
+    foreach                         \ cur-dom sess0 reg-lst link
         dup link-get-data           \  sess0 reg-lst link domx
 
         dup #4 pick session-set-current-domain
@@ -206,9 +184,7 @@ session-header-disp                     cell+   constant session-domains-disp   
         dup region-new              \ cur-dom sess0 reg-lst link regx
         #2 pick                     \ cur-dom sess0 reg-lst link regx reg-lst
         list-push-end               \ cur-dom sess0 reg-lst link
-
-        link-get-next               \ cur-dom sess0 reg-lst link
-    repeat
+    next
                                     \ cur-dom sess0 reg-lst
     \ Restore original current domain.
     -rot                            \ reg-lst cur-dom sess0

@@ -45,15 +45,10 @@
     \ Check arg.
     assert( tos is-group-list? )
 
-    list-get-links          \ grp-lnk
-
-    begin
-        ?dup
-    while
+    foreach                 \ grp-lnk
         dup link-get-data   \ grp-lnk grpx
         cr #8 spaces .group
-        link-get-next
-    repeat
+    next
 ;
 
 : .group-list-prefix ( c-addr u list0 -- )
@@ -90,10 +85,6 @@
     list-new swap                   \ sta1 ret-lst grp-lst0
 
     \ Prep for loop.
-\   list-get-links                  \ sta1 ret-lst grp-lnk
-\   begin
-\       ?dup
-\   while
     foreach
         #2 pick                     \ sta1 ret-lst grp-lnk sta1
         over link-get-data          \ sta1 ret-lst grp-lnk sta1 grpx
@@ -105,8 +96,6 @@
             list-push-struct        \ sta1 ret-lst grp-lnk
         then
     next
-\       link-get-next
-\   repeat
                                     \ sta1 ret-lst
     \ Clean up.
     nip                             \ ret-lst
@@ -167,16 +156,10 @@
     \ Init return list.
     list-new swap           \ ret-lst grp-lst0
 
-\   list-get-links          \ ret-lst grp-lnk
-\   begin
-\       ?dup
-\   while
     foreach
         dup link-get-data   \ ret-lst grp-lnk grpx
         group-get-region    \ ret-lst grp-lnk grp-reg
         #2 pick             \ ret-lst grp-lnk grp-reg ret-lst
         list-push-struct    \ ret-lst grp-lnk
     next
-\       link-get-next
-\   repeat
 ;

@@ -86,33 +86,30 @@
 ;
 
 \ Return a list that is a copy of a given list, but with a specific item replaced by a given struct item.
-\ Return a list that is a copy of a given list, but with a specific item replaced by a given struct item.
 : list-copy-except-struct ( new-item2 index1 lst0 -- lst )
      \ Check args.
     assert( tos is-list? )
     over 0< abort" list-copy-except-struct: index negative?"
     over over list-get-length < 0= abort" list-copy-except-struct: index out of range?"
 
-    list-get-links                  \ new-item2 index1 link
-    list-new -rot                   \ new-item2 lst-new index1 link
-    begin
-        ?dup
-    while
+    \ Init return list.
+    list-new -rot                   \ new-item2 ret-lst index1 lst0
+
+    foreach                         \ new-item2 ret-lst index1 link
         over 0=
         if
-            #3 pick #3 pick         \ new-item2 lst-new index1 link new-item2 lst-new
-            list-push-end-struct    \ new-item2 lst-new index1 link
+            #3 pick #3 pick         \ new-item2 ret-lst index1 link new-item2 ret-lst
+            list-push-end-struct    \ new-item2 ret-lst index1 link
         else
-            dup link-get-data       \ new-item2 lst-new index1 link data
-            #3 pick                 \ new-item2 lst-new index1 link data lst-new
-            list-push-end-struct    \ new-item2 lst-new index1 link
+            dup link-get-data       \ new-item2 ret-lst index1 link data
+            #3 pick                 \ new-item2 ret-lst index1 link data ret-lst
+            list-push-end-struct    \ new-item2 ret-lst index1 link
         then
 
         \ Dec index.
         swap 1- swap
-        link-get-next
-    repeat
-                                    \ new-item2 lst-new index1
+    next
+                                    \ new-item2 ret-lst index1
     drop nip
 ;
 
@@ -196,10 +193,7 @@
     then
 
     \ Check elements.
-    list-get-links                  \ xt sct-lst1 lnk
-    begin
-        ?dup
-    while
+    foreach                         \ xt sct-lst1 lnk
         #2 pick                     \ xt sct-lst1 lnk xt
         over link-get-data          \ xt sct-lst1 lnk xt regx
         #3 pick                     \ xt sct-lst1 lnk xt regx sct-lst1
@@ -210,9 +204,8 @@
             false
             exit
         then
-
-        link-get-next
-    repeat
+    next
+                                    \ xt sct-lst1
     2drop
     true
 ;

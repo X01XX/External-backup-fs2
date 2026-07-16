@@ -212,18 +212,12 @@
     \ Check arg.
     assert( tos is-rule-list? )
 
-    list-new swap           \ lst-n lst0
+    list-new swap               \ lst-n lst0
 
-    list-get-links          \ lst-n link
-
-    begin
-        ?dup
-    while
+    foreach                     \ lst-n link
         dup link-get-data       \ lst-n link rule
         #2 pick                 \ lst-n link rule lst-n
         list-push-end-struct    \ lst-n link
-
-        link-get-next       \ lst-n link
-    repeat
-                            \ lst-n
+    next
+                                \ lst-n
 ;

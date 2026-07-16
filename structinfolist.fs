@@ -69,21 +69,14 @@
     \ Init length counter.
     0 swap                       \ cnt si-lst0
 
-    \ Prep for loop.
-    list-get-links               \ cnt si-link
-
-    begin
-        ?dup
-    while
+    foreach                      \ cnt si-link
         dup link-get-data       \ cnt si-link si
         structinfo-get-name     \ cnt si-link c-addr u
         nip                     \ cnt si-link u
         rot                     \ si-link u cnt
         max                     \ si-link cnt
         swap                    \ cnt si-link
-
-        link-get-next
-    repeat
+    next
 ;
 
 \ Print memory use of structs.
@@ -96,12 +89,7 @@
     dup structinfo-list-max-name-length \ si-lst0 max
     over                                \ si-lst0 max si-lst0
 
-    \ Prep for loop.
-    list-get-links                      \ si-lst0 max si-link
-
-    begin
-        ?dup
-    while
+    foreach                             \ si-lst0 max si-link
         dup link-get-data               \ si-lst0 max si-link six
 
         \ Print struct name, and filler.
@@ -116,9 +104,7 @@
         \ Print memory use.
         structinfo-get-mma              \ si-lst0 max si-link mmax
         .mma-usage                      \ si-lst0 max si-link
-
-        link-get-next
-    repeat
+    next
                                         \ si-lst0 max
     \ Print Summary line.
     cr
@@ -126,74 +112,58 @@
     #46 spaces ." Totals: "
 
     \ Sum struct instances in use.
-    0 over list-get-links           \ si-lst0 cnt si-link
+    0 over                          \ si-lst0 cnt si-lst0 
 
-    begin
-        ?dup
-    while
+    foreach                         \ si-lst0 cnt si-link
         dup link-get-data           \ si-lst0 cnt si-link six
         structinfo-get-mma          \ si-lst0 cnt si-link mmax
         mma-in-use                  \ si-lst0 cnt si-link totx
         rot                         \ si-lst0 si-link totx cnt
         + swap                      \ si-lst0 cnt+ si-link
-
-        link-get-next
-    repeat
+    next
 
     \ Print array instances in use.
     #6 dec.r
 
     \ Sum array memory use.
-    0 over list-get-links           \ si-lst0 cnt si-link
+    0 over                          \ si-lst0 cnt si-lst0
 
-    begin
-        ?dup
-    while
+    foreach                         \ si-lst0 cnt si-link
         dup link-get-data           \ si-lst0 cnt si-link six
         structinfo-get-mma          \ si-lst0 cnt si-link mmax
         mma-get-array-memory-use    \ si-lst0 cnt si-link totx
         rot                         \ si-lst0 si-link totx cnt
         + swap                      \ si-lst0 cnt+ si-link
-
-        link-get-next
-    repeat
+    next
 
     \ Print array memory use.
     #30 spaces
     #7 dec.r
 
     \ Sum overhead memory use.
-    0 over list-get-links           \ si-lst0 cnt si-link
+    0 over                          \ si-lst0 cnt si-lst0
 
-    begin
-        ?dup
-    while
+    foreach                         \ si-lst0 cnt si-link
         dup link-get-data           \ si-lst0 cnt si-link six
         structinfo-get-mma          \ si-lst0 cnt si-link mmax
         mma-get-overhead-memory-use \ si-lst0 cnt si-link totx
         rot                         \ si-lst0 si-link totx cnt
         + swap                      \ si-lst0 cnt+ si-link
-
-        link-get-next
-    repeat
+    next
 
     \ Print overhead memory use.
     #11 spaces #7 dec.r
 
     \ Sum total memory use.
-    0 over list-get-links           \ si-lst0 cnt si-link
+    0 over                          \ si-lst0 cnt si-lst0
 
-    begin
-        ?dup
-    while
+    foreach                         \ si-lst0 cnt si-link
         dup link-get-data           \ si-lst0 cnt si-link six
         structinfo-get-mma          \ si-lst0 cnt si-link mmax
         mma-get-total-memory-use    \ si-lst0 cnt si-link totx
         rot                         \ si-lst0 si-link totx cnt
         + swap                      \ si-lst0 cnt+ si-link
-
-        link-get-next
-    repeat
+    next
 
     \ Print total memory use.
     #8 spaces
@@ -201,19 +171,15 @@
     cell / #8 spaces #7 dec.r
 
     \ Sum number allocations.
-    0 over list-get-links           \ si-lst0 cnt si-link
+    0 over                          \ si-lst0 cnt si-lst0
 
-    begin
-        ?dup
-    while
+    foreach                         \ si-lst0 cnt si-link
         dup link-get-data           \ si-lst0 cnt si-link six
         structinfo-get-mma          \ si-lst0 cnt si-link mmax
         _mma-get-num-allocations    \ si-lst0 cnt si-link allocx
         rot                         \ si-lst0 si-link allocx cnt
         + swap                      \ si-lst0 cnt+ si-link
-
-        link-get-next
-    repeat
+    next
 
     \ Print number allocations.
     #7 spaces #12 dec.r
@@ -247,11 +213,8 @@
 
     \ Check links and stores.
     structinfo-list-store           \ addr store
-    list-get-links                  \ addr lnk
 
-    begin
-        ?dup
-    while                           \ addr lnk
+    foreach                         \ addr lnk
         \ Check link.
         2dup =                      \ addr lnk bool
         if
@@ -268,9 +231,7 @@
             true
             exit
         then
-
-        link-get-next
-    repeat
+    next
                                     \ addr
     drop
     false
@@ -320,11 +281,9 @@
 
     \ Init error flag.
     0                                           \ snf-lst0 flg
-    over list-get-links                         \ snf-lst0 flg snf-link
+    over                                        \ snf-lst0 flg snf-lst0
 
-    begin
-        ?dup
-    while
+    foreach                                     \ snf-lst0 flg snf-link
         dup link-get-data                       \ snf-lst0 flg snf-link snfx
         dup structinfo-get-mma                  \ snf-lst0 flg snf-link snfx snf-mma
         swap structinfo-get-inst-id             \ snf-lst0 flg snf-link snf-mma snf-id
@@ -378,9 +337,7 @@
                 drop
             then
         endcase
-
-        link-get-next
-    repeat
+    next
                                     \ snf-lst flg
    if
         cr ." Memory leaks found!" abort
@@ -401,18 +358,13 @@
 
     \ Init count.
     dup list-get-length swap                \ cnt snf-lst0
-    list-get-links                          \ cnt snf-link
 
     \ Gather all mm array addresses.
-    begin
-        ?dup
-    while
+    foreach                                 \ cnt snf-link
         dup link-get-data                   \ cnt snf-link snfx
         structinfo-get-mma                  \ cnt snf-link snf-mma
         -rot                                \ snf-mma cnt snf-link
-
-        link-get-next
-    repeat
+    next
 
     \ Free each mm array.
                                             \ mma ... mma cnt
@@ -556,11 +508,7 @@
     assert( tos is-structinfo-list? )
     \ cr ." structinfolist-interpret-string: " #2 pick #2 pick type cr
 
-    list-get-links                      \ c-addr u link
-
-    begin
-        ?dup
-    while
+    foreach                             \ c-addr u link
         dup link-get-data               \ c-addr u link snfx
         structinfo-get-from-string-xt   \ c-addr u link xt
         [ ' noop ] literal              \ c-addr u link xt xt-nop
@@ -578,9 +526,7 @@
                 exit
             then
         then
-        link-get-next
-    repeat
-
+    next
                                         \ c-addr u
     2drop
     false
@@ -664,10 +610,7 @@
     \ dup structinfo-list-print-struct-list
     \ cr
 
-    list-get-links                  \ item link
-    begin
-        ?dup
-    while                           \ item link
+    foreach                         \ item link
         \ Look for link item match.
         over                        \ item link item
         over link-get-data          \ item link item link-data
@@ -677,9 +620,7 @@
             true
             exit
         then
-
-        link-get-next
-    repeat
+    next
 
     \ Cleanup, return.              \ item
     drop

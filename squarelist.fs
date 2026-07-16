@@ -55,6 +55,7 @@
     rot                 \ u list0 c-addr
     #2 pick             \ u list0 c-addr u
     type                \ u list0
+
     list-get-links      \ u lnk
 
     begin
@@ -87,11 +88,7 @@
     assert( nos is-square? )
     assert( 3os is-square? )
 
-    list-get-links          \ sqr2 sqr1 btw-lnk
-
-    begin
-        ?dup
-    while
+    foreach                 \ sqr2 sqr1 btw-lnk
         #2 pick #2 pick #2 pick \ sqr2 sqr1 btw-lnk sqr2 sqr1 btw-lnk
         link-get-data           \ sqr2 sqr1 btw-lnk sqr2 sqr1 sqrx
         square-between?         \ sqr2 sqr1 btw-lnk bool
@@ -100,9 +97,7 @@
             true
             exit
         then
-
-        link-get-next
-    repeat
+    next
                             \ sqr2 sqr1
     2drop
     false
@@ -119,11 +114,9 @@
 
     \ Init return list.
     list-new                \ sqr2 btw1 sqr-lst0 ret-lst
-    swap list-get-links     \ sqr2 btw1 ret-lst lnk
+    swap                    \ sqr2 btw1 ret-lst sqr-lst0
 
-    begin
-        ?dup
-    while
+    foreach                 \ sqr2 btw1 ret-lst lnk
         #3 pick                 \ sqr2 btw1 ret-lst lnk sqr2
         over link-get-data      \ sqr2 btw1 ret-lst lnk sqr2 sqrx
         #4 pick                 \ sqr2 btw1 ret-lst lnk sqr2 btwx
@@ -133,9 +126,7 @@
             #2 pick             \ sqr2 btw1 ret-lst lnk sqrx ret-lst
             list-push-struct    \ sqr2 btw1 ret-lst lnk
         then
-
-        link-get-next
-    repeat
+    next
                             \ sqr2 sqr1 ret-lst
     nip nip
 ;
@@ -147,12 +138,7 @@
     over 0< abort" Invalid pn value"
     over #2 > abort" Invalid pn value"
 
-    \ Prep for loop.
-    list-get-links          \ pn1 sqr-lnk
-
-    begin
-        ?dup
-    while
+    foreach                 \ pn1 sqr-lnk
         over                \ pn1 sqr-lnk pn1
         over link-get-data  \ pn1 sqr-lnk pn1 sqrx
         square-get-pn       \ pn1 sqr-lnk pn1 sqr-pn
@@ -161,9 +147,7 @@
             true
             exit
         then
-
-        link-get-next
-    repeat
+    next
                             \ pn1
     drop
     false
@@ -231,11 +215,7 @@
 
     \ Check every possible pair.
     \ For each pair, at least one must have the base pn, if so compare them.
-    list-get-links                      \ pn inc-lst sqr-lnk
-
-    begin
-        ?dup
-    while
+    foreach                             \ pn inc-lst sqr-lnk
         \ Check if loop 1 square pn is equal to the base pn.
         dup link-get-data               \ pn inc-lst sqr-lnx sqr1
         square-get-pn                   \ pn inc-lst sqr-lnx pn1
@@ -287,8 +267,7 @@
         repeat
                                             \ pn inc-lst sqr-lnx bool1
         drop                                \ pn inc-lst sqr-lnx
-        link-get-next
-    repeat
+    next
                                             \ pn inc-lst
     nip                                     \ inc-lst
 
@@ -344,18 +323,12 @@
     then
 
     \ Get highest pn value
-    dup square-list-base-pn swap    \ pn sqr-lst
-
-    \ Prep for loop.
-    list-get-links                  \ pn link
+    dup square-list-base-pn swap        \ pn sqr-lst
 
     \ Set ruturn region to null.
-    0 swap                          \ pn reg link
+    0 swap                              \ pn reg sqr-lst
 
-    \ Scan square list.
-    begin
-        ?dup
-    while
+    foreach                             \ pn reg link
         \ Check if square pn is equal to the max pn of the list.
         dup link-get-data               \ pn reg link sqr
         dup square-get-pn               \ pn reg link sqr s-pn
@@ -387,9 +360,7 @@
         else
             drop
         then
-
-        link-get-next           \ pn reg link
-    repeat
+    next
                                 \ pn reg
     nip                         \ reg
     true
@@ -400,12 +371,7 @@
     \ Check arg.square-list-
     assert( tos is-square-list? )
 
-    \ Prep for loop.
-    list-get-links          \ pn sqr-lnk
-
-    begin
-        ?dup
-    while
+    foreach                 \ pn sqr-lnk
         dup link-get-data   \ pn sqr-lnk sqrx
         square-get-pn       \ pn sqr-lnk s-pn
         #2 pick             \ pn sqr-lnk s-pn pn
@@ -415,8 +381,7 @@
             true
             exit
         then
-        link-get-next
-    repeat
+    next
                             \ pn
     drop
     false
@@ -444,11 +409,7 @@
     dup square-list-base-pn swap        \ bpn sqr-lst0
 
     \ Check every possible pair, when at least one has the base pn, compare them.
-    list-get-links                      \ bpn sqr-lnk
-
-    begin
-        ?dup
-    while
+    foreach                             \ bpn sqr-lnk
         \ Check if loop 1 square pn is equal to the base pn.
         dup link-get-data               \ bpn sqr-lnx sqr1
         square-get-pn                   \ bpn sqr-lnx pn1
@@ -486,8 +447,7 @@
         repeat
                                         \ bpn sqr-lnx bool1
         drop                            \ bpn sqr-lnx
-        link-get-next
-    repeat
+    next
                                         \ bpn
     drop
     true
@@ -541,11 +501,7 @@
     list-copy-struct                    \ max-pn sqr-lst0 rul-lst
     -rot                                \ rul-lst max-pn sqr-lst0
 
-    \ Prep for loop
-    list-get-links                      \ rul-lst max-pn link
-    begin
-        ?dup
-    while
+    foreach                             \ rul-lst max-pn link
         \ Check if the current square pn is equal to the max-pn.
         dup link-get-data               \ rul-lst max-pn link sqr
         square-get-pn                   \ rul-lst max-pn link sqr-pn
@@ -573,9 +529,7 @@
                 exit
             then
         then
-
-        link-get-next
-    repeat
+    next
                                         \ rul-lst max-pn
     drop                                \ rul-lst
     true
@@ -610,12 +564,7 @@
     dup square-list-base-pn     \ sqr1 sqr-lst0 bpn
     -rot                        \ bpn sqr1 sqr-lst0
 
-    \ Prep for loop.
-    list-get-links              \ bpn sqr1 sqr-lnk
-
-    begin
-        ?dup
-    while
+    foreach                     \ bpn sqr1 sqr-lnk
         dup link-get-data       \ bpn sqr1 sqr-lnk sqrx
         square-get-pn           \ bpn sqr1 sqr-lnk spn
         #3 pick                 \ bpn sqr1 sqr-lnk spn bpn
@@ -631,9 +580,7 @@
                 exit
             then
         then
-
-        link-get-next
-    repeat
+    next
                                 \ bpn sqr1
     2drop
     true
@@ -654,13 +601,7 @@
     \ Init return list.
     list-new swap                   \ ret-lst sqr-lst
 
-    \ Prep for loop.
-    list-get-links                  \ ret-lst link
-
-    \ Scan square list.
-    begin
-        ?dup
-    while
+    foreach                         \ ret-lst link
         \ Check if square is pnc.
         dup link-get-data           \ ret-lst link sqr
         square-get-pnc              \ ret-lst link s-pnc
@@ -669,9 +610,7 @@
             #2 pick                 \ ret-lst link sqr ret-lst
             list-push-struct        \ ret-lst link
         then
-
-        link-get-next               \ ret-lst link
-    repeat
+    next
                                     \ ret-lst
     dup list-is-empty?
     if

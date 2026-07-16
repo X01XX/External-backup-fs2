@@ -52,12 +52,7 @@
     0 swap                          \ max tkn-lst
     0 swap                          \ max cnt tkn-lst
 
-    \ Prep for loop.
-    list-get-links                  \ max cnt link
-
-    begin
-        ?dup
-    while
+    foreach                         \ max cnt link
         \ Check for left paren.
         s" ("                       \ max cnt link c-addr u
         #2 pick link-get-data       \ max cnt link c-addr u tkt
@@ -81,9 +76,7 @@
             \ Dec paren counter.
             swap 1- swap
         then
-
-        link-get-next
-    repeat
+    next
                                     \ max cnt
     drop
 ;
@@ -268,12 +261,9 @@
     \ Init counter.
     0                               \ ret-lst cnt
 
-    \ Prep for loop.
-    over list-get-links             \ ret-lst cnt link
+    over                            \ ret-lst cnt ret-lst
 
-    begin
-        ?dup
-    while
+    foreach                         \ ret-lst cnt link
         \ Check for left paren.
         s" ("                       \ ret-lst cnt link c-addr u
         #2 pick link-get-data       \ ret-lst cnt link c-addr u tkt
@@ -302,9 +292,7 @@
 
             swap                    \ ret-lst cnt- link
         then
-
-        link-get-next
-    repeat
+    next
 
     \ Check paren counter eq zero.  \ ret-lst cnt
     0= if
@@ -323,12 +311,7 @@
     \ Init counter.
     0 swap                          \ cnt tkn-lst
 
-    \ Prep for loop.
-    list-get-links                  \ cnt maxlink
-
-    begin
-        ?dup
-    while
+    foreach                         \ cnt maxlink
         \ Check for left paren.
         s" ("                       \ cnt link c-addr u
         #2 pick link-get-data       \ cnt link c-addr u tkt
@@ -345,8 +328,6 @@
                 swap 1+ swap
             then
         then
-
-        link-get-next
-    repeat
+    next
                                     \ cnt
 ;

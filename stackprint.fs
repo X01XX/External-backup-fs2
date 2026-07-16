@@ -25,11 +25,8 @@
             \ Look up possible unallocated struct.
             drop                                        \ addr
             structinfo-list-store                       \ addr snf-lst
-            list-get-links                              \ addr snf-link
 
-            begin
-                ?dup
-            while
+            foreach                                     \ addr snf-link
                 dup link-get-data                       \ addr snf-link snf
                 #2 pick swap                            \ addr snf-link addr snf
                 structinfo-get-mma-xt execute           \ addr snf-link addr mma
@@ -42,9 +39,7 @@
                     ." -u"
                     exit
                 then
-
-                link-get-next
-            repeat
+            next
                                                         \ addr
             \ Default
             dup abs 0 <# #S rot sign #> type            \

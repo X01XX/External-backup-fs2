@@ -83,6 +83,9 @@ list-header-disp    cell+   constant list-links-disp
     list-links-disp + @
 ;
 
+\ Make simple loops, with next word, using less typing.
+: foreach ( list -- next-link | end loop ) postpone list-get-links postpone begin postpone ?dup postpone while ; immediate
+
 \ Set list links, use only in this file.
 : _list-set-links ( links-value list-addr -- )
     list-links-disp + !
@@ -276,10 +279,7 @@ list-header-disp    cell+   constant list-links-disp
     \ Check arg.
     assert( tos is-list? )
 
-    list-get-links              \ xt item link
-    begin
-        ?dup
-    while                       \ xt item link
+    foreach                     \ xt item link
         dup link-get-data       \ xt item link link-data
 
         \ Check for sub-list.
@@ -296,9 +296,7 @@ list-header-disp    cell+   constant list-links-disp
             true
             exit
         then
-
-        link-get-next       \ xt item link-next
-    repeat
+    next
 
     \ Cleanup, return.      \ xt item
     2drop
@@ -309,10 +307,7 @@ list-header-disp    cell+   constant list-links-disp
     \ Check arg.
     assert( tos is-list? )
 
-    list-get-links              \ xt item link
-    begin
-        ?dup
-    while                       \ xt item link
+    foreach                     \ xt item link
         dup link-get-data       \ xt item link link-data
 
         \ Check for sub-list.
@@ -337,9 +332,7 @@ list-header-disp    cell+   constant list-links-disp
                 exit
             then
         then
-
-        link-get-next       \ xt item link-next
-    repeat
+    next
 
     \ Cleanup, return.      \ xt item
     2drop
@@ -364,10 +357,7 @@ list-header-disp    cell+   constant list-links-disp
         exit
     then
 
-    list-get-links              \ xt item link
-    begin
-        ?dup
-    while                       \ xt item link
+    foreach                     \ xt item link
         2dup                    \ xt item link item link
         link-get-data           \ xt item link item link-data
 
@@ -383,9 +373,7 @@ list-header-disp    cell+   constant list-links-disp
             true
             exit
         then
-
-        link-get-next           \ xt item link
-    repeat
+    next
 
     \ Cleanup, return false.    \ xt item
     2drop
@@ -407,10 +395,7 @@ list-header-disp    cell+   constant list-links-disp
         exit
     then
 
-    list-get-links              \ xt item link
-    begin
-        ?dup
-    while                       \ xt item link
+    foreach                     \ xt item link
         2dup                    \ xt item link item link
         link-get-data           \ xt item link item link-data
 
@@ -436,9 +421,7 @@ list-header-disp    cell+   constant list-links-disp
                 exit
             then
         then
-
-        link-get-next           \ xt item link
-    repeat
+    next
 
     \ Cleanup, return false.    \ xt item
     2drop
@@ -453,17 +436,12 @@ list-header-disp    cell+   constant list-links-disp
     assert( nos is-list? )
 
     swap                    \ lst0 lst1
-    list-get-links          \ lst0 link
 
-    begin
-        ?dup
-    while
+    foreach                 \ lst0 link
         dup link-get-data   \ lst0 link data
         #2 pick             \ lst0 link data lst0
         list-push           \ lst0 link
-
-        link-get-next
-    repeat
+    next
                             \ lst0
     drop
 ;
@@ -753,6 +731,7 @@ list-header-disp    cell+   constant list-links-disp
     begin
         dup                 \ ret xt item link link
     while                   \ ret xt item link
+
         2dup                \ ret xt item link item link
         link-get-data       \ ret xt item link item link-data
 
@@ -792,10 +771,7 @@ list-header-disp    cell+   constant list-links-disp
         exit
     then
 
-    list-get-links          \ ret xt item first-link
-    begin
-        dup                 \ ret xt item link link
-    while                   \ ret xt item link
+    foreach                 \ ret xt item first-link
         2dup                \ ret xt item link item link
         link-get-data       \ ret xt item link item link-data
 
@@ -820,10 +796,7 @@ list-header-disp    cell+   constant list-links-disp
                 list-push           \ ret xt item link
             then
         then
-
-
-        link-get-next       \ ret xt item link-next
-    repeat
+    next
 
     \ Cleanup.
     drop 2drop              \ ret-list
@@ -844,10 +817,9 @@ list-header-disp    cell+   constant list-links-disp
     list-new                   \ xt list1 list0 list-ret
 
     \ Get first link of list1, if any.
-    rot list-get-links          \ xt list0 list-ret link1
-    begin
-        dup                     \ xt list0 list-ret link1 link1
-    while                       \ Check for link1 addr == zero.
+    rot                         \ xt  list0 list-ret list1
+
+    foreach                     \ xt list0 list-ret link1
                                 \ xt list0 list-ret link1
         #3 pick                 \ xt list0 list-ret link1 xt
         over link-get-data      \ xt list0 list-ret link1 xt data1
@@ -859,11 +831,10 @@ list-header-disp    cell+   constant list-links-disp
             #2 pick             \ xt list0 list-ret link1 data1 list-ret
             list-push           \ xt list0 list-ret link1
         then
-                                \ xt list0 list-ret link1
-        link-get-next           \ xt list0 list-ret link1-next
-    repeat
-    \ xt list0 list-ret 0
-    drop nip nip                \ list-ret
+    next
+
+                                \ xt list0 list-ret
+    nip nip                     \ list-ret
 ;
 
 \ Return the union of two lists.
@@ -881,11 +852,8 @@ list-header-disp    cell+   constant list-links-disp
     list-new                    \ xt list1 list0 list-ret
 
     \ Get list0 items
-    swap list-get-links         \ xt list1 list-ret links0
-    begin
-        dup                     \ xt list1 list-ret link0 link0
-    while                       \ Check for link1 addr == zero.
-                                \ xt list1 list-ret link0
+    swap                        \ xt list1 list-ret list0
+    foreach                     \ xt list1 list-ret link0
         #3 pick                 \ xt list1 list-ret link0 xt
         over link-get-data      \ xt list1 list-ret link0 xt data0
         #3 pick                 \ xt list1 list-ret link0 xt data0 list-ret
@@ -896,16 +864,12 @@ list-header-disp    cell+   constant list-links-disp
             #2 pick             \ xt list1 list-ret link0 data0 list-ret
             list-push           \ xt list1 list-ret link0
         then
-        link-get-next           \ xt list1 list-ret link0-next
-    repeat
-                                \ xt list1 list-ret 0
-    drop                        \ xt list1 list-ret
+    next
+                                \ xt list1 list-ret
 
     \ Get list1 items
-    swap list-get-links         \ xt list-ret links1
-    begin
-        dup                     \ xt list-ret link1 link1
-    while                       \ Check for link1 addr == zero.
+    swap                        \ xt list-ret list1
+    foreach                     \ xt list-ret link1
                                 \ xt list-ret link1
         #2 pick                 \ xt list-ret link1 xt
         over link-get-data      \ xt list-ret link0 xt data1
@@ -917,10 +881,9 @@ list-header-disp    cell+   constant list-links-disp
             #2 pick             \ xt list-ret link1 data1 list-ret
             list-push           \ xt list-ret link1
         then
-        link-get-next           \ xt list-ret link1-next
-    repeat
-                                \ xt list-ret 0
-    drop nip                    \ list-ret
+    next
+                                \ xt list-ret
+    nip                         \ list-ret
 ;
 
 \ Apply a function to each item in a list.
@@ -929,17 +892,12 @@ list-header-disp    cell+   constant list-links-disp
     \ Check arg.
     assert( tos is-list? )
 
-    list-get-links              \ xt links0
-    begin
-        ?dup
-    while
+    foreach                     \ xt links0
         dup link-get-data       \ xt link0 data0
 
         #2 pick                 \ xt link0 data0 xt
         execute                 \ xt link0
-
-        link-get-next           \ xt link-next
-    repeat
+    next
                                 \ xt
     drop
 ;
@@ -951,10 +909,7 @@ list-header-disp    cell+   constant list-links-disp
     \ Check arg.
     assert( tos is-list? )
 
-    list-get-links              \ xt links0
-    begin
-        ?dup
-    while
+    foreach                     \ xt links0
         dup link-get-data       \ xt link0 data0
 
         #2 pick                 \ xt link0 data0 xt
@@ -965,9 +920,7 @@ list-header-disp    cell+   constant list-links-disp
             false
             exit
         then
-
-        link-get-next           \ xt link-next
-    repeat
+    next
                                 \ xt
     drop
     true
@@ -980,10 +933,7 @@ list-header-disp    cell+   constant list-links-disp
     \ Check arg.
     assert( tos is-list? )
 
-    list-get-links              \ xt links0
-    begin
-        ?dup
-    while
+    foreach                     \ xt links0
         dup link-get-data       \ xt link0 data0
 
         #2 pick                 \ xt link0 data0 xt
@@ -993,9 +943,7 @@ list-header-disp    cell+   constant list-links-disp
             true
             exit
         then
-
-        link-get-next           \ xt link-next
-    repeat
+    next
                                 \ xt
     drop
     false
@@ -1007,10 +955,7 @@ list-header-disp    cell+   constant list-links-disp
     \ Check arg.
     assert( tos is-list? )
 
-    list-get-links              \ xt links0
-    begin
-        ?dup
-    while
+    foreach                     \ xt links0
         dup link-get-data       \ xt link0 data0
 
         \ Check for sub-list.
@@ -1023,9 +968,7 @@ list-header-disp    cell+   constant list-links-disp
             #2 pick             \ xt link0 data0 xt
             execute             \ xt link0
         then
-
-        link-get-next           \ xt link-next
-    repeat
+    next
                                 \ xt
     drop
 ;
@@ -1044,10 +987,8 @@ list-header-disp    cell+   constant list-links-disp
     list-new                   \ xt list1 list0 list-ret
 
     \ Get first link of list1, if any.
-    rot list-get-links          \ xt list0 list-ret link1
-    begin
-        dup                     \ xt list0 list-ret link1 link1
-    while                       \ Check for link1 addr == zero.
+    rot                         \ xt list0 list-ret list1
+    foreach                     \ xt list0 list-ret link1
                                 \ xt list0 list-ret link1
         #3 pick                 \ xt list0 list-ret link1 xt
         over link-get-data      \ xt list0 list-ret link1 xt data1
@@ -1069,11 +1010,9 @@ list-header-disp    cell+   constant list-links-disp
               list-push         \ xt list0 list-ret link1
             then
         then
-                                \ xt list0 list-ret link1
-        link-get-next           \ xt list0 list-ret link1-next
-    repeat
-    \ xt list0 list-ret 0
-    drop nip nip                \ list-ret
+    next
+                                \ xt list0 list-ret
+    nip nip
 ;
 
 \ Return a data item, based on an index into a list.
@@ -1164,11 +1103,8 @@ list-header-disp    cell+   constant list-links-disp
     begin
         \ Go through a list once.  Return true if any pairs have been swapped.
         false                           \ xt list bool
-        over list-get-links             \ xt list bool link
-
-        begin
-            ?dup
-        while
+        over                            \ xt list bool list
+        foreach                         \ xt list bool link
             dup link-get-next           \ xt list bool link link+
             ?dup
             if
@@ -1190,13 +1126,11 @@ list-header-disp    cell+   constant list-links-disp
                     drop                \ xt list bool link
                 then
             then
-
-            link-get-next               \ xt list bool link
-        repeat
-                                    \ xt list bool
+        next
+                                        \ xt list bool
         0=
     until
-                                    \ xt list
+                                        \ xt list
     2drop
 ;
 
@@ -1209,26 +1143,24 @@ list-header-disp    cell+   constant list-links-disp
     over 0< abort" list-copy-except: index negative?"
     over over list-get-length < 0= abort" list-copy-except: index out of range?"
 
-    list-get-links                  \ new-item2 index1 link
-    list-new -rot                   \ new-item2 lst-new index1 link
-    begin
-        ?dup
-    while
+    \ Init return list.
+    list-new -rot                   \ new-item2 ret-lst index1 lst0
+
+    foreach                         \ new-item2 ret-lst index1 link
         over
         if
-            dup link-get-data       \ new-item2 lst-new index1 link data
-            #3 pick                 \ new-item2 lst-new index1 link data lst-new
-            list-push-end           \ new-item2 lst-new index1 link
+            dup link-get-data       \ new-item2 ret-lst index1 link data
+            #3 pick                 \ new-item2 ret-lst index1 link data ret-lst
+            list-push-end           \ new-item2 ret-lst index1 link
         else
-            #3 pick #3 pick         \ new-item2 lst-new index1 link new-item2 lst-new
-            list-push-end           \ new-item2 lst-new index1 link
+            #3 pick #3 pick         \ new-item2 ret-lst index1 link new-item2 ret-lst
+            list-push-end           \ new-item2 ret-lst index1 link
         then
 
         \ Dec index.
         swap 1- swap
-        link-get-next
-    repeat
-                                    \ new-item2 lst-new index1
+    next
+                                    \ new-item2 ret-lst index1
     drop nip
 ;
 
@@ -1241,12 +1173,7 @@ list-header-disp    cell+   constant list-links-disp
     \ Init return list.
     list-new swap               \ ret-lst lst0
 
-    \ Prep for loop.
-    list-get-links              \ ret-lst lst-link
-
-    begin
-        ?dup
-    while
+    foreach                     \ ret-lst lst-link
         dup link-get-data       \ ret-lst lst-link lst-dat
         dup is-list?            \ ret-lst lst-link lst-dat bool
         if
@@ -1254,9 +1181,7 @@ list-header-disp    cell+   constant list-links-disp
         then
         #2 pick                 \ ret-lst lst-link lst-dat ret-lst
         list-push-end           \ ret-lst lst-link
-
-        link-get-next
-    repeat
+    next
                                 \ ret-lst
 ;
 
@@ -1277,11 +1202,7 @@ list-header-disp    cell+   constant list-links-disp
     over list-push                  \ lst0 tmp-lst
     swap                            \ tmp-lst lst0
 
-    list-get-links                  \ tmp-lst link ( each sub-list )
-
-    begin
-        ?dup
-    while
+    foreach                         \ tmp-lst link ( each sub-list )
         dup link-get-data           \ tmp-lst link sub-lst
 
         \ Init templat link next.
@@ -1289,22 +1210,14 @@ list-header-disp    cell+   constant list-links-disp
 
         dup list-is-empty? abort" empty list?"
 
-        \ Prep for loop.
-        list-get-links              \ tmp-lst link lst-next sub-link
-
-        begin
-            ?dup
-        while
+        foreach                     \ tmp-lst link lst-next sub-link
             \ For each item in the current item list.
             dup link-get-data       \ tmp-lst link lst-next sub-link cur-itm
 
             \ For each item in the current template.
             #4 pick                 \ tmp-lst link lst-next sub-link cur-itm tmp-lst
-            list-get-links          \ tmp-lst link lst-next sub-link cur-itm tmp-link
 
-            begin
-                ?dup
-            while
+            foreach                 \ tmp-lst link lst-next sub-link cur-itm tmp-link
                 dup link-get-data   \ tmp-lst link lst-next sub-link cur-itm tmp-link tmp-lst
 
                 \ Copy current template list.
@@ -1318,23 +1231,17 @@ list-header-disp    cell+   constant list-links-disp
                 dup struct-inc-use-count
                 #4 pick             \ tmp-lst link lst-next sub-link cur-itm tmp-link new-lst lst-next
                 list-push-end       \ tmp-lst link lst-next sub-link cur-itm tmp-link
-
-                link-get-next
-            repeat
+            next
                                     \ tmp-lst link lst-next sub-link cur-itm
             drop                    \ tmp-lst link lst-next sub-link
-
-            link-get-next
-        repeat
+        next
                                     \ tmp-lst link lst-next
 
         \ Swap tmp-old-lst with tmp-new-lst
         rot                         \ link lst-next tmp-lst
         list-deallocate-recursive   \ link lst-next
         swap                        \ lst-next link
-
-        link-get-next
-    repeat
+    next
                                     \ tmp-lst
 ;
 
@@ -1357,19 +1264,15 @@ list-header-disp    cell+   constant list-links-disp
 
     \ Init product.
     1                       \ lst0 prd
-    swap list-get-links     \ prd link
+    swap                    \ prd lst0
 
-    begin
-        ?dup
-    while
+    foreach                 \ prd link
         dup link-get-data   \ prd link lstx
         list-get-length     \ prd link lenx
         rot                 \ link lenx prd
         *                   \ link prd-next
         swap                \ prd link
-
-        link-get-next
-    repeat
+    next
                             \ prd
 ;
 
@@ -1406,22 +1309,11 @@ list-header-disp    cell+   constant list-links-disp
     \ Init return list.
     list-new swap               \ ret-lst lst0
 
-    \ Prep for loop.
-    list-get-links              \ ret-lst lst-link
-
-    begin
-        ?dup
-    while
+    foreach                     \ ret-lst lst-link
         dup link-get-data       \ ret-lst lst-link elemx
         #2 pick                 \ ret-lst lst-link elemx ret-lst
         list-push               \ ret-lst lst-link
-
-        link-get-next
-    repeat
+    next
                                 \ ret-lst
 ;
-
-\ Make simple loops, using less typing.
-: foreach ( list -- next-link | end loop ) postpone list-get-links postpone begin postpone ?dup postpone while ; immediate
-: next ( link -- next-link ) postpone link-get-next postpone repeat ; immediate
 

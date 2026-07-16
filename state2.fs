@@ -64,12 +64,7 @@
     region-list-max-x                       \ anc sta-lst ret-lst
     swap                                    \ anc ret-lst sta-lst
 
-    \ Prep for loop.
-    list-get-links                          \ anc ret-lst lnk
-
-    begin
-        ?dup
-    while
+    foreach                                 \ anc ret-lst lnk
         \ Get ~a + ~b.
         dup link-get-data                   \ anc ret-lst lnk stax
         #3 pick                             \ anc ret-lst lnk stax anc
@@ -84,9 +79,7 @@
         \ Replace old return list.
         rot region-list-deallocate          \ anc lnk ret-lst-new'
         swap                                \ anc ret-lst-new' lnk
-
-        link-get-next
-    repeat
+    next
                                             \ anc ret-lst
     nip
 ;
@@ -101,11 +94,7 @@
     region-list-max-x                       \ crn-lst0 ret-lst
     swap                                    \ ret-lst crn-lst0
 
-    list-get-links                          \ ret-lst lnk
-
-    begin
-        ?dup
-    while
+    foreach                                 \ ret-lst lnk
         dup link-get-data                   \ ret-lst lnk crnx
         state-regions-from-corner           \ ret-lst lnk reg-lst'
 
@@ -118,8 +107,6 @@
         \ Replace old return list.
         rot region-list-deallocate          \ lnk ret-lst-new
         swap                                \ ret-lst-new lnk
-
-        link-get-next
-    repeat
+    next
                                             \ ret-lst
 ;
