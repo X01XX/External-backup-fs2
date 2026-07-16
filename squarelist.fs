@@ -648,9 +648,9 @@
         [ ' square-state-eq? ] literal  \ sqr-lst0 cnt sta-lnk xt
         over link-get-data              \ sqr-lst0 cnt sta-lnk xt stax
         #4 pick                         \ sqr-lst0 cnt sta-lnk xt stax sqr-lst0
-        list-remove-struct              \ sqr-lst0 cnt sta-lnk, sqr t | f
+        list-remove                     \ sqr-lst0 cnt sta-lnk, sqr t | f
         if
-            drop                        \ sqr-lst0 cnt sta-lnk
+            square-deallocate           \ sqr-lst0 cnt sta-lnk
             \ Inc counter.
             swap 1+ swap
         then

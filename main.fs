@@ -182,11 +182,11 @@ list-new to structinfo-list-store
     sample-tests
     state-list-tests
     region-list-tests
-    corner-tests
     square-list-tests
     action-tests
     group-tests
 \    domain-tests
+    corner-tests
     cr
 ;
 

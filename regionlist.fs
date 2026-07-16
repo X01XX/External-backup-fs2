@@ -789,7 +789,7 @@
 
     [ ' region-superset? ] literal  \ reg1 reg-lst0 xt
     -rot                            \ xt reg1 reg-lst0
-    list-find-all                   \ reg-lst
+    list-find-all-struct            \ reg-lst
 ;
 
 \ Return a list of states used to define regions in a region-list.
@@ -828,5 +828,14 @@
         then
 
     next
+;
+
+\ Return true if a region-list contains a subset, or equal, region.
+: region-list-any-subset-of? ( reg1 list0 -- bool )
+    \ Check args.
+    assert( tos is-region-list? )
+    assert( nos is-region? )
+
+    [ ' region-subset? ] literal -rot list-member?
 ;
 

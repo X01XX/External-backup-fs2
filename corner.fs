@@ -78,10 +78,10 @@ corner-other-squares-disp       cell+   constant corner-possible-regions-disp   
 ;
 
 \ Set the square-pairs field from a corner instance, use only in this file.
-: _corner-set-square-pairs ( sqr1 crn0 -- )
+: _corner-set-square-pairs ( reg-lst1 crn0 -- )
     \ Check args.
     assert( tos is-corner? )
-    assert( nos is-square? )
+    assert( nos is-region-list? )
 
     corner-square-pairs-disp +      \ Add offset.
     !struct                         \ Set the field.
@@ -204,7 +204,7 @@ corner-other-squares-disp       cell+   constant corner-possible-regions-disp   
     dup corner-get-anchor-square        \ crn0 sta
     .square-state                       \ crn0
 
-    ." square pairs: "
+    space ." square pairs: "
     dup corner-get-square-pairs         \ crn0 s-pr-lst
     .region-list                        \ crn0
 
@@ -216,7 +216,7 @@ corner-other-squares-disp       cell+   constant corner-possible-regions-disp   
     dup corner-get-other-squares        \ crn0 ext-sta-lst
     .square-list-states                 \ crn0
 
-    ." possible regions: "
+    space ." possible regions: "
     dup corner-get-possible-regions     \ crn0 ext-sta-lst
     .region-list                        \ crn0
 
@@ -237,6 +237,7 @@ corner-other-squares-disp       cell+   constant corner-possible-regions-disp   
     if
         2drop
         true
+        cr ." corner-uses-square?: " dup .bool cr
         exit
     then
 
@@ -244,6 +245,7 @@ corner-other-squares-disp       cell+   constant corner-possible-regions-disp   
     swap square-get-state swap      \ sta1 crn0
     corner-get-square-pairs         \ sta1 pr-lst
     region-list-uses-state?         \ bool
+    cr ." corner-uses-square?: " dup .bool cr
 ;
 
 \ Return true if any similar, or dissimilar, square is not currently used
@@ -259,14 +261,23 @@ corner-other-squares-disp       cell+   constant corner-possible-regions-disp   
     if
         2dup
         false
+        cr ." corner-can-square-be-added?: 1: " dup .bool cr
         \ cr ." exit 1" cr
         exit
     then
 
-    \ Check if square is within any square-pair.
+    \ Check if square anchor region is a superset of anf square pair.
     swap square-get-state                   \ crn0 sta1
-    swap corner-get-square-pairs            \ sta1 pr-lst
-    region-list-any-superset-state?         \ bool
+    over corner-get-anchor-state            \ crn0 sta1 anc-sta
+    region-new                              \ crn0 reg'
+    tuck                                    \ reg' crn0 reg'
+    swap corner-get-square-pairs            \ reg' reg' pr-lst
+    region-list-any-subset-of? invert       \ reg' bool
+
+    \ Clean up.
+    swap region-deallocate                  \ bool
+    
+    cr ." corner-can-square-be-added?: 2: " dup .bool cr
 ;
 
 \ Update corner square-pairs with new pairs.
@@ -356,6 +367,7 @@ corner-other-squares-disp       cell+   constant corner-possible-regions-disp   
 \ The square may be pnc, or need more samples.
 \ The square may, or may not, be adjacent to the anchor square, although adjacent is preferable.
 : corner-add-dissimilar-square ( sqr1 crn0 -- )
+    cr ." corner-add-dissimilar-square: start"
     \ Check args.
     assert( tos is-corner? )
     assert( nos is-square? )
@@ -423,6 +435,7 @@ corner-other-squares-disp       cell+   constant corner-possible-regions-disp   
 \ The square may be pnc, or need more samples.
 \ The square may, or may not, be adjacent to the anchor square, although adjacent is preferable.
 : corner-add-other-square ( sqr1 crn0 -- )
+    cr ." corner-add-other-square: start" cr
     \ Check args.
     assert( tos is-corner? )
     assert( nos is-square? )
@@ -480,6 +493,7 @@ corner-other-squares-disp       cell+   constant corner-possible-regions-disp   
 \ Add a square to a corner, if possible.
 \ Return true if added.
 : corner-add-square ( sqr1 crn0 -- bool )
+    cr ." corner-add-square: start" cr
     \ Check args.
     assert( tos is-corner? )
     assert( nos is-square? )
