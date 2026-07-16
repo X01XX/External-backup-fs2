@@ -266,10 +266,10 @@ corner-other-squares-disp       cell+   constant corner-possible-regions-disp   
         exit
     then
 
-    \ Check if square anchor region is a superset of anf square pair.
+    \ Check if square anchor region is a superset of any square pair.
     swap square-get-state                   \ crn0 sta1
     over corner-get-anchor-state            \ crn0 sta1 anc-sta
-    region-new                              \ crn0 reg'
+    region-new                              \ crn0 reg'         \ anchor state is state-0 in region.
     tuck                                    \ reg' crn0 reg'
     swap corner-get-square-pairs            \ reg' reg' pr-lst
     region-list-any-subset-of? invert       \ reg' bool
@@ -328,7 +328,7 @@ corner-other-squares-disp       cell+   constant corner-possible-regions-disp   
     drop ." todo"
 ;
 
-\ Recalculate possible-regions from square-pairs.
+\ Recalculate possible-regions from dissimilar square-pairs.
 \ When a close dissimilar square becomes similar, or a similar
 \ square is between the anchor and a dissimilar square.
 \ A closer dissimilar square requires only one intersection with
@@ -338,28 +338,40 @@ corner-other-squares-disp       cell+   constant corner-possible-regions-disp   
     assert( tos is-corner? )
 
     \ Init new possible regions list.
-    dup corner-get-num-bits                 \ crn0 nb
-    region-list-max-x                       \ crn0 pos-lst'
+    dup corner-get-num-bits                     \ crn0 nb
+    region-list-max-x                           \ crn0 pos-lst'
 
-    over corner-get-square-pairs            \ crn0 pos-lst' pr-lst
+    over corner-get-square-pairs                \ crn0 pos-lst' pr-lst
 
-    foreach                                 \ crn0 pos-lst' pr-lnk
-        \ Get pair possible regions.
-        dup link-get-data                   \ crn0 pos-lst' pr-lnk regx
-        dup region-get-state-0              \ crn0 pos-lst' pr-lnk regx sta0
-        swap region-get-state-1             \ crn0 pos-lst' pr-lnk sta0 sta1
-        state-~a+~b                         \ crn0 pos-lst' pr-lnk pr-lst'
+    foreach                                     \ crn0 pos-lst' pr-lnk
+        dup link-get-data                       \ crn0 pos-lst' pr-lnk regx
 
-        \ Update poss-lst.
-        #2 pick                             \ crn0 pos-lst' pr-lnk pr-lst' pos-lst'
-        over                                \ crn0 pos-lst' pr-lnk pr-lst' pos-lst' pr-lst'
-        region-list-intersections-nosubs    \ crn0 pos-lst' pr-lnk pr-lst' new-pos-lst'
-        swap region-list-deallocate         \ crn0 pos-lst' pr-lnk new-pos-lst'
-        rot region-list-deallocate          \ crn0 pr-lnk new-pos-lst'
-        swap                                \ crn0 new-pos-lst' pr-lnk
+        \ Check if pair is dissimilar.
+        region-get-state-1                      \ crn0 pos-lst' pr-lnk sta1         \ The other square's state.
+        #3 pick                                 \ crn0 pos-lst' pr-lnk sta1 crn0
+        corner-get-dissimilar-squares           \ crn0 pos-lst' pr-lnk sta1 dis-lst
+        square-list-find                        \ crn0 pos-lst' pr-lnk, sqr t | f
+
+        if
+            drop                                \ crn0 pos-lst' pr-lnk
+
+            \ Get pair possible regions.
+            dup link-get-data                   \ crn0 pos-lst' pr-lnk regx
+            dup region-get-state-0              \ crn0 pos-lst' pr-lnk regx sta0
+            swap region-get-state-1             \ crn0 pos-lst' pr-lnk sta0 sta1
+            state-~a+~b                         \ crn0 pos-lst' pr-lnk pr-lst'
+
+            \ Update pos-lst.
+            #2 pick                             \ crn0 pos-lst' pr-lnk pr-lst' pos-lst'
+            over                                \ crn0 pos-lst' pr-lnk pr-lst' pos-lst' pr-lst'
+            region-list-intersections-nosubs    \ crn0 pos-lst' pr-lnk pr-lst' new-pos-lst'
+            swap region-list-deallocate         \ crn0 pos-lst' pr-lnk new-pos-lst'
+            rot region-list-deallocate          \ crn0 pr-lnk new-pos-lst'
+            swap                                \ crn0 new-pos-lst' pr-lnk
+        then
     next
-                                            \ crn0 pos-lst'
-    swap corner-update-possible-regions     \
+                                                \ crn0 pos-lst'
+    swap corner-update-possible-regions         \
 ;
 
 \ Add a close, dissimilar square, to the corner.
@@ -378,7 +390,7 @@ corner-other-squares-disp       cell+   constant corner-possible-regions-disp   
     \ Get anchor-state square-state region.
     over square-get-state               \    sqr1 crn0 sta1
     over corner-get-anchor-state        \ sqr1 crn0 sta1 sta-anc
-    region-new                          \ sqr1 crn0 regx
+    region-new                          \ sqr1 crn0 regx            \ anchor state is state-0 in region.
 
     \ Get regions in square-pairs that are superset of new region.
     dup                                 \ sqr1 crn0 regx regx
@@ -446,7 +458,7 @@ corner-other-squares-disp       cell+   constant corner-possible-regions-disp   
     \ Get anchor-state square-state region.
     over square-get-state               \    sqr1 crn0 sta1
     over corner-get-anchor-state        \ sqr1 crn0 sta1 sta-anc
-    region-new                          \ sqr1 crn0 regx
+    region-new                          \ sqr1 crn0 regx            \ anchor state is state-0 in region.
 
     \ Get regions in square-pairs that are superset of new region.
     dup                                 \ sqr1 crn0 regx regx
@@ -493,7 +505,7 @@ corner-other-squares-disp       cell+   constant corner-possible-regions-disp   
 \ Add a square to a corner, if possible.
 \ Return true if added.
 : corner-add-square ( sqr1 crn0 -- bool )
-    cr ." corner-add-square: start" cr
+    cr ." corner-add-square: start: " over .square-state cr
     \ Check args.
     assert( tos is-corner? )
     assert( nos is-square? )
