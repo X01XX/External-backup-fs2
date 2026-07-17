@@ -10,7 +10,8 @@
 0                                       constant corner-header-disp             \ 16-bits, [0] struct id, [1] use count.
 corner-header-disp              cell+   constant corner-anchor-square-disp      \ The anchor square.
 corner-anchor-square-disp       cell+   constant corner-square-pairs-disp       \ A list of regions, no supersets, of the anchor and another square.
-                                                                                \ Similar to the action incompatible pairs.
+                                                                                \ Similar to the action incompatible pairs, except the
+                                                                                \ other square can be Incompatible, or not incompatible.
 corner-square-pairs-disp        cell+   constant corner-dissimilar-squares-disp \ Dissimilar, squares, from the square-pairs list.
                                                                                 \ Some may need more samples. Some may not be adjacent.
 corner-dissimilar-squares-disp  cell+   constant corner-other-squares-disp      \ Not dissimilar squares, from the square-pair list.
@@ -304,30 +305,6 @@ corner-other-squares-disp       cell+   constant corner-possible-regions-disp   
     region-list-deallocate
 ;
 
-\ Add a new square.
-: ?corner-add-square ( sqr1 crn0 -- )
-    \ Check args.
-    assert( tos is-corner? )
-    assert( nos is-square? )
-
-    over square-get-state               \ sqr1 crn0 sta1
-    over corner-get-anchor-square       \ sqr1 crn0 sta1 anc
-    square-get-state                    \ sqr1 crn0 sta1 sta-anc
-    state-~a+~b                         \ sqr1 crn0 reg-lst'
-    dup                                 \ sqr1 crn0 reg-lst' reg-lst'
-    #2 pick corner-get-square-pairs     \ sqr1 crn0 reg-lst' reg-lst' crn-regs
-    region-list-intersections-nosubs    \ sqr1 crn0 reg-lst' new-regs
-
-    \ Update regions.
-    #2 pick                             \ sqr1 crn0 reg-lst' new-regs crn0
-    swap corner-update-square-pairs     \ sqr1 crn0 reg-lst'
-
-    \ Clean up.
-    region-list-deallocate              \ sqr1 crn0
-
-    drop ." todo"
-;
-
 \ Recalculate possible-regions from dissimilar square-pairs.
 \ When a close dissimilar square becomes similar, or a similar
 \ square is between the anchor and a dissimilar square.
@@ -388,56 +365,79 @@ corner-other-squares-disp       cell+   constant corner-possible-regions-disp   
     2dup corner-get-dissimilar-squares list-push-struct
 
     \ Get anchor-state square-state region.
-    over square-get-state               \    sqr1 crn0 sta1
-    over corner-get-anchor-state        \ sqr1 crn0 sta1 sta-anc
-    region-new                          \ sqr1 crn0 regx            \ anchor state is state-0 in region.
+    over square-get-state                   \ sqr1 crn0 sta1
+    over corner-get-anchor-state            \ sqr1 crn0 sta1 sta-anc
+    region-new                              \ sqr1 crn0 regx            \ anchor state is state-0 in region.
 
     \ Get regions in square-pairs that are superset of new region.
-    dup                                 \ sqr1 crn0 regx regx
-    #2 pick corner-get-square-pairs     \ sqr1 crn0 regx regx pr-lst
-    region-list-supersets-of            \ sqr1 crn0 regx sup-lst'
+    dup                                     \ sqr1 crn0 regx regx
+    #2 pick corner-get-square-pairs         \ sqr1 crn0 regx regx pr-lst
+    region-list-supersets-of                \ sqr1 crn0 regx sup-lst'
 
     \ Add new region to square-pairs.
-    swap                                \ sqr1 crn0 sup-lst' regx
-    #2 pick corner-get-square-pairs     \ sqr1 crn0 sup-lst' regx pr-lst
-    region-list-push-nosups             \ sqr1 crn0 sup-lst' bool
+    swap                                    \ sqr1 crn0 sup-lst' regx
+    #2 pick corner-get-square-pairs         \ sqr1 crn0 sup-lst' regx pr-lst
+    region-list-push-nosups                 \ sqr1 crn0 sup-lst' bool
     ifnot cr ." push-nosups failed?" abort then
 
     \ Get states of squares to remove from dissimilar-squares and other-squares.
-    dup                                 \ sqr1 crn0 sup-lst' sup-lst'
-    region-list-states                  \ sqr1 crn0 sup-lst' sta-lst'
-    swap region-list-deallocate         \ sqr1 crn0 sta-lst'
+    dup                                     \ sqr1 crn0 sup-lst' sup-lst'
+    region-list-states                      \ sqr1 crn0 sup-lst' sta-lst'
+    swap region-list-deallocate             \ sqr1 crn0 sta-lst'
 
     \ Remove squares in dissimilar-squares that match states in
     \ superset ( removed ) pairs.
-    dup                                 \ sqr1 crn0 sta-lst' sta-lst'
-    #2 pick                             \ sqr1 crn0 sta-lst' sta-lst' crn0
-    corner-get-dissimilar-squares       \ sqr1 crn0 sta-lst' sta-lst' dis-lst
-    square-list-remove-matching-squares \ sqr1 crn0 sta-lst' num
-    drop
+    over corner-get-dissimilar-squares      \ sqr1 crn0 sta-lst' dis-lst
+
+    2dup square-list-states-in              \ sqr1 crn0 sta-lst' dis-lst sta-in'
+    dup list-is-empty?                      \ sqr1 crn0 sta-lst' dis-lst sta-in' bool
+    if
+        list-deallocate                     \ sqr1 crn0 sta-lst' dis-lst
+        drop                                \ sqr1 crn0 sta-lst'
+    else
+        cr ." Removing dissimilar squares: " dup .state-list cr
+        tuck swap                           \ sqr1 crn0 sta-lst' sta-in' sta-in' dis-lst
+        square-list-remove-matching-squares \ sqr1 crn0 sta-lst' sta-in' num
+        over list-get-length =              \ sqr1 crn0 sta-lst' sta-in' bool
+        ifnot
+            cr ." problem? number of squares removed does not match" cr
+        then
+        state-list-deallocate               \ sqr1 crn0 sta-lst'
+    then
 
     \ Remove squares in other-squares that match states in
     \ superset ( removed ) pairs.
-    dup                                 \ sqr1 crn0 sta-lst' sta-lst'
-    #2 pick                             \ sqr1 crn0 sta-lst' sta-lst' crn0
-    corner-get-other-squares            \ sqr1 crn0 sta-lst' sta-lst' oth-lst
-    square-list-remove-matching-squares \ sqr1 crn0 sta-lst' num
-    drop
+    over corner-get-other-squares           \ sqr1 crn0 sta-lst' oth-lst
+    2dup square-list-states-in              \ sqr1 crn0 sta-lst' oth-lst sta-in'
+    dup list-is-empty?                      \ sqr1 crn0 sta-lst' oth-lst sta-in' bool
+    if
+        list-deallocate                     \ sqr1 crn0 sta-lst' oth-lst
+        drop                                \ sqr1 crn0 sta-lst'
+    else
+        cr ." Removing other squares: " dup .state-list cr
+        tuck swap                           \ sqr1 crn0 sta-lst' sta-in' sta-in' oth-lst
+        square-list-remove-matching-squares \ sqr1 crn0 sta-lst' sta-in' num
+        over list-get-length =              \ sqr1 crn0 sta-lst' sta-in' bool
+        ifnot
+            cr ." problem? number of squares removed does not match" cr
+        then
+        state-list-deallocate               \ sqr1 crn0 sta-lst'
+    then
 
     \ Clean up.
-    state-list-deallocate               \ sqr1 crn0
+    state-list-deallocate                   \ sqr1 crn0
 
     \ Get pair possible regions.
-    over square-get-state               \ sqr1 crn0 sta1
-    over corner-get-anchor-state        \ sqr1 crn0 sta1 sta0
-    state-~a+~b                         \ sqr1 crn0 pr-pos-lst'
+    over square-get-state                   \ sqr1 crn0 sta1
+    over corner-get-anchor-state            \ sqr1 crn0 sta1 sta0
+    state-~a+~b                             \ sqr1 crn0 pr-pos-lst'
 
     \ Add calculation to current possible-regions.
-    dup                                 \ sqr1 crn0 pr-pos-lst' pr-pos-lst'
-    #2 pick corner-get-possible-regions \ sqr1 crn0 pr-pos-lst' pr-pos-lst' crn-pos-lst
-    region-list-intersections-nosubs    \ sqr1 crn0 pr-pos-lst' new-crn-pos-lst
-    swap region-list-deallocate         \ sqr1 crn0 new-crn-pos-lst
-    over corner-update-possible-regions \ sqr1 crn0
+    dup                                     \ sqr1 crn0 pr-pos-lst' pr-pos-lst'
+    #2 pick corner-get-possible-regions     \ sqr1 crn0 pr-pos-lst' pr-pos-lst' crn-pos-lst
+    region-list-intersections-nosubs        \ sqr1 crn0 pr-pos-lst' new-crn-pos-lst
+    swap region-list-deallocate             \ sqr1 crn0 new-crn-pos-lst
+    over corner-update-possible-regions     \ sqr1 crn0
 
     2drop
 ;
@@ -456,49 +456,70 @@ corner-other-squares-disp       cell+   constant corner-possible-regions-disp   
     2dup corner-get-other-squares list-push-struct
 
     \ Get anchor-state square-state region.
-    over square-get-state               \    sqr1 crn0 sta1
-    over corner-get-anchor-state        \ sqr1 crn0 sta1 sta-anc
-    region-new                          \ sqr1 crn0 regx            \ anchor state is state-0 in region.
+    over square-get-state                   \ sqr1 crn0 sta1
+    over corner-get-anchor-state            \ sqr1 crn0 sta1 sta-anc
+    region-new                              \ sqr1 crn0 regx            \ anchor state is state-0 in region.
 
     \ Get regions in square-pairs that are superset of new region.
-    dup                                 \ sqr1 crn0 regx regx
-    #2 pick corner-get-square-pairs     \ sqr1 crn0 regx regx pr-lst
-    region-list-supersets-of            \ sqr1 crn0 regx sup-lst'
+    dup                                     \ sqr1 crn0 regx regx
+    #2 pick corner-get-square-pairs         \ sqr1 crn0 regx regx pr-lst
+    region-list-supersets-of                \ sqr1 crn0 regx sup-lst'
 
     \ Add new region to square-pairs.
-    swap                                \ sqr1 crn0 sup-lst' regx
-    #2 pick corner-get-square-pairs     \ sqr1 crn0 sup-lst' regx pr-lst
-    region-list-push-nosups             \ sqr1 crn0 sup-lst' bool
+    swap                                    \ sqr1 crn0 sup-lst' regx
+    #2 pick corner-get-square-pairs         \ sqr1 crn0 sup-lst' regx pr-lst
+    region-list-push-nosups                 \ sqr1 crn0 sup-lst' bool
     ifnot cr ." push-nosups failed?" abort then
 
     \ Get states of squares to remove from dissimilar-squares and other-squares.
-    dup                                 \ sqr1 crn0 sup-lst' sup-lst'
-    region-list-states                  \ sqr1 crn0 sup-lst' sta-lst'
-    swap region-list-deallocate         \ sqr1 crn0 sta-lst'
+    dup                                     \ sqr1 crn0 sup-lst' sup-lst'
+    region-list-states                      \ sqr1 crn0 sup-lst' sta-lst'
+    swap region-list-deallocate             \ sqr1 crn0 sta-lst'
 
     \ Remove squares in dissimilar-squares that match states in
     \ superset ( removed ) pairs.
-    dup                                 \ sqr1 crn0 sta-lst' sta-lst'
-    #2 pick                             \ sqr1 crn0 sta-lst' sta-lst' crn0
-    corner-get-dissimilar-squares       \ sqr1 crn0 sta-lst' sta-lst' dis-lst
-    square-list-remove-matching-squares \ sqr1 crn0 sta-lst' num
+    over corner-get-dissimilar-squares      \ sqr1 crn0 sta-lst' dis-lst
+    2dup square-list-states-in              \ sqr1 crn0 sta-lst' dis-lst sta-in'
+    dup list-is-empty?                      \ sqr1 crn0 sta-lst' dis-lst sta-in' bool
     if
-        \ A dissimilar square was displaced, so recalc.
-        over                            \ sqr1 crn0 sta-lst' crn0
-        corner-recalc-possible-regions  \ sqr1 crn0 sta-lst'
+        list-deallocate                     \ sqr1 crn0 sta-lst' dis-lst
+        drop                                \ sqr1 crn0 sta-lst'
+    else
+        cr ." Removing dissimilar squares: " dup .state-list cr
+        tuck swap                           \ sqr1 crn0 sta-lst' sta-in' sta-in' dis-lst
+        square-list-remove-matching-squares \ sqr1 crn0 sta-lst' sta-in' num
+        over list-get-length =              \ sqr1 crn0 sta-lst' sta-in' bool
+        ifnot
+            cr ." problem? number of squares removed does not match" cr
+        then
+        state-list-deallocate               \ sqr1 crn0 sta-lst'
+
+        \ Recalc possible regions.
+        over                                \ sqr1 crn0 sta-lst' crn0
+        corner-recalc-possible-regions      \ sqr1 crn0 sta-lst'
     then
 
     \ Remove squares in other-squares that match states in
     \ superset ( removed ) pairs.
-    dup                                 \ sqr1 crn0 sta-lst' sta-lst'
-    #2 pick                             \ sqr1 crn0 sta-lst' sta-lst' crn0
-    corner-get-other-squares            \ sqr1 crn0 sta-lst' sta-lst' oth-lst
-    square-list-remove-matching-squares \ sqr1 crn0 sta-lst' num
-    drop
+    over corner-get-other-squares           \ sqr1 crn0 sta-lst' oth-lst
+    2dup square-list-states-in              \ sqr1 crn0 sta-lst' oth-lst sta-in'
+    dup list-is-empty?                      \ sqr1 crn0 sta-lst' oth-lst sta-in' bool
+    if
+        list-deallocate                     \ sqr1 crn0 sta-lst' oth-lst
+        drop                                \ sqr1 crn0 sta-lst'
+    else
+        cr ." Removing other squares: " dup .state-list cr
+        tuck swap                           \ sqr1 crn0 sta-lst' sta-in' sta-in' oth-lst
+        square-list-remove-matching-squares \ sqr1 crn0 sta-lst' sta-in' num
+        over list-get-length =              \ sqr1 crn0 sta-lst' sta-in' bool
+        ifnot
+            cr ." problem? number of squares removed does not match" cr
+        then
+        state-list-deallocate               \ sqr1 crn0 sta-lst'
+    then
 
     \ Clean up.
-    state-list-deallocate               \ sqr1 crn0
-
+    state-list-deallocate                   \ sqr1 crn0
     2drop
 ;
 

@@ -633,6 +633,32 @@
     list-member?
 ;
 
+\ Return a list of states that have corresponding squares
+\ in the square list.
+: square-list-states-in ( sta-lst1 sqr-lst0 -- sta-lst )
+    \ Check args.
+    assert( tos is-square-list? )
+    assert( nos is-state-list? )
+
+    \ Init return list.
+    list-new -rot               \ ret-lst sta-lst1 sqr-lst0
+
+    \ Foreach state in the state list ...
+    swap                        \ ret-lst sqr-lst0 sta-lst1
+    foreach                     \ ret-lst sqr-lst0 sta-lnk
+        dup link-get-data       \ ret-lst sqr-lst0 sta-lnk sta
+        #2 pick                 \ ret-lst sqr-lst0 sta-lnk sta sqr-lst0
+        square-list-find        \ ret-lst sqr-lst0 sta-lnk, sqr t | f
+        if
+            square-get-state    \ ret-lst sqr-lst0 sta-lnk sta
+            #3 pick             \ ret-lst sqr-lst0 sta-lnk sta ret-lst
+            list-push-struct    \ ret-lst sqr-lst0 sta-lnk
+        then
+    next
+                                \ ret-lst sqr-lst0
+    drop
+;
+
 \ Remove squares matching a given list of states.
 \ Return the number of squares removed.
 : square-list-remove-matching-squares ( sta-lst1 sqr-lst0 -- num )
