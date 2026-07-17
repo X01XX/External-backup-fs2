@@ -151,4 +151,39 @@
     region-new                  \ reg
 ;
 
+\ Return true if two state-lists are equal.
+: state-lists-eq? ( sta-lst1 sta-lst0 -- bool )
+    \ Check args.
+    assert( tos is-state-list? )
+    assert( nos is-state-list? )
 
+    \ Check list lengths.
+    over list-get-length
+    over list-get-length                \ sta-lst1 sta-lst0 len1 len0
+    <>
+    if
+        2drop
+        false
+        exit
+    then
+
+    \  Check list contents.
+    foreach                             \ sta-lst1 lnk0
+        \ Get current state.
+        dup link-get-data               \ sta-lst1 lnk0 data
+
+        \ Check if its in the other list.
+        [ ' states-eq? ] literal swap   \ sta-lst1 lnk0 xt data
+        #3 pick                         \ sta-lst1 lnk0 xt data lst1
+        list-member?                    \ sta-lst1 lnk0 flag
+
+        ifnot
+            2drop
+            false
+            exit
+        then
+    next
+                                        \ sta-lst1
+    drop
+    true
+;

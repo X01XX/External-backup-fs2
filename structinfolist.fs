@@ -112,7 +112,7 @@
     #46 spaces ." Totals: "
 
     \ Sum struct instances in use.
-    0 over                          \ si-lst0 cnt si-lst0 
+    0 over                          \ si-lst0 cnt si-lst0
 
     foreach                         \ si-lst0 cnt si-link
         dup link-get-data           \ si-lst0 cnt si-link six

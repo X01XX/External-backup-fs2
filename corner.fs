@@ -277,7 +277,7 @@ corner-other-squares-disp       cell+   constant corner-possible-regions-disp   
 
     \ Clean up.
     swap region-deallocate                  \ bool
-    
+
     cr ." corner-can-square-be-added?: 2: " dup .bool cr
 ;
 
@@ -311,6 +311,7 @@ corner-other-squares-disp       cell+   constant corner-possible-regions-disp   
 \ A closer dissimilar square requires only one intersection with
 \ the existing possible regions.
 : corner-recalc-possible-regions ( crn0 -- )
+    cr ." corner-recalc-possible-regions: start" cr
     \ Check arg.
     assert( tos is-corner? )
 

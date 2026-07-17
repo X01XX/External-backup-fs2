@@ -684,3 +684,28 @@
                                         \ sqr-lst0 cnt
     nip
 ;
+
+\ Return a list of states used to define squares in a square-list.
+: square-list-states ( sqr-lst0 -- sta-lst )
+    \ Check arg.
+    assert( tos is-square-list? )
+
+    \ Init return list.
+    list-new swap                   \ sta-lst sqr-lst0
+
+    foreach                         \ sta-lst sqr-lnk
+        dup link-get-data           \ sta-lst sqr-lnk sqrx
+
+        \ Check square state.
+        [ ' states-eq? ] literal    \ sta-lst sqr-lnk sqrx xt
+        over square-get-state       \ sta-lst sqr-lnk sqrx xt sta0
+        #4 pick                     \ sta-lst sqr-lnk sqrx xt sta0 sta-lst
+        list-member?                \ sta-lst sqr-lnk sqrx bool
+        ifnot
+            dup square-get-state    \ sta-lst sqr-lnk sqrx sta0
+            #3 pick                 \ sta-lst sqr-lnk sqrx sta0 sta-lst
+            list-push-struct        \ sta-lst sqr-lnk sqrx
+        then
+        drop
+    next
+;

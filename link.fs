@@ -52,7 +52,7 @@ link-next-disp      cell+   constant link-data-disp
     link-next-disp + @
 ;
 
-\ Make simple loops, with foreach word, using less typing. 
+\ Make simple loops, with foreach word, using less typing.
 : next ( link -- next-link ) postpone link-get-next postpone repeat ; immediate
 
 \ Set link next cell, use only in this file, and list.fs.

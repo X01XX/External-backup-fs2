@@ -90,14 +90,41 @@
     invert abort" region-list-from-string failed."
 ;
 
-\ Return true if two region lists are equal.
+\ Return true if two region-lists are equal.
 : region-lists-eq? ( reg-lst1 reg-lst0 -- bool )
     \ Check args.
     assert( tos is-region-list? )
     assert( nos is-region-list? )
 
-    [ ' regions-eq? ] literal -rot  \ xt reg-lst1 reg-lst0
-    struct-lists-eq?                \ bool
+    \ Check list lengths.
+    over list-get-length
+    over list-get-length                \ reg-lst1 reg-lst0 len1 len0
+    <>
+    if
+        2drop
+        false
+        exit
+    then
+
+    \  Check list contents.
+    foreach                             \ reg-lst1 lnk0
+        \ Get current region.
+        dup link-get-data               \ reg-lst1 lnk0 data
+
+        \ Check if its in the other list.
+        [ ' regions-eq? ] literal swap  \ reg-lst1 lnk0 xt data
+        #3 pick                         \ reg-lst1 lnk0 xt data lst1
+        list-member?                    \ reg-lst1 lnk0 flag
+
+        ifnot
+            2drop
+            false
+            exit
+        then
+    next
+                                        \ reg-lst1
+    drop
+    true
 ;
 
 \ Remove the first subset region from a region-list, and deallocate.
@@ -151,8 +178,6 @@
     region-list-push
     true
 ;
-
-
 
 \ Return a list of region intersections with a region-list, no subsets.
 : region-list-intersections-nosubs ( reg-lst1 list0 -- reg-lst )
