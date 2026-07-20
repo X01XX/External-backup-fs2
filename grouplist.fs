@@ -22,7 +22,7 @@
 ;
 
 \ Deallocate a group list.
-: group-list-deallocate ( lst0 -- )
+: group-list-deallocate ( grp-lst0 -- )
     \ Check arg.
     assert( tos is-group-list? )
 
@@ -58,11 +58,15 @@
     rot                 \ u list0 c-addr
     #2 pick             \ u list0 c-addr u
     type                \ u list0
-    list-get-links      \ u lnk
 
-    begin
-        ?dup
-    while
+    dup list-is-empty?
+    if
+        ." None"
+        2drop
+        exit
+    then
+
+    foreach             \ u lnk
         dup link-get-data .group
 
         link-get-next

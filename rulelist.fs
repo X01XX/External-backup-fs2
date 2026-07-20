@@ -114,15 +114,13 @@
 
 \ Return rule-list union.
 \ For a pair try two different orders of union, return true if one order works, and the other does not.
-\ Kind of like XOR.
-\ With two successful unions, at least one bit will be unpredictable,
-\ the four possible values of one bit position will be 0->0, 0->1, 1->1, 1->0,
-\ leading to X->1/X->0 in one union, X->X/X->x in the other union.
 : rule-list-union ( rul-lst1 rul-lst0 -- rul-lst t | f )
     \ Check args.
     assert( tos is-rule-list? )
     assert( nos is-rule-list? )
     assert( over list-get-length over list-get-length = )
+    assert( dup list-get-length 3 < )
+    assert( dup list-get-length 0> )
 
     \ Check order one.
     list-new -rot                   \ ret-lst1 rul-lst1 rul-lst0
@@ -138,6 +136,11 @@
             2drop                   \ ret-lst
             true
             exit
+        else
+            2drop
+            list-deallocate
+            false
+            exit
         then
 
         #3 pick                     \ ret-lst1 rul-lst1 rul-lst0 rul-u ret-lst1
@@ -149,61 +152,44 @@
         if
             #3 pick                 \ ret-lst1 rul-lst1 rul-lst0 rul-u ret-lst1
             list-push-struct        \ ret-lst1 rul-lst1 rul-lst0
-        \ else leave ret-lst1 with one rule.
+            2drop
+            true
+            exit
+        else
+            rot                     \ rul-lst1 rul-lst0 ret-lst1
+            rule-list-deallocate    \ rul-lst1 rul-lst0
         then
-    \ else leave ret-lst1 empty.
+    else
+            rot list-deallocate     \ rul-lst1 rul-lst0
     then
 
     \ Check order two.
-    list-new -rot                   \ ret-lst1 ret-lst2 rul-lst1 rul-lst0
-    over list-get-first-item        \ ret-lst1 ret-lst2 rul-lst1 rul-lst0 rul1a
-    over list-get-second-item       \ ret-lst1 ret-lst2 rul-lst1 rul-lst0 rul1a rul0b
-    rule-union                      \ ret-lst1 ret-lst2 rul-lst1 rul-lst0, rul-u t | f
+    list-new -rot                   \ ret-lst2 rul-lst1 rul-lst0
+    over list-get-first-item        \ ret-lst2 rul-lst1 rul-lst0 rul1a
+    over list-get-second-item       \ ret-lst2 rul-lst1 rul-lst0 rul1a rul0b
+    rule-union                      \ ret-lst2 rul-lst1 rul-lst0, rul-u t | f
     if
-        #3 pick                     \ ret-lst1 ret-lst2 rul-lst1 rul-lst0 rul-u ret-lst2
-        list-push-struct            \ ret-lst1 ret-lst2 rul-lst1 rul-lst0
+        #3 pick                     \ ret-lst2 rul-lst1 rul-lst0 rul-u ret-lst2
+        list-push-struct            \ ret-lst2 rul-lst1 rul-lst0
         \ Check rul0b union rul1b.
-        over list-get-second-item   \ ret-lst1 ret-lst2 rul-lst1 rul-lst0 rul1b
-        over list-get-first-item    \ ret-lst1 ret-lst2 rul-lst1 rul-lst0 rul1b rul0a
-        rule-union                  \ ret-lst1 ret-lst2 rul-lst1 rul-lst0, rul-u t | f
+        over list-get-second-item   \ ret-lst2 rul-lst1 rul-lst0 rul1b
+        over list-get-first-item    \ ret-lst2 rul-lst1 rul-lst0 rul1b rul0a
+        rule-union                  \ ret-lst2 rul-lst1 rul-lst0, rul-u t | f
         if
-            #3 pick                 \ ret-lst1 ret-lst2 rul-lst1 rul-lst0 rul-u ret-lst2
-            list-push-struct        \ ret-lst1 ret-lst2 rul-lst1 rul-lst0
-        \ else leave ret-lst2 with one rule.
-        then
-    \ else leave ret-lst2 empty.
-    then
-
-    \ Check the four posibilities of return list length (successful union) EQ or NE 2.
-    2drop                               \ ret-lst1 ret-lst2
-    dup list-get-length                 \ ret-lst1 ret-lst2 len2
-    #2 =
-    if
-        over list-get-length            \ ret-lst1 ret-lst2 len1
-        #2 =
-        if
-            \ len2 == 2, len1 == 2, invalid union.
-            rule-list-deallocate
-            rule-list-deallocate
-            false
-        else
-            \ len2 == 2, len1 != 2, valid union.
-            swap rule-list-deallocate   \ ret-lst2
+            #3 pick                 \ ret-lst2 rul-lst1 rul-lst0 rul-u ret-lst2
+            list-push-struct        \ ret-lst2 rul-lst1 rul-lst0
+            2drop                   \ ret-lst2
             true
+            exit
+        else
+            2drop                   \ ret-lst2
+            rule-list-deallocate    \
+            false
         then
     else
-        over list-get-length            \ ret-lst1 ret-lst2 len1
-        #2 =
-        if
-            \ len2 != 2, len1 == 2, valid union.
-            rule-list-deallocate        \ ret-lst1
-            true
-        else
-            \ len2 != 2, len1 != 2, invalid union.
-            rule-list-deallocate
-            rule-list-deallocate
-            false
-        then
+        2drop                       \ ret-lst2
+        list-deallocate             \
+        false
     then
 ;
 

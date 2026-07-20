@@ -4,3 +4,5 @@ A pn=1 square should be considered changed at the second sample, since it will b
  
 Improved arg checking. It can now be turned off, see globals.fs.
 
+Allow union of rules ( 0->0, 0->1 ) ( 1->1, 1->0 ), to make ( XX, Xx) or ( X0, X1 ).
+

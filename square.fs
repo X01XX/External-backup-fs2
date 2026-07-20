@@ -651,3 +651,14 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
     square-get-state        \ sta1 sta0
     states-eq?
 ;
+
+\ Return true if two squares are adjacent.
+: squares-adjacent? ( sqr1 sqr0 -- bool )
+    \ Check args.
+    assert( tos is-square? )
+    assert( nos is-square? )
+
+    square-get-state        \ sqr1 sta0
+    swap square-get-state   \ sta0 sta1
+    states-adjacent?
+;

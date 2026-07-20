@@ -55,9 +55,12 @@ include squarepairlist.fs
 include group.fs
 include grouplist.fs
 
+include corner.fs
+include cornerlist.fs
+
 include actionxts.fs
 include action.fs
-include corner.fs
+
 include frame.fs
 \ include domain.fs
 

@@ -89,7 +89,7 @@ action-groups-disp                          cell+   constant action-function-dis
 ;
 
 \ Return the square-list from an action instance.
-: action-get-squares ( act0 -- lst )
+: action-get-squares ( act0 -- sqr-lst )
     \ Check arg.
     assert( tos is-action? )
 
@@ -108,7 +108,7 @@ action-groups-disp                          cell+   constant action-function-dis
 ;
 
 \ Return the incompatible pairs list from an action instance.
-: action-get-incompatible-pairs ( act0 -- lst )
+: action-get-incompatible-pairs ( act0 -- reg-lst )
     \ Check arg.
     assert( tos is-action? )
 
@@ -189,7 +189,7 @@ action-groups-disp                          cell+   constant action-function-dis
 ;
 
 \ Return the defining-regions list from an action instance.
-: action-get-defining-regions ( act0 -- lst )
+: action-get-defining-regions ( act0 -- reg-lst )
     \ Check arg.
     assert( tos is-action? )
 
@@ -251,7 +251,7 @@ action-groups-disp                          cell+   constant action-function-dis
 ;
 
 \ Return the group-list from an action instance.
-: action-get-groups ( act0 -- lst )
+: action-get-groups ( act0 -- grp-lst )
     \ Check arg.
     assert( tos is-action? )
 
@@ -285,6 +285,25 @@ action-groups-disp                          cell+   constant action-function-dis
 
     action-function-disp +  \ Add offset.
     !                       \ Set the field.
+;
+
+\ Return the corner-list from an action instance.
+: action-get-corners ( act0 -- crn-lst )
+    \ Check arg.
+    assert( tos is-action? )
+
+    action-corners-disp +   \ Add offset.
+    @                       \ Fetch the field.
+;
+
+\ Set the corner-list of an action instance, use only in this file.
+: _action-set-corners ( crn-lst1 act0 -- )
+    \ Check args.
+    assert( tos is-action? )
+    assert( nos is-corner-list? )
+
+    action-corners-disp +   \ Add offset.
+    !struct                 \ Set the field.
 ;
 
 \ End accessors
@@ -342,6 +361,9 @@ action-groups-disp                          cell+   constant action-function-dis
 
     \ Set states-not-in-defining-regions.
     list-new over _action-set-states-not-in-defining-regions
+
+    \ Set corners.
+    list-new over _action-set-corners
 ;
 
 : action-squares-in-one-region ( act0 -- sqr-lst )
@@ -407,6 +429,8 @@ action-groups-disp                          cell+   constant action-function-dis
     cr cr
     #4 spaces ." Sqrs not in def regs: " dup action-get-states-not-in-defining-regions .state-list
     cr
+    s"     Corners:              " #2 pick action-get-corners .corner-list-prefix
+    cr
     s"     Groups:               " #2 pick action-get-groups .group-list-prefix
     drop
 ;
@@ -429,6 +453,7 @@ action-groups-disp                          cell+   constant action-function-dis
         dup action-get-states-in-one-region state-list-deallocate
         dup action-get-defining-regions region-list-deallocate
         dup action-get-states-not-in-defining-regions state-list-deallocate
+        dup action-get-corners corner-list-deallocate
 
         \ Deallocate instance.
         action-mma mma-deallocate
@@ -553,6 +578,7 @@ action-groups-disp                          cell+   constant action-function-dis
     2drop
 ;
 
+\ Return a list of defining regions in the possible regions.
 : action-defining-regions ( act0 -- reg-lst )
     \ Check arg.
     assert( tos is-action? )
@@ -593,6 +619,7 @@ action-groups-disp                          cell+   constant action-function-dis
     drop nip
 ;
 
+\ Return square states not in defining regions.
 : action-states-not-in-defining-regions  ( act0 -- sta-lst )
     \ Check arg.
     assert( tos is-action? )
@@ -626,6 +653,7 @@ action-groups-disp                          cell+   constant action-function-dis
     nip
 ;
 
+\ Evaluate possible regions, to generate corners.
 : _action-evaluate-possible-regions ( act0 -- )
     cr ." _action-evaluate-possible-regions: start"
     \ Check arg.
@@ -645,6 +673,7 @@ action-groups-disp                          cell+   constant action-function-dis
     dup action-states-not-in-defining-regions           \ act0 sta-lst
     over _action-update-states-not-in-defining-regions  \ act0
 
+    cr ." _action-evaluate-possible-regions: todo" cr
     drop
 ;
 
