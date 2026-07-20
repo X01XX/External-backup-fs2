@@ -1,18 +1,21 @@
 \ Implement an Action struct and functions.
 
 #29717 constant action-struct-id
-    #8 constant action-struct-number-cells
+   #11 constant action-struct-number-cells
 
 \ Struct fields
-0                                       constant action-header-disp             \ 16 bits, [0] Struct id, [1] Use count [2] Number bits ( 8 bits )
-                                                                                \ Action instance ID ( 8 bits ).
-action-header-disp              cell+   constant action-parent-disp             \ Domain ref, or 0.
-action-parent-disp              cell+   constant action-squares-disp            \ A square list.
-action-squares-disp             cell+   constant action-incompatible-pairs-disp \ A region list.  States that define the regions are incompatible.
-action-incompatible-pairs-disp  cell+   constant action-possible-regions-disp   \ A region list.
-action-possible-regions-disp    cell+   constant action-corners-disp            \ A cornor list, from incompatible pairs and possible regions.
-action-corners-disp             cell+   constant action-groups-disp             \ A group list.
-action-groups-disp              cell+   constant action-function-disp           \ A function to run to get a sample for a state.
+0                                                   constant action-header-disp                         \ 16 bits, [0] Struct id, [1] Use count [2] Number bits ( 8 bits )
+                                                                                                        \ Action instance ID ( 8 bits ).
+action-header-disp                          cell+   constant action-parent-disp                         \ Domain ref, or 0.
+action-parent-disp                          cell+   constant action-squares-disp                        \ A square list.
+action-squares-disp                         cell+   constant action-incompatible-pairs-disp             \ A region list.  States that define the regions are incompatible.
+action-incompatible-pairs-disp              cell+   constant action-possible-regions-disp               \ A region list.
+action-possible-regions-disp                cell+   constant action-states-in-one-region-disp           \ A state list of states in only one possible region, possible anchors.
+action-states-in-one-region-disp            cell+   constant action-defining-regions-disp               \ A list of possible regions that are defining regions.
+action-defining-regions-disp                cell+   constant action-states-not-in-defining-regions-disp \ A state list of states not in defining regions.
+action-states-not-in-defining-regions-disp  cell+   constant action-corners-disp                        \ A cornor list, from incompatible pairs and possible regions.
+action-corners-disp                         cell+   constant action-groups-disp                         \ A group list.
+action-groups-disp                          cell+   constant action-function-disp                       \ A function to run to get a sample for a state.
 
 0 value action-mma \ Storage for action mma instance.
 
@@ -124,7 +127,7 @@ action-groups-disp              cell+   constant action-function-disp           
 ;
 
 \ Return the possible-regions list from an action instance.
-: action-get-possible-regions ( act0 -- lst )
+: action-get-possible-regions ( act0 -- reg-lst )
     \ Check arg.
     assert( tos is-action? )
 
@@ -152,6 +155,99 @@ action-groups-disp              cell+   constant action-function-disp           
     -rot                                \ pos-regs reg-lst1 act0
     _action-set-possible-regions        \ pos-regs
     region-list-deallocate
+;
+
+\ Return the states-in-one-region list from an action instance.
+: action-get-states-in-one-region ( act0 -- sta-lst )
+    \ Check arg.
+    assert( tos is-action? )
+
+    action-states-in-one-region-disp +  \ Add offset.
+    @                                   \ Fetch the field.
+;
+
+\ Set the states-in-one-region list of an action instance, use only in this file.
+: _action-set-states-in-one-region ( sta-lst1 act0 -- )
+    \ Check args.
+    assert( tos is-action? )
+    assert( nos is-state-list? )
+
+    action-states-in-one-region-disp +  \ Add offset.
+    !struct                             \ Set the field.
+;
+
+\ Update the states-in-one-region list of an action instance, use only in this file.
+: _action-update-states-in-one-region ( sta-lst1 act0 -- )
+    \ Check args.
+    assert( tos is-action? )
+    assert( nos is-state-list? )
+
+    dup action-get-states-in-one-region \ reg-lst1 act0 pos-regs
+    -rot                                \ pos-regs reg-lst1 act0
+    _action-set-states-in-one-region    \ pos-regs
+    state-list-deallocate
+;
+
+\ Return the defining-regions list from an action instance.
+: action-get-defining-regions ( act0 -- lst )
+    \ Check arg.
+    assert( tos is-action? )
+
+    action-defining-regions-disp +  \ Add offset.
+    @                               \ Fetch the field.
+;
+
+\ Set the defining-regions list of an action instance, use only in this file.
+: _action-set-defining-regions ( reg-lst1 act0 -- )
+    \ Check args.
+    assert( tos is-action? )
+    assert( nos is-region-list? )
+
+    action-defining-regions-disp +  \ Add offset.
+    !struct                         \ Set the field.
+;
+
+\ Update the defining-regions list of an action instance, use only in this file.
+: _action-update-defining-regions ( reg-lst1 act0 -- )
+    \ Check args.
+    assert( tos is-action? )
+    assert( nos is-region-list? )
+
+    dup action-get-defining-regions     \ reg-lst1 act0 pos-regs
+    -rot                                \ pos-regs reg-lst1 act0
+    _action-set-defining-regions        \ pos-regs
+    region-list-deallocate
+;
+
+\ Return the states-not-in-defining-regions list from an action instance.
+: action-get-states-not-in-defining-regions ( act0 -- sta-lst )
+    \ Check arg.
+    assert( tos is-action? )
+
+    action-states-not-in-defining-regions-disp +    \ Add offset.
+    @                                               \ Fetch the field.
+;
+
+\ Set the states-not-in-defining-regions list of an action instance, use only in this file.
+: _action-set-states-not-in-defining-regions ( sta-lst1 act0 -- )
+    \ Check args.
+    assert( tos is-action? )
+    assert( nos is-state-list? )
+
+    action-states-not-in-defining-regions-disp +    \ Add offset.
+    !struct                                         \ Set the field.
+;
+
+\ Update the states-not-in-defining-regions list of an action instance, use only in this file.
+: _action-update-states-not-in-defining-regions ( sta-lst1 act0 -- )
+    \ Check args.
+    assert( tos is-action? )
+    assert( nos is-state-list? )
+
+    dup action-get-states-not-in-defining-regions   \ reg-lst1 act0 pos-regs
+    -rot                                            \ pos-regs reg-lst1 act0
+    _action-set-states-not-in-defining-regions      \ pos-regs
+    state-list-deallocate
 ;
 
 \ Return the group-list from an action instance.
@@ -237,9 +333,18 @@ action-groups-disp              cell+   constant action-function-disp           
 
     \ Set function.
     tuck _action-set-function           \ act
+
+    \ Set squares-in-one-region.
+    list-new over _action-set-states-in-one-region
+
+    \ Set defining regions.
+    list-new over _action-set-defining-regions
+
+    \ Set states-not-in-defining-regions.
+    list-new over _action-set-states-not-in-defining-regions
 ;
 
-: action-squares-in-one-region ( act0 -- sqr-lst t | f )
+: action-squares-in-one-region ( act0 -- sqr-lst )
     \ Check arg.
     assert( tos is-action? )
 
@@ -264,13 +369,6 @@ action-groups-disp              cell+   constant action-function-disp           
     next
                                 \ act0 ret-lst pos-lst
     drop nip                    \ ret-lst
-    dup list-is-empty?
-    if
-        list-deallocate
-        false
-    else
-        true
-    then
 ;
 
 \ Print parent domain id, if any.
@@ -295,19 +393,21 @@ action-groups-disp              cell+   constant action-function-disp           
     \ Check arg.
     assert( tos is-action? )
 
-    cr ." Action: "
-    s"     Squares:        " #2 pick action-get-squares .square-list-prefix
-    cr #4 spaces ." Incompat pairs: " dup action-get-incompatible-pairs .region-list
-    cr cr #4 spaces ." Poss regions:   " dup action-get-possible-regions .region-list
-    cr cr #4 spaces ." Sqrs in one: " dup action-squares-in-one-region      \ act0, sqr-lst t | f
-    if
-        #3 spaces dup .square-list-states
-        square-list-deallocate
-    else
-        #3 spaces ." None."
-    then
-
-    cr s"     Groups:         " #2 pick action-get-groups .group-list-prefix
+    cr ." Action:"
+    cr
+    s"     Squares:              " #2 pick action-get-squares .square-list-prefix
+    cr
+    #4 spaces ." Incompatable pairs:   " dup action-get-incompatible-pairs .region-list
+    cr cr
+    #4 spaces ." Possible regions:     " dup action-get-possible-regions .region-list
+    cr cr
+    #4 spaces ." Sqrs in one poss reg: " dup action-get-states-in-one-region .state-list
+    cr cr
+    #4 spaces ." Defining regions:     " dup action-get-defining-regions .region-list
+    cr cr
+    #4 spaces ." Sqrs not in def regs: " dup action-get-states-not-in-defining-regions .state-list
+    cr
+    s"     Groups:               " #2 pick action-get-groups .group-list-prefix
     drop
 ;
 
@@ -326,6 +426,9 @@ action-groups-disp              cell+   constant action-function-disp           
         dup action-get-incompatible-pairs region-list-deallocate
         dup action-get-possible-regions region-list-deallocate
         dup action-get-groups group-list-deallocate
+        dup action-get-states-in-one-region state-list-deallocate
+        dup action-get-defining-regions region-list-deallocate
+        dup action-get-states-not-in-defining-regions state-list-deallocate
 
         \ Deallocate instance.
         action-mma mma-deallocate
@@ -450,6 +553,101 @@ action-groups-disp              cell+   constant action-function-disp           
     2drop
 ;
 
+: action-defining-regions ( act0 -- reg-lst )
+    \ Check arg.
+    assert( tos is-action? )
+
+    \ Init result list.
+    list-new                                \ act0 rslt-lst
+
+    \ Get possible-regions.
+    over action-get-possible-regions        \ act0 rslt-lst pos-lst
+
+    \ Get states in one region.
+    #2 pick action-get-states-in-one-region \ act0 rslt-lst pos-lst sta-lst
+
+    foreach                                 \ act0 rslt-lst pos-lst sta-lnk
+        \ Get region state is in.
+        dup link-get-data                   \ act0 rslt-lst pos-lst sta-lnk stax
+        #2 pick                             \ act0 rslt-lst pos-lst sta-lnk stax pos-lst
+        region-list-state-in                \ act0 rslt-lst pos-lst sta-lnk regs-in'
+
+        \ Check result.
+        dup list-get-length                 \ act0 rslt-lst pos-lst sta-lnk regs-in' len
+        1 <> abort" state not in exactly one region?"
+
+        \ Check if its already in the list.
+        [ ' = ] literal                     \ act0 rslt-lst pos-lst sta-lnk regs-in' xt
+        over list-get-first-item            \ act0 rslt-lst pos-lst sta-lnk regs-in' xt regx
+        #5 pick                             \ act0 rslt-lst pos-lst sta-lnk regs-in' xt regx rslt-lst
+        list-member?                        \ act0 rslt-lst pos-lst sta-lnk regs-in' bool
+        ifnot
+            \ Add to result list.
+            dup list-get-first-item         \ act0 rslt-lst pos-lst sta-lnk regs-in' regx
+            #4 pick                         \ act0 rslt-lst pos-lst sta-lnk regs-in' regx rslt-lst
+            list-push-struct                \ act0 rslt-lst pos-lst sta-lnk regs-in'
+        then
+        region-list-deallocate              \ act0 rslt-lst pos-lst sta-lnk
+    next
+                                            \ act0 rslt-lst pos-lst
+    drop nip
+;
+
+: action-states-not-in-defining-regions  ( act0 -- sta-lst )
+    \ Check arg.
+    assert( tos is-action? )
+
+    \ Init result list.
+    list-new                            \ act0 rslt-lst
+
+    \ Get defining regions.
+    over action-get-defining-regions    \ act0 rslt-lst def-regs
+
+    \ Get all square states.
+    #2 pick action-get-squares          \ act0 rslt-lst def-regs sqr-lst'
+    square-list-states                  \ act0 rslt-lst def-regs sta-lst'
+
+    \ Find states needed.
+    dup                                 \ act0 rslt-lst def-regs sta-lst' sta-lst'
+    foreach                             \ act0 rslt-lst def-regs sta-lst' sta-lnk
+        dup link-get-data               \ act0 rslt-lst def-regs sta-lst' sta-lnk stax
+        #3 pick                         \ act0 rslt-lst def-regs sta-lst' sta-lnk stax def-regs
+        region-list-any-superset-state? \ act0 rslt-lst def-regs sta-lst' sta-lnk bool
+        ifnot
+            \ Add state to result list.
+            dup link-get-data           \ act0 rslt-lst def-regs sta-lst' sta-lnk stax
+            #4 pick                     \ act0 rslt-lst def-regs sta-lst' sta-lnk stax rslt-lst
+            list-push-struct            \ act0 rslt-lst def-regs sta-lst' sta-lnk
+        then
+    next
+                                        \ act0 rslt-lst def-regs sta-lst'
+    state-list-deallocate               \ act0 rslt-lst def-regs
+    drop                                \ act0 rslt-lst
+    nip
+;
+
+: _action-evaluate-possible-regions ( act0 -- )
+    cr ." _action-evaluate-possible-regions: start"
+    \ Check arg.
+    assert( tos is-action? )
+
+    \ Update action-squares-in-one-region.
+    dup action-squares-in-one-region                    \ act0 sqr-lst'
+    dup square-list-states                              \ act0 sqr-lst' sta-lst'
+    #2 pick _action-update-states-in-one-region         \ act0 sqr-lst'
+    square-list-deallocate                              \ act0
+    
+    \ Update defining regions.
+    dup action-defining-regions                         \ act0 reg-lst
+    over _action-update-defining-regions                \ act0 
+
+    \ Update states-not-in-defining-regions.
+    dup action-states-not-in-defining-regions           \ act0 sta-lst
+    over _action-update-states-not-in-defining-regions  \ act0
+
+    drop
+;
+
 \ Add an incompatible pair, updating incompatible pair list and possible regions list.
 : _action-add-incompatible-pair ( sqr-pr act0 -- )
     \ cr ." _action-add-incompatible-pair: start: " .stack-gbl cr
@@ -472,17 +670,17 @@ action-groups-disp              cell+   constant action-function-disp           
         regionlist-cumulative-~a+~b     \ act0 pos-regs2
         over                            \ act0 pos-regs2 act0
         _action-update-possible-regions \ act0
+        dup _action-evaluate-possible-regions
 
         \ Update groups.
         dup _action-delete-non-possible-groups
         \ dup _action-add-possible-groups
-
-        drop
     else
         cr ." problem? push-nosups action-check-possible-regions-for-incompatible-pairfailed?"
         region-deallocate
-        drop
     then
+                                        \ act0
+    drop
     \ cr ." _action-add-incompatible-pair: end: " .stack-gbl cr
 ;
 
@@ -514,7 +712,8 @@ action-groups-disp              cell+   constant action-function-disp           
     next
                                             \ act0 pos-new
     swap                                    \ pos-new act0
-    _action-update-possible-regions         \
+    tuck _action-update-possible-regions    \ act0
+    _action-evaluate-possible-regions       \
 ;
 
 \ Check the effect on incompatible pairs of a changed square.

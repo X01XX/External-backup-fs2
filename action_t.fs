@@ -132,8 +132,41 @@
     cr ." action-test-check-incompatible-pairs-for-changed-square - Ok"
 ;
 
+: action-test-corners
+    \ Init action.
+    [ ' calc-result-x ] literal
+    #4 0 0 action-new      \ act
+
+    cr dup .action cr
+
+    \ Add 5->5
+    s" s0101->s0101" sample-from-string-a   \ act smpl1
+    over action-add-sample                  \ act bool
+    ifnot ." Did not return true?" abort then
+
+    \ Add 7->F
+    s" s0111->s1111" sample-from-string-a   \ act smpl1
+    over action-add-sample                  \ act bool
+    ifnot ." Did not return true?" abort then
+
+    \ Add 8->A
+    s" s1000->s1010" sample-from-string-a   \ act smpl1
+    over action-add-sample                  \ act bool
+    ifnot ." Did not return true?" abort then
+
+    cr dup .action cr
+
+    action-deallocate
+
+    \ Check for memory leaks.
+    structinfo-list-store structinfo-list-project-deallocated
+
+    cr ." action-test-corners - Ok"
+;
+
 : action-tests
     action-test-basic
     action-test-check-incompatible-pairs-for-changed-square
+    action-test-corners
     cr
 ;
