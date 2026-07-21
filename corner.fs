@@ -116,6 +116,10 @@ corner-region-disp          cell+   constant corner-adjacent-states-disp    \ Al
     \ Check args.
     assert( tos is-region? )
     assert( nos is-state? )
+    assert( over state-get-num-bits over region-get-num-bits = )
+
+    2dup region-superset-of-state?      \ sta1 reg0 bool
+    ifnot cr ." corner-new: region not superset state?" abort then
 
     \ Init adjacent state list.
     list-new                            \ sta1 reg0 sta-lst
@@ -156,18 +160,17 @@ corner-region-disp          cell+   constant corner-adjacent-states-disp    \ Al
     \ Check arg.
     assert( tos is-corner? )
 
-    ." (anchor: "
+    ." ("
+    dup corner-get-region               \ crn0 reg
+    .region                             \ crn0
 
+    space ." anchor: "
     dup corner-get-anchor-state         \ crn0 sta
     .state                              \ crn0
 
-    ."  adjacent states: "
+    space ." AE: "
     dup corner-get-adjacent-states      \ crn0 ext-sta-lst
     .state-list                         \ crn0
-
-    space ." region: "
-    dup corner-get-region               \ crn0 reg
-    .region                             \ crn0
 
     ." )"
                                         \ crn0

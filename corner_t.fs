@@ -1,7 +1,6 @@
 : corner-test-new
-    list-new                                \ sqr-lst
-    s" s1010->s0101" sample-from-string-a   \ sqr-lst c-addr u
-    square-new                              \ sqr-lst sqr
+    s" s0101" state-from-string-a           \ sta
+    s" r0XX1" region-from-string-a          \ sta reg
     corner-new                              \ crn
     cr ." crn: " dup .corner cr
 

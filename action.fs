@@ -682,7 +682,19 @@ action-groups-disp                          cell+   constant action-function-dis
         state-list-in-region            \ ret-lst act0 stas-in1 def-lnk stas-in-reg'
 
         cr ." For defining region: " over link-get-data .region space ." squares in: " dup .state-list cr
+        dup                             \ ret-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-reg'
+        foreach                         \ ret-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk
+            \ Make corner.
+            dup link-get-data           \ ret-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk stax
+            #3 pick                     \ ret-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk stax def-lnk
+            link-get-data               \ ret-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk stax regx
+            corner-new                  \ ret-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk crn
 
+            \ Store corner.
+            #6 pick                     \ ret-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk crn ret-lst
+            list-push-struct            \ ret-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk
+        next
+        
         state-list-deallocate
     next
 
