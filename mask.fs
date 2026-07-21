@@ -112,6 +112,23 @@ mask-header-disp cell+  constant mask-number-disp
     mask-new
 ;
 
+\ Deallocate a mask.
+: mask-deallocate ( msk -- )
+    \ Check arg.
+    assert( tos is-mask? )
+
+    dup struct-get-use-count    \ msk count
+
+    dup 0< abort" mask-deallocate: Invalid use count"
+
+    #2 <
+    if
+        mask-mma mma-deallocate \ Deallocate instance.
+    else
+        struct-dec-use-count
+    then
+;
+
 \ Return mask remainder and mask lsb, if mask is non-zero.
 : mask-split-lsb ( msk0 -- msk-rem msk-lsb t | f )
     \ Check arg.
@@ -133,6 +150,30 @@ mask-header-disp cell+  constant mask-number-disp
         drop
         false
     then
+;
+
+\ Return a mask-list of one-bit masks, from a 0->n bit mask.
+: mask-split ( msk0 -- msk-lst )
+    \ Check arg.
+    assert( tos is-mask? )
+
+    \ Init return list.
+    list-new swap           \ ret-lst msk0
+
+    \ Copy mask so it can be deallocated in the loop.
+    mask-copy                   \ ret-lst msk'
+
+    begin
+        dup mask-split-lsb      \ ret-lst msk', msk-rem' msk-lsb' t | f
+        ifnot
+            mask-deallocate
+            exit
+        then
+
+        #3 pick                 \ ret-lst msk' msk-rem' msk-lsb' ret-lst
+        list-push-struct        \ ret-lst msk' msk-rem'
+        swap mask-deallocate    \ ret-lst msk-rem'
+    again
 ;
 
 \ Store a character representation to a given address,
@@ -204,23 +245,6 @@ mask-header-disp cell+  constant mask-number-disp
 
     \ Output string.
     type
-;
-
-\ Deallocate a mask.
-: mask-deallocate ( msk -- )
-    \ Check arg.
-    assert( tos is-mask? )
-
-    dup struct-get-use-count    \ msk count
-
-    dup 0< abort" mask-deallocate: Invalid use count"
-
-    #2 <
-    if
-        mask-mma mma-deallocate \ Deallocate instance.
-    else
-        struct-dec-use-count
-    then
 ;
 
 \ Return true if two masks have a different number of bits.

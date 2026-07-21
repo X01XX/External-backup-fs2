@@ -251,7 +251,7 @@ state-header-disp cell+   constant state-number-disp
     state-new               \ sta
 ;
 
-\ Return the Boolean AND of two states, as a state.
+\ Return the Boolean AND of a state and a mask, giving a state.
 : state-and-mask ( msk1 sta0 -- sta )
     \ Check args.
     assert( tos is-state? )
@@ -262,7 +262,22 @@ state-header-disp cell+   constant state-number-disp
     swap state-get-number   \ msk1 num1 num0
     and                     \ msk1 num
     swap                    \ num msk1
-    mask-get-num-bits    \ num nb
+    mask-get-num-bits       \ num nb
+    state-new               \ sta
+;
+
+\ Return the Boolean XOR of a state and a mask, giving a state.
+: state-xor-mask ( msk1 sta0 -- sta )
+    \ Check args.
+    assert( tos is-state? )
+    assert( nos is-mask? )
+    assert( over mask-get-num-bits over state-get-num-bits = )
+
+    over mask-get-number    \ msk1 sta0 num1
+    swap state-get-number   \ msk1 num1 num0
+    xor                     \ msk1 num
+    swap                    \ num msk1
+    mask-get-num-bits       \ num nb
     state-new               \ sta
 ;
 
