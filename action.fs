@@ -306,6 +306,17 @@ action-groups-disp                          cell+   constant action-function-dis
     !struct                 \ Set the field.
 ;
 
+\ Update the corner list of an action instance, use only in this file.
+: _action-update-corners ( crn-lst1 act0 -- )
+    \ Check args.
+    assert( tos is-action? )
+    assert( nos is-corner-list? )
+
+    dup action-get-corners  \ crn-lst1 act0 crn-lst
+    -rot                    \ crn-lst crn-lst1 act0
+    _action-set-corners     \ crn-lst
+    corner-list-deallocate
+;
 \ End accessors
 
 \ Return a new action, given a functian to run to get a sample,
@@ -653,6 +664,31 @@ action-groups-disp                          cell+   constant action-function-dis
     nip
 ;
 
+\ Calc corners, from action-defining-regions and
+\ action-squares-in-one-region.
+: action-calc-corners ( act0 -- crn-lst )
+    \ Check arg.
+    assert( tos is-action? )
+
+    \ Init return list.
+    list-new swap                       \ ret-lst act0
+    dup action-get-states-in-one-region \ ret-lst act0 stas-in1
+    over action-get-defining-regions    \ ret-lst act0 stas-in1 def-lst
+
+    foreach                             \ ret-lst act0 stas-in1 def-lnk
+        \ Get squares in only the current defining region.
+        dup link-get-data               \ ret-lst act0 stas-in1 def-lnk regx
+        #2 pick                         \ ret-lst act0 stas-in1 def-lnk regx stas-in1
+        state-list-in-region            \ ret-lst act0 stas-in1 def-lnk stas-in-reg'
+
+        cr ." For defining region: " over link-get-data .region space ." squares in: " dup .state-list cr
+
+        state-list-deallocate
+    next
+
+    2drop                               \ ret-lst
+;
+
 \ Evaluate possible regions, to generate corners.
 : _action-evaluate-possible-regions ( act0 -- )
     cr ." _action-evaluate-possible-regions: start"
@@ -673,7 +709,9 @@ action-groups-disp                          cell+   constant action-function-dis
     dup action-states-not-in-defining-regions           \ act0 sta-lst
     over _action-update-states-not-in-defining-regions  \ act0
 
-    cr ." _action-evaluate-possible-regions: todo" cr
+    dup action-calc-corners                             \ act0 crn-lst
+    over _action-update-corners                         \ act0
+
     drop
 ;
 

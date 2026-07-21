@@ -187,3 +187,23 @@
     drop
     true
 ;
+
+\ Return true if a state state is a subset of a region.
+: state-in-region? ( reg1 sta0 -- bool )
+    \ Check args.
+    assert( tos is-state? )
+    assert( nos is-region? )
+
+    swap
+    region-superset-of-state?
+;
+
+\ Return states in a given region.
+: state-list-in-region ( reg1 sta-lst0 -- sta-lst )
+    \ Check args.
+    assert( tos is-state-list? )
+    assert( nos is-region? )
+
+    [ ' state-in-region? ] literal -rot    \ xt reg1 sqr-lst0
+    list-find-all-struct                            \ ret-list
+;
