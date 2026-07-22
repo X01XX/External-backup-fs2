@@ -746,27 +746,77 @@ action-groups-disp                          cell+   constant action-function-dis
     cr ." Developing ... todo"
 
     \ Init return list.
-    \
+    list-new                            \ pre-lst act0 ret-lst
+
+    \ Copy defining regions list.
+    over action-get-defining-regions    \ pre-lst act0 ret-lst def-lst
+    list-copy-struct
+
     \ while any defining regions left.
+    begin
+        dup list-get-length
+    while
 
     \    init a corner sub-list.
+    list-new                            \ pre-lst act0 ret-lst def-lst crn-sub-lst
+
+    \ Get highest corner rate.
+    0                                   \ pre-lst act0 ret-lst def-lst crn-sub-lst max
+    #5 pick                             \ pre-lst act0 ret-lst def-lst crn-sub-lst max pre-lst
+    foreach                             \ pre-lst act0 ret-lst def-lst crn-sub-lst max pre-lnk
+        dup link-get-data               \ pre-lst act0 ret-lst def-lst crn-sub-lst max pre-lnk crnx
+        corner-get-rate                 \ pre-lst act0 ret-lst def-lst crn-sub-lst max pre-lnk rt
+        rot                             \ pre-lst act0 ret-lst def-lst crn-sub-lst pre-lnk rt max
+        max                             \ pre-lst act0 ret-lst def-lst crn-sub-lst pre-lnk max
+        swap                            \ pre-lst act0 ret-lst def-lst crn-sub-lst max pre-lnk
+    next
+                                        \ pre-lst act0 ret-lst def-lst crn-sub-lst max
+
+    \ Get higest ranked corners from pre-list.
+
+    \ Init max corner list.
+    list-new                            \ pre-lst act0 ret-lst def-lst crn-sub-lst max max-crn-lst
+    #7 pick                             \ pre-lst act0 ret-lst def-lst crn-sub-lst max max-crn-lst pre-lst
+    foreach                             \ pre-lst act0 ret-lst def-lst crn-sub-lst max max-crn-lst pre-lnk
+        dup link-get-data               \ pre-lst act0 ret-lst def-lst crn-sub-lst max max-crn-lst pre-lnk crnx
+        corner-get-rate                 \ pre-lst act0 ret-lst def-lst crn-sub-lst max max-crn-lst pre-lnk rt
+        #3 pick                         \ pre-lst act0 ret-lst def-lst crn-sub-lst max max-crn-lst pre-lnk rt max
+        = if                            \ pre-lst act0 ret-lst def-lst crn-sub-lst max max-crn-lst pre-lnk bool
+            \ Add corner to sub-list.
+            dup link-get-data           \ pre-lst act0 ret-lst def-lst crn-sub-lst max max-crn-lst pre-lnk crnx
+            #2 pick                     \ pre-lst act0 ret-lst def-lst crn-sub-lst max max-crn-lst pre-lnk crnx max-crn-lst
+            list-push-struct            \ pre-lst act0 ret-lst def-lst crn-sub-lst max max-crn-lst pre-lnk
+        then
+    next
+                                        \ pre-lst act0 ret-lst def-lst crn-sub-lst max max-crn-lst
+    nip                                 \ pre-lst act0 ret-lst def-lst crn-sub-lst max-crn-lst
+
+    \ select a corner from max-crn-lst.
+    dup list-get-length                 \ pre-lst act0 ret-lst def-lst crn-sub-lst max-crn-lst len
+    random                              \ pre-lst act0 ret-lst def-lst crn-sub-lst max-crn-lst inx
+    over list-remove-item-struct        \ pre-lst act0 ret-lst def-lst crn-sub-lst max-crn-lst crnx
+    swap corner-list-deallocate         \ pre-lst act0 ret-lst def-lst crn-sub-lst crnx
+
     \
-    \    select a highest rated corner from pre-list.
-    \
-    \    *add to sub-list.
+    \    *add to selected corner to sub-list.
     \    *delete region from copied defining regions list
-    \    *deallocate corners from pre list that have an anchor in the selected corner region.
+    \    *delete corners from pre list that have an anchor in the selected corner region.
     \
     \    begin
     \        Find corner sharing data with any corner in the sub list.
     \
-    \        *add to sub-list.
+    \        *add selected corner to sub-list.
     \        *delete region from copied defining regions list
-    \        *deallocate corners from pre list that have an anchor in the selected corner region.
+    \        *delete corners from pre list that have an anchor in the selected corner region.
     \    again
     \
     \    add corner sub-list to return list
-    \ repeat
+    \    dealloc sub-list.
+
+    repeat
+    \
+    \ dealloct pre-list.
+
     drop
     \ cr ." action-calc-corners: end: " .stack-gbl cr
 ;
