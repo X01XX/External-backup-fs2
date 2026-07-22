@@ -323,10 +323,10 @@ action-groups-disp                          cell+   constant action-function-dis
 \ and the number of bits being used.
 : action-new ( xt num-bits inst-id parent -- addr)
     assert( dup if tos is-domain?-xt execute else true then )
-    over 0< abort" action-new: invalid instance id"
-    over #255 > abort" action-new: invalid instance id"
-    #2 pick 1 < abort" action-new: invalid number bits"
-    #2 pick 1 cells #8 * > abort" action-new: invalid number bits"
+    assert( nos 0 >= )
+    assert( nos #256 < )
+    assert( 3os 1 >= )
+    assert( 3os [ 1 cells #8 * ] literal <= )
 
     \ Allocate space.
     action-struct-id action-mma         \ xt nb inst-id parent struct-id mma
@@ -664,41 +664,111 @@ action-groups-disp                          cell+   constant action-function-dis
     nip
 ;
 
+\ Return a rate for a corner.
+: action-rate-corner ( crn1 act0 -- rt )
+    \ Check args.
+    assert( tos is-action? )
+    assert( nos is-corner? )
+    \ cr ." action-rate-corner: start: " .stack-gbl cr
+
+    action-get-possible-regions         \ crn1 pos-lst
+    swap corner-get-adjacent-states     \ pos-lst adj-lst
+
+    \ Init counter.
+    0 swap                              \ pos-lst cnt adj-lst
+
+    foreach                             \ pos-lst cnt adj-lnk
+        dup link-get-data               \ pos-lst cnt adj-lnk stax
+        #3 pick                         \ pos-lst cnt adj-lnk stax pos-lst
+        region-list-num-state-in        \ pos-lst cnt adj-lnk num-in
+        1 =                             \ pos-lst cnt adj-lnk bool
+        if
+            \ Inc counter.
+            swap 1+ swap                \ pos-lst cnt adj-lnk
+        then
+    next
+                                        \ pos-lst cnt
+    nip
+    \ cr ." action-rate-corner: end: " .stack-gbl cr
+    \ cr ." action-rate-corner: end: rate: " dup . cr
+;
+
 \ Calc corners, from action-defining-regions and
 \ action-squares-in-one-region.
 : action-calc-corners ( act0 -- crn-lst )
     \ Check arg.
     assert( tos is-action? )
+    \ cr ." action-calc-corners: start: " .stack-gbl cr
 
-    \ Init return list.
-    list-new swap                       \ ret-lst act0
-    dup action-get-states-in-one-region \ ret-lst act0 stas-in1
-    over action-get-defining-regions    \ ret-lst act0 stas-in1 def-lst
+    \ Init preliminary list.
+    list-new swap                       \ pre-lst act0
+    dup action-get-states-in-one-region \ pre-lst act0 stas-in1
+    over action-get-defining-regions    \ pre-lst act0 stas-in1 def-lst
 
-    foreach                             \ ret-lst act0 stas-in1 def-lnk
+    foreach                             \ pre-lst act0 stas-in1 def-lnk
         \ Get squares in only the current defining region.
-        dup link-get-data               \ ret-lst act0 stas-in1 def-lnk regx
-        #2 pick                         \ ret-lst act0 stas-in1 def-lnk regx stas-in1
-        state-list-in-region            \ ret-lst act0 stas-in1 def-lnk stas-in-reg'
+        dup link-get-data               \ pre-lst act0 stas-in1 def-lnk regx
+        #2 pick                         \ pre-lst act0 stas-in1 def-lnk regx stas-in1
+        state-list-in-region            \ pre-lst act0 stas-in1 def-lnk stas-in-reg'
 
         cr ." For defining region: " over link-get-data .region space ." squares in: " dup .state-list cr
-        dup                             \ ret-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-reg'
-        foreach                         \ ret-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk
+        dup                             \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-reg'
+        foreach                         \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk
             \ Make corner.
-            dup link-get-data           \ ret-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk stax
-            #3 pick                     \ ret-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk stax def-lnk
-            link-get-data               \ ret-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk stax regx
-            corner-new                  \ ret-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk crn
+            dup link-get-data           \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk stax
+            #3 pick                     \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk stax def-lnk
+            link-get-data               \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk stax regx
+            corner-new                  \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk crn
 
             \ Store corner.
-            #6 pick                     \ ret-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk crn ret-lst
-            list-push-struct            \ ret-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk
+            #6 pick                     \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk crn pre-lst
+            list-push-struct            \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk
         next
-        
+
         state-list-deallocate
     next
+                                        \ pre-lst act0 stas-in1
+    drop                                \ pre-lst act0
 
-    2drop                               \ ret-lst
+    \ Rate each corner.
+    over                                \ pre-lst act0 pre-lst
+    foreach                             \ pre-lst act0 pre-lnk
+        \ Calc rank.
+        dup link-get-data               \ pre-lst act0 pre-lnk crnx
+        #2 pick                         \ pre-lst act0 pre-lnk crnx act0
+        action-rate-corner              \ pre-lst act0 pre-lnk rt
+
+        \ Set rank.
+        over link-get-data              \ pre-lst act0 pre-lnk rt crnx
+        corner-set-rate                 \ pre-lst act0 pre-lnk
+    next
+                                        \ pre-lst act0
+    cr ." Developing ... todo"
+
+    \ Init return list.
+    \
+    \ while any defining regions left.
+
+    \    init a corner sub-list.
+    \
+    \    select a highest rated corner from pre-list.
+    \
+    \    *add to sub-list.
+    \    *delete region from copied defining regions list
+    \    *deallocate corners from pre list that have an anchor in the selected corner region.
+    \
+    \    begin
+    \        Find corner sharing data with any corner in the sub list.
+    \
+    \        *add to sub-list.
+    \        *delete region from copied defining regions list
+    \        *deallocate corners from pre list that have an anchor in the selected corner region.
+    \    again
+    \
+    \    add corner sub-list to return list
+    \ repeat
+    drop
+    \ cr ." action-calc-corners: end: " .stack-gbl cr
 ;
 
 \ Evaluate possible regions, to generate corners.
@@ -1133,3 +1203,18 @@ action-groups-disp                          cell+   constant action-function-dis
     \ cr ." action-add-sample: end: " .stack-gbl cr
 ;
 
+\ Return action needs.
+: action-calc-needs ( act0 -- nd-lst )
+    \ Check arg.
+    assert( tos is-action? )
+
+    \ Non-adjacent square pairs, where both states are not in any defining regions.
+
+    \ pnc for selected corner anchors.
+
+    \ pnc for selected corner ae squares.
+
+    \ Confirm defining groups.
+
+    drop
+;

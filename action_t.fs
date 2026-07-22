@@ -149,6 +149,8 @@
     over action-add-sample                  \ act bool
     ifnot ." Did not return true?" abort then
 
+    cr dup .action cr
+    
     \ Add 8->A
     s" s1000->s1010" sample-from-string-a   \ act smpl1
     over action-add-sample                  \ act bool

@@ -228,10 +228,9 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
 
     \ Check number bits.
     over 1 < abort" Number bits < 1?"
-    over
+
     \ Get max num bits.
-    1 cells #8 *
-    > abort" Number bits too large?"
+    over [ 1 cells #8 * ] literal > abort" Number bits too large?"
 
     \ Allocate space.
     domain-struct-id domain-mma     \ nb1 ses0 id mma

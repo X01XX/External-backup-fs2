@@ -121,12 +121,15 @@
     assert( over list-get-length over list-get-length = )
     assert( dup list-get-length 3 < )
     assert( dup list-get-length 0> )
+    \ cr ." rule-list-union: start: " .stack-gbl cr
 
     \ Check order one.
     list-new -rot                   \ ret-lst1 rul-lst1 rul-lst0
     over list-get-first-item        \ ret-lst1 rul-lst1 rul-lst0 rul1a
     over list-get-first-item        \ ret-lst1 rul-lst1 rul-lst0 rul1a rul0a
+    \ cr ." rule-list-union: at 1: " .stack-gbl cr
     rule-union                      \ ret-lst1 rul-lst1 rul-lst0, rul-u t | f
+    \ cr ." rule-list-union: at 2: " .stack-gbl cr
     if
         \ Check for two length 1 rule lists.
         over list-get-length        \ ret-lst1 rul-lst1 rul-lst0 rul-u len
@@ -135,11 +138,7 @@
             list-push-struct        \ ret-lst1 rul-lst1 rul-lst0
             2drop                   \ ret-lst
             true
-            exit
-        else
-            2drop
-            list-deallocate
-            false
+            \ cr ." rule-list-union: exit 0: " .stack-gbl cr
             exit
         then
 
@@ -154,6 +153,7 @@
             list-push-struct        \ ret-lst1 rul-lst1 rul-lst0
             2drop
             true
+            \ cr ." rule-list-union: exit 2" cr
             exit
         else
             rot                     \ rul-lst1 rul-lst0 ret-lst1
@@ -180,16 +180,19 @@
             list-push-struct        \ ret-lst2 rul-lst1 rul-lst0
             2drop                   \ ret-lst2
             true
+            \ cr ." rule-list-union: exit 3" cr
             exit
         else
             2drop                   \ ret-lst2
             rule-list-deallocate    \
             false
+            \ cr ." rule-list-union: exit 4" cr
         then
     else
         2drop                       \ ret-lst2
         list-deallocate             \
         false
+        \ cr ." rule-list-union: exit 5" cr
     then
 ;
 

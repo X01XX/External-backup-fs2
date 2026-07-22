@@ -465,7 +465,7 @@
     if
         drop
         false
-        \ cr ." square-list-calc-rules: exit 1: " .stack-gbl cr
+        cr ." square-list-calc-rules: exit 1: " .stack-gbl cr
         exit
     then
 
@@ -485,7 +485,7 @@
         2drop                           \
         list-new                        \ rul-lst
         true
-        \ cr ." square-list-calc-rules: exit 2: " .stack-gbl cr
+        cr ." square-list-calc-rules: exit 2: " .stack-gbl cr
         exit
     then
 
@@ -515,8 +515,9 @@
             over link-get-data          \ max-pn link rul-lst sqr
             square-get-rules            \ max-pn link rul-lst sqr-ruls
             over                        \ max-pn link rul-lst sqr-ruls rul-lst
-            \ cr ." about to union: " over .rule-list space dup .rule-list cr
+            \ cr ." about to union: " over .rule-list space dup .rule-list space .stack-gbl cr
             rule-list-union             \ max-pn link rul-lst, new-rules t | f
+            \ cr ." after to union: " .stack-gbl cr
             if                          \ max-pn link rul-lst new-rules
                 swap                    \ max-pn link new-rules rul-lst
                 rule-list-deallocate    \ max-pn link new-rules

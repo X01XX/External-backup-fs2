@@ -7,10 +7,11 @@
     #4 constant corner-struct-number-cells
 
 \ Struct fields
-0                                   constant corner-header-disp             \ 16-bits, [0] struct id, [1] use count.
+0                                   constant corner-header-disp             \ 16-bits, [0] struct id, [1] use count, [2] Rate ( 8 bits ).
+                                                                            \ Rate will be the number of adjacent states that are only in one region.
 corner-header-disp          cell+   constant corner-anchor-state-disp       \ The anchor square state.
 corner-anchor-state-disp    cell+   constant corner-region-disp             \ Region the anchor is in, according to ~A + ~B calculation.
-corner-region-disp          cell+   constant corner-adjacent-states-disp    \ All adjacent, external, states.
+corner-region-disp          cell+   constant corner-adjacent-states-disp    \ All adjacent to anchor, external, states.
 
 
 \ Needs: Meta, resolve needs for cornerns by some criteria. Dissimilar squares only in one region, ...
@@ -100,6 +101,24 @@ corner-region-disp          cell+   constant corner-adjacent-states-disp    \ Al
     !struct                             \ Set the field.
 ;
 
+\ Get the rate value.
+: corner-get-rate ( crn0 -- rt )
+    \ Check arg.
+    assert( tos is-corner? )
+
+    4c@
+;
+
+\ Set the rate value.
+: corner-set-rate ( rt crn0 -- )
+    \ Check args.
+    assert( tos is-corner? )
+    assert( nos 0 >= )
+    assert( nos [ 1 cells #8 * ] literal < )
+
+    4c!
+;
+
 \ End accessors.
 
 \ Return a corner's number bits.
@@ -153,6 +172,9 @@ corner-region-disp          cell+   constant corner-adjacent-states-disp    \ Al
 
     \ Store anchor state.
     tuck _corner-set-anchor-state       \ crn
+
+    \ Set rate.
+    0 over corner-set-rate              \ crn
 ;
 
 \ Print a corner.

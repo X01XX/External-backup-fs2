@@ -276,17 +276,22 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     2dup swap                       \ act0 sqrs2 reg1 s-reg' s-reg reg1
     region-superset?                \ act0 sqrs2 reg1 s-reg' bool
     ifnot
+        \ cr ." group-new: at 1: " .stack-gbl cr
         region-deallocate
         2drop drop
         false
         exit
     then
-    -rot                            \ s-reg' sqrs2 reg1
+    -rot                            \ act0 s-reg' sqrs2 reg1
 
     \ Get square rules, and check all squares are compatible.
+    \ cr ." group-new: at 2: " .stack-gbl cr
     over square-list-calc-rules     \ act0 s-reg' sqrs2 reg1, ruls' t | f
+    \ cr ." group-new: at 3: " .stack-gbl cr
     ifnot
+        \ cr ." group-new: at 4: " .stack-gbl cr
         2drop
+        \ cr ." group-new: at 5: " .stack-gbl cr
         region-deallocate
         drop
         false
@@ -348,7 +353,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     \ Check arg.
     assert( tos is-group? )
 
-    ." Grp: "
+    ." ("
     dup group-get-region .region
     space ." pnc: " dup group-get-pnc .bool
 
@@ -359,6 +364,8 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 
     space
     group-get-squares   .square-list-states
+
+    ." )"
 ;
 
 : .group-region ( grp0 -- )
