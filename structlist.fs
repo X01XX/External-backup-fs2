@@ -233,3 +233,20 @@
         false
     then
 ;
+
+\ Append a nos list to the tos list.
+: list-append-struct ( lst1 lst0 -- )
+    \ Check arg.
+    assert( tos is-list? )
+    assert( nos is-list? )
+
+    swap                        \ lst0 lst1
+
+    foreach                     \ lst0 link
+        dup link-get-data       \ lst0 link data
+        #2 pick                 \ lst0 link data lst0
+        list-push-end-struct    \ lst0 link
+    next
+                                \ lst0
+    drop
+;

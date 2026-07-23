@@ -78,3 +78,43 @@
     drop
     cr
 ;
+
+\ Return true if a corner's region matches a given region.
+: corner-region-eq? ( reg1 crn0 -- bool )
+    \ Check arg.
+    assert( tos is-corner? )
+    assert( nos is-region? )
+
+    corner-get-region       \ reg1 crn-reg
+    regions-eq?
+;
+
+\ Remove all corners that match a given region.
+\ If use count becomes zero, deallocate it.
+: corner-list-remove-all-region-match ( reg1 crn-lst0 -- )
+    \ Check args.
+    assert( tos is-corner-list? )
+    assert( nos is-region? )
+    \ cr ." corner-list-remove-all-region-match: start: " .stack-gbl cr
+
+    begin
+        [ ' corner-region-eq? ] literal     \ reg1 crn-lst0 xt
+        #2 pick #2 pick                     \ reg1 crn-lst0 xt reg1 crn-lst0
+        list-remove-struct                  \ reg1 crn-lst0, crnx t | f
+
+        if
+            dup struct-get-use-count        \ reg1 crn-lst0 crnx uc
+            0= if
+                corner-deallocate           \ reg1 crn-lst0
+            else
+                drop                        \ reg1 crn-lst0
+            then
+            false
+        else
+            true
+        then
+    until
+
+    2drop
+    \ cr ." corner-list-remove-all-region-match: end: " .stack-gbl cr
+;

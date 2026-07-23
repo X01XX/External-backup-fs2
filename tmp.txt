@@ -1,0 +1,7 @@
+                          1      2      3      4      5      6     7      8           9      10     11     12            13     14      15            16      17            18
+at 3.5: Forth stack: <18> Action Sample Action Square Action State Action List-1-List Action Action Action List-2-Corner Action List-0  List-2-Region List-0  1             List-2-Corner 
+
+  at 4: Forth stack: <17> Action Sample Action Square Action State Action List-1-List Action Action Action List-2-Corner Action List-0  List-2-Region List-0  List-2-Corner 96965015649752 
+
+  at 4: Forth stack: <16> Action Sample Action Square Action State Action List-1-List Action Action Action List-2-Corner Action List-0  List-2-Region List-0  96965015649768 
+

@@ -864,3 +864,22 @@
     [ ' region-subset? ] literal -rot list-member?
 ;
 
+\ Remove a region from a list.
+\ If use count becomes zero, deallocate it.
+: region-list-remove ( reg1 reg-lst0 -- )
+\ Check args.
+    assert( tos is-region-list? )
+    assert( nos is-region? )
+
+    [ ' = ] literal -rot            \ xt reg1 reg-lst0
+    list-remove-struct              \ reg t | f
+    if
+        dup struct-get-use-count    \ reg uc
+        0=
+        if
+            region-deallocate
+        else
+            drop
+        then
+    then
+;

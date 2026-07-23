@@ -70,13 +70,14 @@
                 ." List-"
                 dup list-get-length dup abs 0 <# #S rot sign #> type
                 dup list-get-length
-                0<> if
-                        ." -"
-                        dup list-get-links link-get-data
-                        .stack-struct
-                    else
-                        space
-                    then
+                0<>
+                if
+                    ." -"
+                    dup list-get-links link-get-data
+                    .stack-struct
+                else
+                    space
+                then
             then
             drop
         else
