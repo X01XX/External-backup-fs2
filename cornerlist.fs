@@ -2,6 +2,8 @@
 
 \ Check TOS for corner-list.
 : is-corner-list? ( tos -- bool )
+    \ cr ." is-corner-list?: start: " .stack-gbl cr
+    
     tos is-list?        \ tos bool
     ifnot
         drop
@@ -19,6 +21,25 @@
     list-get-links      \ link
     link-get-data       \ data
     is-corner?          \ bool
+;
+
+\ Return true if tos is a corner list of lists.
+: is-corner-lol? ( tos --  bool )
+    \ cr ." is-corner-lol?: start: " .stack-gbl cr
+    dup is-list?
+    if
+        dup list-is-empty?
+        if
+            drop
+            true
+        else
+            list-get-links link-get-data
+            is-corner-list?
+        then
+    else
+        drop
+        false
+    then
 ;
 
 \ Deallocate a corner list.
@@ -44,11 +65,12 @@
 : .corner-list ( crn-lst0 -- )
     \ Check arg.
     assert( tos is-corner-list? )
-
+    ." ("
     foreach                 \ grp-lnk
         dup link-get-data   \ grp-lnk grpx
-        cr #8 spaces .corner
+        .corner space
     next
+    ." )"
 ;
 
 : .corner-list-prefix ( c-addr u list0 -- )
@@ -76,7 +98,33 @@
     repeat
                         \ u
     drop
+;
+
+: .corner-clusters-prefix ( c-addr u list0 -- )
+    \ Check arg.
+    assert( tos is-corner-lol? )
     cr
+    rot                 \ u list0 c-addr
+    #2 pick             \ u list0 c-addr u
+    type                \ u list0
+
+    dup list-is-empty?
+    if
+        ." None"
+        2drop
+        exit
+    then
+
+    foreach             \ u lnk
+        dup link-get-data .corner-list
+
+        link-get-next
+        dup 0<> if
+            over cr spaces
+        then
+    repeat
+                        \ u
+    drop
 ;
 
 \ Return true if a corner's region matches a given region.
@@ -123,20 +171,9 @@
 : corner-list-find ( sta1 crn-lst0 -- crn t | f )
     \ Check args.
     assert( tos is-corner-list? )
-    assert( nos is-region? )
+    assert( nos is-state? )
 
     [ ' corner-anchor-eq-state? ] literal -rot list-find
-;
-
-\ Return true if tos is a corner list of lists.
-: is-corner-lol? ( tos -- )
-    assert( tos is-list? )
-    dup list-is-not-empty?
-    if   
-        dup list-get-links link-get-data
-        assert( tos is-corner-list? )
-        drop 
-    then 
 ;
 
 \ Deallocate a list of corner-list lol.
