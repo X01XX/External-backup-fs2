@@ -815,15 +815,29 @@ action-groups-disp                          cell+   constant action-function-dis
         corner-list-remove-all-region-match \ pre-lst act0 ret-lst def-lst crn-sub-lst
 
         cr ." Developing ... todo"
+        \ For each corner in the list, which starts with only one corner, find corners with anchors
+        \ that match the adjacent, external, states.
+        \ Add found corners to the end of the list, extending the list while it is
+        \ being interated on.
+        dup                                 \ pre-lst act0 ret-lst def-lst crn-sub-lst crn-sub-lst
+        foreach                             \ pre-lst act0 ret-lst def-lst crn-sub-lst crn-sub-lnk
+
+            dup link-get-data               \ pre-lst act0 ret-lst def-lst crn-sub-lst crn-sub-lnk crnx
+            corner-get-adjacent-states      \ pre-lst act0 ret-lst def-lst crn-sub-lst crn-sub-lnk adj-lst
+
+            foreach                         \ pre-lst act0 ret-lst def-lst crn-sub-lst crn-sub-lnk adj-lnk
+                dup link-get-data           \ pre-lst act0 ret-lst def-lst crn-sub-lst crn-sub-lnk adj-lnk adjx
+                cr ." checking state: " .state cr
         \
-        \    begin
         \        Find corner sharing data with any corner in the sub list.
         \
         \        *delete region from copied defining regions list
         \        *delete corners from pre list that have an anchor in the selected corner region.
         \        *add to selected corner to sub-list.
-        \    again
         \
+            next    \ Corner adjacent state.
+        next        \ Corner.
+
         \ Add corner sub-list to return list.
         dup                                     \ pre-lst act0 ret-lst def-lst crn-sub-lst crn-sub-lst
         #3 pick                                 \ pre-lst act0 ret-lst def-lst crn-sub-lst crn-sub-lst ret-lst
