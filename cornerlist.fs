@@ -118,3 +118,42 @@
     2drop
     \ cr ." corner-list-remove-all-region-match: end: " .stack-gbl cr
 ;
+
+\ Find a corner in a list, by state, if any.
+: corner-list-find ( sta1 crn-lst0 -- crn t | f )
+    \ Check args.
+    assert( tos is-corner-list? )
+    assert( nos is-region? )
+
+    [ ' corner-anchor-eq-state? ] literal -rot list-find
+;
+
+\ Return true if tos is a corner list of lists.
+: is-corner-lol? ( tos -- )
+    assert( tos is-list? )
+    dup list-is-not-empty?
+    if   
+        dup list-get-links link-get-data
+        assert( tos is-corner-list? )
+        drop 
+    then 
+;
+
+\ Deallocate a list of corner-list lol.
+: corner-lol-deallocate ( crn-lol0 -- )
+    \ Check arg.
+    assert( tos is-corner-lol? )
+
+    \ Check if the list will be deallocated for the last time.
+    dup struct-get-use-count                        \ crn-lol0 uc
+    #2 < if 
+        \ Deallocate corner-list instances in the list.
+        [ ' corner-list-deallocate ] literal over   \ crn-lol0 xt crn-lol0
+        list-apply                                  \ crn-lol0
+
+        \ Deallocate the list.
+        list-deallocate                             \    
+    else 
+        struct-dec-use-count
+    then 
+;

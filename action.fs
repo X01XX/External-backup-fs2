@@ -1,7 +1,7 @@
 \ Implement an Action struct and functions.
 
 #29717 constant action-struct-id
-   #11 constant action-struct-number-cells
+   #12 constant action-struct-number-cells
 
 \ Struct fields
 0                                                   constant action-header-disp                         \ 16 bits, [0] Struct id, [1] Use count [2] Number bits ( 8 bits )
@@ -15,7 +15,9 @@ action-states-in-one-region-disp            cell+   constant action-defining-reg
 action-defining-regions-disp                cell+   constant action-states-not-in-defining-regions-disp \ A state list of states not in defining regions.
 action-states-not-in-defining-regions-disp  cell+   constant action-corners-disp                        \ A cornor list, from incompatible pairs and possible regions.
 action-corners-disp                         cell+   constant action-groups-disp                         \ A group list.
-action-groups-disp                          cell+   constant action-function-disp                       \ A function to run to get a sample for a state.
+action-groups-disp                          cell+   constant action-corner-clusters-disp                \ A list of corner clusters, a list of lists of corners.
+action-corner-clusters-disp                 cell+   constant action-function-disp                       \ A function to run to get a sample for a state.
+
 
 0 value action-mma \ Storage for action mma instance.
 
@@ -317,6 +319,38 @@ action-groups-disp                          cell+   constant action-function-dis
     _action-set-corners     \ crn-lst
     corner-list-deallocate
 ;
+
+\ Return the corner-cluster-list from an action instance.
+: action-get-corner-clusters ( act0 -- crn-lol )
+    \ Check arg.
+    assert( tos is-action? )
+
+    action-corner-clusters-disp +   \ Add offset.
+    @                               \ Fetch the field.
+;
+
+\ Set the corner-cluster-list of an action instance, use only in this file.
+: _action-set-corner-clusters ( crn-lol1 act0 -- )
+    \ Check args.
+    assert( tos is-action? )
+    assert( nos is-corner-lol? )
+
+    action-corner-clusters-disp +   \ Add offset.
+    !struct                         \ Set the field.
+;
+
+\ Update the corner-cluster list of an action instance, use only in this file.
+: _action-update-corner-clusters ( crn-lol1 act0 -- )
+    \ Check args.
+    assert( tos is-action? )
+    assert( nos is-corner-lol? )
+
+    dup action-get-corner-clusters  \ crn-lol1 act0 crn-lol
+    -rot                            \ crn-lol crn-lol1 act0
+    _action-set-corner-clusters     \ crn-lol
+    corner-lol-deallocate
+;
+
 \ End accessors
 
 \ Return a new action, given a functian to run to get a sample,
@@ -375,6 +409,9 @@ action-groups-disp                          cell+   constant action-function-dis
 
     \ Set corners.
     list-new over _action-set-corners
+
+    \ Set corner clusters.
+    list-new over _action-set-corner-clusters
 ;
 
 : action-squares-in-one-region ( act0 -- sqr-lst )
@@ -441,7 +478,7 @@ action-groups-disp                          cell+   constant action-function-dis
     #4 spaces ." Sqrs not in def regs: " dup action-get-states-not-in-defining-regions .state-list
     cr
     s"     Corners:              " #2 pick action-get-corners .corner-list-prefix
-    cr
+    s"     Corner clusters:      todo"
     s"     Groups:               " #2 pick action-get-groups .group-list-prefix
     drop
 ;
@@ -465,6 +502,7 @@ action-groups-disp                          cell+   constant action-function-dis
         dup action-get-defining-regions region-list-deallocate
         dup action-get-states-not-in-defining-regions state-list-deallocate
         dup action-get-corners corner-list-deallocate
+        dup action-get-corner-clusters corner-lol-deallocate
 
         \ Deallocate instance.
         action-mma mma-deallocate
@@ -828,13 +866,17 @@ action-groups-disp                          cell+   constant action-function-dis
             foreach                         \ pre-lst act0 ret-lst def-lst crn-sub-lst crn-sub-lnk adj-lnk
                 dup link-get-data           \ pre-lst act0 ret-lst def-lst crn-sub-lst crn-sub-lnk adj-lnk adjx
                 cr ." checking state: " .state cr
+                #7 pick                     \ pre-lst act0 ret-lst def-lst crn-sub-lst crn-sub-lnk adj-lnk adjx pre-lst
+                corner-list-find            \ pre-lst act0 ret-lst def-lst crn-sub-lst crn-sub-lnk adj-lnk, crn t | f
+                if
         \
         \        Find corner sharing data with any corner in the sub list.
         \
         \        *delete region from copied defining regions list
         \        *delete corners from pre list that have an anchor in the selected corner region.
-        \        *add to selected corner to sub-list.
+        \        *add selected corner to sub-list.
         \
+                then
             next    \ Corner adjacent state.
         next        \ Corner.
 

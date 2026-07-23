@@ -238,3 +238,13 @@ corner-region-disp          cell+   constant corner-adjacent-states-disp    \ Al
 
     true abort" TODO"
 ;
+
+\ Return true if a corner anchor is equal to a given state.
+: corner-anchor-eq-state? ( sta1 crn0 -- bool )
+    \ Check args.
+    assert( tos is-corner? )
+    assert( nos is-state? )
+
+    corner-get-anchor-state \ sta1 crn-sta
+    states-eq?
+;
