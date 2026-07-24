@@ -3,7 +3,7 @@
 \ Check TOS for corner-list.
 : is-corner-list? ( tos -- bool )
     \ cr ." is-corner-list?: start: " .stack-gbl cr
-    
+
     tos is-list?        \ tos bool
     ifnot
         drop
@@ -66,10 +66,13 @@
     \ Check arg.
     assert( tos is-corner-list? )
     ." ("
-    foreach                 \ grp-lnk
-        dup link-get-data   \ grp-lnk grpx
-        .corner space
-    next
+    foreach                 \ crn-lnk
+        dup link-get-data   \ crn-lnk crnx
+        .corner
+
+        link-get-next       \ crn-lnk
+        dup 0<> if space then
+    repeat
     ." )"
 ;
 
@@ -183,14 +186,14 @@
 
     \ Check if the list will be deallocated for the last time.
     dup struct-get-use-count                        \ crn-lol0 uc
-    #2 < if 
+    #2 < if
         \ Deallocate corner-list instances in the list.
         [ ' corner-list-deallocate ] literal over   \ crn-lol0 xt crn-lol0
         list-apply                                  \ crn-lol0
 
         \ Deallocate the list.
-        list-deallocate                             \    
-    else 
+        list-deallocate                             \
+    else
         struct-dec-use-count
-    then 
+    then
 ;

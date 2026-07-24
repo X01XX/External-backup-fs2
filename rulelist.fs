@@ -119,7 +119,7 @@
     assert( tos is-rule-list? )
     assert( nos is-rule-list? )
     assert( over list-get-length over list-get-length = )
-    assert( dup list-get-length 3 < )
+    assert( dup list-get-length #3 < )
     assert( dup list-get-length 0> )
     \ cr ." rule-list-union: start: " .stack-gbl cr
 
