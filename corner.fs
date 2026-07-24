@@ -1,8 +1,11 @@
 \ Implement a corner struct.
 \ A corner is an element in discovering, and maintaining, Logical Structure.
-\ A state, and closest dissimilar states.
-\ Once developed, the anchor square-state should be in only one region.
-
+\ The corner starts with a state, the anchor, that is only in one region.
+\ It is implied that states adjacent to the anchor, external to the region,
+\ are dissimilar to the anchor.  That can be tested.
+\
+\ An adjacent, external, state that is similar to the anchor, where both have
+\ been sampled to pnc, invalidates the corner.
 #53719 constant corner-struct-id
     #4 constant corner-struct-number-cells
 

@@ -883,3 +883,12 @@
         then
     then
 ;
+
+\ Return true if a region intersects any region in a region-list.
+: region-list-any-intersection? ( reg1 list0 -- flag )
+    \ Check args.
+    assert( tos is-region-list? )
+    assert( nos is-region? )
+
+    [ ' region-intersects? ] literal -rot list-member?
+;

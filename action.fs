@@ -735,6 +735,152 @@ action-groups-disp                          cell+   constant action-function-dis
     \ cr ." action-calc-corner-rate: end: rate: " dup . cr
 ;
 
+\ Return true if a corner is confirmed.
+\ This is very strict, while action-corner-possible? is very permissive.
+\ They both require the corner anchor state to be in only one possible region.
+: action-corner-confirmed? ( crn1 act0 -- bool )
+    \ Check args.
+    assert( tos is-action? )
+    assert( nos is-corner? )
+
+    \ Check corner is in exactly one possible group.
+    over corner-get-anchor-state        \ crn1 act0 sta1
+    over action-get-possible-regions    \ crn1 act0 sta1 pos-lst
+    region-list-num-state-in            \ crn1 act0 num-in
+    1 <>
+    if
+        2drop
+        false
+        exit
+    then
+
+    \ Get action squares.
+    dup action-get-squares              \ crn1 act0 sqr-lst
+
+    \ Get anchor, done if not found.
+    #2 pick corner-get-anchor-state     \ crn1 act0 sqr-lst anc-sta
+    over square-list-find               \ crn1 act0 sqr-lst, anc-sqr t | f
+    ifnot
+        2drop drop
+        false
+        exit
+    then
+
+    \ Check anchor square pnc value, done if false.
+    dup square-get-pnc                  \ crn1 act0 sqr-lst anc-sqr pnc
+    ifnot
+        2drop 2drop
+        false
+        exit
+    then
+
+    \ Check adjacent squares.
+    #3 pick corner-get-adjacent-states  \ crn1 act0 sqr-lst anc-sqr adj-stas
+
+    \ Check each adjacent square.
+    foreach                             \ crn1 act0 sqr-lst anc-sqr adj-stas-lnk
+        dup link-get-data               \ crn1 act0 sqr-lst anc-sqr adj-stas-lnk adj-sta
+        #3 pick square-list-find        \ crn1 act0 sqr-lst anc-sqr adj-stas-lnk, sqr t | f
+        if
+            \ Check square pnc.
+            dup square-get-pnc          \ crn1 act0 sqr-lst anc-sqr adj-stas-lnk sqr pnc
+            if
+                #2 pick                 \ crn1 act0 sqr-lst anc-sqr adj-stas-lnk sqr anc-sqr
+                squares-compare         \ crn1 act0 sqr-lst anc-sqr adj-stas-lnk char
+                [char] I =
+                ifnot
+                    \ Square not incompatible.
+                    2drop 2drop drop
+                    false
+                    exit
+                then
+            else
+                \ Square not pnc.
+                2drop 2drop drop
+                false
+                exit
+            then
+        else
+            \ Square not found.
+            2drop 2drop drop
+            false
+            exit
+        then
+    next
+
+    2drop 2drop
+    true
+;
+
+\ Return true, if a corner has an anchor in only one possible region
+\ and an external, adjacent, square is not compatible.
+\ This is very permissive, while action-corner-confirmed? is very strict.
+\ They both require the corner anchor state to be in only one possible region.
+: action-corner-possible? ( crn1 act0 -- bool )
+    \ Check args.
+    assert( tos is-action? ifnot cr ." Invalid tos: " .stack-gbl cr false then )
+    assert( nos is-corner? ifnot cr ." Invalid nos: " .stack-gbl cr false then )
+
+    \ Check corner is in exactly one possible group.
+    over corner-get-anchor-state        \ crn1 act0 sta1
+    over action-get-possible-regions    \ crn1 act0 sta1 pos-lst
+    region-list-num-state-in            \ crn1 act0 num-in
+    1 <>
+    if
+        2drop
+        false
+        exit
+    then
+
+    \ Get action squares.
+    dup action-get-squares              \ crn1 act0 sqr-lst
+
+    \ Get anchor, done if not found.
+    #2 pick corner-get-anchor-state     \ crn1 act0 sqr-lst anc-sta
+    over square-list-find               \ crn1 act0 sqr-lst, anc-sqr t | f
+    ifnot
+        2drop drop
+        true
+        exit
+    then
+
+    \ Check anchor square pnc value, done if false.
+    dup square-get-pnc                  \ crn1 act0 sqr-lst anc-sqr pnc
+    ifnot
+        2drop 2drop
+        true
+        exit
+    then
+
+    \ Check adjacent squares.
+    #3 pick corner-get-adjacent-states  \ crn1 act0 sqr-lst anc-sqr adj-stas
+
+    \ Check each adjacent square.
+    foreach                             \ crn1 act0 sqr-lst anc-sqr adj-stas-lnk
+        dup link-get-data               \ crn1 act0 sqr-lst anc-sqr adj-stas-lnk adj-sta
+        #3 pick square-list-find        \ crn1 act0 sqr-lst anc-sqr adj-stas-lnk, sqr t | f
+        if
+            \ Check square pnc.
+            dup square-get-pnc          \ crn1 act0 sqr-lst anc-sqr adj-stas-lnk sqr pnc
+            if
+                #2 pick                 \ crn1 act0 sqr-lst anc-sqr adj-stas-lnk sqr anc-sqr
+                squares-compare         \ crn1 act0 sqr-lst anc-sqr adj-stas-lnk char
+                [char] C =
+                if
+                    2drop 2drop drop
+                    false
+                    exit
+                then
+            else
+                drop
+            then
+        then
+    next
+
+    2drop 2drop
+    true
+;
+
 \ Calc corners, from action-defining-regions and
 \ action-squares-in-one-region.
 \
@@ -797,9 +943,14 @@ action-groups-disp                          cell+   constant action-function-dis
             link-get-data               \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk stax regx
             corner-new                  \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk crn
 
-            \ Store corner.
-            #6 pick                     \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk crn pre-lst
-            list-push-struct            \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk
+            dup action-corner-possible? \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk crn bool
+            if
+                \ Store corner.
+                #6 pick                 \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk crn pre-lst
+                list-push-struct        \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk
+            else
+                corner-deallocate
+            then
         next
 
         state-list-deallocate
