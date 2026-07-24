@@ -737,7 +737,38 @@ action-groups-disp                          cell+   constant action-function-dis
 
 \ Calc corners, from action-defining-regions and
 \ action-squares-in-one-region.
-\ Set action-corners and action-corner-clusters.
+\
+\ Sets action-corners and action-corner-clusters.
+\
+\ When incompatible pairs change:
+\   Possible regions change
+\   Defining regions change
+\   States only in one region change.
+\   Corners change.
+\   Corner clusters change.
+\
+\ Pseudo code:
+\
+\ Figure all possible corners.
+\
+\ Until all defining regions are accounted for:
+\
+\   Choose a corner from the possible corners list, with the most adjacent states
+\   that are in only one possible region.
+\   Add it to the final corner list, and a temporary corner cluster list.
+\
+\   To the temporary corner cluster list, add other corners in the possible corners
+\   list, that have an anchor matching an adjacent state in any previous corner in the
+\   temporary corner cluster list.
+\   This will be zero, or more, corners.
+\   Corners may be linked to corners, which are linked to still other corners.
+\
+\   If the temporary corner cluster list length is greater than one, add it as a separate
+\   list, to the action corner cluster list.
+\
+\   For each corner selected, remove it, its defining region, and other possible
+\   corners in its defining region, from further consideration.
+\
 : action-calc-corners ( act0 -- )
     \ Check arg.
     assert( tos is-action? )
@@ -932,7 +963,7 @@ action-groups-disp                          cell+   constant action-function-dis
     \ cr ." action-calc-corners: end: " .stack-gbl cr
 ;
 
-\ Evaluate possible regions, to generate corners.
+\ Evaluate possible regions, to generate corners and corner clusters.
 : _action-evaluate-possible-regions ( act0 -- )
     \ cr ." _action-evaluate-possible-regions: start"
     \ Check arg.
