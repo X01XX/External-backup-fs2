@@ -726,3 +726,11 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 
     region-new
 ;
+
+: region-states-adjacent? ( reg0 -- bool )
+    \ Check arg.
+    assert( tos is-region? )
+
+    region-get-states       \ sta1 st0
+    states-adjacent?
+;

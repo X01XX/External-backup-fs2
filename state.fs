@@ -501,3 +501,20 @@ state-header-disp cell+   constant state-number-disp
     dup mask-count-bits \ msk' u
     swap mask-deallocate
 ;
+
+: states-adjacent? ( sta1 sta0 -- bool )
+    \ Check args.
+    assert( tos is-state? )
+    assert( nos is-state? )
+
+    state-get-number        \ sta1 num0
+    swap state-get-number   \ num0 num1
+    xor                     \ msk
+    split-lsb               \ rem lsb t | f
+    if
+        drop                \ rem
+        0=                  \ bool
+    else
+        false
+    then
+;

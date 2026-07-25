@@ -39,8 +39,9 @@
     then
 ;
 
-\ Split lsb from mask.
-: split-lsb ( u1 -- u2 u3 t | f )
+\ Split lsb from a number.
+\ Return false if the number is zero.
+: split-lsb ( u1 -- remainder lsb t | f )
     dup 0=
     if
         drop
