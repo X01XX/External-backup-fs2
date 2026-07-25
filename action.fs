@@ -1,21 +1,43 @@
 \ Implement an Action struct and functions.
 
 #29717 constant action-struct-id
-   #12 constant action-struct-number-cells
+   #14 constant action-struct-number-cells
 
 \ Struct fields
 0                                                   constant action-header-disp                         \ 16 bits, [0] Struct id, [1] Use count [2] Number bits ( 8 bits )
                                                                                                         \ Action instance ID ( 8 bits ).
 action-header-disp                          cell+   constant action-parent-disp                         \ Domain ref, or 0.
+
 action-parent-disp                          cell+   constant action-squares-disp                        \ A square list.
-action-squares-disp                         cell+   constant action-incompatible-pairs-disp             \ A region list.  States that define the regions are incompatible.
-action-incompatible-pairs-disp              cell+   constant action-possible-regions-disp               \ A region list.
-action-possible-regions-disp                cell+   constant action-states-in-one-region-disp           \ A state list of states in only one possible region, possible anchors.
+
+action-squares-disp                         cell+   constant action-ai-pairs-disp                       \ A region list.
+                                                                                                        \ Adjacent, Incompatible, states, define the regions.
+action-ai-pairs-disp                        cell+   constant action-ai-regions-disp                     \ A region list.
+                                                                                                        \ By calculating ~A + ~B from ai pairs.
+
+action-ai-regions-disp                      cell+   constant action-nai-pairs-disp                      \ A region list.
+                                                                                                        \ Not Adjacent, Incompatible, states, define the regions.
+                                                                                                        \ Both states of a region are within at least one region
+                                                                                                        \ in action-ai-regions.
+
+action-nai-pairs-disp                       cell+   constant action-possible-regions-disp               \ A region list.
+                                                                                                        \ By calculating ~A + ~B from nai pairs, intersected with
+                                                                                                        \ action-ai-regions. Groups come from this.
+
+action-possible-regions-disp                cell+   constant action-states-in-one-region-disp           \ A state list of states in only one possible region,
+                                                                                                        \ possible anchors.
+
 action-states-in-one-region-disp            cell+   constant action-defining-regions-disp               \ A list of possible regions that are defining regions.
+                                                                                                        \ Developed from action-states-in-one-region,
+                                                                                                        \ instead of doing a lot of region subtractions.
+
 action-defining-regions-disp                cell+   constant action-states-not-in-defining-regions-disp \ A state list of states not in defining regions.
+
 action-states-not-in-defining-regions-disp  cell+   constant action-corners-disp                        \ A cornor list, from incompatible pairs and possible regions.
 action-corners-disp                         cell+   constant action-corner-clusters-disp                \ A list of corner clusters, a list of lists of corners.
+
 action-corner-clusters-disp                 cell+   constant action-groups-disp                         \ A group list.
+
 action-groups-disp                          cell+   constant action-function-disp                       \ A function to run to get a sample for a state.
 
 
