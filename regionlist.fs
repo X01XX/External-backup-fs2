@@ -884,6 +884,15 @@
     then
 ;
 
+\ Return true if a region-list contains a superset, or equal, region.
+: region-list-any-superset-of? ( reg1 list0 -- flag )                                                                            
+    \ Check args.
+    assert( tos is-region-list? )
+    assert( nos is-region? )
+
+    [ ' region-superset? ] literal -rot list-member?
+;
+
 \ Return true if a region intersects any region in a region-list.
 : region-list-any-intersection? ( reg1 list0 -- flag )
     \ Check args.

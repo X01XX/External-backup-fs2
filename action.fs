@@ -1286,20 +1286,169 @@ action-groups-disp                          cell+   constant action-function-dis
     drop
 ;
 
-: _action-adj-pairs-add-pair ( reg1 act0 -- )
-    \ Check args.
+\ Using action-incompatible-pairs, recalc all possible regions.
+: action-recalc-possible-regions ( act0 -- )
+    \ Check arg.
     assert( tos is-action? )
-    assert( nos is-region? )
 
-    ." todo"
+    dup action-get-adj-regions              \ act0 adj-regs
+    #2 pick action-get-nadj-regions         \ act0 adj-regs nadj-regs
+    region-list-intersections-nosubs        \ act0 reg-lst'
+
+    swap _action-update-possible-regions    \
 ;
 
-: _action-nadj-add-pair ( reg1 act0 -- )
+\ Recalc possible regions, from adjacent, incmpatible pairs.
+: action-recalc-adj-pair-regions ( act0 -- )
+    list-new                                \ act0 pos-new
+    over action-get-num-bits                \ act0 pos-new nb
+    region-max-x                            \ act0 pos-new reg-max
+    over list-push-struct                   \ act0 pos-new
+
+    over action-get-adj-pairs               \ act0 pos-new pr-lst
+
+    foreach                                 \ act0 pos-new pr-lnk
+        dup link-get-data                   \ act0 pos-new pr-lnk regx
+        region-get-states                   \ act0 pos-new pr-lnk sta1 sta1
+        state-~a+~b                         \ act0 pos-new pr-lnk reg-lst'
+        dup                                 \ act0 pos-new pr-lnk reg-lst' reg-lst'
+        #3 pick                             \ act0 pos-new pr-lnk reg-lst' reg-lst' pos-new
+        region-list-intersections-nosubs    \ act0 pos-new pr-lnk reg-lst' pos-new2
+
+        \ Clean up.
+        swap region-list-deallocate         \ act0 pos-new pr-lnk pos-new2
+        rot region-list-deallocate          \ act0 pr-lnk pos-new2
+        swap                                \ act0 pos-new2 pr-lnk
+    next
+                                            \ act0 pos-new
+    swap                                    \ pos-new act0
+    _action-update-adj-regions              \
+;
+
+\ Add a pair to the adjacent incompatible pair list.
+\ Return true, if added.
+: _action-adj-pairs-add-pair ( reg1 act0 -- bool )
     \ Check args.
     assert( tos is-action? )
     assert( nos is-region? )
 
-    ." todo"
+    tuck                                \ act0 reg1 act0
+    action-get-nadj-regions             \ act0 reg1 nadj-regs
+    region-list-push-nosups             \ act0 bool
+    ifnot drop false exit then
+
+    dup action-recalc-adj-pair-regions  \ act0
+
+    action-recalc-possible-regions
+
+    true
+;
+
+\ Recalc possible regions, from non-adjacent, incmpatible pairs.
+: action-recalc-nadj-pair-regions ( act0 -- )
+    list-new                                \ act0 pos-new
+    over action-get-num-bits                \ act0 pos-new nb
+    region-max-x                            \ act0 pos-new reg-max
+    over list-push-struct                   \ act0 pos-new
+
+    over action-get-adj-pairs               \ act0 pos-new pr-lst
+
+    foreach                                 \ act0 pos-new pr-lnk
+        dup link-get-data                   \ act0 pos-new pr-lnk regx
+        region-get-states                   \ act0 pos-new pr-lnk sta1 sta1
+        state-~a+~b                         \ act0 pos-new pr-lnk reg-lst'
+        dup                                 \ act0 pos-new pr-lnk reg-lst' reg-lst'
+        #3 pick                             \ act0 pos-new pr-lnk reg-lst' reg-lst' pos-new
+        region-list-intersections-nosubs    \ act0 pos-new pr-lnk reg-lst' pos-new2
+
+        \ Clean up.
+        swap region-list-deallocate         \ act0 pos-new pr-lnk pos-new2
+        rot region-list-deallocate          \ act0 pr-lnk pos-new2
+        swap                                \ act0 pos-new2 pr-lnk
+    next
+                                            \ act0 pos-new
+    swap                                    \ pos-new act0
+    _action-update-nadj-regions              \
+;
+
+\ Add a pair to the adjacent incompatible pair list.
+\ Delete superset regions.
+\ Return true, if added.
+: _action-nadj-add-pair ( reg1 act0 -- bool )
+    \ Check args.
+    assert( tos is-action? )
+    assert( nos is-region? )
+
+    tuck                                \ act0 reg1 act0
+    over                                \ act0 reg1 act0 reg1
+    over action-get-adj-regions         \ act0 reg1 act0 reg1 adj-regs
+    region-list-any-superset-of?        \ act0 reg1 act0 bool
+    ifnot 2drop drop false exit then
+
+    action-get-nadj-regions             \ act0 reg1 nadj-regs
+    region-list-push-nosups             \ act0 bool
+    ifnot drop false exit then
+
+    dup action-recalc-nadj-pair-regions \ act0
+
+    action-recalc-possible-regions
+
+    true
+;
+
+\ Check if pairs aee still subset adj regions,
+\ else delete them.
+: _action-nadj-check-pairs ( act0 -- )
+    \ Check arg.
+    assert( tos is-action? )
+
+    \ Get adjacent list.
+    dup action-get-adj-regions  \ act0 adj-lst
+
+    \ Init delete list.
+    list-new                    \ act0 adj-lst del-lst'
+
+    \ Prep for loop.
+    #2 pick                     \ act0 adj-lst del-lst' act0
+    action-get-nadj-regions     \ act0 adj-lst del-lst' nadj-lst
+
+    \ Check each non-adjacent region.
+    foreach                             \ act0 adj-lst del-lst' nadj-lnk
+        dup link-get-data               \ act0 adj-lst del-lst' nadj-lnk regx
+        #3 pick                         \ act0 adj-lst del-lst' nadj-lnk regx adj-lst
+        region-list-any-superset-of?    \ act0 adj-lst del-lst' nadj-lnk bool
+        if
+            dup link-get-data           \ act0 adj-lst del-lst' nadj-lnk regx
+            #2 pick                     \ act0 adj-lst del-lst' nadj-lnk regx del-lst
+            list-push-struct            \ act0 adj-lst del-lst' nadj-lnk
+        then
+    next
+                                    \ act0 adj-lst del-lst'
+    \ Check if none found.
+    dup list-is-empty?
+    if
+        list-deallocate
+        2drop
+        exit
+    then
+
+    nip                             \ act0 del-lst'
+    over action-get-nadj-regions    \ act0 del-lst' nadj-lst
+    swap                            \ act0 nadj-lst del-lst'
+
+    \ Remove regions.
+    dup                         \ act0 nadj-lst del-lst' del-lst'
+    foreach                     \ act0 nadj-lst del-lst' del-lnk
+        [ ' = ] literal         \ act0 nadj-lst del-lst' del-lnk xt
+        #2 pick link-get-data   \ act0 nadj-lst del-lst' del-lnk xt reg
+        #4 pick                 \ act0 nadj-lst del-lst' del-lnk xt reg nadj-lst
+        list-remove-struct      \ act0 nadj-lst del-lst' del-lnk, reg t | f
+        ifnot cr ." region not found?" abort then
+        drop                    \ act0 nadj-lst del-lst' del-lnk
+    next
+                                \ act0 nadj-lst del-lst'
+    region-list-deallocate      \ act0 nadj-lst
+    2drop
 ;
 
 \ Add an incompatible pair, updating incompatible pair list and possible regions list.
@@ -1346,72 +1495,6 @@ action-groups-disp                          cell+   constant action-function-dis
 \                                        \ act0
 \    drop
 \    \ cr ." _action-add-incompatible-pair: end: " .stack-gbl cr
-;
-
-\ Using action-incompatible-pairs, recalc all possible regions.
-: action-recalc-possible-regions ( act0 -- )
-    \ Check arg.
-    assert( tos is-action? )
-
-    dup action-get-adj-regions              \ act0 adj-regs
-    #2 pick action-get-nadj-regions         \ act0 adj-regs nadj-regs
-    region-list-intersections-nosubs        \ act0 reg-lst'
-
-    swap _action-update-possible-regions    \
-;
-
-\ Recalc possible regions, from adjacent, incmpatible pairs.
-: action-recalc-adj-pair-regions ( act0 -- )
-    list-new                                \ act0 pos-new
-    over action-get-num-bits                \ act0 pos-new nb
-    region-max-x                            \ act0 pos-new reg-max
-    over list-push-struct                   \ act0 pos-new
-
-    over action-get-adj-pairs               \ act0 pos-new pr-lst
-
-    foreach                                 \ act0 pos-new pr-lnk
-        dup link-get-data                   \ act0 pos-new pr-lnk regx
-        region-get-states                   \ act0 pos-new pr-lnk sta1 sta1
-        state-~a+~b                         \ act0 pos-new pr-lnk reg-lst'
-        dup                                 \ act0 pos-new pr-lnk reg-lst' reg-lst'
-        #3 pick                             \ act0 pos-new pr-lnk reg-lst' reg-lst' pos-new
-        region-list-intersections-nosubs    \ act0 pos-new pr-lnk reg-lst' pos-new2
-
-        \ Clean up.
-        swap region-list-deallocate         \ act0 pos-new pr-lnk pos-new2
-        rot region-list-deallocate          \ act0 pr-lnk pos-new2
-        swap                                \ act0 pos-new2 pr-lnk
-    next
-                                            \ act0 pos-new
-    swap                                    \ pos-new act0
-    _action-update-adj-regions              \
-;
-
-\ Recalc possible regions, from non-adjacent, incmpatible pairs.
-: action-recalc-nadj-pair-regions ( act0 -- )
-    list-new                                \ act0 pos-new
-    over action-get-num-bits                \ act0 pos-new nb
-    region-max-x                            \ act0 pos-new reg-max
-    over list-push-struct                   \ act0 pos-new
-
-    over action-get-adj-pairs               \ act0 pos-new pr-lst
-
-    foreach                                 \ act0 pos-new pr-lnk
-        dup link-get-data                   \ act0 pos-new pr-lnk regx
-        region-get-states                   \ act0 pos-new pr-lnk sta1 sta1
-        state-~a+~b                         \ act0 pos-new pr-lnk reg-lst'
-        dup                                 \ act0 pos-new pr-lnk reg-lst' reg-lst'
-        #3 pick                             \ act0 pos-new pr-lnk reg-lst' reg-lst' pos-new
-        region-list-intersections-nosubs    \ act0 pos-new pr-lnk reg-lst' pos-new2
-
-        \ Clean up.
-        swap region-list-deallocate         \ act0 pos-new pr-lnk pos-new2
-        rot region-list-deallocate          \ act0 pr-lnk pos-new2
-        swap                                \ act0 pos-new2 pr-lnk
-    next
-                                            \ act0 pos-new
-    swap                                    \ pos-new act0
-    _action-update-nadj-regions              \
 ;
 
 \ Check the effect on incompatible pairs of a changed square.
