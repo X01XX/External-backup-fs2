@@ -6,3 +6,6 @@ Improved arg checking. It can now be turned off, see globals.fs.
 
 Allow union of rules ( 0->0, 0->1 ) ( 1->1, 1->0 ), to make ( XX, Xx) or ( X0, X1 ).
 
+Separate adjacent-incompatible pairs, and possible regions, from non-adjacent-incompatible pairs, and possible regions.
+Non-adjacent pairs must be within at least one region calculated from only adjacent-incompatible pairs.
+

@@ -1739,7 +1739,7 @@ action-groups-disp                          cell+   constant action-function-dis
 
     \ Try once.
     2dup action-check-adj-regions-for-incompatible-pairs2       \ sta1 act0 bool
-    if
+    ifnot
         \ No group changes required.
         2drop
         false
@@ -1748,7 +1748,7 @@ action-groups-disp                          cell+   constant action-function-dis
 
     \ Try as many more times as needed.
     begin
-        2dup action-check-adj-regions-for-incompatible-pairs2
+        2dup action-check-adj-regions-for-incompatible-pairs2 invert
     until
                                                                 \ sta1 act0
 
