@@ -278,6 +278,15 @@ mask-header-disp cell+  constant mask-number-disp
     assert( nos is-mask? )
     assert( 2dup masks-same-num-bits? )
 
+    \ Check addrs.
+    2dup =
+    if
+        2drop
+        true
+        exit
+    then
+
+    \ Check numbers.
     mask-get-number     \ msk1 lst0
     swap                \ lst0 msk1
     mask-get-number     \ lst0 lst1

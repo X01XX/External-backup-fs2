@@ -128,9 +128,9 @@
 
     \ sqr1a and sqr1b are incompatible with each other, but not with
     \ the higher-pn-level sqr2.
-    dup square-list-find-incompatible-pair \ sqr2 sqr1a sqr1b lst, sqr-pr t | f
+    dup square-list-find-incompatible-pairs \ sqr2 sqr1a sqr1b lst, sqr-pr t | f
     if
-        cr ." incompatible pairs?: " dup .square-list cr
+        cr ." incompatible pairs?: " dup .region-list cr
         abort
     then
 
@@ -140,36 +140,34 @@
     \ Check for no change to pn.
     ifnot ." add sample 2 caused no change?" abort then
 
-    dup square-list-find-incompatible-pair  \ sqr2 sqr1a sqr1b lst, sqr-pr t | f
+    dup square-list-find-incompatible-pairs \ sqr2 sqr1a sqr1b lst, sqr-prs t | f
     if
         \ cr dup .list-raw cr
         \ cr ." incompatible pair: " dup .square-list cr
 
         \ Check square pair contains sqr2.
-        [ ' = ] literal                     \ sqr2 sqr1a sqr1b lst sqr-pr xt
-        #5 pick                             \ sqr2 sqr1a sqr1b lst sqr-pr xt sqr2
-        #2 pick                             \ sqr2 sqr1a sqr1b lst sqr-pr xt sqr2 sqr-pr
-        list-member?
+        #4 pick square-get-state            \ sqr2 sqr1a sqr1b lst sqr-prs sta2
+        over list-get-first-item            \ sqr2 sqr1a sqr1b lst sqr-prs sta2 sqr-pr
+        region-uses-state?
         ifnot
-            cr ." sqr2 not found?" abort
+            cr ." sqr2 state not found?" abort
         then
 
         \ Check square pair contains sqr1b.
-        [ ' = ] literal                     \ sqr2 sqr1a sqr1b lst sqr-pr xt
-        #3 pick                             \ sqr2 sqr1a sqr1b lst sqr-pr xt sqr1b
-        #2 pick                             \ sqr2 sqr1a sqr1b lst sqr-pr xt sqr1b sqr-pr
-        list-member?
+        #2 pick square-get-state            \ sqr2 sqr1a sqr1b lst sqr-prs sta1b
+        over list-get-first-item            \ sqr2 sqr1a sqr1b lst sqr-prs sta1b sqr-pr
+        region-uses-state?
         ifnot
-            cr ." sqr1b not found?" abort
+            cr ." sqr1b state not found?" abort
         then
     else
         cr ." no incompatible pairs?" abort
     then
 
-    \ Deallocate.                       \ sqr2 sqr1a sqr1b lst sqr-pr
+    \ Deallocate.                       \ sqr2 sqr1a sqr1b lst sqr-prs
     \ cr ." at end: " .stack-gbl cr
     \ cr .s cr
-    square-list-deallocate              \ sqr2 sqr1a sqr1b lst
+    region-list-deallocate              \ sqr2 sqr1a sqr1b lst
     square-list-deallocate              \ sqr2 sqr1a sqr1b
     2drop drop
 
@@ -215,7 +213,7 @@
     2dup list-push-struct                   \ sqr2a sqr2b sqr1 lst
 
     \ cr ." at 1: " .stack-gbl cr
-    dup square-list-find-incompatible-pair  \ sqr2a sqr2b sqr1 lst, sqr-pr t | f
+    dup square-list-find-incompatible-pairs \ sqr2a sqr2b sqr1 lst, sqr-prs t | f
     \ cr ." at 2: " .stack-gbl cr
     if
         \ cr ." incompatible pair: " dup .square-list cr
@@ -226,27 +224,24 @@
     then
 
     \ exit 3 was confirmed.
-    \ cr ." At 33: " .stack-gbl cr
-    [ ' = ] literal                         \ sqr2a sqr2b sqr1 lst sqr-pr xt
     \ cr ." At 44: " .stack-gbl cr
-    #4 pick                                 \ sqr2a sqr2b sqr1 lst sqr-pr xt sqr2b
+    #3 pick square-get-state                \ sqr2a sqr2b sqr1 lst sqr-prs sta2b
     \ cr ." sqr2b: " dup .square cr
-    #2 pick                                 \ sqr2a sqr2b sqr1 lst sqr-pr xt sqr2b sqr-pr
-    list-member?                            \ sqr2a sqr2b sqr1 lst sqr-pr bool
+    over list-get-first-item                \ sqr2a sqr2b sqr1 lst sqr-prs sta2b sqr-pr
+    region-uses-state?                      \ sqr2a sqr2b sqr1 lst sqr-prs bool
     ifnot
-        cr ." sqr2b not found?" abort
+        cr ." sqr2b state not found?" abort
     then
 
-    [ ' = ] literal                         \ sqr2a sqr2b sqr1 lst sqr-pr xt
-    #3 pick                                 \ sqr2a sqr2b sqr1 lst sqr-pr xt sqr1
-    #2 pick                                 \ sqr2a sqr2b sqr1 lst sqr-pr xt sqr1 sqr-pr
-    list-member?                            \ sqr2a sqr2b sqr1 lst sqr-pr bool
+    #2 pick square-get-state                \ sqr2a sqr2b sqr1 lst sqr-prs sta1
+    over list-get-first-item                \ sqr2a sqr2b sqr1 lst sqr-prs sta1 sqr-pr
+    region-uses-state?                      \ sqr2a sqr2b sqr1 lst sqr-prs bool
     ifnot
-        cr ." sqr1 not found?" abort
+        cr ." sqr1 state not found?" abort
     then
 
-    \ Deallocate.                           \ sqr2a sqr2b sqr1 lst sqr-pr
-    square-list-deallocate
+    \ Deallocate.                           \ sqr2a sqr2b sqr1 lst sqr-prs
+    region-list-deallocate
     nip nip nip
     square-list-deallocate
 
@@ -299,7 +294,7 @@
     swap                                    \ sqr2a sqr2b sqr1 lst
     2dup list-push-struct                   \ sqr2a sqr2b sqr1 lst
 
-    dup square-list-find-incompatible-pair  \ sqr2a sqr2b sqr1 lst, sqr-pr t | f
+    dup square-list-find-incompatible-pairs  \ sqr2a sqr2b sqr1 lst, sqr-prs t | f
     if
         \ cr ." incompatible pair: " dup .square-list cr
     else
@@ -310,24 +305,22 @@
 
 \ exit 4 was confirmed. 0111 is different that the arbitrary result of 0100 in
 \ square-list-test-find-incompatible-pair-ns2
-    [ ' = ] literal                         \ sqr2a sqr2b sqr1 lst sqr-pr xt
-    #4 pick                                 \ sqr2a sqr2b sqr1 lst sqr-pr xt sqr2b
-    #2 pick                                 \ sqr2a sqr2b sqr1 lst sqr-pr xt sqr2b sqr-pr
-    list-member?                            \ sqr2a sqr2b sqr1 lst sqr-pr bool
+    #3 pick square-get-state                \ sqr2a sqr2b sqr1 lst sqr-prs sta2b
+    over list-get-first-item                \ sqr2a sqr2b sqr1 lst sqr-prs sta2b sqr-pr
+    region-uses-state?                      \ sqr2a sqr2b sqr1 lst sqr-prs bool
     ifnot
-        cr ." sqr2b not found?" abort
+        cr ." sqr2b state not found?" abort
     then
 
-    [ ' = ] literal                         \ sqr2a sqr2b sqr1 lst sqr-pr xt
-    #3 pick                                 \ sqr2a sqr2b sqr1 lst sqr-pr xt sqr1
-    #2 pick                                 \ sqr2a sqr2b sqr1 lst sqr-pr xt sqr1 sqr-pr
-    list-member?                            \ sqr2a sqr2b sqr1 lst sqr-pr bool
+    #2 pick square-get-state                \ sqr2a sqr2b sqr1 lst sqr-prs sta1
+    over list-get-first-item                \ sqr2a sqr2b sqr1 lst sqr-prs sta1 sqr-pr
+    region-uses-state?                      \ sqr2a sqr2b sqr1 lst sqr-prs bool
     ifnot
-        cr ." sqr1 not found?" abort
+        cr ." sqr1 state not found?" abort
     then
 
-    \ Deallocate.                           \ sqr2a sqr2b sqr1 lst sqr-pr
-    square-list-deallocate
+    \ Deallocate.                           \ sqr2a sqr2b sqr1 lst sqr-prs
+    region-list-deallocate
     nip nip nip
     square-list-deallocate
 
@@ -372,7 +365,7 @@
     swap                                    \ sqr2a sqr2b sqr1 lst
     2dup list-push-struct                   \ sqr2a sqr2b sqr1 lst
 
-    dup square-list-find-incompatible-pair  \ sqr2a sqr2b sqr1 lst, sqr-pr t | f
+    dup square-list-find-incompatible-pairs  \ sqr2a sqr2b sqr1 lst, sqr-prs t | f
     if
         \ cr ." incompatible pair: " dup .square-list cr
     else
@@ -382,24 +375,22 @@
     \ cr ." pair: " dup .square-list cr
 \ Square 0100 is in the pair, but thats arbitrary, the first pair in the list of pairs.
 \ exit 5 was confirmed.
-    [ ' = ] literal                         \ sqr2a sqr2b sqr1 lst sqr-pr xt
-    #5 pick                                 \ sqr2a sqr2b sqr1 lst sqr-pr xt sqr2a
-    #2 pick                                 \ sqr2a sqr2b sqr1 lst sqr-pr xt sqr2a sqr-pr
-    list-member?                            \ sqr2a sqr2b sqr1 lst sqr-pr bool
+    #4 pick square-get-state                \ sqr2a sqr2b sqr1 lst sqr-prs sta2a
+    over list-get-first-item                \ sqr2a sqr2b sqr1 lst sqr-prs sta2a sqr-pr
+    region-uses-state?                      \ sqr2a sqr2b sqr1 lst sqr-prs bool
     ifnot
         cr ." sqr2a not found?" abort
     then
 
-    [ ' = ] literal                         \ sqr2a sqr2b sqr1 lst sqr-pr xt
-    #3 pick                                 \ sqr2a sqr2b sqr1 lst sqr-pr xt sqr1
-    #2 pick                                 \ sqr2a sqr2b sqr1 lst sqr-pr xt sqr1 sqr-pr
-    list-member?                            \ sqr2a sqr2b sqr1 lst sqr-pr bool
+    #2 pick square-get-state                \ sqr2a sqr2b sqr1 lst sqr-prs sta1
+    over list-get-first-item                \ sqr2a sqr2b sqr1 lst sqr-prs sta1 sqr-pr
+    region-uses-state?                      \ sqr2a sqr2b sqr1 lst sqr-prs bool
     ifnot
-        cr ." sqr1 not found?" abort
+        cr ." sqr1 state not found?" abort
     then
 
-    \ Deallocate.                           \ sqr2a sqr2b sqr1 lst sqr-pr
-    square-list-deallocate
+    \ Deallocate.                           \ sqr2a sqr2b sqr1 lst sqr-prs
+    region-list-deallocate
     square-list-deallocate
     2drop drop
 

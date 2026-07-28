@@ -384,7 +384,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 
     region-get-states           \ sta1 reg-sta1 reg-sta0
     #2 pick                     \ sta1 reg-sta1 reg-sta0 sta1
-    =                           \ sta1 reg-sta1 bool
+    states-eq?                  \ sta1 reg-sta1 bool
     if                          \ sta1 reg-sta1
         2drop
         true
@@ -392,7 +392,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     then
 
                                 \ sta1 reg-sta1
-    =                           \ bool
+    states-eq?                  \ bool
 ;
 
 \ Return a new region with some X positions set to zero.

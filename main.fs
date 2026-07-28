@@ -49,8 +49,8 @@ include list2.fs
 include square.fs
 include squarelist.fs
 
-include squarepair.fs
-include squarepairlist.fs
+\ include squarepair.fs
+\ include squarepairlist.fs
 
 include group.fs
 include grouplist.fs

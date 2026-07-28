@@ -417,6 +417,15 @@ state-header-disp cell+   constant state-number-disp
     assert( nos is-state? )
     assert( 2dup states-same-num-bits? )
 
+    \ Check addrs.
+    2dup =
+    if
+        2drop
+        true
+        exit
+    then
+
+    \ Check numbers.
     state-get-number        \ sta1 num0
     swap state-get-number   \ num0 num1
     =
@@ -502,19 +511,3 @@ state-header-disp cell+   constant state-number-disp
     swap mask-deallocate
 ;
 
-: states-adjacent? ( sta1 sta0 -- bool )
-    \ Check args.
-    assert( tos is-state? )
-    assert( nos is-state? )
-
-    state-get-number        \ sta1 num0
-    swap state-get-number   \ num0 num1
-    xor                     \ msk
-    split-lsb               \ rem lsb t | f
-    if
-        drop                \ rem
-        0=                  \ bool
-    else
-        false
-    then
-;
