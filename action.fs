@@ -684,7 +684,7 @@ action-groups-disp                          cell+   constant action-function-dis
 
 \ Scan the group list to delete groups that have a region
 \ that is not in the possible regions list.
-: _action-delete-non-possible-groups ( act0 -- )
+: _action-delete-orphaned-groups ( act0 -- )
     \ Check arg.
     assert( tos is-action? )
 
@@ -1297,7 +1297,7 @@ action-groups-disp                          cell+   constant action-function-dis
 
     over _action-update-possible-regions    \ act0
 
-    dup _action-delete-non-possible-groups  \ act0
+    dup _action-delete-orphaned-groups      \ act0
 
     _action-add-possible-groups
 ;
@@ -1341,9 +1341,9 @@ action-groups-disp                          cell+   constant action-function-dis
     region-list-push-nosups             \ act0 bool
     ifnot drop false exit then
 
-    dup action-recalc-adj-pair-regions  \ act0
+    action-recalc-adj-pair-regions      \
 
-    action-recalc-possible-regions
+    \ action-recalc-possible-regions
 
     true
 ;
@@ -1393,9 +1393,9 @@ action-groups-disp                          cell+   constant action-function-dis
     region-list-push-nosups             \ act0 bool
     ifnot drop false exit then
 
-    dup action-recalc-nadj-pair-regions \ act0
+    action-recalc-nadj-pair-regions     \
 
-    action-recalc-possible-regions
+    \ action-recalc-possible-regions
 
     true
 ;
@@ -1475,7 +1475,7 @@ action-groups-disp                          cell+   constant action-function-dis
 
 \ Check the effect on incompatible pairs of a changed square.
 \ Return a list of pairs to delete.
-: action-check-incompatible-pairs-for-changed-square2 ( sqr2 pr-lst1 act0 -- del-lst t | f )
+: action-check-pair-list-for-changed-square ( sqr2 pr-lst1 act0 -- del-lst t | f )
     \ cr ." action-check-incompatible-pairs-for-changed-square: start: " .stack-gbl cr
     \ Check args.
     assert( tos is-action? )
@@ -1487,7 +1487,7 @@ action-groups-disp                          cell+   constant action-function-dis
         \ This change should not affect incompatible pairs.
         2drop drop
         false
-        \ cr ." action-check-incompatible-pairs-for-changed-square: exit 1: " .stack-gbl cr
+        \ cr ." action-check-pair-list-for-changed-square: exit 1: " .stack-gbl cr
         exit
     then
 
@@ -1546,7 +1546,7 @@ action-groups-disp                          cell+   constant action-function-dis
                                         \ sqr2 act0 del-lst sta2
     drop                                \ sqr2 act0 del-lst
 
-    \ cr ." action-check-incompatible-pairs-for-changed-square: process del list: " .stack-gbl cr
+    \ cr ." action-check-pair-list-for-changed-square: process del list: " .stack-gbl cr
 
     \ Process del list.
     dup list-is-empty?                  \ sqr2 act0 del-lst bool
@@ -1561,7 +1561,7 @@ action-groups-disp                          cell+   constant action-function-dis
     nip nip
     true
 
-    \ cr ." action-check-incompatible-pairs-for-changed-square2: end: " .stack-gbl cr
+    \ cr ." action-check-pair-list-for-changed-square: end: " .stack-gbl cr
 ;
 
 : action-check-adj-pairs-for-changed-square ( sqr1 act0 -- )
@@ -1572,7 +1572,7 @@ action-groups-disp                          cell+   constant action-function-dis
     2dup                                                \ sqr1 act0 sqr1 act0
     dup action-get-adj-pairs                            \ sqr1 act0 sqr1 act0 adj-prs
     swap                                                \ sqr1 act0 sqr1 adj-prs act0
-    action-check-incompatible-pairs-for-changed-square2 \ sqr1 act0, del-lst' t | f
+    action-check-pair-list-for-changed-square           \ sqr1 act0, del-lst' t | f
     ifnot
         2drop
         exit
@@ -1593,8 +1593,8 @@ action-groups-disp                          cell+   constant action-function-dis
     dup action-recalc-adj-pair-regions                  \ sqr1 act0
 
     \ Recalc possible regions.
-    action-recalc-possible-regions                      \ sqr1
-    drop
+\    action-recalc-possible-regions                      \ sqr1
+    2drop
 ;
 
 : action-check-nadj-pairs-for-changed-square ( sqr1 act0 -- )
@@ -1605,7 +1605,7 @@ action-groups-disp                          cell+   constant action-function-dis
     2dup                                                \ sqr1 act0 sqr1 act0
     dup action-get-nadj-pairs                           \ sqr1 act0 sqr1 act0 adj-prs
     swap                                                \ sqr1 act0 sqr1 adj-prs act0
-    action-check-incompatible-pairs-for-changed-square2 \ sqr1 act0, del-lst' t | f
+    action-check-pair-list-for-changed-square           \ sqr1 act0, del-lst' t | f
     ifnot
         2drop
         exit
@@ -1626,8 +1626,8 @@ action-groups-disp                          cell+   constant action-function-dis
     dup action-recalc-nadj-pair-regions                 \ sqr1 act0
 
     \ Recalc possible regions.
-    action-recalc-possible-regions                      \ sqr1
-    drop
+    \ action-recalc-possible-regions                      \ sqr1
+    2drop
 ;
 
 \ Check incompatible pairs for a pair that is no longer incompatible,
@@ -1714,7 +1714,7 @@ action-groups-disp                          cell+   constant action-function-dis
     \ cr ." check-possible-regions-for-incompatible-pairs2: end" cr
 ;
 
-\ Check adjacent regions, containing a given state,
+\ Check adjacent pair regions, containing a given state,
 \ for incompatible square pairs, until no more found.
 : action-check-adj-regions-for-incompatible-pairs ( sta1 act0 -- )
     \ cr ." check-possible-regions-for-incompatible-pairs: start" cr
@@ -1736,7 +1736,7 @@ action-groups-disp                          cell+   constant action-function-dis
     until
                                                                 \ sta1 act0
 
-    dup _action-delete-non-possible-groups                      \ sta1 act0
+    \ action-recalc-possible-regions                              \ sta1
 
     2drop
     \ cr ." check-possible-regions-for-incompatible-pairs: end" cr
@@ -1760,8 +1760,8 @@ action-groups-disp                          cell+   constant action-function-dis
     over                                    \ sqr1 act0 sta act0
     action-check-adj-regions-for-incompatible-pairs
 
-    \ Check for new groups.
-    dup _action-add-possible-groups         \ sqr1 act0
+    \ Flag here?
+    dup action-recalc-possible-regions
 
     2drop
     \ cr ." action-check-changed-square: end: " .stack-gbl cr
