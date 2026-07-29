@@ -472,51 +472,37 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     invert abort" square is not subset of group region?"
     \ cr ." group-add-new-square: at 1: " .stack-gbl cr
 
-    \ Check that the square is not already in the square list.
+    \ Check if the square is already in the square list.
     over square-get-state                   \ sqr1 grp0 sta
     over group-get-squares                  \ sqr1 grp0 sta sqr-lst
     square-list-find                        \ sqr1 grp0, sqr t | f
-    abort" square already in group list?"
+    if
+        2drop
+        drop
+        exit
+    then
     \ cr ." group-add-new-square: at 2: " .stack-gbl cr
 
     \ Check if the square will invalidate the group.
 
-    2dup group-get-squares                  \ sqr1 grp0 sqr1 sqr-lst
-    square-list-square-compatible?          \ sqr1 grp0 valid-bool
-    \ cr ." group-add-new-square: at 3: " .stack-gbl cr
-
     \ Add the square to the square list.
-    #2 pick #2 pick                         \ sqr1 grp0 valid-bool sqr1 grp0
-    group-get-squares                       \ sqr1 grp0 valid-bool sqr1 sqr-lst
-    list-push-struct                        \ sqr1 grp0 valid-bool
+    2dup                                    \ sqr1 grp0 sqr1 grp0
+    group-get-squares                       \ sqr1 grp0 sqr1 sqr-lst
+    list-push-struct                        \ sqr1 grp0
     \ cr ." group-add-new-square: at 4: " .stack-gbl cr
 
     \ Check if the new square is in the s-region.
-    #2 pick square-get-state                \ sqr1 grp0 valid-bool sta
-    #2 pick group-get-s-region              \ sqr1 grp0 valid-bool sta r-reg
-    region-superset-of-state?               \ sqr1 grp0 valid-bool r-bool
+    over square-get-state                   \ sqr1 grp0 sta
+    over group-get-s-region                 \ sqr1 grp0 sta r-reg
+    region-superset-of-state?               \ sqr1 grp0 bool
 
-    \ Process validity result.
-    swap                                    \ sqr1 grp0 r-bool valid-bool
-    if                                      \ sqr1 grp0 r-bool
-        if                                  \ sqr1 grp
-            2drop
-        else
-            \ Check if group pn is 1.
-            dup group-get-pn 1 =
-            if
-                \ Update s-region and rules.
-                dup                         \ sqr1 grp0 grp0
-                _group-update-s-region      \ sqr1 grp0
-                _group-update-rules         \ sqr1
-                drop
-            then
-        then
-    else                                    \ sqr1 grp0 r-bool
-        drop                                \ sqr1 grp0
-        \ Set the valid flag to false
-        2drop
+    ifnot
+        dup _group-calc-set-s-region        \ sqr1 grp0
+        dup _group-calc-set-rules           \ sqr1 grp0
+        dup _group-calc-set-pnc             \ sqr1 grp0
     then
+
+    2drop
 ;
 
 \ Return true if a group's region is superset of a square's state.
