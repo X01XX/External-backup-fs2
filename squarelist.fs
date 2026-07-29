@@ -154,6 +154,7 @@
 ;
 
 \ Return the base pn value, from a non-empty list.
+\ Order is 1, 2 then 0.
 : square-list-base-pn ( sqr-lst0 -- pn )
     \ Check arg.
     assert( tos is-square-list? )
@@ -176,14 +177,16 @@
     then
 ;
 
-\ Return a list of adjacent incompatible square pairs, if any, from a list of squares.
+\ Of the squares in a list with the highest pn ( order is 1, 2, 0),
+\ return a list of adjacent, incompatible, square pairs,
+\ as regions of square pair states, if any.
 : square-list-find-adj-incompatible-pairs ( sqr-lst0 -- reg-lst t | f )
     \ Check arg.
     assert( tos is-square-list? )
 \    cr ." square-list-find-adj-incompatible-pairs: start: " .stack-gbl cr
 
     \ Check list length.
-    dup list-get-length                 \ sqr-lst0 len
+    dup list-get-length                     \ sqr-lst0 len
     #2 < if
         \ No pairs to check.
         drop
@@ -193,41 +196,42 @@
     then
 
     \ Get base pn.
-    dup square-list-base-pn swap        \ pn sqr-lst0
+    dup square-list-base-pn swap            \ pn sqr-lst0
 
     \ Init the incompatible pair list.
     list-new
     \ cr ." list-new 3: " dup hex. cr
-    swap                       \ pn inc-lst sqr-lst0
+    swap                                    \ pn inc-lst sqr-lst0
 
     \ Check every possible pair.
     \ For each pair, at least one must have the base pn, if so compare them.
-    foreach                             \ pn inc-lst sqr-lnk
+    foreach                                 \ pn inc-lst sqr-lnk
         \ Check if loop 1 square pn is equal to the base pn.
-        dup link-get-data               \ pn inc-lst sqr-lnk sqr1
-        square-get-pn                   \ pn inc-lst sqr-lnk pn1
-        #3 pick                         \ pn inc-lst sqr-lnk pn1 pn
-        =                               \ pn inc-lst sqr-lnk bool1
+        dup link-get-data                   \ pn inc-lst sqr-lnk sqr1
+        square-get-pn                       \ pn inc-lst sqr-lnk pn1
+        #3 pick                             \ pn inc-lst sqr-lnk pn1 pn
+        =                                   \ pn inc-lst sqr-lnk bool1
 
         \ Check next squares.
-        over link-get-next              \ pn inc-lst sqr-lnk bool1 nxt-lnk
+        over link-get-next                  \ pn inc-lst sqr-lnk bool1 nxt-lnk
         begin
             ?dup
         while
             \ Check if loop 2 square pn is equal to the base pn.
-            dup link-get-data           \ pn inc-lst sqr-lnk bool1 nxt-lnk sqr2
-            square-get-pn               \ pn inc-lst sqr-lnk bool1 nxt-lnk pn2
-            #5 pick                     \ pn inc-lst sqr-lnk bool1 nxt-lnk pn2 pn
-            =                           \ pn inc-lst sqr-lnk bool1 nxt-lnk bool2
+            dup link-get-data               \ pn inc-lst sqr-lnk bool1 nxt-lnk sqr2
+            square-get-pn                   \ pn inc-lst sqr-lnk bool1 nxt-lnk pn2
+            #5 pick                         \ pn inc-lst sqr-lnk bool1 nxt-lnk pn2 pn
+            =                               \ pn inc-lst sqr-lnk bool1 nxt-lnk bool2
 
             \ Check that at least one square of the pair has a pn equal to the base pn.
-            #2 pick                     \ pn inc-lst sqr-lnk bool1 nxt-lnk bool2 bool1
-            or                          \ pn inc-lst sqr-lnk bool1 nxt-lnk bool12
+            #2 pick                         \ pn inc-lst sqr-lnk bool1 nxt-lnk bool2 bool1
+            or                              \ pn inc-lst sqr-lnk bool1 nxt-lnk bool12
+
             if
                 \ Check the pair.
-                #2 pick link-get-data   \ pn inc-lst sqr-lnk bool1 nxt-lnk sqr1
-                over link-get-data      \ pn inc-lst sqr-lnk bool1 nxt-lnk sqr1 sqr2
-                squares-compare         \ pn inc-lst sqr-lnk bool1 nxt-lnk char
+                #2 pick link-get-data       \ pn inc-lst sqr-lnk bool1 nxt-lnk sqr1
+                over link-get-data          \ pn inc-lst sqr-lnk bool1 nxt-lnk sqr1 sqr2
+                squares-compare             \ pn inc-lst sqr-lnk bool1 nxt-lnk char
                 [char] I =
                 if
                     \ Get loop1 square.
@@ -243,39 +247,43 @@
                     2dup states-adjacent?   \ pn inc-lst sqr-lnk bool1 nxt-lnk sta1 sta2 bool
                     if
                         \ Save pair.
-                        region-new              \ pn inc-lst sqr-lnk bool1 nxt-lnk regx'
-                        dup                     \ pn inc-lst sqr-lnk bool1 nxt-lnk regx' regx'
-                        #5 pick                 \ pn inc-lst sqr-lnk bool1 nxt-lnk regx' regx' inc-lst
-                        region-list-push-nosups \ pn inc-lst sqr-lnk bool1 nxt-lnk regx' bool
-                        if
-                            drop
-                        else
-                            region-deallocate
-                        then
+                        region-new          \ pn inc-lst sqr-lnk bool1 nxt-lnk regx'
+                        #4 pick             \ pn inc-lst sqr-lnk bool1 nxt-lnk regx' inc-lst
+                        region-list-push    \ pn inc-lst sqr-lnk bool1 nxt-lnk
+                    else
+                        2drop
                     then
                 then
             then
-
-            link-get-next
-        repeat
+        next
                                             \ pn inc-lst sqr-lnk bool1
         drop                                \ pn inc-lst sqr-lnk
     next
                                             \ pn inc-lst
     nip                                     \ inc-lst
-    true
+
+    \ Check if any found.
+    dup list-is-empty?                      \ inc-lst
+    if
+        list-deallocate
+        false
+    else
+        true
+    then
 
     \ cr ." square-list-find-adj-incompatible-pairs: end: " .stack-gbl cr
 ;
 
-\ Return a list of non-adjacent incompatible square pairs, if any, from a list of squares.
+\ Of the squares in a list with the highest pn ( order is 1, 2, 0),
+\ return a list of non-adjacent, incompatible, non-superset, square pairs,
+\ as regions of square pair states, if any.
 : square-list-find-nadj-incompatible-pairs ( sqr-lst0 -- reg-lst t | f )
     \ Check arg.
     assert( tos is-square-list? )
 \    cr ." square-list-find-nadj-incompatible-pairs: start: " .stack-gbl cr
 
     \ Check list length.
-    dup list-get-length                 \ sqr-lst0 len
+    dup list-get-length                         \ sqr-lst0 len
     #2 < if
         \ No pairs to check.
         drop
@@ -285,55 +293,57 @@
     then
 
     \ Get base pn.
-    dup square-list-base-pn swap        \ pn sqr-lst0
+    dup square-list-base-pn swap                \ pn sqr-lst0
 
     \ Init the incompatible pair list.
     list-new
     \ cr ." list-new 3: " dup hex. cr
-    swap                       \ pn inc-lst sqr-lst0
+    swap                                        \ pn inc-lst sqr-lst0
 
     \ Check every possible pair.
     \ For each pair, at least one must have the base pn, if so compare them.
-    foreach                             \ pn inc-lst sqr-lnk
+    foreach                                     \ pn inc-lst sqr-lnk
         \ Check if loop 1 square pn is equal to the base pn.
-        dup link-get-data               \ pn inc-lst sqr-lnk sqr1
-        square-get-pn                   \ pn inc-lst sqr-lnk pn1
-        #3 pick                         \ pn inc-lst sqr-lnk pn1 pn
-        =                               \ pn inc-lst sqr-lnk bool1
+        dup link-get-data                       \ pn inc-lst sqr-lnk sqr1
+        square-get-pn                           \ pn inc-lst sqr-lnk pn1
+        #3 pick                                 \ pn inc-lst sqr-lnk pn1 pn
+        =                                       \ pn inc-lst sqr-lnk bool1
 
         \ Check next squares.
-        over link-get-next              \ pn inc-lst sqr-lnk bool1 nxt-lnk
+        over link-get-next                      \ pn inc-lst sqr-lnk bool1 nxt-lnk
         begin
             ?dup
         while
             \ Check if loop 2 square pn is equal to the base pn.
-            dup link-get-data           \ pn inc-lst sqr-lnk bool1 nxt-lnk sqr2
-            square-get-pn               \ pn inc-lst sqr-lnk bool1 nxt-lnk pn2
-            #5 pick                     \ pn inc-lst sqr-lnk bool1 nxt-lnk pn2 pn
-            =                           \ pn inc-lst sqr-lnk bool1 nxt-lnk bool2
+            dup link-get-data                   \ pn inc-lst sqr-lnk bool1 nxt-lnk sqr2
+            square-get-pn                       \ pn inc-lst sqr-lnk bool1 nxt-lnk pn2
+            #5 pick                             \ pn inc-lst sqr-lnk bool1 nxt-lnk pn2 pn
+            =                                   \ pn inc-lst sqr-lnk bool1 nxt-lnk bool2
 
             \ Check that at least one square of the pair has a pn equal to the base pn.
-            #2 pick                     \ pn inc-lst sqr-lnk bool1 nxt-lnk bool2 bool1
-            or                          \ pn inc-lst sqr-lnk bool1 nxt-lnk bool12
+            #2 pick                             \ pn inc-lst sqr-lnk bool1 nxt-lnk bool2 bool1
+            or                                  \ pn inc-lst sqr-lnk bool1 nxt-lnk bool12
             if
                 \ Check the pair.
-                #2 pick link-get-data   \ pn inc-lst sqr-lnk bool1 nxt-lnk sqr1
-                over link-get-data      \ pn inc-lst sqr-lnk bool1 nxt-lnk sqr1 sqr2
-                squares-compare         \ pn inc-lst sqr-lnk bool1 nxt-lnk char
+                #2 pick link-get-data           \ pn inc-lst sqr-lnk bool1 nxt-lnk sqr1
+                over link-get-data              \ pn inc-lst sqr-lnk bool1 nxt-lnk sqr1 sqr2
+                squares-compare                 \ pn inc-lst sqr-lnk bool1 nxt-lnk char
                 [char] I =
                 if
                     \ Get loop1 square.
-                    #2 pick                 \ pn inc-lst sqr-lnk bool1 nxt-lnk sqr-lnk
-                    link-get-data           \ pn inc-lst sqr-lnk bool1 nxt-lnk sqr1
-                    square-get-state        \ pn inc-lst sqr-lnk bool1 nxt-lnk sta1
+                    #2 pick                     \ pn inc-lst sqr-lnk bool1 nxt-lnk sqr-lnk
+                    link-get-data               \ pn inc-lst sqr-lnk bool1 nxt-lnk sqr1
+                    square-get-state            \ pn inc-lst sqr-lnk bool1 nxt-lnk sta1
 
                     \ Get loop2 square.
-                    over                    \ pn inc-lst sqr-lnk bool1 nxt-lnk sta1 nxt-lnk
-                    link-get-data           \ pn inc-lst sqr-lnk bool1 nxt-lnk sta1 sqr2
-                    square-get-state        \ pn inc-lst sqr-lnk bool1 nxt-lnk sta1 sta2
+                    over                        \ pn inc-lst sqr-lnk bool1 nxt-lnk sta1 nxt-lnk
+                    link-get-data               \ pn inc-lst sqr-lnk bool1 nxt-lnk sta1 sqr2
+                    square-get-state            \ pn inc-lst sqr-lnk bool1 nxt-lnk sta1 sta2
 
-                    2dup states-adjacent?   \ pn inc-lst sqr-lnk bool1 nxt-lnk sta1 sta2 bool
-                    ifnot
+                    2dup states-adjacent?       \ pn inc-lst sqr-lnk bool1 nxt-lnk sta1 sta2 bool
+                    if
+                        2drop
+                    else
                         \ Save pair.
                         region-new              \ pn inc-lst sqr-lnk bool1 nxt-lnk regx'
                         dup                     \ pn inc-lst sqr-lnk bool1 nxt-lnk regx' regx'
@@ -350,12 +360,20 @@
 
             link-get-next
         repeat
-                                            \ pn inc-lst sqr-lnk bool1
-        drop                                \ pn inc-lst sqr-lnk
+                                                \ pn inc-lst sqr-lnk bool1
+        drop                                    \ pn inc-lst sqr-lnk
     next
-                                            \ pn inc-lst
-    nip                                     \ inc-lst
-    true
+                                                \ pn inc-lst
+    nip                                         \ inc-lst
+
+    \ Check if any found.
+    dup list-is-empty?                          \ inc-lst
+    if
+        list-deallocate
+        false
+    else
+        true
+    then
 
     \ cr ." square-list-find-nadj-incompatible-pairs: end: " .stack-gbl cr
 ;
