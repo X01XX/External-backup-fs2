@@ -176,3 +176,23 @@
 
     [ ' group-region-eq? ] literal -rot list-find
 ;
+
+\ Remove a group from a list.
+\ If use count becomes zero, deallocate it.
+: group-list-remove ( grp1 grp-lst0 -- )
+\ Check args.
+    assert( tos is-group-list? )
+    assert( nos is-group? )
+
+    [ ' = ] literal -rot            \ xt grp1 grp-lst0
+    list-remove-struct              \ grp t | f
+    if
+        dup struct-get-use-count    \ grp uc
+        0=
+        if
+            group-deallocate
+        else
+            drop
+        then
+    then
+;

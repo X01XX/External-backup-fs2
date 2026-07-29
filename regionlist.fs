@@ -901,3 +901,24 @@
 
     [ ' region-intersects? ] literal -rot list-member?
 ;
+
+\ Append nos region-list to the tos region-list.
+: region-list-append ( lst1 lst0 -- )                                                                                                                     
+    \ Check args.
+    assert( tos is-region-list? )
+    assert( nos is-region-list? )
+
+    swap                    \ lst0 lst1
+    list-get-links          \ lst0 link
+    begin
+        ?dup
+    while
+        dup link-get-data   \ lst0 link nedx
+        #2 pick             \ lst0 link nedx lst0
+        region-list-push    \ lst0 link
+
+        link-get-next
+    repeat
+                            \ lst0
+    drop 
+;

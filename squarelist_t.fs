@@ -128,7 +128,7 @@
 
     \ sqr1a and sqr1b are incompatible with each other, but not with
     \ the higher-pn-level sqr2.
-    dup square-list-find-incompatible-pairs \ sqr2 sqr1a sqr1b lst, sqr-pr t | f
+    dup square-list-find-adj-incompatible-pairs \ sqr2 sqr1a sqr1b lst, sqr-pr t | f
     if
         cr ." incompatible pairs?: " dup .region-list cr
         abort
@@ -140,7 +140,7 @@
     \ Check for no change to pn.
     ifnot ." add sample 2 caused no change?" abort then
 
-    dup square-list-find-incompatible-pairs \ sqr2 sqr1a sqr1b lst, sqr-prs t | f
+    dup square-list-find-nadj-incompatible-pairs    \ sqr2 sqr1a sqr1b lst, sqr-prs t | f
     if
         \ cr dup .list-raw cr
         \ cr ." incompatible pair: " dup .square-list cr
@@ -213,7 +213,7 @@
     2dup list-push-struct                   \ sqr2a sqr2b sqr1 lst
 
     \ cr ." at 1: " .stack-gbl cr
-    dup square-list-find-incompatible-pairs \ sqr2a sqr2b sqr1 lst, sqr-prs t | f
+    dup square-list-find-nadj-incompatible-pairs    \ sqr2a sqr2b sqr1 lst, sqr-prs t | f
     \ cr ." at 2: " .stack-gbl cr
     if
         \ cr ." incompatible pair: " dup .square-list cr
@@ -294,7 +294,7 @@
     swap                                    \ sqr2a sqr2b sqr1 lst
     2dup list-push-struct                   \ sqr2a sqr2b sqr1 lst
 
-    dup square-list-find-incompatible-pairs  \ sqr2a sqr2b sqr1 lst, sqr-prs t | f
+    dup square-list-find-nadj-incompatible-pairs    \ sqr2a sqr2b sqr1 lst, sqr-prs t | f
     if
         \ cr ." incompatible pair: " dup .square-list cr
     else
@@ -365,7 +365,7 @@
     swap                                    \ sqr2a sqr2b sqr1 lst
     2dup list-push-struct                   \ sqr2a sqr2b sqr1 lst
 
-    dup square-list-find-incompatible-pairs  \ sqr2a sqr2b sqr1 lst, sqr-prs t | f
+    dup square-list-find-nadj-incompatible-pairs    \ sqr2a sqr2b sqr1 lst, sqr-prs t | f
     if
         \ cr ." incompatible pair: " dup .square-list cr
     else
