@@ -1767,8 +1767,8 @@ action-groups-disp                          cell+   constant action-function-dis
 
 
 \ Check adjacent pair regions, containing a given state,
-\ for incompatible square pairs.
-: action-check-adj-regions-for-incompatible-pairs ( sta1 act0 -- )
+\ for incompatible square pairs.find-
+: action-check-adj-regions-for-incompatible-pairs ( sta1 act0 -- bool )
     \ cr ." check-adj-regions-for-incompatible-pairs2: start" cr
     \ Check args.
     assert( tos is-action? )
@@ -1822,13 +1822,7 @@ action-groups-disp                          cell+   constant action-function-dis
         \ Look for previously unknown non-adjacent incompatible pairs.
         \ If found, recalc possible regions/groups.
         swap list-deallocate                            \ act0
-        dup                                             \ act0 act0
-        action-check-adj-regions-for-new-nadj-pairs     \ act0 bool
-        if
-            action-recalc-possible-regions              \
-        else
-            drop
-        then
+        action-check-adj-regions-for-new-nadj-pairs     \ bool
 
         exit
     then
@@ -1845,12 +1839,7 @@ action-groups-disp                          cell+   constant action-function-dis
     dup action-remove-orphaned-nadj-pairs               \ act0
 
     \ Look for previously unknown non-adjacent incompatible pairs.
-    dup                                                 \ act0 act0
-    action-check-adj-regions-for-new-nadj-pairs         \ act0 bool
-    drop                                                \ act0
-    
-    \ If nadj pairs changed, or not, recalc possible regions/groups.
-    action-recalc-possible-regions                      \
+    action-check-adj-regions-for-new-nadj-pairs         \ bo
 
     \ cr ." check-adj-regions-for-adj-pairs: end" cr
 ;
@@ -1862,7 +1851,7 @@ action-groups-disp                          cell+   constant action-function-dis
     assert( tos is-action? )
     assert( nos is-square? )
 
-    \ Check incompatible pairs, if needed.
+    \ Check incompatible pairs, for deletion, if needed.
     over square-pn1-samples2                \ sqr1 act0 bool
     ifnot
         \ Check incompatible pairs due to a pn, or pnc, change.
@@ -1871,6 +1860,7 @@ action-groups-disp                          cell+   constant action-function-dis
         false                                                   \ sqr1 act0 bool
     then
 
+    \ Find new incompatible pairs.
     #2 pick square-get-state                                    \ sqr1 act0 bool sta
     #2 pick                                                     \ sqr1 act0 bool sta act0
     action-check-adj-regions-for-incompatible-pairs             \ sqr1 act0 bool bool
@@ -1880,10 +1870,11 @@ action-groups-disp                          cell+   constant action-function-dis
 
     if
         \ Something changed.
-        dup action-recalc-possible-regions                      \ sqr1 act0
+        action-recalc-possible-regions                          \ sqr1
+        drop
+    else
+        2drop
     then
-
-    2drop
     \ cr ." action-check-changed-square: end: " .stack-gbl cr
 ;
 
