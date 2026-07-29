@@ -1657,9 +1657,9 @@ action-groups-disp                          cell+   constant action-function-dis
     or                                              \ bool
 ;
 
-\ Check the adjacent region list for problems with a given state.
-\ Return true if anything changed.
-: action-check-adj-regions-for-incompatible-pairs2 ( sta1 act0 -- bool )
+\ Check adjacent pair regions, containing a given state,
+\ for incompatible square pairs.
+: action-check-adj-regions-for-incompatible-pairs ( sta1 act0 -- )
     \ cr ." check-adj-regions-for-incompatible-pairs2: start" cr
     \ Check args.
     assert( tos is-action? )
@@ -1685,8 +1685,8 @@ action-groups-disp                          cell+   constant action-function-dis
             if
                 list-deallocate
             else
-                dup                                 \ pr-lst sta1 act0 sqr-lst pos-lnk in-lst' in-lst'
-                square-list-find-incompatible-pairs \ pr-lst sta1 act0 sqr-lst pos-lnk in-lst', reg-lst' t | f
+                dup                                     \ pr-lst sta1 act0 sqr-lst pos-lnk in-lst' in-lst'
+                square-list-find-adj-incompatible-pairs \ pr-lst sta1 act0 sqr-lst pos-lnk in-lst', reg-lst' t | f
                 if
                     swap square-list-deallocate     \ pr-lst sta1 act0 sqr-lst pos-lnk reg-lst'
                     dup                             \ pr-lst sta1 act0 sqr-lst pos-lnk reg-lst' reg-lst'
@@ -1707,62 +1707,37 @@ action-groups-disp                          cell+   constant action-function-dis
     drop                                            \ pr-lst sta1 act0
     nip                                             \ pr-lst act0
 
-    \ Check if no incompatible pairs were found.
+    \ Check if no adjacent incompatible pairs were found.
     over list-is-empty?                             \ pr-lst act0 bool
     if
-        drop
-        list-deallocate
-        false
+        \ Look for non-adjacent incompatibe pairs, previously unknown.
+        \ If found, recalc possible regions/groups.
+        swap list-deallocate                                \ act0
+        dup                                                 \ act0 act0
+        action-check-adj-regions-for-incompatible-pairs2    \ act0 bool
+        if
+            action-recalc-possible-regions                  \
+        else
+            drop
+        then
+
         exit
     then
 
-    \ Init return bool.
-    false swap                                      \ pr-lst act0 bool
-    #2 pick                                         \ pr-lst act0 bool pr-lst
-    foreach                                         \ pr-lst act0 bool pr-lnk
-        dup link-get-data                           \ pr-lst act0 bool pr-lnk regx
-        #3 pick                                     \ pr-lst act0 bool pr-lnk regx act0
-        _action-add-incompatible-pair               \ pr-lst act0 bool pr-lnk bool
-        rot or swap                                 \ pr-lst act0 bool pr-lnk
-    next
-                                                    \ pr-lst act0 bool
-    nip                                             \ pr-lst bool
-    swap                                            \ bool pr-lst
+    swap region-list-deallocate                             \ act0
 
-    \ If the pair was added, this will decrement the region's use count.
-    \ If the pair was not added, the region will be deallocate.
-    region-list-deallocate                          \ bool
+    \ Delete non-adjacent incompatible pairs that are no longer within one of the adj-pair regions.
+    todo
+
+    \ Look for non-adjacent incompatibe pairs, previously unknown.
+    \ If found, or not found, recalc possible regions/groups.
+    dup                                                     \ act0 act0
+    action-check-adj-regions-for-incompatible-pairs2        \ act0 bool
+
+    drop                                                    \ act0
+    action-recalc-possible-regions                          \
 
     \ cr ." check-possible-regions-for-incompatible-pairs2: end" cr
-;
-
-\ Check adjacent pair regions, containing a given state,
-\ for incompatible square pairs, until no more found.
-\ Return true if something changed.
-: action-check-adj-regions-for-incompatible-pairs ( sta1 act0 -- bool )
-    \ cr ." check-possible-regions-for-incompatible-pairs: start" cr
-    \ Check arg.
-    assert( tos is-action? )
-    assert( nos is-state? )
-
-    \ Try once.
-    2dup action-check-adj-regions-for-incompatible-pairs2       \ sta1 act0 bool
-    ifnot
-        \ No group changes required.
-        2drop
-        false
-        exit
-    then
-
-    \ Try as many more times as needed.
-    begin
-        2dup action-check-adj-regions-for-incompatible-pairs2 invert
-    until
-                                                                \ sta1 act0
-
-    2drop
-    true
-    \ cr ." check-possible-regions-for-incompatible-pairs: end" cr
 ;
 
 \ Check an existing square, changed by a new result.

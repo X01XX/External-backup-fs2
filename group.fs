@@ -516,15 +516,6 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     region-superset-of-state?
 ;
 
-\ Return an incompatible square pairs from a group, if any.
-: group-get-incompatible-pairs ( grp0 -- reg-lst t | f )
-    \ Check arg.
-    assert( tos is-group? )
-
-    group-get-squares                   \ sqr-lst
-    square-list-find-incompatible-pairs \ reg-lst t | f )
-;
-
 \ Return true if a group region is equal to a given region.
 : group-region-eq? ( reg1 grp0 -- bool )
     \ Check args.
