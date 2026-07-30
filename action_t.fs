@@ -54,7 +54,16 @@
     cr dup .action cr
 
     \ Test results.
-    
+    dup action-get-adj-pairs list-get-length 2 <> abort" invalid number of adj pairs"
+    dup action-get-adj-regions list-get-length 5 <> abort" invalid number of adj regions"
+    dup action-get-nadj-pairs list-get-length 0 <> abort" invalid number of nadj pairs"
+    dup action-get-nadj-regions list-get-length 1 <> abort" invalid number of nadj regions"
+    dup action-get-states-in-one-region list-get-length 3 <> abort" invalid number of states in one region"
+    dup action-get-defining-regions list-get-length 3 <> abort" invalid number of defining regions"
+    dup action-get-corners list-get-length 3 <> abort" invalid number of corners"
+    dup action-get-corner-clusters 1 <> abort" invalid number of corner clusters"
+
+    \ Deallocate
     action-deallocate
 
     \ Check for memory leaks.
