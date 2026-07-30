@@ -778,7 +778,7 @@ action-groups-disp                          cell+   constant action-function-dis
 \ group list, and has at least one square subset to it,
 \ try to add the group.
 : _action-add-possible-groups ( act0 -- )
-    cr ." _action-add-possible-groups: start" cr
+    \ cr ." _action-add-possible-groups: start" cr
     \ Check arg.
     assert( tos is-action? )
 
@@ -1005,8 +1005,8 @@ action-groups-disp                          cell+   constant action-function-dis
 \ They both require the corner anchor state to be in only one possible region.
 : action-corner-possible? ( crn1 act0 -- bool )
     \ Check args.
-    assert( tos is-action? ifnot cr ." Invalid tos: " .stack-gbl cr false then )
-    assert( nos is-corner? ifnot cr ." Invalid nos: " .stack-gbl cr false then )
+    assert( tos is-action? dup ifnot cr ." Invalid tos action: " .stack-gbl cr then )
+    assert( nos is-corner? dup ifnot cr ." Invalid nos corner: " .stack-gbl cr then )
 
     \ Check corner is in exactly one possible group.
     over corner-get-anchor-state        \ crn1 act0 sta1
@@ -1128,15 +1128,16 @@ action-groups-disp                          cell+   constant action-function-dis
             dup link-get-data           \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk stax
             #3 pick                     \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk stax def-lnk
             link-get-data               \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk stax regx
-            corner-new                  \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk crn
-
-            dup action-corner-possible? \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk crn bool
+            corner-new                  \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk crn'
+            dup                         \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk crn' crn'
+            #6 pick                     \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk crn' crn' act0
+            action-corner-possible?     \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk crn' bool
             if
                 \ Store corner.
-                #6 pick                 \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk crn pre-lst
+                #6 pick                 \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk crn' pre-lst
                 list-push-struct        \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk
             else
-                corner-deallocate
+                corner-deallocate       \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk
             then
         next
 
@@ -1215,12 +1216,9 @@ action-groups-disp                          cell+   constant action-function-dis
         swap corner-list-deallocate         \ pre-lst act0 fin-lst def-lst crn-sub-lst crnx
 
         \ Delete selected corner region from copied defining regions list.
-        [ ' = ] literal                     \ pre-lst act0 fin-lst def-lst crn-sub-lst crnx xt
-        over corner-get-region              \ pre-lst act0 fin-lst def-lst crn-sub-lst crnx xt crn-reg
-        #4 pick                             \ pre-lst act0 fin-lst def-lst crn-sub-lst crnx xt crn-reg def-lst
-        region-list-remove                  \ pre-lst act0 fin-lst def-lst crn-sub-lst crnx, reg t | f
-        ifnot cr ." region not found?" abort then
-        drop                                \ pre-lst act0 fin-lst def-lst crn-sub-lst crnx
+        dup corner-get-region               \ pre-lst act0 fin-lst def-lst crn-sub-lst crnx crn-reg
+        #3 pick                             \ pre-lst act0 fin-lst def-lst crn-sub-lst crnx crn-reg def-lst
+        region-list-remove                  \ pre-lst act0 fin-lst def-lst crn-sub-lst crnx
 
         \ Add selected corner to sub-list.
         2dup swap list-push-struct          \ pre-lst act0 fin-lst def-lst crn-sub-lst crnx
@@ -1235,7 +1233,7 @@ action-groups-disp                          cell+   constant action-function-dis
         \ Add found corners to the end of the list, extending the list while it is
         \ being interated on. A neat trick.
         dup                                 \ pre-lst act0 fin-lst def-lst crn-sub-lst crn-sub-lst
-        \ cr ." at 1: " .stack-gbl cr
+
         foreach                             \ pre-lst act0 fin-lst def-lst crn-sub-lst crn-sub-lnk
 
             \ For each corner in the crn-sub-lst, find corners with an anchor equal to a corner adjacent state.
@@ -1251,8 +1249,8 @@ action-groups-disp                          cell+   constant action-function-dis
 
                 if
                     \ Delete region from copied defining regions list.
-                    dup corner-get-region               \ pre-lst act0 fin-lst def-lst crn-sub-lst crn-sub-lnk adj-lnk crn xt crn-reg
-                    #5 pick                             \ pre-lst act0 fin-lst def-lst crn-sub-lst crn-sub-lnk adj-lnk crn xt crn-reg def-lst
+                    dup corner-get-region               \ pre-lst act0 fin-lst def-lst crn-sub-lst crn-sub-lnk adj-lnk crn crn-reg
+                    #5 pick                             \ pre-lst act0 fin-lst def-lst crn-sub-lst crn-sub-lnk adj-lnk crn crn-reg def-lst
                     region-list-remove                  \ pre-lst act0 fin-lst def-lst crn-sub-lst crn-sub-lnk adj-lnk crn
 
                     \ Add selected corner to sub-list.
@@ -1328,28 +1326,21 @@ action-groups-disp                          cell+   constant action-function-dis
 : action-recalc-possible-regions ( act0 -- )
     \ Check arg.
     assert( tos is-action? )
-\    cr ." xx action-recalc-possible-regions: start: " .stack-gbl cr
-\    cr ." xx adj pairs:    " dup action-get-adj-pairs .region-list cr
-\    cr ." xx adj regions:  " dup action-get-adj-regions .region-list cr
-\    cr ." xx nadj pairs:   " dup action-get-nadj-pairs .region-list cr
-\    cr ." xx nadj regions: " dup action-get-nadj-regions .region-list cr
+\    cr ." action-recalc-possible-regions: start: " .stack-gbl cr
 
-\    cr ." xx action-recalc-possible-regions: 1: " .stack-gbl cr
     dup action-get-adj-regions              \ act0 adj-regs
     over action-get-nadj-regions            \ act0 adj-regs nadj-regs
     region-list-intersections-nosubs        \ act0 reg-lst'
-\    cr ." xx action-recalc-possible-regions: 2: " .stack-gbl cr
+
 
     over _action-update-possible-regions    \ act0
-\    cr ." xx pos regions: " dup action-get-possible-regions .region-list cr
-\    cr ." xx action-recalc-possible-regions: 3: " .stack-gbl cr
 
-\    cr ." xx before deleting orphaned groups: " dup action-get-groups .group-list-regions cr
     dup _action-delete-orphaned-groups      \ act0
-\    .cr " xx after deleting orphaned groups: " dup action-get-groups .group-list-regions cr
-\    cr ." xx action-recalc-possible-regions: 4: " .stack-gbl cr
-    _action-add-possible-groups
-\    cr ." xx action-recalc-possible-regions: end: " .stack-gbl cr
+
+    dup _action-add-possible-groups
+
+    _action-evaluate-possible-regions
+\    cr ." action-recalc-possible-regions: end: " .stack-gbl cr
 ;
 
 \ Recalc possible regions, from adjacent, incmpatible pairs.
@@ -1823,7 +1814,11 @@ action-groups-disp                          cell+   constant action-function-dis
         region-list-remove              \ del-lst act0 nadj-prs del-lnk
     next
                                         \ del-lst act0 nadj-prs
-    2drop                               \ del-lst
+    drop                                \ del-lst act0
+
+    \ Update nadj regions.
+    action-recalc-nadj-pair-regions     \ del-lst
+
     region-list-deallocate
 ;
 
@@ -1831,7 +1826,7 @@ action-groups-disp                          cell+   constant action-function-dis
 \ Check adjacent pair regions, containing a given state,
 \ for incompatible square pairs.find-
 : action-check-adj-regions-for-incompatible-pairs ( sta1 act0 -- bool )
-    cr ." action-check-adj-regions-for-incompatible-pairs: start" cr
+    \ cr ." action-check-adj-regions-for-incompatible-pairs: start" cr
     \ Check args.
     assert( tos is-action? )
     assert( nos is-state? )
@@ -1884,7 +1879,7 @@ action-groups-disp                          cell+   constant action-function-dis
         \ If found, recalc possible regions/groups.
         rot list-deallocate                             \ sta1 act0
         action-check-adj-regions-for-new-nadj-pairs     \ bool
-        cr ." action-check-adj-regions-for-incompatible-pairs: exit 1: " dup .bool cr
+        \ cr ." action-check-adj-regions-for-incompatible-pairs: exit 1: " dup .bool cr
         exit
     then
 
@@ -1907,7 +1902,7 @@ action-groups-disp                          cell+   constant action-function-dis
     drop
     true
 
-    cr ." action-check-adj-regions-for-incompatible-pairs: end: " dup .bool cr
+    \ cr ." action-check-adj-regions-for-incompatible-pairs: end: " dup .bool cr
 ;
 
 \ Check an existing square, changed by a new result.

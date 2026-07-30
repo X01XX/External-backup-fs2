@@ -53,6 +53,8 @@
 
     cr dup .action cr
 
+    \ Test results.
+    
     action-deallocate
 
     \ Check for memory leaks.

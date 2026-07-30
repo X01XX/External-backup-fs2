@@ -497,7 +497,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     region-superset-of-state?               \ sqr1 grp0 bool
 
     ifnot
-        dup _group-calc-set-s-region        \ sqr1 grp0
+        dup _group-update-s-region          \ sqr1 grp0
         dup _group-update-rules             \ sqr1 grp0
         dup _group-calc-set-pnc             \ sqr1 grp0
     then
