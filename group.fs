@@ -195,7 +195,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
         swap                \ ruls grp0
         _group-set-rules
     else
-        cr ." Invalid group?" abort
+        cr ." Invalid group? " group-get-region .region abort
     then
 ;
 

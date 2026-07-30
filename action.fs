@@ -497,11 +497,11 @@ action-groups-disp                          cell+   constant action-function-dis
 
     \ Set adj regions list.
     list-new                            \ xt nb act lst
-    rot                                 \ xt act lst nb
-    region-max-x                        \ xt act lst reg-max
-    over list-push-struct               \ xt act lst
-    over                                \ xt act lst act
-    _action-set-adj-regions             \ xt act
+    #2 pick                             \ xt nb act lst nb
+    region-max-x                        \ xt nb act lst reg-max
+    over list-push-struct               \ xt nb act lst
+    over                                \ xt nb act lst act
+    _action-set-adj-regions             \ xt nb act
 
     \ Set non-adjacent incompatible pairs list.
     list-new                            \ xt nb act lst
@@ -510,11 +510,11 @@ action-groups-disp                          cell+   constant action-function-dis
 
     \ Set non-adj regions list.
     list-new                            \ xt nb act lst
-    rot                                 \ xt act lst nb
-    region-max-x                        \ xt act lst reg-max
-    over list-push-struct               \ xt act lst
-    over                                \ xt act lst act
-    _action-set-nadj-regions            \ xt act
+    #2 pick                             \ xt nb act lst nb
+    region-max-x                        \ xt nb act lst reg-max
+    over list-push-struct               \ xt nb act lst
+    over                                \ xt nb act lst act
+    _action-set-nadj-regions            \ xt nb act
 
     \ Set possible-regions list.
     list-new                            \ xt nb act lst
@@ -601,11 +601,11 @@ action-groups-disp                          cell+   constant action-function-dis
     s"     Squares:              " #2 pick action-get-squares .square-list-prefix
     cr
     #4 spaces ." Adjacent pairs:       " dup action-get-adj-pairs .region-list
-    cr cr
-    #4 spaces ." Adj pair regions:     " dup action-get-adj-regions .region-list
     cr
-    #4 spaces ." Non-adjacent pairs:   " dup action-get-nadj-pairs .region-list
+    #4 spaces ." Adj pair regions:     " dup action-get-adj-regions .region-list
     cr cr
+    #4 spaces ." Non-adjacent pairs:   " dup action-get-nadj-pairs .region-list
+    cr
     #4 spaces ." Non-adj pair regions: " dup action-get-nadj-regions .region-list
     cr cr
     #4 spaces ." Possible regions:     " dup action-get-possible-regions .region-list
@@ -687,6 +687,7 @@ action-groups-disp                          cell+   constant action-function-dis
 : _action-delete-orphaned-groups ( act0 -- )
     \ Check arg.
     assert( tos is-action? )
+    \ cr ." _action-delete-orphaned-groups: start: " .stack-gbl cr
 
     \ Init group list to delete.
     list-new                            \ act0 del-grps
@@ -708,6 +709,7 @@ action-groups-disp                          cell+   constant action-function-dis
         then
     next
 
+    \ cr ." _action-delete-orphaned-groups: middle: " .stack-gbl cr
     \ Remove the groups from the action group list.
                                         \ act0 del-grps pos-regs
     drop                                \ act0 del-grps
@@ -716,15 +718,59 @@ action-groups-disp                          cell+   constant action-function-dis
 
     foreach                             \ act0 del-grps grp-lst del-lnk
         dup link-get-data               \ act0 del-grps grp-lst del-lnk grpx
-        cr ." Orphan group deleted: " dup group-get-region cr
+        cr ." Orphan group deleted: " dup group-get-region .region cr
         #2 pick                         \ act0 del-grps grp-lst del-lnk grpx grp-lst
         group-list-remove               \ act0 del-grps grp-lst del-lnk
     next
-                                        \ act0 grp-lst grp-lst
                                         \ act0 del-grps grp-lst
     drop                                \ act0 del-grps
     group-list-deallocate               \ act0      The groups are deallocated here.
     drop
+    \ cr ." _action-delete-orphaned-groups: end: " .stack-gbl cr
+;
+
+: action-udpate-groups-with-new-square ( sqr1 act0 -- )
+    \ Check args.
+    assert( tos is-action? )
+    assert( nos is-square? )
+
+    dup action-get-groups               \ sqr1 act0 grp-lst
+    over action-get-possible-regions    \ sqr1 act0 grp-lst pos-lst
+
+    foreach                             \ sqr1 act0 grp-lst pos-lnk
+        \ Check if square is in group.
+        #3 pick square-get-state        \ sqr1 act0 grp-lst pos-lnk sta1
+        over link-get-data              \ sqr1 act0 grp-lst pos-lnk sta1 pos-reg
+        region-superset-of-state?       \ sqr1 act0 grp-lst pos-lnk bool
+        if
+            dup link-get-data           \ sqr1 act0 grp-lst pos-lnk pos-reg
+            #2 pick                     \ sqr1 act0 grp-lst pos-lnk pos-reg grp-lst
+            group-list-find             \ sqr1 act0 grp-lst pos-lnk, grp t | f
+            if
+               \ Add square to group.
+               #4 pick                  \ sqr1 act0 grp-lst pos-lnk grp sqr1
+                swap                    \ sqr1 act0 grp-lst pos-lnk sqr1 grp
+                group-add-new-square    \ sqr1 act0 grp-lst pos-lnk
+            else
+                \ Create new group.
+                list-new                \ sqr1 act0 grp-lst pos-lnk sqr-lst
+                #4 pick                 \ sqr1 act0 grp-lst pos-lnk sqr-lst sqr1
+                over list-push-struct   \ sqr1 act0 grp-lst pos-lnk sqr-lst
+                over link-get-data      \ sqr1 act0 grp-lst pos-lnk sqr-lst regx
+                #4 pick                 \ sqr1 act0 grp-lst pos-lnk sqr-lst regx act0
+                group-new               \ sqr1 act0 grp-lst pos-lnk, grp-new t | f
+                if
+                    \ Add group to group list.
+                    #3 pick             \ sqr1 act0 grp-lst pos-lnk grp-new act0
+                    action-add-group    \ sqr1 act0 grp-lst pos-lnk
+                else
+                    cr ." Problem? 23" cr
+                then
+            then
+        then
+    next
+                                        \ sqr1 act0 grp-lst
+    2drop drop
 ;
 
 \ Scan the possible regions list, when a region is not represented in the
@@ -1281,16 +1327,28 @@ action-groups-disp                          cell+   constant action-function-dis
 : action-recalc-possible-regions ( act0 -- )
     \ Check arg.
     assert( tos is-action? )
+\    cr ." xx action-recalc-possible-regions: start: " .stack-gbl cr
+\    cr ." xx adj pairs:    " dup action-get-adj-pairs .region-list cr
+\    cr ." xx adj regions:  " dup action-get-adj-regions .region-list cr
+\    cr ." xx nadj pairs:   " dup action-get-nadj-pairs .region-list cr
+\    cr ." xx nadj regions: " dup action-get-nadj-regions .region-list cr
 
+\    cr ." xx action-recalc-possible-regions: 1: " .stack-gbl cr
     dup action-get-adj-regions              \ act0 adj-regs
-    #2 pick action-get-nadj-regions         \ act0 adj-regs nadj-regs
+    over action-get-nadj-regions            \ act0 adj-regs nadj-regs
     region-list-intersections-nosubs        \ act0 reg-lst'
+\    cr ." xx action-recalc-possible-regions: 2: " .stack-gbl cr
 
     over _action-update-possible-regions    \ act0
+\    cr ." xx pos regions: " dup action-get-possible-regions .region-list cr
+\    cr ." xx action-recalc-possible-regions: 3: " .stack-gbl cr
 
+\    cr ." xx before deleting orphaned groups: " dup action-get-groups .group-list-regions cr
     dup _action-delete-orphaned-groups      \ act0
-
+\    .cr " xx after deleting orphaned groups: " dup action-get-groups .group-list-regions cr
+\    cr ." xx action-recalc-possible-regions: 4: " .stack-gbl cr
     _action-add-possible-groups
+\    cr ." xx action-recalc-possible-regions: end: " .stack-gbl cr
 ;
 
 \ Recalc possible regions, from adjacent, incmpatible pairs.
@@ -1349,7 +1407,7 @@ action-groups-disp                          cell+   constant action-function-dis
     over list-push-struct                   \ act0 pos-new
 
     \ Check each pair.
-    over action-get-adj-pairs               \ act0 pos-new pr-lst
+    over action-get-nadj-pairs              \ act0 pos-new pr-lst
 
     foreach                                 \ act0 pos-new pr-lnk
         dup link-get-data                   \ act0 pos-new pr-lnk regx
@@ -1648,7 +1706,7 @@ action-groups-disp                          cell+   constant action-function-dis
 \ Check adj regions for non-adjacent incompatible pairs.
 \ Return true if anything changed.
 : action-check-adj-regions-for-new-nadj-pairs ( sta1 act0 -- bool )
-    \ cr ." check-adj-regions-for-incompatible-pairs2: start" cr
+    \ cr ." action-check-adj-regions-for-new-nadj-pairs: start" cr
     \ Check args.
     assert( tos is-action? )
     assert( nos is-state? )
@@ -1705,8 +1763,10 @@ action-groups-disp                          cell+   constant action-function-dis
     over list-is-empty?                                     \ pr-lst act0 bool
     if
         \ None found.
+        drop
         list-deallocate
         false
+        \ cr ." action-check-adj-regions-for-new-nadj-pairs: exit 1 false" cr
     else
         \ Add pairs to adj list.
         dup action-get-nadj-pairs                           \ pr-lst act0 nadj-prs
@@ -1724,6 +1784,7 @@ action-groups-disp                          cell+   constant action-function-dis
         action-recalc-nadj-pair-regions                     \
 
         true
+        \ cr ." action-check-adj-regions-for-new-nadj-pairs: exit 2 true" cr
     then
 ;
 
@@ -1769,7 +1830,7 @@ action-groups-disp                          cell+   constant action-function-dis
 \ Check adjacent pair regions, containing a given state,
 \ for incompatible square pairs.find-
 : action-check-adj-regions-for-incompatible-pairs ( sta1 act0 -- bool )
-    \ cr ." check-adj-regions-for-incompatible-pairs2: start" cr
+    \ cr ." action-check-adj-regions-for-incompatible-pairs: start" cr
     \ Check args.
     assert( tos is-action? )
     assert( nos is-state? )
@@ -1814,34 +1875,35 @@ action-groups-disp                          cell+   constant action-function-dis
     next
                                                         \ pr-lst sta1 act0 sqr-lst
     drop                                                \ pr-lst sta1 act0
-    nip                                                 \ pr-lst act0
 
     \ Check if no adjacent incompatible pairs were found.
-    over list-is-empty?                                 \ pr-lst act0 bool
+    #2 pick list-is-empty?                              \ pr-lst sta1 act0 bool
     if
         \ Look for previously unknown non-adjacent incompatible pairs.
         \ If found, recalc possible regions/groups.
-        swap list-deallocate                            \ act0
+        rot list-deallocate                             \ sta1 act0
         action-check-adj-regions-for-new-nadj-pairs     \ bool
-
+        \ cr ." action-check-adj-regions-for-incompatible-pairs: exit 1: " dup .bool cr
         exit
     then
 
-    \ Add pairs to adj list.                            \ pr-lst act0
-    2dup action-get-adj-pairs                           \ pr-lst act0 pr-lst adj-lst
-    region-list-append                                  \ pr-lst act0
-    swap region-list-deallocate                         \ act0
+    \ Add pairs to adj list.                            \ pr-lst sta1 act0
+    #2 pick                                             \ pr-lst sta1 act0 pr-lst
+    over action-get-adj-pairs                           \ pr-lst sta1 act0 pr-lst adj-lst
+    region-list-append                                  \ pr-lst sta1 act0
+    rot region-list-deallocate                          \ sta1 act0
 
     \ Recalc adj regions.
-    dup action-recalc-adj-pair-regions                  \ act0
+    tuck action-recalc-adj-pair-regions                 \ act0 sta1
+    swap                                                \ sta1 act0
     
     \ Delete non-adjacent incompatible pairs that are no longer within one of the adj-pair regions.
-    dup action-remove-orphaned-nadj-pairs               \ act0
+    dup action-remove-orphaned-nadj-pairs               \ sta1 act0
 
     \ Look for previously unknown non-adjacent incompatible pairs.
-    action-check-adj-regions-for-new-nadj-pairs         \ bo
+    action-check-adj-regions-for-new-nadj-pairs         \ bool
 
-    \ cr ." check-adj-regions-for-adj-pairs: end" cr
+    \ cr ." check-adj-regions-for-adj-pairs: end: " dup .bool cr
 ;
 
 \ Check an existing square, changed by a new result.
@@ -1912,14 +1974,14 @@ action-groups-disp                          cell+   constant action-function-dis
     over square-get-state over                      \ sqr1 act0 sta1 act0
 
     action-check-adj-regions-for-incompatible-pairs \ sqr1 act0 bool
-
+    \ cr ." action-check-new-square: at 1: " .stack-gbl cr
     if
+        \ cr ." action-check-new-square: at 2: " .stack-gbl cr
         dup action-recalc-possible-regions          \ sqr1 act0
+        \ cr ." action-check-new-square: at 3: " .stack-gbl cr
     then
-
-    dup action-get-groups                   \ sqr1 act0 grp-lst
-    swap                                    \ sqr1 grp-lst act0
-    _action-add-new-square-to-groups        \
+    \ cr ." action-check-new-square: at 4: " .stack-gbl cr
+    action-udpate-groups-with-new-square            \
 
     \ cr ." action-check-new-square: end: " .stack-gbl cr
 ;
