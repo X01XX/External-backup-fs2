@@ -110,6 +110,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     \ Store states
     _region-set-state-0         \ reg sta1 reg
     _region-set-state-1         \ reg
+    cr ." region-new: " dup hex. cr
 ;
 
 \ Return the number of bits used for a region.

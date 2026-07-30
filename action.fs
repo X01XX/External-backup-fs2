@@ -733,6 +733,7 @@ action-groups-disp                          cell+   constant action-function-dis
     \ Check args.
     assert( tos is-action? )
     assert( nos is-square? )
+    cr ." action-udpate-groups-with-new-square: start" cr
 
     dup action-get-groups               \ sqr1 act0 grp-lst
     over action-get-possible-regions    \ sqr1 act0 grp-lst pos-lst
@@ -777,7 +778,7 @@ action-groups-disp                          cell+   constant action-function-dis
 \ group list, and has at least one square subset to it,
 \ try to add the group.
 : _action-add-possible-groups ( act0 -- )
-    \ cr ." _action-add-possible-groups: start" cr
+    cr ." _action-add-possible-groups: start" cr
     \ Check arg.
     assert( tos is-action? )
 
@@ -1217,7 +1218,7 @@ action-groups-disp                          cell+   constant action-function-dis
         [ ' = ] literal                     \ pre-lst act0 fin-lst def-lst crn-sub-lst crnx xt
         over corner-get-region              \ pre-lst act0 fin-lst def-lst crn-sub-lst crnx xt crn-reg
         #4 pick                             \ pre-lst act0 fin-lst def-lst crn-sub-lst crnx xt crn-reg def-lst
-        list-remove-struct                  \ pre-lst act0 fin-lst def-lst crn-sub-lst crnx, reg t | f
+        region-list-remove                  \ pre-lst act0 fin-lst def-lst crn-sub-lst crnx, reg t | f
         ifnot cr ." region not found?" abort then
         drop                                \ pre-lst act0 fin-lst def-lst crn-sub-lst crnx
 
@@ -1830,7 +1831,7 @@ action-groups-disp                          cell+   constant action-function-dis
 \ Check adjacent pair regions, containing a given state,
 \ for incompatible square pairs.find-
 : action-check-adj-regions-for-incompatible-pairs ( sta1 act0 -- bool )
-    \ cr ." action-check-adj-regions-for-incompatible-pairs: start" cr
+    cr ." action-check-adj-regions-for-incompatible-pairs: start" cr
     \ Check args.
     assert( tos is-action? )
     assert( nos is-state? )
@@ -1883,7 +1884,7 @@ action-groups-disp                          cell+   constant action-function-dis
         \ If found, recalc possible regions/groups.
         rot list-deallocate                             \ sta1 act0
         action-check-adj-regions-for-new-nadj-pairs     \ bool
-        \ cr ." action-check-adj-regions-for-incompatible-pairs: exit 1: " dup .bool cr
+        cr ." action-check-adj-regions-for-incompatible-pairs: exit 1: " dup .bool cr
         exit
     then
 
@@ -1903,7 +1904,10 @@ action-groups-disp                          cell+   constant action-function-dis
     \ Look for previously unknown non-adjacent incompatible pairs.
     action-check-adj-regions-for-new-nadj-pairs         \ bool
 
-    \ cr ." check-adj-regions-for-adj-pairs: end: " dup .bool cr
+    drop
+    true
+
+    cr ." action-check-adj-regions-for-incompatible-pairs: end: " dup .bool cr
 ;
 
 \ Check an existing square, changed by a new result.

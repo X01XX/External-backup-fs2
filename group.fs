@@ -498,7 +498,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 
     ifnot
         dup _group-calc-set-s-region        \ sqr1 grp0
-        dup _group-calc-set-rules           \ sqr1 grp0
+        dup _group-update-rules             \ sqr1 grp0
         dup _group-calc-set-pnc             \ sqr1 grp0
     then
 
