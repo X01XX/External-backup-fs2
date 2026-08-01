@@ -197,3 +197,92 @@
         struct-dec-use-count
     then
 ;
+
+\ Return true if any corner in a corner list uses a state.
+: corner-list-uses-state? ( sta1 crn-lst0 -- bool )
+    \ Check args.
+    assert( tos is-corner-list? )
+    assert( nos is-state? )
+
+    foreach                 \ sta1 crn-lnk
+        over                \ sta1 crn-lnk sta1
+        over link-get-data  \ sta1 crn-lnk sta1 crnx
+        corner-uses-state?  \ sta1 crn-lnk bool
+        if
+            2drop
+            true
+            exit
+        then
+    next
+
+    drop
+    false
+;
+
+\ Return true if each corner state is used in at least one
+\ corner in a corner-list.
+: corner-list-all-corner-states-in? ( crn1 crn-lst0 -- bool )
+    \ Check args.
+    assert( tos is-corner-list? )
+    assert( nos is-corner? )
+
+    \ Check anchor state.
+    over corner-get-anchor-state        \ crn1 crn-lst0 anc-sta
+    over corner-list-uses-state?        \ crn1 crn-lst0 bool
+    ifnot
+        2drop
+        false
+        exit
+    then
+
+    \ Check each adjacent state.
+    swap corner-get-adjacent-states     \ crn-lst0 sta-lst
+    foreach                             \ crn-lst0 sta-lnk
+        dup link-get-data               \ crn-lst0 sta-lnk stax
+        #2 pick                         \ crn-lst0 sta-lnk stax crn-lst0
+        corner-list-uses-state?         \ crn-lst0 sta-lnk bool
+        ifnot
+            2drop
+            false
+            exit
+        then
+    next
+                                        \ crn-lst0
+    drop
+    true
+;
+
+\ Return true if any corner state is used in at least one
+\ corner in a corner-list.
+: corner-list-any-corner-states-in? ( crn1 crn-lst0 -- bool )
+    \ Check args.
+    assert( tos is-corner-list? )
+    assert( nos is-corner? )
+
+    \ Check anchor state.
+    over corner-get-anchor-state        \ crn1 crn-lst0 anc-sta
+    over corner-list-uses-state?        \ crn1 crn-lst0 bool
+    if
+        2drop
+        true
+        exit
+    then
+
+    \ Check each adjacent state.
+    swap corner-get-adjacent-states     \ crn-lst0 sta-lst
+    foreach                             \ crn-lst0 sta-lnk
+        dup link-get-data               \ crn-lst0 sta-lnk stax
+        #2 pick                         \ crn-lst0 sta-lnk stax crn-lst0
+        corner-list-uses-state?         \ crn-lst0 sta-lnk bool
+        if
+            2drop
+            true
+            exit
+        then
+    next
+                                        \ crn-lst0
+    drop
+    false
+;
+
+

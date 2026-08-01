@@ -1068,84 +1068,19 @@ action-groups-disp                          cell+   constant action-function-dis
     true
 ;
 
-\ Calc corners, from action-defining-regions and
-\ action-squares-in-one-region.
-\
-\ Sets action-corners and action-corner-clusters.
-\
-\ When incompatible pairs change:
-\   Possible regions change
-\   Defining regions change
-\   States only in one region change.
-\   Corners change.
-\   Corner clusters change.
-\
-\ Pseudo code:
-\
-\ Figure all possible corners.
-\
-\ Until all defining regions are accounted for:
-\
-\   Choose a corner from the possible corners list, with the most adjacent states
-\   that are in only one possible region.
-\   Add it to the final corner list, and a temporary corner cluster list.
-\
-\   To the temporary corner cluster list, add other corners in the possible corners
-\   list, that have an anchor matching an adjacent state in any previous corner in the
-\   temporary corner cluster list.
-\   This will be zero, or more, corners.
-\   Corners may be linked to corners, which are linked to still other corners.
-\
-\   If the temporary corner cluster list length is greater than one, add it as a separate
-\   list, to the action corner cluster list.
-\
-\   For each corner selected, remove it, its defining region, and other possible
-\   corners in its defining region, from further consideration.
-\
-: action-calc-corners ( act0 -- )
+
+: action-calc-corner-cluster ( crn-lst2 def-lst1 act0 -- )
     \ Check arg.
     assert( tos is-action? )
-    \ cr ." action-calc-corners: start: " .stack-gbl cr
+    assert( nos is-region-list? )
+    assert( 3os is-corner-list? )
+    \ cr ." action-calc-corner-cluster: start: " .stack-gbl cr
 
-    \ Init corner cluster list.
-    list-new over _action-update-corner-clusters
+    dup action-get-corners              \ act0 crn-lst
+    list-copy-struct                    \ act0 pre-lst
+    swap                                \ pre-lst act0
 
-    \ Init preliminary corner list.
-    list-new swap                       \ pre-lst act0
-    dup action-get-states-in-one-region \ pre-lst act0 stas-in1
-    over action-get-defining-regions    \ pre-lst act0 stas-in1 def-lst
-
-    foreach                             \ pre-lst act0 stas-in1 def-lnk
-        \ Get squares in only the current defining region.
-        dup link-get-data               \ pre-lst act0 stas-in1 def-lnk regx
-        #2 pick                         \ pre-lst act0 stas-in1 def-lnk regx stas-in1
-        state-list-in-region            \ pre-lst act0 stas-in1 def-lnk stas-in-reg'
-
-        \ cr ." For defining region: " over link-get-data .region space ." squares in: " dup .state-list cr
-        dup                             \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-reg'
-        foreach                         \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk
-            \ Make corner.
-            dup link-get-data           \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk stax
-            #3 pick                     \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk stax def-lnk
-            link-get-data               \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk stax regx
-            corner-new                  \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk crn'
-            dup                         \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk crn' crn'
-            #6 pick                     \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk crn' crn' act0
-            action-corner-possible?     \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk crn' bool
-            if
-                \ Store corner.
-                #6 pick                 \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk crn' pre-lst
-                list-push-struct        \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk
-            else
-                corner-deallocate       \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk
-            then
-        next
-
-        state-list-deallocate
-    next
-                                        \ pre-lst act0 stas-in1
-    drop                                \ pre-lst act0
-
+    \ Get corner clusters.
     \ Rate each corner, the number of adjacent states that are only in one region.
     over                                \ pre-lst act0 pre-lst
     foreach                             \ pre-lst act0 pre-lnk
@@ -1293,7 +1228,134 @@ action-groups-disp                          cell+   constant action-function-dis
     \ Update action-corners.
     swap _action-update-corners                 \
 
-    \ cr ." action-calc-corners: end: " .stack-gbl cr
+    \ cr ." action-calc-corner-cluster: end: " .stack-gbl cr
+;
+
+\ Calc corner clusters.
+\ Copy the action corner, and defining region, lists.
+\
+\ Generate one coner cluster after another, until the copied defining
+\ list is empty.
+\
+\ Return a list of corner clusters, tha is a list or corner lists.
+: action-calc-corner-clusters ( act0 -- crn-lol )
+    \ Check arg.
+    assert( tos is-action? )
+    \ cr ." action-calc-corner-clusters: start: " .stack-gbl cr
+
+    \ Init cluster list.
+    list-new                            \ act0 cstr-lst'
+    over action-get-corners             \ act0 cstr-lst' crn-lst
+    list-copy-struct                    \ act0 cstr-lst' crn-lst'
+    
+    #2 pick action-get-defining-regions \ act0 cstr-lst' crn-lst' def-lst
+    list-copy-stuct                     \ act0 cstr-lst' crn-lst' def-lst'
+
+    begin
+        2dup                            \ act0 cstr-lst' crn-lst' def-lst' crn-lst' def-lst'
+        #4 pick                         \ act0 cstr-lst' crn-lst' def-lst' crn-lst' def-lst' act0
+        action-calc-corner-cluster      \ act0 cstr-lst' crn-lst' def-lst', clstr' t | f
+        if
+            \ Remove corner regions from defining region list.
+            dup                         \ act0 cstr-lst' crn-lst' def-lst', clstr' clstr'
+            foreach                     \ act0 cstr-lst' crn-lst' def-lst', clstr' clstr-lnk
+                dup link-get-data       \ act0 cstr-lst' crn-lst' def-lst', clstr' clstr-lnk crnx
+                cluster-get-region      \ act0 cstr-lst' crn-lst' def-lst', clstr' clstr-lnk crnx-reg
+
+                \ Remove region from defining region list.
+                #3 pick                 \ act0 cstr-lst' crn-lst' def-lst', clstr' clstr-lnk crnx-reg def-lst'
+                region-list-remove      \ act0 cstr-lst' crn-lst' def-lst', clstr' clstr-lnk
+            next
+
+            \ Remove corners from corne list.
+            dup                         \ act0 cstr-lst' crn-lst' def-lst', clstr' clstr'
+            foreach                     \ act0 cstr-lst' crn-lst' def-lst', clstr' clstr-lnk
+                dup link-get-data       \ act0 cstr-lst' crn-lst' def-lst', clstr' clstr-lnk crnx
+
+                \ Remove corner from corner list.
+                #4 pick                 \ act0 cstr-lst' crn-lst' def-lst', clstr' clstr-lnk crnx crn-lst'
+                corner-list-remove      \ act0 cstr-lst' crn-lst' def-lst', clstr' clstr-lnk
+            next
+
+            \ Add cluster to cluster list.
+            #3 pick                     \ act0 cstr-lst' crn-lst' def-lst' clstr' cstr-lst'
+            list-push-struct            \ act0 cstr-lst' crn-lst' def-lst'
+
+            false                       \ Do not end the loop.
+        else
+            true                        \ End the loop.
+        then
+    until
+
+    \ Clean up.
+    region-list-deallocate              \ act0 cstr-lst' crn-lst'
+    region-list-deallocate              \ act0 cstr-lst'
+
+    \ Save clusters.
+    swap                                \ cstr-lst' act0
+    _action-update-corner-clusters
+
+    \ cr ." action-calc-corner-clusters: end: " .stack-gbl cr
+;
+
+\ Calc corners, from action-defining-regions and
+\ action-squares-in-one-region.
+\
+\ Sets action-corners and action-corner-clusters.
+\
+\ When incompatible pairs change:
+\   Possible regions change
+\   Defining regions change
+\   States only in one region change.
+\   Corners change.
+\   Corner clusters change.
+: action-calc-corners ( act0 -- )
+    \ Check arg.
+    assert( tos is-action? )
+    \ cr ." action-calc-corners: start: " .stack-gbl cr
+
+    \ Init corner cluster list.
+    list-new over _action-update-corner-clusters
+
+    \ Init preliminary corner list.
+    list-new swap                       \ pre-lst act0
+    dup action-get-states-in-one-region \ pre-lst act0 stas-in1
+    over action-get-defining-regions    \ pre-lst act0 stas-in1 def-lst
+
+    foreach                             \ pre-lst act0 stas-in1 def-lnk
+        \ Get squares in only the current defining region.
+        dup link-get-data               \ pre-lst act0 stas-in1 def-lnk regx
+        #2 pick                         \ pre-lst act0 stas-in1 def-lnk regx stas-in1
+        state-list-in-region            \ pre-lst act0 stas-in1 def-lnk stas-in-reg'
+
+        \ cr ." For defining region: " over link-get-data .region space ." squares in: " dup .state-list cr
+        dup                             \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-reg'
+        foreach                         \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk
+            \ Make corner.
+            dup link-get-data           \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk stax
+            #3 pick                     \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk stax def-lnk
+            link-get-data               \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk stax regx
+            corner-new                  \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk crn'
+            dup                         \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk crn' crn'
+            #6 pick                     \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk crn' crn' act0
+            action-corner-possible?     \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk crn' bool
+            if
+                \ Store corner.
+                #6 pick                 \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk crn' pre-lst
+                list-push-struct        \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk
+            else
+                corner-deallocate       \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk
+            then
+        next
+
+        state-list-deallocate
+    next
+                                        \ pre-lst act0 stas-in1
+    drop                                \ pre-lst act0
+
+    tuck _action-update-corners         \ act
+
+    action-calc-corner-clusters         \
 ;
 
 \ Evaluate possible regions, to generate corners and corner clusters.
