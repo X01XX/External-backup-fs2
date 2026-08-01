@@ -207,3 +207,42 @@
     [ ' state-in-region? ] literal -rot    \ xt reg1 sqr-lst0
     list-find-all-struct                            \ ret-list
 ;
+
+\ Append nos state-list to the tos state-list.
+: state-list-append ( lst1 lst0 -- )                                                                                                                     
+    \ Check args.
+    assert( tos is-state-list? )
+    assert( nos is-state-list? )
+
+    swap                    \ lst0 lst1
+    list-get-links          \ lst0 link
+    begin
+        ?dup
+    while
+        dup link-get-data   \ lst0 link regx
+        #2 pick             \ lst0 link regx lst0
+        state-list-push     \ lst0 link
+
+        link-get-next
+    repeat
+                            \ lst0
+    drop 
+;
+
+\ Return true if the tos corner is a proper superset of the nos corner.
+: state-list-is-proper-superset? ( sta-lst1 sta-lst0 -- bool )
+    \ Check args.
+    assert( tos is-state-list? )
+    assert( nos is-state-list? )
+
+    \ Check lengths.
+    over list-get-length        \ sta-lst1 sta-lst0 len1
+    over list-get-length        \ sta-lst1 sta-lst0 len1 len0
+    > ifnot 2drop false exit then
+
+    \ Check contents of list.
+    swap                        \ sta-lst0 sta-ls1
+    list-difference-struct      \ dif-lst'
+    dup list-is-empty?          \ dif-lst' bool
+    swap state-list-deallocate  \ bool
+;

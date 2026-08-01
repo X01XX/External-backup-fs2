@@ -251,3 +251,54 @@ corner-region-disp          cell+   constant corner-adjacent-states-disp    \ Al
     corner-get-anchor-state \ sta1 crn-sta
     states-eq?
 ;
+
+\ Return true if a state is used by a corner.
+: corner-uses-state? ( sta1 crn0 -- bool )
+    \ Check args.
+    assert( tos is-corner? )
+    assert( nos is-state? )
+
+    over                            \ sta1 crn0 sta1
+    over corner-get-anchor-state    \ sta1 crn0 sta1 sta0
+    states-eq?                      \ sta1 crn0 bool
+    if
+        2drop
+        true
+        exit
+    then
+
+    [ ' states-eq? ] literal -rot   \ xt sta1 crn0
+    corner-get-adjacent-states      \ xt sta1 crn-stas
+    list-member?                    \ bool
+;
+
+\ Return a state list with all states in a corner.
+: corner-states ( crn0 -- sta-lst )
+    \ Check arg.
+    assert( tos is-corner? )
+
+    \ Init return list.
+    list-new            \ crn0 ret-lst
+    over corner-get-anchor-state    \ crn0 ret-lst anc-sta
+    over list-push-struct           \ crn0 ret-lst
+    swap corner-get-adjacent-states \ ret-lst adj-lst
+    over state-list-append          \ ret-lst
+;
+
+\ Return true if the tos corner is a proper superset of the nos corner.
+: corner-is-proper-superset? ( crn1 crn0 -- bool )
+    \ Check args.
+    assert( tos is-corner? )
+    assert( nos is-corner? )
+
+    \ Compare the states.
+    corner-states                   \ crn1 stas0'
+    swap corner-states              \ stas0' stas1'
+    2dup                            \ stas0' stas1' stas0' stas1'
+    swap                            \ stas0' stas1' stas1' stas0'
+    state-list-is-proper-superset?  \ stas0' stas1' bool
+
+    \ Clean up.
+    swap state-list-deallocate      \ stas0' bool
+    swap state-list-deallocate      \ bool
+;

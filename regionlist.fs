@@ -913,8 +913,8 @@
     begin
         ?dup
     while
-        dup link-get-data   \ lst0 link nedx
-        #2 pick             \ lst0 link nedx lst0
+        dup link-get-data   \ lst0 link regx
+        #2 pick             \ lst0 link regx lst0
         region-list-push    \ lst0 link
 
         link-get-next

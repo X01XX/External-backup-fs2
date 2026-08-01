@@ -802,7 +802,7 @@ list-header-disp    cell+   constant list-links-disp
     drop 2drop              \ ret-list
 ;
 
-\ Return the difference of two lists, same order as in subrtracting numbers in forth, list1 - list0
+\ Return the difference of two lists, same order as in subtracting numbers in forth, list1 - list0
 \ Provide an xt for determining data equality.
 \ xt signature is ( link-data link-data -- flag )
 \

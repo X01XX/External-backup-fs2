@@ -1249,7 +1249,7 @@ action-groups-disp                          cell+   constant action-function-dis
     list-copy-struct                    \ act0 cstr-lst' crn-lst'
     
     #2 pick action-get-defining-regions \ act0 cstr-lst' crn-lst' def-lst
-    list-copy-stuct                     \ act0 cstr-lst' crn-lst' def-lst'
+    list-copy-struct                    \ act0 cstr-lst' crn-lst' def-lst'
 
     begin
         2dup                            \ act0 cstr-lst' crn-lst' def-lst' crn-lst' def-lst'
@@ -1260,7 +1260,7 @@ action-groups-disp                          cell+   constant action-function-dis
             dup                         \ act0 cstr-lst' crn-lst' def-lst', clstr' clstr'
             foreach                     \ act0 cstr-lst' crn-lst' def-lst', clstr' clstr-lnk
                 dup link-get-data       \ act0 cstr-lst' crn-lst' def-lst', clstr' clstr-lnk crnx
-                cluster-get-region      \ act0 cstr-lst' crn-lst' def-lst', clstr' clstr-lnk crnx-reg
+                corner-get-region       \ act0 cstr-lst' crn-lst' def-lst', clstr' clstr-lnk crnx-reg
 
                 \ Remove region from defining region list.
                 #3 pick                 \ act0 cstr-lst' crn-lst' def-lst', clstr' clstr-lnk crnx-reg def-lst'

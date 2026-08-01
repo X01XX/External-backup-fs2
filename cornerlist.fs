@@ -285,4 +285,24 @@
     false
 ;
 
+\ Remove a corner from a list.
+\ If use count becomes zero, deallocate it.
+: corner-list-remove ( crn1 crn-lst0 -- )
+\ Check args.
+    assert( tos is-corner-list? )
+    assert( nos is-corner? )
+
+    [ ' = ] literal -rot            \ xt crn1 crn-lst0
+    list-remove-struct              \ crn t | f
+    if
+        dup struct-get-use-count    \ crn uc
+        0=
+        if
+            corner-deallocate
+        else
+            drop
+        then
+    then
+;
+
 
