@@ -1070,7 +1070,7 @@ action-groups-disp                          cell+   constant action-function-dis
 
 \ Given a corner, generate additional corners that could be
 \ attached to adjacent states that are in other defining regions.
-: action-calc-additional-gorners ( crn1 act0 -- crn-lst )
+: action-calc-additional-corners ( crn1 act0 -- crn-lst )
     assert( tos is-action? )
     assert( nos is-corner? )
 
@@ -1084,7 +1084,7 @@ action-groups-disp                          cell+   constant action-function-dis
         dup link-get-data               \ crn1 act0 ret-lst crn-adj-lnk stax
         #3 pick                         \ crn1 act0 ret-lst crn-adj-lnk stax act0
         action-get-possible-regions     \ crn1 act0 ret-lst crn-adj-lnk stax pos-lst
-        region-list-regions-state-in    \ crn1 act0 ret-lst crn-adj-lnk u
+        region-list-num-state-in        \ crn1 act0 ret-lst crn-adj-lnk u
         1 =                             \ crn1 act0 ret-lst crn-adj-lnk bool
         if
             \ Adjacent state is in only one region, a defining region.
@@ -1094,9 +1094,9 @@ action-groups-disp                          cell+   constant action-function-dis
             dup                         \ crn1 act0 ret-lst crn-adj-lnk stax stax
             #4 pick                     \ crn1 act0 ret-lst crn-adj-lnk stax stax act0
             action-get-possible-regions \ crn1 act0 ret-lst crn-adj-lnk stax stax pos-lst
-            region-list-state-in        \ crn1 act0 ret-lst crn-adj-lnk stax reg-lst
-            tuck                        \ crn1 act0 ret-lst crn-adj-lnk reg-lst stax reg-lst
-            list-get-first-item         \ crn1 act0 ret-lst crn-adj-lnk reg-lst stax regx
+            region-list-state-in        \ crn1 act0 ret-lst crn-adj-lnk stax reg-lst'
+            tuck                        \ crn1 act0 ret-lst crn-adj-lnk reg-lst' stax reg-lst
+            list-get-first-item         \ crn1 act0 ret-lst crn-adj-lnk reg-lst' stax regx
             corner-new                  \ crn1 act0 ret-lst crn-adj-lnk reg-lst crnx
 
             \ Clean up.
@@ -1397,7 +1397,7 @@ action-groups-disp                          cell+   constant action-function-dis
 
     tuck _action-update-corners         \ act
 
-    action-calc-corner-clusters         \
+    drop \ action-calc-corner-clusters         \
 ;
 
 \ Evaluate possible regions, to generate corners and corner clusters.

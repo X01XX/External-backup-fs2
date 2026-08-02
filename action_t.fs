@@ -169,6 +169,11 @@
 
     cr dup .action cr
 
+    \ Test result.
+    dup action-get-corners                  \ act crns
+    list-get-length                         \ act len
+    1 <> abort" number corners ne 1?"
+
     action-deallocate
 
     \ Check for memory leaks.
@@ -177,9 +182,56 @@
     cr ." action-test-corners - Ok"
 ;
 
+: action-test-calc-additional-corners
+    \ Init action.
+    [ ' calc-result-x ] literal
+    #4 0 0 action-new      \ act
+
+    cr dup .action cr
+
+    \ Add 5->5
+    s" s0101->s0101" sample-from-string-a   \ act smpl1
+    over action-add-sample                  \ act bool
+    ifnot ." Did not return true?" abort then
+
+    \ Add 7->F
+    s" s0111->s1111" sample-from-string-a   \ act smpl1
+    over action-add-sample                  \ act bool
+    ifnot ." Did not return true?" abort then
+
+    cr dup .action cr
+
+    \ Add D->F
+    s" s1101->s1111" sample-from-string-a   \ act smpl1
+    over action-add-sample                  \ act bool
+    ifnot ." Did not return true?" abort then
+
+    cr dup .action cr
+
+    s" s0101" state-from-string-a           \ act sta5'
+    dup                                     \ act sta5' sta5'
+    #2 pick action-get-corners              \ act sta5' sta5' crn-lst
+    corner-list-find                        \ act sta5', crn5 t | f
+    invert abort" corner not found?"
+
+    swap state-deallocate                   \ act crn5
+    over action-calc-additional-corners     \ act crn-lst
+    cr ." Additional corners: " dup .corner-list cr
+
+    \ Deallocate
+    corner-list-deallocate
+    action-deallocate
+
+    \ Check for memory leaks.
+    structinfo-list-store structinfo-list-project-deallocated
+
+    cr ." action-test-calc-additional-corners - Ok"
+;
+
 : action-tests
     action-test-basic
     action-test-check-incompatible-pairs-for-changed-square
     action-test-corners
+    action-test-calc-additional-corners
     cr
 ;
