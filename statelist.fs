@@ -238,11 +238,12 @@
     \ Check lengths.
     over list-get-length        \ sta-lst1 sta-lst0 len1
     over list-get-length        \ sta-lst1 sta-lst0 len1 len0
-    > ifnot 2drop false exit then
+    <
+    ifnot 2drop false exit then
 
     \ Check contents of list.
-    swap                        \ sta-lst0 sta-ls1
-    list-difference-struct      \ dif-lst'
-    dup list-is-empty?          \ dif-lst' bool
-    swap state-list-deallocate  \ bool
+    [ ' states-eq? ] literal -rot   \ xt sta-lst1 sta-ls0
+    list-difference-struct          \ dif-lst'
+    dup list-is-empty?              \ dif-lst' bool
+    swap state-list-deallocate      \ bool
 ;
