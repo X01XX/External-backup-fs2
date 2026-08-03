@@ -288,7 +288,7 @@
 \ Remove a corner from a list.
 \ If use count becomes zero, deallocate it.
 : corner-list-remove ( crn1 crn-lst0 -- )
-\ Check args.
+    \ Check args.
     assert( tos is-corner-list? )
     assert( nos is-corner? )
 
@@ -305,4 +305,37 @@
     then
 ;
 
+\ Remove corners with a given region.
+: corner-list-remove-by-region ( reg1 crn-lst0 -- )
+    \ Check args.
+    assert( tos is-corner-list? )
+    assert( nos is-region? )
 
+    \ Init delete list.
+    list-new                    \ reg1 crn-lst0 del-lst'
+
+    \ Collect corners to delete.
+    over                        \ reg1 crn-lst0 del-lst' crn-lst0
+    foreach                     \ reg1 crn-lst0 del-lst' crn-lnk0
+        dup link-get-data       \ reg1 crn-lst0 del-lst' crn-lnk0 crnx
+        corner-get-region       \ reg1 crn-lst0 del-lst' crn-lnk0 regx
+        #4 pick                 \ reg1 crn-lst0 del-lst' crn-lnk0 regx reg1
+        regions-eq?             \ reg1 crn-lst0 del-lst' crn-lnk0 bool
+        if
+            dup link-get-data   \ reg1 crn-lst0 del-lst' crn-lnk0 crnx
+            #2 pick             \ reg1 crn-lst0 del-lst' crn-lnk0 crnx del-lst'
+            list-push-struct    \ reg1 crn-lst0 del-lst' crn-lnk0
+        then
+    next
+
+    \ Delete corners.
+    dup                         \ reg1 crn-lst0 del-lst' del-lst'
+    foreach                     \ reg1 crn-lst0 del-lst' del-lnk
+        dup link-get-data       \ reg1 crn-lst0 del-lst' del-lnk crnx
+        #3 pick                 \ reg1 crn-lst0 del-lst' del-lnk crnx crn-lst0
+        corner-list-remove      \ reg1 crn-lst0 del-lst' del-lnk
+    next
+
+    corner-list-deallocate      \ reg1 crn-lst0
+    2drop
+;

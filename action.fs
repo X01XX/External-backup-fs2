@@ -1110,165 +1110,93 @@ action-groups-disp                          cell+   constant action-function-dis
 
     nip nip                             \ ret-lst
 ;
- 
-: action-calc-corner-cluster ( crn-lst2 def-lst1 act0 -- )
+
+\ Calculate a corner cluster from a rated corner list, and defining regions.
+: action-calc-corner-cluster ( crn-lst2 def-lst1 act0 -- crn-lst t | f)
     \ Check arg.
     assert( tos is-action? )
     assert( nos is-region-list? )
     assert( 3os is-corner-list? )
     \ cr ." action-calc-corner-cluster: start: " .stack-gbl cr
 
-    dup action-get-corners              \ act0 crn-lst
-    list-copy-struct                    \ act0 pre-lst
-    swap                                \ pre-lst act0
+    \ Get highest corner rate, of corners remaining in the pre-lst.
+    \ pre-lst and def-lst will be depleted in each cycle.
+    0                                   \ crn-lst2 def-lst1 act0 max
+    #3 pick                             \ crn-lst2 def-lst1 act0 max crn-lst2
 
-    \ Get corner clusters.
-    \ Rate each corner, the number of adjacent states that are only in one region.
-    over                                \ pre-lst act0 pre-lst
-    foreach                             \ pre-lst act0 pre-lnk
-        \ Calc rank.
-        dup link-get-data               \ pre-lst act0 pre-lnk crnx
-        #2 pick                         \ pre-lst act0 pre-lnk crnx act0
-        action-calc-corner-rate         \ pre-lst act0 pre-lnk rt
-
-        \ Set rank.
-        over link-get-data              \ pre-lst act0 pre-lnk rt crnx
-        corner-set-rate                 \ pre-lst act0 pre-lnk
+    foreach                             \ crn-lst2 def-lst1 act0 max crn-lnk2
+        dup link-get-data               \ crn-lst2 def-lst1 act0 max crn-lnk2 crnx
+        corner-get-rate                 \ crn-lst2 def-lst1 act0 max crn-lnk2 rt
+        rot                             \ crn-lst2 def-lst1 act0 crn-lnk2 rt max
+        max                             \ crn-lst2 def-lst1 act0 crn-lnk2 max
+        swap                            \ crn-lst2 def-lst1 act0 max crn-lnk2
     next
-                                        \ pre-lst act0
+                                        \ crn-lst2 def-lst1 act0 max
 
-    \ Init final-corner list.
-    list-new                            \ pre-lst act0 fin-lst
+    \ Get higest ranked corners from pre-list.
 
-    \ Copy defining regions list.
-    over action-get-defining-regions    \ pre-lst act0 fin-lst def-lst
-    list-copy-struct
+    \ Init max corner list.
+    list-new                            \ crn-lst2 def-lst1 act0 max max-crn-lst
+    #4 pick                             \ crn-lst2 def-lst1 act0 max max-crn-lst crn-lst2
 
-    \ while any defining regions left in the copied defining list.
-    begin
-        dup list-get-length
-    while
+    foreach                             \ crn-lst2 def-lst1 act0 max max-crn-lst crn-lnk2
+        dup link-get-data               \ crn-lst2 def-lst1 act0 max max-crn-lst crn-lnk2 crnx
+        corner-get-rate                 \ crn-lst2 def-lst1 act0 max max-crn-lst crn-lnk2 rt
+        #3 pick                         \ crn-lst2 def-lst1 act0 max max-crn-lst crn-lnk2 rt max
+        = if                            \ crn-lst2 def-lst1 act0 max max-crn-lst crn-lnk2 bool
+            \ Add corner to sub-list.
+            dup link-get-data           \ crn-lst2 def-lst1 act0 max max-crn-lst crn-lnk2 crnx
+            #2 pick                     \ crn-lst2 def-lst1 act0 max max-crn-lst crn-lnk2 crnx max-crn-lst
+            list-push-struct            \ crn-lst2 def-lst1 act0 max max-crn-lst crn-lnk2
+        then
+    next
+                                        \ crn-lst2 def-lst1 act0 max max-crn-lst
+    nip                                 \ crn-lst2 def-lst1 act0 max-crn-lst
 
-        \ Init a corner sub-list.
-        list-new                            \ pre-lst act0 fin-lst def-lst crn-sub-lst
+    \ Select a corner from max-crn-lst.
+    dup list-get-length                 \ crn-lst2 def-lst1 act0 max-crn-lst len
+    random                              \ crn-lst2 def-lst1 act0 max-crn-lst inx
+    over list-remove-item-struct        \ crn-lst2 def-lst1 act0 max-crn-lst crnx
+    swap corner-list-deallocate         \ crn-lst2 def-lst1 act0 crnx
 
-        \ Get highest corner rate, of corners remaining in the pre-lst.
-        \ pre-lst and def-lst will be depleted in each cycle.
-        0                                   \ pre-lst act0 fin-lst def-lst crn-sub-lst max
-        #5 pick                             \ pre-lst act0 fin-lst def-lst crn-sub-lst max pre-lst
+    \ Init return corner list, that is corner cluster.
+    list-new                            \ crn-lst2 def-lst1 act0 crnx ret-lst
+    tuck list-push-struct               \ crn-lst2 def-lst1 act0 ret-lst
 
-        foreach                             \ pre-lst act0 fin-lst def-lst crn-sub-lst max pre-lnk
-            dup link-get-data               \ pre-lst act0 fin-lst def-lst crn-sub-lst max pre-lnk crnx
-            corner-get-rate                 \ pre-lst act0 fin-lst def-lst crn-sub-lst max pre-lnk rt
-            rot                             \ pre-lst act0 fin-lst def-lst crn-sub-lst pre-lnk rt max
-            max                             \ pre-lst act0 fin-lst def-lst crn-sub-lst pre-lnk max
-            swap                            \ pre-lst act0 fin-lst def-lst crn-sub-lst max pre-lnk
-        next
-                                            \ pre-lst act0 fin-lst def-lst crn-sub-lst max
+    \ Process corner list.
+    dup                                 \ crn-lst2 def-lst1 act0 ret-lst ret-lst
+    foreach                             \ crn-lst2 def-lst1 act0 ret-lst ret-lnk
+        dup link-get-data               \ crn-lst2 def-lst1 act0 ret-lst ret-lnk crnx
+        #3 pick                         \ crn-lst2 def-lst1 act0 ret-lst ret-lnk crnx act0
+        action-calc-additional-corners  \ crn-lst2 def-lst1 act0 ret-lst ret-lnk' add-lst'
 
-        \ Get higest ranked corners from pre-list.
-
-        \ Init max corner list.
-        list-new                            \ pre-lst act0 fin-lst def-lst crn-sub-lst max max-crn-lst
-        #6 pick                             \ pre-lst act0 fin-lst def-lst crn-sub-lst max max-crn-lst pre-lst
-
-        foreach                             \ pre-lst act0 fin-lst def-lst crn-sub-lst max max-crn-lst pre-lnk
-            dup link-get-data               \ pre-lst act0 fin-lst def-lst crn-sub-lst max max-crn-lst pre-lnk crnx
-            corner-get-rate                 \ pre-lst act0 fin-lst def-lst crn-sub-lst max max-crn-lst pre-lnk rt
-            #3 pick                         \ pre-lst act0 fin-lst def-lst crn-sub-lst max max-crn-lst pre-lnk rt max
-            = if                            \ pre-lst act0 fin-lst def-lst crn-sub-lst max max-crn-lst pre-lnk bool
-                \ Add corner to sub-list.
-                dup link-get-data           \ pre-lst act0 fin-lst def-lst crn-sub-lst max max-crn-lst pre-lnk crnx
-                #2 pick                     \ pre-lst act0 fin-lst def-lst crn-sub-lst max max-crn-lst pre-lnk crnx max-crn-lst
-                list-push-struct            \ pre-lst act0 fin-lst def-lst crn-sub-lst max max-crn-lst pre-lnk
+        \ Add additonal corners, if not already in the list.
+        dup                                     \ crn-lst2 def-lst1 act0 ret-lst ret-lnk' add-lst' add-lst'
+        foreach                                 \ crn-lst2 def-lst1 act0 ret-lst ret-lnk' add-lst' add-lnk
+            dup link-get-data                   \ crn-lst2 def-lst1 act0 ret-lst ret-lnk' add-lst' add-lnk crnx
+            #4 pick                             \ crn-lst2 def-lst1 act0 ret-lst ret-lnk' add-lst' add-lnk crnx ret-lst
+            corner-list-all-corner-states-in?   \ crn-lst2 def-lst1 act0 ret-lst ret-lnk' add-lst' add-lnk bool
+            ifnot
+                dup link-get-data               \ crn-lst2 def-lst1 act0 ret-lst ret-lnk' add-lst' add-lnk crnx
+                #4 pick                         \ crn-lst2 def-lst1 act0 ret-lst ret-lnk' add-lst' add-lnk stax ret-lst
+                list-push-end-struct            \ crn-lst2 def-lst1 act0 ret-lst ret-lnk' add-lst' add-lnk
             then
         next
-                                            \ pre-lst act0 fin-lst def-lst crn-sub-lst max max-crn-lst
-        nip                                 \ pre-lst act0 fin-lst def-lst crn-sub-lst max-crn-lst
 
-        \ Select a corner from max-crn-lst.
-        dup list-get-length                 \ pre-lst act0 fin-lst def-lst crn-sub-lst max-crn-lst len
-        random                              \ pre-lst act0 fin-lst def-lst crn-sub-lst max-crn-lst inx
-        over list-remove-item-struct        \ pre-lst act0 fin-lst def-lst crn-sub-lst max-crn-lst crnx
-        swap corner-list-deallocate         \ pre-lst act0 fin-lst def-lst crn-sub-lst crnx
+        corner-list-deallocate          \ crn-lst2 def-lst1 act0 ret-lst ret-lnk
 
-        \ Delete selected corner region from copied defining regions list.
-        dup corner-get-region               \ pre-lst act0 fin-lst def-lst crn-sub-lst crnx crn-reg
-        #3 pick                             \ pre-lst act0 fin-lst def-lst crn-sub-lst crnx crn-reg def-lst
-        region-list-remove                  \ pre-lst act0 fin-lst def-lst crn-sub-lst crnx
+    next
 
-        \ Add selected corner to sub-list.
-        2dup swap list-push-struct          \ pre-lst act0 fin-lst def-lst crn-sub-lst crnx
+    nip nip nip                         \ ret-lst
 
-        \ Delete corners from pre list that have an anchor in the selected corner region.
-        corner-get-region                   \ pre-lst act0 fin-lst def-lst crn-sub-lst crn-reg
-        #5 pick                             \ pre-lst act0 fin-lst def-lst crn-sub-lst crn-reg pre-lst
-        corner-list-remove-all-region-match \ pre-lst act0 fin-lst def-lst crn-sub-lst
-
-        \ For each corner in the list, which starts with only one corner, find corners with anchors
-        \ that match the adjacent, external, states.
-        \ Add found corners to the end of the list, extending the list while it is
-        \ being interated on. A neat trick.
-        dup                                 \ pre-lst act0 fin-lst def-lst crn-sub-lst crn-sub-lst
-
-        foreach                             \ pre-lst act0 fin-lst def-lst crn-sub-lst crn-sub-lnk
-
-            \ For each corner in the crn-sub-lst, find corners with an anchor equal to a corner adjacent state.
-            dup link-get-data               \ pre-lst act0 fin-lst def-lst crn-sub-lst crn-sub-lnk crnx
-            corner-get-adjacent-states      \ pre-lst act0 fin-lst def-lst crn-sub-lst crn-sub-lnk adj-lst
-
-            foreach                         \ pre-lst act0 fin-lst def-lst crn-sub-lst crn-sub-lnk adj-lnk
-                dup link-get-data           \ pre-lst act0 fin-lst def-lst crn-sub-lst crn-sub-lnk adj-lnk adjx
-                \ cr ." checking state: " dup .state cr
-
-                #7 pick                     \ pre-lst act0 fin-lst def-lst crn-sub-lst crn-sub-lnk adj-lnk adjx pre-lst
-                corner-list-find            \ pre-lst act0 fin-lst def-lst crn-sub-lst crn-sub-lnk adj-lnk, crn t | f
-
-                if
-                    \ Delete region from copied defining regions list.
-                    dup corner-get-region               \ pre-lst act0 fin-lst def-lst crn-sub-lst crn-sub-lnk adj-lnk crn crn-reg
-                    #5 pick                             \ pre-lst act0 fin-lst def-lst crn-sub-lst crn-sub-lnk adj-lnk crn crn-reg def-lst
-                    region-list-remove                  \ pre-lst act0 fin-lst def-lst crn-sub-lst crn-sub-lnk adj-lnk crn
-
-                    \ Add selected corner to sub-list.
-                    dup                                 \ pre-lst act0 fin-lst def-lst crn-sub-lst crn-sub-lnk adj-lnk crn crn
-                    #4 pick                             \ pre-lst act0 fin-lst def-lst crn-sub-lst crn-sub-lnk adj-lnk crn crn crn-sub-lst
-                    list-push-end-struct                \ pre-lst act0 fin-lst def-lst crn-sub-lst crn-sub-lnk adj-lnk crn
-
-                    \ Delete corners from pre list that have an anchor in the selected corner region.
-                    corner-get-region                   \ pre-lst act0 fin-lst def-lst crn-sub-lst crn-sub-lnk adj-lnk crn-reg
-                    #7 pick                             \ pre-lst act0 fin-lst def-lst crn-sub-lst crn-sub-lnk adj-lnk crn-reg pre-lst
-                    corner-list-remove-all-region-match \ pre-lst act0 fin-lst def-lst crn-sub-lst crn-sub-lnk adj-lnk
-                then
-
-            next    \ Corner adjacent state.
-        next        \ Corner.
-
-        \ Add corner sub-list to return list.
-        dup                                     \ pre-lst act0 fin-lst def-lst crn-sub-lst crn-sub-lst
-        #3 pick                                 \ pre-lst act0 fin-lst def-lst crn-sub-lst crn-sub-lst fin-lst
-        list-append-struct                      \ pre-lst act0 fin-lst def-lst crn-sub-lst
-
-        \ Dealloc, or Add, corner-sub-list to action corner clusters.
-        dup list-get-length                     \ pre-lst act0 fin-lst def-lst crn-sub-lst len
-        1 >
-        if
-            #3 pick                             \ pre-lst act0 fin-lst def-lst crn-sub-lst act0
-            action-get-corner-clusters          \ pre-lst act0 fin-lst def-lst crn-sub-lst crn-clstr-lst
-            list-push-end-struct                \ pre-lst act0 fin-lst def-lst
-        else
-            corner-list-deallocate              \ pre-lst act0 fin-lst def-lst
-        then
-    repeat
-
-    \ Delete emptied, copied, defining list.
-    list-deallocate                             \ pre-lst act0 fin-lst
-
-    \ Delete emptied preliminary corner list.
-    rot list-deallocate                         \ act0 fin-lst
-
-    \ Update action-corners.
-    swap _action-update-corners                 \
+    dup list-get-length                 \ ret-lst len
+    #2 <                                \ ret-lst bool
+    if
+        corner-list-deallocate
+        false
+        exit
+    then
+    true
 
     \ cr ." action-calc-corner-cluster: end: " .stack-gbl cr
 ;
@@ -1287,8 +1215,23 @@ action-groups-disp                          cell+   constant action-function-dis
 
     \ Init cluster list.
     list-new                            \ act0 cstr-lst'
+
+    \ Get, copy, and rate, corner list.
     over action-get-corners             \ act0 cstr-lst' crn-lst
     list-copy-struct                    \ act0 cstr-lst' crn-lst'
+
+    \ Rate each corner, the number of adjacent states that are only in one region.
+    dup                                 \ act0 cstr-lst' crn-lst' crn-lst'
+    foreach                             \ act0 cstr-lst' crn-lst' crn-lnk
+        \ Calc rank.
+        dup link-get-data               \ act0 cstr-lst' crn-lst' crn-lnk crnx
+        #4 pick                         \ act0 cstr-lst' crn-lst' crn-lnk crnx act0
+        action-calc-corner-rate         \ act0 cstr-lst' crn-lst' crn-lnk rt
+
+        \ Set rank.
+        over link-get-data              \ act0 cstr-lst' crn-lst' crn-lnk rt crnx
+        corner-set-rate                 \ act0 cstr-lst' crn-lst' crn-lnk
+    next
     
     #2 pick action-get-defining-regions \ act0 cstr-lst' crn-lst' def-lst
     list-copy-struct                    \ act0 cstr-lst' crn-lst' def-lst'
@@ -1299,24 +1242,25 @@ action-groups-disp                          cell+   constant action-function-dis
         action-calc-corner-cluster      \ act0 cstr-lst' crn-lst' def-lst', clstr' t | f
         if
             \ Remove corner regions from defining region list.
-            dup                         \ act0 cstr-lst' crn-lst' def-lst', clstr' clstr'
-            foreach                     \ act0 cstr-lst' crn-lst' def-lst', clstr' clstr-lnk
-                dup link-get-data       \ act0 cstr-lst' crn-lst' def-lst', clstr' clstr-lnk crnx
-                corner-get-region       \ act0 cstr-lst' crn-lst' def-lst', clstr' clstr-lnk crnx-reg
+            dup                         \ act0 cstr-lst' crn-lst' def-lst' clstr' clstr'
+            foreach                     \ act0 cstr-lst' crn-lst' def-lst' clstr' clstr-lnk
+                dup link-get-data       \ act0 cstr-lst' crn-lst' def-lst' clstr' clstr-lnk crnx
+                corner-get-region       \ act0 cstr-lst' crn-lst' def-lst' clstr' clstr-lnk crnx-reg
 
                 \ Remove region from defining region list.
-                #3 pick                 \ act0 cstr-lst' crn-lst' def-lst', clstr' clstr-lnk crnx-reg def-lst'
-                region-list-remove      \ act0 cstr-lst' crn-lst' def-lst', clstr' clstr-lnk
+                #3 pick                 \ act0 cstr-lst' crn-lst' def-lst' clstr' clstr-lnk crnx-reg def-lst'
+                region-list-remove      \ act0 cstr-lst' crn-lst' def-lst' clstr' clstr-lnk
             next
 
-            \ Remove corners from corne list.
-            dup                         \ act0 cstr-lst' crn-lst' def-lst', clstr' clstr'
-            foreach                     \ act0 cstr-lst' crn-lst' def-lst', clstr' clstr-lnk
-                dup link-get-data       \ act0 cstr-lst' crn-lst' def-lst', clstr' clstr-lnk crnx
+            \ Remove corners from corner list.
+            dup                         \ act0 cstr-lst' crn-lst' def-lst' clstr' clstr'
+            foreach                     \ act0 cstr-lst' crn-lst' def-lst' clstr' clstr-lnk
+                dup link-get-data       \ act0 cstr-lst' crn-lst' def-lst' clstr' clstr-lnk crnx
+                corner-get-region       \ act0 cstr-lst' crn-lst' def-lst' clstr' clstr-lnk regx
 
-                \ Remove corner from corner list.
-                #4 pick                 \ act0 cstr-lst' crn-lst' def-lst', clstr' clstr-lnk crnx crn-lst'
-                corner-list-remove      \ act0 cstr-lst' crn-lst' def-lst', clstr' clstr-lnk
+                \ Remove corners from corner list.
+                #4 pick                         \ act0 cstr-lst' crn-lst' def-lst' clstr' clstr-lnk regx crn-lst'
+                corner-list-remove-by-region    \ act0 cstr-lst' crn-lst' def-lst' clstr' clstr-lnk
             next
 
             \ Add cluster to cluster list.

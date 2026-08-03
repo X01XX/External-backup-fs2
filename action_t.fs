@@ -218,6 +218,9 @@
     over action-calc-additional-corners     \ act crn-lst
     cr ." Additional corners: " dup .corner-list cr
 
+    \ Check results.
+    dup list-get-length 2 <> abort" should be two additional corners"
+
     \ Deallocate
     corner-list-deallocate
     action-deallocate
