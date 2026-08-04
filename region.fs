@@ -735,3 +735,15 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     region-get-states       \ sta1 st0
     states-adjacent?
 ;
+
+\ Return true if a region has exactly one edge bit.
+: region-only-one-edge? ( reg0 -- bool )
+    \ Check arg.
+    assert( tos is-region? )
+
+    region-edge-mask        \ msk'
+    dup                     \ msk' msk'
+    mask-only-one-bit?      \ msk' bool
+
+    swap mask-deallocate    \ bool
+;

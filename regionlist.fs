@@ -885,7 +885,7 @@
 ;
 
 \ Return true if a region-list contains a superset, or equal, region.
-: region-list-any-superset-of? ( reg1 list0 -- flag )                                                                            
+: region-list-any-superset-of? ( reg1 list0 -- flag )
     \ Check args.
     assert( tos is-region-list? )
     assert( nos is-region? )

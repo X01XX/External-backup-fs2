@@ -170,6 +170,21 @@
     then
 ;
 
+\ Put more than one item on the stack.
+: string-to-stack ( c-addr u -- items )
+    list-from-string-a                  \ lst'
+    dup                                 \ lst' lst'
+    foreach                             \ lst' lnk
+        dup link-get-data               \ lst' lnk dat
+        dup is-struct?
+        if
+            dup struct-dec-use-count    \ Get use count to zero on stack.
+        then
+        -rot                            \ dat lst' lnk
+    next
+    list-deallocate                     \ Deallocate list and links, not items.
+;
+
 \ Return true if two lists are equal, that is
 \ having the same members, order does not matter.
 \ Sub-lists are Ok.

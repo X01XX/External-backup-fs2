@@ -1,13 +1,11 @@
 : corner-test-new
-    s" s0101" state-from-string-a           \ sta
-    s" r0XX1" region-from-string-a          \ sta reg
-    corner-new                              \ crn
+    s" s0101 r0XX1" string-to-stack corner-new  \ crn
     \ cr ." crn: " dup .corner cr
 
     \ Test.
-    dup corner-get-adjacent-states          \ crn sta-lst
-    list-get-length                         \ crn len
-    2 <> abort" not 2 adjacent states?"     \ crn
+    dup corner-get-adjacent-states              \ crn sta-lst
+    list-get-length                             \ crn len
+    2 <> abort" not 2 adjacent states?"         \ crn
 
     \ Deallocate.
     corner-deallocate
@@ -19,9 +17,7 @@
 ;
 
 : corner-test-states
-    s" s0101" state-from-string-a           \ sta
-    s" r0XX1" region-from-string-a          \ sta reg
-    corner-new                              \ crn
+    s" s0101 r0XX1" string-to-stack corner-new  \ crn
     \ cr ." crn: " dup .corner cr
 
     dup corner-states                       \ crn sta-lst'
@@ -41,14 +37,10 @@
 ;
 
 : corner-test-is-proper-superset?
-    s" s0100" state-from-string-a           \ sta
-    s" rXXX0" region-from-string-a          \ sta reg
-    corner-new                              \ crn1
+    s" s0100 rXXX0" string-to-stack corner-new  \ crn1
     \ cr ." crn1: " dup .corner cr
 
-    s" s0101" state-from-string-a           \ sta
-    s" r0XX1" region-from-string-a          \ sta reg
-    corner-new                              \ crn2
+    s" s0101 r0XX1" string-to-stack corner-new  \ crn1 crn2
     \ cr ." crn2: " dup .corner cr
 
     2dup corner-is-proper-superset?         \ crn1 crn2 bool

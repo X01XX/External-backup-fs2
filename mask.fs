@@ -520,3 +520,12 @@ mask-header-disp cell+  constant mask-number-disp
     mask-get-number     \ u
     num-bits-set
 ;
+
+\ Return true if exactly one bit is set.
+: mask-only-one-bit? ( msk0 -- bool )
+    \ Check arg.
+    assert( tos is-mask? )
+
+    mask-get-number     \ u
+    only-one-bit-set?   \ bool
+;

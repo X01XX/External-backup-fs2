@@ -302,3 +302,43 @@ corner-region-disp          cell+   constant corner-adjacent-states-disp    \ Al
     swap state-list-deallocate      \ stas0' bool
     swap state-list-deallocate      \ bool
 ;
+
+: corner-additional-corners ( pos-regs1 crn0 -- crn-lst t | f )
+    \ Check args.
+    assert( tos is-corner? )
+    assert( nos is-region-list? )
+
+    \ Init return list.
+    list-new -rot                       \ ret-lst pos-regs1 crn0
+
+    \ For each adjacent state.
+    corner-get-adjacent-states          \ ret-lst pos-regs1 adj-stas
+
+    foreach                             \ ret-lst pos-regs1 adj-lnk
+        dup link-get-data               \ ret-lst pos-regs1 adj-lnk stax
+        #2 pick                         \ ret-lst pos-regs1 adj-lnk stax pos-regs1
+        region-list-state-in            \ ret-lst pos-regs1 adj-lnk reg-in'
+        dup list-get-length 1 <>        \ ret-lst pos-regs1 adj-lnk reg-in' bool
+        if
+            region-list-deallocate      \ ret-lst pos-regs1 adj-lnk
+        else
+            dup list-get-first-item     \ ret-lst pos-regs1 adj-lnk reg-in' regx
+            region-only-one-edge?       \ ret-lst pos-regs1 adj-lnk reg-in' bool
+            if
+                region-list-deallocate  \ ret-lst pos-regs1 adj-lnk
+            else
+                \ todo
+            then
+        then
+
+    next
+                                        \ ret-lst pos-regs1
+    drop                                \ ret-lst
+    dup list-is-empty?                  \ ret-lst bool
+    if
+        list-deallocate
+        false
+    else
+        true
+    then
+;

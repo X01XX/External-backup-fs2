@@ -1074,41 +1074,45 @@ action-groups-disp                          cell+   constant action-function-dis
     assert( tos is-action? )
     assert( nos is-corner? )
 
-    \ Init return list.
-    list-new                            \ crn1 act0 ret-lst
+    action-get-possible-regions         \ crn1 pos-regs
+    swap                                \ pos-regs crn1
+    corner-additional-corners           \ crn-lst
 
-    #2 pick                             \ crn1 act0 ret-lst crn0
-    corner-get-adjacent-states          \ crn1 act0 ret-lst crn-adj-lst
-
-    foreach                             \ crn1 act0 ret-lst crn-adj-lnk
-        dup link-get-data               \ crn1 act0 ret-lst crn-adj-lnk stax
-        #3 pick                         \ crn1 act0 ret-lst crn-adj-lnk stax act0
-        action-get-possible-regions     \ crn1 act0 ret-lst crn-adj-lnk stax pos-lst
-        region-list-num-state-in        \ crn1 act0 ret-lst crn-adj-lnk u
-        1 =                             \ crn1 act0 ret-lst crn-adj-lnk bool
-        if
-            \ Adjacent state is in only one region, a defining region.
-
-            \ Generate a new corner.
-            dup link-get-data           \ crn1 act0 ret-lst crn-adj-lnk stax
-            dup                         \ crn1 act0 ret-lst crn-adj-lnk stax stax
-            #4 pick                     \ crn1 act0 ret-lst crn-adj-lnk stax stax act0
-            action-get-possible-regions \ crn1 act0 ret-lst crn-adj-lnk stax stax pos-lst
-            region-list-state-in        \ crn1 act0 ret-lst crn-adj-lnk stax reg-lst'
-            tuck                        \ crn1 act0 ret-lst crn-adj-lnk reg-lst' stax reg-lst
-            list-get-first-item         \ crn1 act0 ret-lst crn-adj-lnk reg-lst' stax regx
-            corner-new                  \ crn1 act0 ret-lst crn-adj-lnk reg-lst crnx
-
-            \ Clean up.
-            swap region-list-deallocate \ crn1 act0 ret-lst crn-adj-lnk crnx
-
-            \ Store corner.
-            #2 pick                     \ crn1 act0 ret-lst crn-adj-lnk crnx ret-lst
-            list-push-struct            \ crn1 act0 ret-lst crn-adj-lnk
-        then
-    next
-
-    nip nip                             \ ret-lst
+\    \ Init return list.
+\    list-new                            \ crn1 act0 ret-lst
+\
+\    #2 pick                             \ crn1 act0 ret-lst crn0
+\    corner-get-adjacent-states          \ crn1 act0 ret-lst crn-adj-lst
+\
+\    foreach                             \ crn1 act0 ret-lst crn-adj-lnk
+\        dup link-get-data               \ crn1 act0 ret-lst crn-adj-lnk stax
+\        #3 pick                         \ crn1 act0 ret-lst crn-adj-lnk stax act0
+\        action-get-possible-regions     \ crn1 act0 ret-lst crn-adj-lnk stax pos-lst
+\        region-list-num-state-in        \ crn1 act0 ret-lst crn-adj-lnk u
+\        1 =                             \ crn1 act0 ret-lst crn-adj-lnk bool
+\        if
+\            \ Adjacent state is in only one region, a defining region.
+\
+\            \ Generate a new corner.
+\            dup link-get-data           \ crn1 act0 ret-lst crn-adj-lnk stax
+\            dup                         \ crn1 act0 ret-lst crn-adj-lnk stax stax
+\            #4 pick                     \ crn1 act0 ret-lst crn-adj-lnk stax stax act0
+\            action-get-possible-regions \ crn1 act0 ret-lst crn-adj-lnk stax stax pos-lst
+\            region-list-state-in        \ crn1 act0 ret-lst crn-adj-lnk stax reg-lst'
+\            tuck                        \ crn1 act0 ret-lst crn-adj-lnk reg-lst' stax reg-lst
+\            list-get-first-item         \ crn1 act0 ret-lst crn-adj-lnk reg-lst' stax regx
+\            corner-new                  \ crn1 act0 ret-lst crn-adj-lnk reg-lst crnx
+\
+\            \ Clean up.
+\            swap region-list-deallocate \ crn1 act0 ret-lst crn-adj-lnk crnx\
+\
+\            \ Store corner.
+\            #2 pick                     \ crn1 act0 ret-lst crn-adj-lnk crnx ret-lst
+\            list-push-struct            \ crn1 act0 ret-lst crn-adj-lnk
+\        then
+\    next
+\
+\    nip nip                             \ ret-lst
 ;
 
 \ Calculate a corner cluster from a rated corner list, and defining regions.
