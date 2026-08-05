@@ -305,67 +305,67 @@ corner-region-disp          cell+   constant corner-adjacent-states-disp    \ Al
 
 \ Return a list containing a given corner, and connected corners,
 \ that is, a corner cluster.
+\ The given corner should have at least one adjacent state that is
+\ in only one possible group.
+\ A corner cluster has at least two corners.
+\ Each corner will have at least one shared state with at least one other corner.
+\ The corner list will not contain duplicate corner regions.
 : corner-additional-corners ( pos-regs1 crn0 -- crn-lst t | f )
     \ Check args.
     assert( tos is-corner? )
     assert( nos is-region-list? )
 
     \ Init return list.
-    list-new                                    \ pos-regs1 crn0 ret-lst
-    tuck list-push-struct                       \ pos-regs1 ret-lst
-    dup                                         \ pos-regs1 ret-lst ret-lst
+    list-new                                \ pos-regs1 crn0 ret-lst
+    tuck list-push-struct                   \ pos-regs1 ret-lst
+    dup                                     \ pos-regs1 ret-lst ret-lst
 
     \ Check each corner.
     \ The list starts with one corner.
-    \ New corners can be added to the end of the list, which the list will get to next.
-    foreach                                     \ pos-regs1 ret-lst ret-lnk
-        dup link-get-data                       \ pos-regs1 ret-lst ret-lnk crnx
-        corner-get-adjacent-states              \ pos-regs1 ret-lst ret-lnk adj-lst
+    \ New corners can be added to the end of the list, which the loop will get to next.
+    foreach                                 \ pos-regs1 ret-lst ret-lnk
+        dup link-get-data                   \ pos-regs1 ret-lst ret-lnk crnx
+        corner-get-adjacent-states          \ pos-regs1 ret-lst ret-lnk adj-lst
 
         \ Check each adjacent state.
-        foreach                                 \ pos-regs1 ret-lst ret-lnk adj-lnk
-            dup link-get-data                   \ pos-regs1 ret-lst ret-lnk adj-lnk stax
-            #4 pick                             \ pos-regs1 ret-lst ret-lnk adj-lnk stax pos-regs1
-            region-list-state-in                \ pos-regs1 ret-lst ret-lnk adj-lnk reg-in'
-            dup list-get-length 1 <>            \ pos-regs1 ret-lst ret-lnk adj-lnk reg-in' bool
+        foreach                             \ pos-regs1 ret-lst ret-lnk adj-lnk
+            dup link-get-data               \ pos-regs1 ret-lst ret-lnk adj-lnk stax
+            #4 pick                         \ pos-regs1 ret-lst ret-lnk adj-lnk stax pos-regs1
+            region-list-state-in            \ pos-regs1 ret-lst ret-lnk adj-lnk reg-in'
+            dup list-get-length 1 <>        \ pos-regs1 ret-lst ret-lnk adj-lnk reg-in' bool
             if
-                region-list-deallocate          \ pos-regs1 ret-lst ret-lnk adj-lnk
+                region-list-deallocate      \ pos-regs1 ret-lst ret-lnk adj-lnk
             else
-                dup list-get-first-item         \ pos-regs1 ret-lst ret-lnk adj-lnk reg-in' regx
-                region-only-one-edge?           \ pos-regs1 ret-lst ret-lnk adj-lnk reg-in' bool
-                if
-                    region-list-deallocate      \ pos-regs1 ret-lst ret-lnk adj-lnk
-                else
-                    \ Check corner is not already added.
-                    dup list-get-first-item     \ pos-regs1 ret-lst ret-lnk adj-lnk reg-in' reg
-                    #4 pick                     \ pos-regs1 ret-lst ret-lnk adj-lnk reg-in' reg ret-lst
-                    corner-list-find-region-xt  \ pos-regs1 ret-lst ret-lnk adj-lnk reg-in' reg ret-lst xt
-                    execute                     \ pos-regs1 ret-lst ret-lnk adj-lnk reg-in', crn t | f
-                    if
-                        drop                    \ pos-regs1 ret-lst ret-lnk adj-lnk reg-in'
-                        region-list-deallocate  \ pos-regs1 ret-lst ret-lnk adj-lnk
-                    else
-                        \ Build corner.
-                        over link-get-data      \ pos-regs1 ret-lst ret-lnk adj-lnk reg-in' stax
-                        over                    \ pos-regs1 ret-lst ret-lnk adj-lnk reg-in' stax reg-in'
-                        list-get-first-item     \ pos-regs1 ret-lst ret-lnk adj-lnk reg-in' stax regx
-                        corner-new              \ pos-regs1 ret-lst ret-lnk adj-lnk reg-in' crnx
 
-                        \ Store corner.
-                        #4 pick                 \ pos-regs1 ret-lst ret-lnk adj-lnk reg-in' crnx ret-lst
-                        list-push-end-struct    \ pos-regs1 ret-lst ret-lnk adj-lnk reg-in'
-                        region-list-deallocate  \ pos-regs1 ret-lst ret-lnk adj-lnk
-                    then
+                \ Check corner is not already added.
+                dup list-get-first-item     \ pos-regs1 ret-lst ret-lnk adj-lnk reg-in' reg
+                #4 pick                     \ pos-regs1 ret-lst ret-lnk adj-lnk reg-in' reg ret-lst
+                corner-list-find-region-xt  \ pos-regs1 ret-lst ret-lnk adj-lnk reg-in' reg ret-lst xt
+                execute                     \ pos-regs1 ret-lst ret-lnk adj-lnk reg-in', crn t | f
+                if
+                    drop                    \ pos-regs1 ret-lst ret-lnk adj-lnk reg-in'
+                    region-list-deallocate  \ pos-regs1 ret-lst ret-lnk adj-lnk
+                else
+                    \ Build corner.
+                    over link-get-data      \ pos-regs1 ret-lst ret-lnk adj-lnk reg-in' stax
+                    over                    \ pos-regs1 ret-lst ret-lnk adj-lnk reg-in' stax reg-in'
+                    list-get-first-item     \ pos-regs1 ret-lst ret-lnk adj-lnk reg-in' stax regx
+                    corner-new              \ pos-regs1 ret-lst ret-lnk adj-lnk reg-in' crnx
+
+                    \ Store corner.
+                    #4 pick                 \ pos-regs1 ret-lst ret-lnk adj-lnk reg-in' crnx ret-lst
+                    list-push-end-struct    \ pos-regs1 ret-lst ret-lnk adj-lnk reg-in'
+                    region-list-deallocate  \ pos-regs1 ret-lst ret-lnk adj-lnk
                 then
             then
         next
     next
-                                                \ pos-regs1 ret-lst
-    swap drop                                   \ ret-lst
-    dup list-get-length 1 =                     \ ret-lst bool
+                                            \ pos-regs1 ret-lst
+    swap drop                               \ ret-lst
+    dup list-get-length 1 =                 \ ret-lst bool
     if
         \ Return corner argument to its original use count.
-        dup list-pop-struct                     \ ret-lst, crn t
+        dup list-pop-struct                 \ ret-lst, crn t
 
         \ Clean up, return.
         2drop
@@ -374,4 +374,28 @@ corner-region-disp          cell+   constant corner-adjacent-states-disp    \ Al
     else
         true
     then
+;
+
+\ Calculate a corner's rate, the number af adjacent states
+\ that are in only one possible region.
+\ Set the rate in the corner.
+: corner-calc-set-rate ( pos-lst1 crn0 -- )
+    tuck corner-get-adjacent-states     \ crn0 pos-lst adj-lst
+
+    \ Init counter.
+    0 swap                              \ crn0 pos-lst cnt adj-lst
+
+    foreach                             \ crn0 pos-lst cnt adj-lnk
+        dup link-get-data               \ crn0 pos-lst cnt adj-lnk stax
+        #3 pick                         \ crn0 pos-lst cnt adj-lnk stax pos-lst
+        region-list-num-state-in        \ crn0 pos-lst cnt adj-lnk num-in
+        1 =                             \ crn0 pos-lst cnt adj-lnk bool
+        if
+            \ Inc counter.
+            swap 1+ swap                \ crn0 pos-lst cnt adj-lnk
+        then
+    next
+                                        \ crn0 pos-lst cnt
+    nip swap                            \ cnt crn0
+    corner-set-rate
 ;

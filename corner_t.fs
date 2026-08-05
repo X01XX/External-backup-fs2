@@ -43,6 +43,7 @@
     s" s0101 r0XX1" string-to-stack corner-new  \ crn1 crn2
     \ cr ." crn2: " dup .corner cr
 
+    \ Test.
     2dup corner-is-proper-superset?         \ crn1 crn2 bool
     ifnot
         cr ." not superset?" cr abort
@@ -65,17 +66,20 @@
 ;
 
 : corner-test-additional-corners
-    \ Init possible regions.
+    \ Set up.
     s" (r00xx r010x rxx1x r1x0x)" list-from-string-a    \ reg-lst
-
     s" s0101 r010x" string-to-stack corner-new          \ reg-lst crn
-    cr ." at 1: " .stack-gbl cr
 
+    \ Run.
     2dup corner-additional-corners                      \ reg-lst crn, crn-lst t | f
     invert abort" no corner list?"
 
-    cr ." at 2: " .stack-gbl cr
-    cr ." corner cluster: " dup .corner-list cr
+    \ Display results.
+    \ cr ." corner cluster: " dup .corner-list cr
+
+    \ Test results.
+    dup list-get-length                                 \ reg-lst crn len
+    4 <> abort" Corner cluster not 4 corners?"
     
     \ Deallocate.
     corner-list-deallocate
@@ -88,9 +92,35 @@
     cr ." corner-test-additional-corners - Ok"
 ;
 
+: corner-test-calc-set-rate
+    \ Set up.
+    s" (r00xx r010x rxx1x r1x0x)" list-from-string-a    \ reg-lst
+    s" s0101 r010x" string-to-stack corner-new          \ reg-lst crn
+
+    \ Run.
+    2dup corner-calc-set-rate                           \ reg-lst crn
+
+    \ Display results.
+    \ cr ." rate: " dup . cr
+
+    \ Test results.
+    dup corner-get-rate                                 \ reg-lst crn rt
+    3 <> abort" corner rate ne 3?"
+
+    \ Deallocate.
+    corner-deallocate
+    region-list-deallocate
+
+    \ Check for memory leaks.
+    structinfo-list-store structinfo-list-project-deallocated
+
+    cr ." corner-test-calc-set-rate - Ok"
+;
+
 : corner-tests
     corner-test-new
     corner-test-states
     corner-test-is-proper-superset?
     corner-test-additional-corners
+    corner-test-calc-set-rate
 ;

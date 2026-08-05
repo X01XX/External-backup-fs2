@@ -894,32 +894,15 @@ action-groups-disp                          cell+   constant action-function-dis
 ;
 
 \ Return a rate for a corner.
-: action-calc-corner-rate ( crn1 act0 -- rt )
+: action-corner-calc-set-rate ( crn1 act0 -- )
     \ Check args.
     assert( tos is-action? )
     assert( nos is-corner? )
     \ cr ." action-calc-corner-rate: start: " .stack-gbl cr
 
     action-get-possible-regions         \ crn1 pos-lst
-    swap corner-get-adjacent-states     \ pos-lst adj-lst
-
-    \ Init counter.
-    0 swap                              \ pos-lst cnt adj-lst
-
-    foreach                             \ pos-lst cnt adj-lnk
-        dup link-get-data               \ pos-lst cnt adj-lnk stax
-        #3 pick                         \ pos-lst cnt adj-lnk stax pos-lst
-        region-list-num-state-in        \ pos-lst cnt adj-lnk num-in
-        1 =                             \ pos-lst cnt adj-lnk bool
-        if
-            \ Inc counter.
-            swap 1+ swap                \ pos-lst cnt adj-lnk
-        then
-    next
-                                        \ pos-lst cnt
-    nip
-    \ cr ." action-calc-corner-rate: end: " .stack-gbl cr
-    \ cr ." action-calc-corner-rate: end: rate: " dup . cr
+    swap                                \ pos-lst crn1
+    corner-calc-set-rate                \
 ;
 
 \ Return true if a corner is confirmed.
@@ -1077,42 +1060,6 @@ action-groups-disp                          cell+   constant action-function-dis
     action-get-possible-regions         \ crn1 pos-regs
     swap                                \ pos-regs crn1
     corner-additional-corners           \ crn-lst
-
-\    \ Init return list.
-\    list-new                            \ crn1 act0 ret-lst
-\
-\    #2 pick                             \ crn1 act0 ret-lst crn0
-\    corner-get-adjacent-states          \ crn1 act0 ret-lst crn-adj-lst
-\
-\    foreach                             \ crn1 act0 ret-lst crn-adj-lnk
-\        dup link-get-data               \ crn1 act0 ret-lst crn-adj-lnk stax
-\        #3 pick                         \ crn1 act0 ret-lst crn-adj-lnk stax act0
-\        action-get-possible-regions     \ crn1 act0 ret-lst crn-adj-lnk stax pos-lst
-\        region-list-num-state-in        \ crn1 act0 ret-lst crn-adj-lnk u
-\        1 =                             \ crn1 act0 ret-lst crn-adj-lnk bool
-\        if
-\            \ Adjacent state is in only one region, a defining region.
-\
-\            \ Generate a new corner.
-\            dup link-get-data           \ crn1 act0 ret-lst crn-adj-lnk stax
-\            dup                         \ crn1 act0 ret-lst crn-adj-lnk stax stax
-\            #4 pick                     \ crn1 act0 ret-lst crn-adj-lnk stax stax act0
-\            action-get-possible-regions \ crn1 act0 ret-lst crn-adj-lnk stax stax pos-lst
-\            region-list-state-in        \ crn1 act0 ret-lst crn-adj-lnk stax reg-lst'
-\            tuck                        \ crn1 act0 ret-lst crn-adj-lnk reg-lst' stax reg-lst
-\            list-get-first-item         \ crn1 act0 ret-lst crn-adj-lnk reg-lst' stax regx
-\            corner-new                  \ crn1 act0 ret-lst crn-adj-lnk reg-lst crnx
-\
-\            \ Clean up.
-\            swap region-list-deallocate \ crn1 act0 ret-lst crn-adj-lnk crnx\
-\
-\            \ Store corner.
-\            #2 pick                     \ crn1 act0 ret-lst crn-adj-lnk crnx ret-lst
-\            list-push-struct            \ crn1 act0 ret-lst crn-adj-lnk
-\        then
-\    next
-\
-\    nip nip                             \ ret-lst
 ;
 
 \ Calculate a corner cluster from a rated corner list, and defining regions.
@@ -1230,11 +1177,7 @@ action-groups-disp                          cell+   constant action-function-dis
         \ Calc rank.
         dup link-get-data               \ act0 cstr-lst' crn-lst' crn-lnk crnx
         #4 pick                         \ act0 cstr-lst' crn-lst' crn-lnk crnx act0
-        action-calc-corner-rate         \ act0 cstr-lst' crn-lst' crn-lnk rt
-
-        \ Set rank.
-        over link-get-data              \ act0 cstr-lst' crn-lst' crn-lnk rt crnx
-        corner-set-rate                 \ act0 cstr-lst' crn-lst' crn-lnk
+        action-corner-calc-set-rate     \ act0 cstr-lst' crn-lst' crn-lnk
     next
     
     #2 pick action-get-defining-regions \ act0 cstr-lst' crn-lst' def-lst
