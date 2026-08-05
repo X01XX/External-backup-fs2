@@ -3,10 +3,7 @@
 : region-test-basic
 
     \ Test region-new.
-    s" s0101" state-from-string-a   \ sta
-    s" s0110" state-from-string-a   \ sta sta
-
-    region-new                      \ reg
+    s" s0101 s0110" string-to-stack region-new  \ reg
 
     \ Test .region works.
     cr ." region: " dup .region     \ reg

@@ -62,8 +62,43 @@ token-header-disp cell+ constant token-string-disp
 
 \ End accessors.
 
+\ Trim spaces from the left side of a string.
+: ltrim ( c-addr u -- c-addr' u' )
+    begin
+        dup
+    while
+        over c@ 32 =
+        if
+            swap 1+ swap
+            1-
+        else
+            exit
+        then
+    repeat
+;
+
+\ Trim spaces from the right side of a string.
+: rtrim ( c-addr u -- c-addr u' )
+    begin
+        dup
+    while
+        2dup + 1- c@ 32 =
+        if
+            1-
+        else
+            exit
+        then
+    repeat
+;
+
 \ Return a new token struct instance address, with given data value.
-: token-new ( c-addr u -- tkn )
+\ An empty string, or a string of spaces, will return false.
+: token-new ( c-addr u -- tkn t | f )
+    ltrim
+    rtrim
+
+    dup 0= if 2drop false exit then
+
     token-struct-id token-mma
     struct-allocate             \ c-addr u tkn
 
@@ -71,6 +106,7 @@ token-header-disp cell+ constant token-string-disp
     -rot                        \ tkn c-addr u
     #2 pick                     \ tkn c-addr u tkn
     token-set-string            \ tkn
+    true
 ;
 
 \ Print a token struct instance.

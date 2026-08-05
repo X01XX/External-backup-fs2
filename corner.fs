@@ -309,32 +309,40 @@ corner-region-disp          cell+   constant corner-adjacent-states-disp    \ Al
     assert( nos is-region-list? )
 
     \ Init return list.
-    list-new -rot                       \ ret-lst pos-regs1 crn0
+    list-new -rot                           \ ret-lst pos-regs1 crn0
 
     \ For each adjacent state.
-    corner-get-adjacent-states          \ ret-lst pos-regs1 adj-stas
+    corner-get-adjacent-states              \ ret-lst pos-regs1 adj-stas
 
-    foreach                             \ ret-lst pos-regs1 adj-lnk
-        dup link-get-data               \ ret-lst pos-regs1 adj-lnk stax
-        #2 pick                         \ ret-lst pos-regs1 adj-lnk stax pos-regs1
-        region-list-state-in            \ ret-lst pos-regs1 adj-lnk reg-in'
-        dup list-get-length 1 <>        \ ret-lst pos-regs1 adj-lnk reg-in' bool
+    foreach                                 \ ret-lst pos-regs1 adj-lnk
+        dup link-get-data                   \ ret-lst pos-regs1 adj-lnk stax
+        #2 pick                             \ ret-lst pos-regs1 adj-lnk stax pos-regs1
+        region-list-state-in                \ ret-lst pos-regs1 adj-lnk reg-in'
+        dup list-get-length 1 <>            \ ret-lst pos-regs1 adj-lnk reg-in' bool
         if
-            region-list-deallocate      \ ret-lst pos-regs1 adj-lnk
+            region-list-deallocate          \ ret-lst pos-regs1 adj-lnk
         else
-            dup list-get-first-item     \ ret-lst pos-regs1 adj-lnk reg-in' regx
-            region-only-one-edge?       \ ret-lst pos-regs1 adj-lnk reg-in' bool
+            dup list-get-first-item         \ ret-lst pos-regs1 adj-lnk reg-in' regx
+            region-only-one-edge?           \ ret-lst pos-regs1 adj-lnk reg-in' bool
             if
-                region-list-deallocate  \ ret-lst pos-regs1 adj-lnk
+                region-list-deallocate      \ ret-lst pos-regs1 adj-lnk
             else
-                \ todo
+                \ Build corner.
+                over link-get-data          \ ret-lst pos-regs1 adj-lnk reg-in' stax
+                over list-get-first-item    \ ret-lst pos-regs1 adj-lnk reg-in' stax regx
+                corner-new                  \ ret-lst pos-regs1 adj-lnk reg-in' crnx
+
+                \ Store corner.
+                #4 pick                     \ ret-lst pos-regs1 adj-lnk reg-in' crnx ret-lst
+                list-push-struct            \ ret-lst pos-regs1 adj-lnk reg-in'
+                region-list-deallocate      \ ret-lst pos-regs1 adj-lnk
             then
         then
 
     next
-                                        \ ret-lst pos-regs1
-    drop                                \ ret-lst
-    dup list-is-empty?                  \ ret-lst bool
+                                            \ ret-lst pos-regs1
+    drop                                    \ ret-lst
+    dup list-is-empty?                      \ ret-lst bool
     if
         list-deallocate
         false

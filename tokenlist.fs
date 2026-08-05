@@ -133,7 +133,8 @@
                     -               \ ret-lst c-addr u str c-addr+ u
 
                     \ Make token.
-                    token-new       \ ret-lst c-addr u str tkn
+                    token-new       \ ret-lst c-addr u str, tkn t | f
+                    invert abort" token-new failed?"
 
                     \ Store token.
                     #4 pick         \ ret-lst c-addr u str tkn ret-lst
@@ -141,7 +142,9 @@
                 then
 
                 \ Add left paren token.
-                s" (" token-new     \ ret-lst c-addr u str tkn
+                s" (" token-new     \ ret-lst c-addr u str, tkn t | f
+                invert abort" token-new failed?"
+
                 #4 pick             \ ret-lst c-addr u str tkn ret-lst
                 list-push-end-struct
 
@@ -163,7 +166,8 @@
                     -               \ ret-lst c-addr u str c-addr+ u
 
                     \ Make token.
-                    token-new       \ ret-lst c-addr u str tkn
+                    token-new       \ ret-lst c-addr u str, tkn t | f
+                    invert abort" token-new failed?"
 
                     \ Store token.
                     #4 pick         \ ret-lst c-addr u str tkn ret-lst
@@ -171,7 +175,9 @@
                 then
 
                 \ Add right paren token.
-                s" )" token-new     \ ret-lst c-addr u str tkn
+                s" )" token-new     \ ret-lst c-addr u str, tkn t | f
+                invert abort" token-new failed?"
+
                 #4 pick             \ ret-lst c-addr u str tkn ret-lst
                 list-push-end-struct
 
@@ -193,7 +199,8 @@
                     -               \ ret-lst c-addr u str c-addr+ u
 
                     \ Make token.
-                    token-new       \ ret-lst c-addr u str tkn
+                    token-new       \ ret-lst c-addr u str tkn, t | f
+                    invert abort" token-new failed?"
 
                     \ Store token.
                     #4 pick         \ ret-lst c-addr u str tkn ret-lst
@@ -218,7 +225,8 @@
                     -               \ ret-lst c-addr u str c-addr+ u
 
                     \ Make token.
-                    token-new       \ ret-lst c-addr u str tkn
+                    token-new       \ ret-lst c-addr u str, tkn t | f
+                    invert abort" token-new failed?"
 
                     \ Store token.
                     #4 pick         \ ret-lst c-addr u str tkn ret-lst
@@ -247,7 +255,8 @@
         -                           \ ret-lst c-addr u str c-addr+ u
 
         \ Make token.
-        token-new                   \ ret-lst c-addr u str tkn
+        token-new                   \ ret-lst c-addr u str, tkn t | f
+        invert abort" token-new failed?"
 
        \ Store token.
        #4 pick                      \ ret-lst c-addr u str tkn ret-lst

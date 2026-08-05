@@ -3,10 +3,7 @@
 : region-list-test-defining-regions
 
     \ Init region-list to max region.
-    #4 all-bits #4 state-new            \ all-sta
-    0 #4 state-new                      \ all-nta 0-sta
-    region-new                          \ reg-max
-    list-new tuck list-push-struct      \ reg-lst'
+    s" (rXXXX)" list-from-string-a      \ reg-lst'
 
     \ Calc one pair.
     s" s0101" state-from-string-a       \ reg-lst' sta5'
@@ -67,10 +64,7 @@
     list-new                            \ sta-lst'
 
     \ Init region-list to max region.
-    #4 all-bits #4 state-new            \ sta-lst' all-sta
-    0 #4 state-new                      \ sta-lst' all-nta 0-sta
-    region-new                          \ sta-lst' reg-max
-    list-new tuck list-push-struct      \ sta-lst' reg-lst'
+    s" (rXXXX)" list-from-string-a      \ sta-lst' reg-lst'
 
     \ Calc one pair.
     s" s0101" state-from-string-a       \ sta-lst' reg-lst' sta5'

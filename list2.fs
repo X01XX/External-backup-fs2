@@ -104,6 +104,13 @@
 
     nip                                     \ int-lst
 
+    dup list-is-empty?                      \ int-lst
+    if
+        list-deallocate
+        false
+        exit
+    then
+
     \ Avoid unneeded top-level list.
     dup list-get-first-item                 \ int-lst itm0
     is-list?                                \ int-lst bool
@@ -135,8 +142,7 @@
     then
 
     \ Return token.
-    token-new                               \ tkn
-    true
+    token-new                           \ tkn t | f
 ;
 
 \ Produce a, possibly complex, list from a string.
@@ -170,19 +176,30 @@
     then
 ;
 
-\ Put more than one item on the stack.
-: string-to-stack ( c-addr u -- items )
+\ Put zero, one, or more items on the stack, from a string.
+: string-to-stack ( c-addr u -- x* )
+    \ Parse string to list.
     list-from-string-a                  \ lst'
-    dup                                 \ lst' lst'
-    foreach                             \ lst' lnk
-        dup link-get-data               \ lst' lnk dat
-        dup is-struct?
+
+    \ Push each list item onto stack.
+    begin
+        dup list-is-empty?              \ lst' bool
         if
-            dup struct-dec-use-count    \ Get use count to zero on stack.
+            list-deallocate             \ x*
+            exit
         then
-        -rot                            \ dat lst' lnk
-    next
-    list-deallocate                     \ Deallocate list and links, not items.
+
+        dup list-get-first-item         \ lst' x
+        is-struct?                      \ lst' bool
+        if
+            dup list-pop-struct         \ lst', x t | f
+        else
+            dup list-pop                \ lst', x t | f
+        then
+        invert abort" pop failed?"
+
+        swap
+    again
 ;
 
 \ Return true if two lists are equal, that is
