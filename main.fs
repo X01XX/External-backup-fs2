@@ -75,6 +75,7 @@ include sample_t.fs
 include regionlist_t.fs
 include square_t.fs
 include corner_t.fs
+include cornerlist_t.fs
 include squarelist_t.fs
 include action_t.fs
 include group_t.fs

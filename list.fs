@@ -361,9 +361,6 @@ list-header-disp    cell+   constant list-links-disp
         2dup                    \ xt item link item link
         link-get-data           \ xt item link item link-data
 
-        \ Check for sub-list.
-        dup is-list? abort" should use list-find-recursive?"
-
         #4 pick             \ xt item link item link-data xt
         execute             \ xt item link flag
         if
@@ -900,6 +897,76 @@ list-header-disp    cell+   constant list-links-disp
     next
                                 \ xt
     drop
+;
+
+\ Apply a function to each item in a non-empty list,
+\ returning the maximum value.
+\ xt signature is ( link-data -- )
+: list-max-value ( xt list0 -- )
+    \ Check arg.
+    assert( tos is-list? )
+    dup list-is-empty? abort" empty list"
+
+    \ Init value.
+    list-get-links              \ xt lnk
+    dup link-get-data           \ xt lnk item
+    #2 pick                     \ xt lnk item xt
+    execute                     \ xt lnk val
+    swap                        \ xt val lnk
+
+    \ Prep for loop.
+    link-get-next               \ xt val lnk
+
+    begin
+        ?dup
+    while
+        \ Get next value.
+        dup link-get-data       \ xt val lnk item
+        #3 pick                 \ xt val lnk item xt
+        execute                 \ xt val lnk val2
+
+        \ Get max value.
+        rot                     \ xt lnk val2 val
+        max                     \ xt lnk val
+        swap                    \ xt val lnk
+    next
+                                \ xt val
+    nip                         \ val
+;
+
+\ Apply a function to each item in a non-empty list,
+\ returning the minimum value.
+\ xt signature is ( link-data -- )
+: list-min-value ( xt list0 -- )
+    \ Check arg.
+    assert( tos is-list? )
+    dup list-is-empty? abort" empty list"
+
+    \ Init value.
+    list-get-links              \ xt lnk
+    dup link-get-data           \ xt lnk item
+    #2 pick                     \ xt lnk item xt
+    execute                     \ xt lnk val
+    swap                        \ xt val lnk
+
+    \ Prep for loop.
+    link-get-next               \ xt val lnk
+
+    begin
+        ?dup
+    while
+        \ Get next value.
+        dup link-get-data       \ xt val lnk item
+        #3 pick                 \ xt val lnk item xt
+        execute                 \ xt val lnk val2
+
+        \ Get max value.
+        rot                     \ xt lnk val2 val
+        min                     \ xt lnk val
+        swap                    \ xt val lnk
+    next
+                                \ xt val
+    nip                         \ val
 ;
 
 \ Apply a function to each item in a list,

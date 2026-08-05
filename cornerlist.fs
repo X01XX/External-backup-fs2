@@ -352,3 +352,17 @@
     corner-list-deallocate      \ reg1 crn-lst0
     2drop
 ;
+
+\ Calc and set rate for of corners in a corner list.
+: corner-list-calc-set-rate ( pos-lst1 crn-lst0 -- )
+    \ Check args.
+    assert( tos is-corner-list? )
+    assert( nos is-region-list? )
+
+    foreach                     \ pos-lst1 crn-lnk
+        over                    \ pos-lst1 crn-lnk pos-lst1
+        over link-get-data      \ pos-lst1 crn-lnk pos-lst1 crnx
+        corner-calc-set-rate    \ pos-lst1 crn-lnk
+    next
+    drop
+;
