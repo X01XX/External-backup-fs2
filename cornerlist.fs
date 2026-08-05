@@ -179,6 +179,19 @@
     [ ' corner-anchor-eq-state? ] literal -rot list-find
 ;
 
+' corner-list-find to corner-list-find-xt
+
+\ Find a corner in a list, by region, if any.
+: corner-list-find-region ( reg1 crn-lst0 -- crn t | f )
+    \ Check args.
+    assert( tos is-corner-list? )
+    assert( nos is-region? )
+
+    [ ' corner-region-eq? ] literal -rot list-find
+;
+
+' corner-list-find-region to corner-list-find-region-xt
+
 \ Deallocate a list of corner-list lol.
 : corner-lol-deallocate ( crn-lol0 -- )
     \ Check arg.

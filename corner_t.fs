@@ -64,8 +64,33 @@
     cr ." corner-test-states - Ok"
 ;
 
+: corner-test-additional-corners
+    \ Init possible regions.
+    s" (r00xx r010x rxx1x r1x0x)" list-from-string-a    \ reg-lst
+
+    s" s0101 r010x" string-to-stack corner-new          \ reg-lst crn
+    cr ." at 1: " .stack-gbl cr
+
+    2dup corner-additional-corners                      \ reg-lst crn, crn-lst t | f
+    invert abort" no corner list?"
+
+    cr ." at 2: " .stack-gbl cr
+    cr ." corner cluster: " dup .corner-list cr
+    
+    \ Deallocate.
+    corner-list-deallocate
+    drop                                                \ Corner deallocated, above.
+    region-list-deallocate
+
+    \ Check for memory leaks.
+    structinfo-list-store structinfo-list-project-deallocated
+
+    cr ." corner-test-additional-corners - Ok"
+;
+
 : corner-tests
     corner-test-new
     corner-test-states
     corner-test-is-proper-superset?
+    corner-test-additional-corners
 ;

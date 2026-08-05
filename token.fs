@@ -94,9 +94,9 @@ token-header-disp cell+ constant token-string-disp
 \ Return a new token struct instance address, with given data value.
 \ An empty string, or a string of spaces, will return false.
 : token-new ( c-addr u -- tkn t | f )
+    \ Check args.
     ltrim
     rtrim
-
     dup 0= if 2drop false exit then
 
     token-struct-id token-mma
