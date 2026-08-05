@@ -115,7 +115,7 @@ list-new to structinfo-list-store
 ' rules-eq?     ' rule-from-string      ' rule-deallocate       ' .rule     s" Rule"        rule-mma        rule-struct-id      structinfo-new structinfo-list-store structinfo-list-push-end
 ' samples-eq?   ' sample-from-string    ' sample-deallocate     ' .sample   s" Sample"      sample-mma      sample-struct-id    structinfo-new structinfo-list-store structinfo-list-push-end
 ' noop          ' noop                  ' action-deallocate     ' .action   s" Action"      action-mma      action-struct-id    structinfo-new structinfo-list-store structinfo-list-push-end
-' noop          ' noop                  ' corner-deallocate     ' .corner   s" Corner"      corner-mma      corner-struct-id    structinfo-new structinfo-list-store structinfo-list-push-end
+' noop          ' corner-from-string    ' corner-deallocate     ' .corner   s" Corner"      corner-mma      corner-struct-id    structinfo-new structinfo-list-store structinfo-list-push-end
 ' =             ' noop                  ' square-deallocate     ' .square   s" Square"      square-mma      square-struct-id    structinfo-new structinfo-list-store structinfo-list-push-end
 ' =             ' noop                  ' group-deallocate      ' .group    s" Group"       group-mma       group-struct-id     structinfo-new structinfo-list-store structinfo-list-push-end
 ' noop          ' noop                  ' frame-deallocate      ' .frame    s" Frame"       frame-mma       frame-struct-id     structinfo-new structinfo-list-store structinfo-list-push-end

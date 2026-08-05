@@ -399,3 +399,126 @@ corner-region-disp          cell+   constant corner-adjacent-states-disp    \ Al
     nip swap                            \ cnt crn0
     corner-set-rate
 ;
+
+\ Return false if a string is not a representation of a corner,
+\
+\ Otherwise, generate a corner from the string.
+\ Valid chars are 0, 1, X, x, and underscore as separator.
+\ All bit positions must be specified.
+\ Like s" c01Xx" corner-from-string
+\ The anchor will be the region state-0,
+\ X will be 1 in state-0, x will be 0 in state-0.
+: corner-from-string ( c-addr u --  crn t | f)
+
+    \ Check length GT 1.
+    dup #2 <
+    if
+        2drop
+        false
+        exit
+    then
+
+    \ Check for prefix char.
+    over c@ [char] c <>
+    if
+        2drop
+        false
+        exit
+    then
+
+    \ Inc address.
+    swap 1+ swap
+
+    \ Dec len.
+    1-
+
+    \ Init character counter.
+    0 swap              \ c-addr cnt u
+
+    \ Init state 1, state 0, and do initial value.
+    0 swap              \ c-addr cnt num1 u
+    0 swap              \ c-addr cnt num1 num0 u
+    0                   \ c-addr cnt num1 num0 u 0
+
+    \ For each character...
+    do                  \ c-addr cnt num1 num0
+        \ Get a character.
+        #3 pick         \ c-addr cnt num1 num0 c-addr
+        i +             \ c-addr cnt num1 num0 c-addr+
+        c@              \ c-addr cnt num1 num0 chr
+
+        \ Process character.
+        case
+            [char] 0 of
+                        \ Leave bit positions as 0/0.
+                        \ Update num1
+                        swap 1 lshift
+                        \ Update num0
+                        swap 1 lshift
+                        \ Update char counter.
+                        rot 1+ -rot
+                    endof
+            [char] 1 of
+                        \ Set bit positions to 1/1.
+                        \ Update num1
+                        swap 1 lshift 1+
+                        \ Update num0
+                        swap 1 lshift 1+
+                        \ Update char counter.
+                        rot 1+ -rot
+                    endof
+            [char] X of
+                        \ Set bit positions to 1/0.
+                        \ Update num1
+                        swap 1 lshift
+                        \ Update num0
+                        swap 1 lshift 1+
+                        \ Update char counter.
+                        rot 1+ -rot
+                    endof
+            [char] x of
+                        \ Set bit positions to 0/1.
+                        \ Update num1
+                        swap 1 lshift 1+
+                        \ Update num0
+                        swap 1 lshift
+                        \ Update char counter.
+                        rot 1+ -rot
+                    endof
+            [char] _ of
+                    endof
+            \ Unrecognized character, return false.
+
+            \ Drop stack items.
+            2drop
+            2drop
+            drop
+
+            \ Set return bool.
+            false
+
+            \ Cancel do loop.
+            unloop
+
+            \ Return.
+            exit
+        endcase
+    loop
+
+    \ Create state 1.       \ c-addr cnt num1 num0
+    swap                    \ c-addr cnt num0 num1
+    #2 pick                 \ c-addr cnt num0 num1 cnt
+    state-new               \ c-addr cnt num0 sta1
+
+    \ Create state 0.
+    -rot                    \ c-addr sta1 cnt num0
+    swap                    \ c-addr sta1 num0 cnt
+    state-new               \ c-addr sta1 sta0
+
+    \ Make new corner, return.
+                            \ c-addr sta1 sta0
+    tuck region-new         \ csaddr sta0 reg
+    corner-new              \ c-addr crn
+    nip                     \ crn
+    true
+;
