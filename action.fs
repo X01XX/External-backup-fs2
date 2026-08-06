@@ -1053,7 +1053,7 @@ action-groups-disp                          cell+   constant action-function-dis
 
 \ Given a corner, generate additional corners that could be
 \ attached to adjacent states that are in other defining regions.
-: action-calc-additional-corners ( crn1 act0 -- crn-lst )
+: action-calc-additional-corners ( crn1 act0 -- crn-lst t | f )
     assert( tos is-action? )
     assert( nos is-corner? )
 
@@ -1062,92 +1062,33 @@ action-groups-disp                          cell+   constant action-function-dis
     corner-additional-corners           \ crn-lst
 ;
 
+\ For use with list function, having xt signature is ( item link-data -- flag )
+: corner-test-rate ( val corner -- bool ) corner-get-rate = ;
+
 \ Calculate a corner cluster from a rated corner list, and defining regions.
-: action-calc-corner-cluster ( crn-lst2 def-lst1 act0 -- crn-lst t | f)
+: action-calc-corner-cluster ( crn-lst1 act0 -- crn-lst t | f)
     \ Check arg.
     assert( tos is-action? )
-    assert( nos is-region-list? )
-    assert( 3os is-corner-list? )
+    assert( nos is-corner-list? )
+    over list-is-empty? if 2drop false exit then
     \ cr ." action-calc-corner-cluster: start: " .stack-gbl cr
 
-    \ Get highest corner rate, of corners remaining in the pre-lst.
-    \ pre-lst and def-lst will be depleted in each cycle.
-    0                                   \ crn-lst2 def-lst1 act0 max
-    #3 pick                             \ crn-lst2 def-lst1 act0 max crn-lst2
+    \ Get highest corner rate.
+    [ ' corner-get-rate ] literal       \ crn-lst1 act0 xt
+    #2 pick                             \ crn-lst1 act0 xt crn-lst1
+    list-max-value                      \ crn-lst1 act0 max
 
-    foreach                             \ crn-lst2 def-lst1 act0 max crn-lnk2
-        dup link-get-data               \ crn-lst2 def-lst1 act0 max crn-lnk2 crnx
-        corner-get-rate                 \ crn-lst2 def-lst1 act0 max crn-lnk2 rt
-        rot                             \ crn-lst2 def-lst1 act0 crn-lnk2 rt max
-        max                             \ crn-lst2 def-lst1 act0 crn-lnk2 max
-        swap                            \ crn-lst2 def-lst1 act0 max crn-lnk2
-    next
-                                        \ crn-lst2 def-lst1 act0 max
+    \ Get the first highest ranked corner.
+    [ ' corner-test-rate ] literal      \ crn-lst1 act0 max xt
+    swap                                \ crn-lst1 act0 xt max
+    #3 pick                             \ crn-lst1 act0 xt max crn-lst1
+    list-find                           \ crn-lst1 act0, crnx t | f
+    invert abort" max rated corner not found?"
 
-    \ Get higest ranked corners from pre-list.
-
-    \ Init max corner list.
-    list-new                            \ crn-lst2 def-lst1 act0 max max-crn-lst
-    #4 pick                             \ crn-lst2 def-lst1 act0 max max-crn-lst crn-lst2
-
-    foreach                             \ crn-lst2 def-lst1 act0 max max-crn-lst crn-lnk2
-        dup link-get-data               \ crn-lst2 def-lst1 act0 max max-crn-lst crn-lnk2 crnx
-        corner-get-rate                 \ crn-lst2 def-lst1 act0 max max-crn-lst crn-lnk2 rt
-        #3 pick                         \ crn-lst2 def-lst1 act0 max max-crn-lst crn-lnk2 rt max
-        = if                            \ crn-lst2 def-lst1 act0 max max-crn-lst crn-lnk2 bool
-            \ Add corner to sub-list.
-            dup link-get-data           \ crn-lst2 def-lst1 act0 max max-crn-lst crn-lnk2 crnx
-            #2 pick                     \ crn-lst2 def-lst1 act0 max max-crn-lst crn-lnk2 crnx max-crn-lst
-            list-push-struct            \ crn-lst2 def-lst1 act0 max max-crn-lst crn-lnk2
-        then
-    next
-                                        \ crn-lst2 def-lst1 act0 max max-crn-lst
-    nip                                 \ crn-lst2 def-lst1 act0 max-crn-lst
-
-    \ Select a corner from max-crn-lst.
-    dup list-get-length                 \ crn-lst2 def-lst1 act0 max-crn-lst len
-    random                              \ crn-lst2 def-lst1 act0 max-crn-lst inx
-    over list-remove-item-struct        \ crn-lst2 def-lst1 act0 max-crn-lst crnx
-    swap corner-list-deallocate         \ crn-lst2 def-lst1 act0 crnx
-
-    \ Init return corner list, that is corner cluster.
-    list-new                            \ crn-lst2 def-lst1 act0 crnx ret-lst
-    tuck list-push-struct               \ crn-lst2 def-lst1 act0 ret-lst
-
-    \ Process corner list.
-    dup                                 \ crn-lst2 def-lst1 act0 ret-lst ret-lst
-    foreach                             \ crn-lst2 def-lst1 act0 ret-lst ret-lnk
-        dup link-get-data               \ crn-lst2 def-lst1 act0 ret-lst ret-lnk crnx
-        #3 pick                         \ crn-lst2 def-lst1 act0 ret-lst ret-lnk crnx act0
-        action-calc-additional-corners  \ crn-lst2 def-lst1 act0 ret-lst ret-lnk' add-lst'
-
-        \ Add additonal corners, if not already in the list.
-        dup                                     \ crn-lst2 def-lst1 act0 ret-lst ret-lnk' add-lst' add-lst'
-        foreach                                 \ crn-lst2 def-lst1 act0 ret-lst ret-lnk' add-lst' add-lnk
-            dup link-get-data                   \ crn-lst2 def-lst1 act0 ret-lst ret-lnk' add-lst' add-lnk crnx
-            #4 pick                             \ crn-lst2 def-lst1 act0 ret-lst ret-lnk' add-lst' add-lnk crnx ret-lst
-            corner-list-all-corner-states-in?   \ crn-lst2 def-lst1 act0 ret-lst ret-lnk' add-lst' add-lnk bool
-            ifnot
-                dup link-get-data               \ crn-lst2 def-lst1 act0 ret-lst ret-lnk' add-lst' add-lnk crnx
-                #4 pick                         \ crn-lst2 def-lst1 act0 ret-lst ret-lnk' add-lst' add-lnk stax ret-lst
-                list-push-end-struct            \ crn-lst2 def-lst1 act0 ret-lst ret-lnk' add-lst' add-lnk
-            then
-        next
-
-        corner-list-deallocate          \ crn-lst2 def-lst1 act0 ret-lst ret-lnk
-
-    next
-
-    nip nip nip                         \ ret-lst
-
-    dup list-get-length                 \ ret-lst len
-    #2 <                                \ ret-lst bool
-    if
-        corner-list-deallocate
-        false
-        exit
-    then
-    true
+    \ Get additional corners.
+    over action-get-possible-regions    \ crn-lst1 act0 crnx pos-regs
+    swap                                \ crn-lst1 act0 pos-regs crnx
+    corner-additional-corners           \ crn-lst1 act0, crn-lst t | f
 
     \ cr ." action-calc-corner-cluster: end: " .stack-gbl cr
 ;
@@ -1165,64 +1106,46 @@ action-groups-disp                          cell+   constant action-function-dis
     \ cr ." action-calc-corner-clusters: start: " .stack-gbl cr
 
     \ Init cluster list.
-    list-new                            \ act0 cstr-lst'
+    list-new                                    \ act0 cstr-lst'
 
     \ Get, copy, and rate, corner list.
-    over action-get-corners             \ act0 cstr-lst' crn-lst
-    list-copy-struct                    \ act0 cstr-lst' crn-lst'
+    over action-get-corners                     \ act0 cstr-lst' crn-lst
+    list-copy-struct                            \ act0 cstr-lst' crn-lst'
 
     \ Rate each corner, the number of adjacent states that are only in one region.
-    dup                                 \ act0 cstr-lst' crn-lst' crn-lst'
-    foreach                             \ act0 cstr-lst' crn-lst' crn-lnk
-        \ Calc rank.
-        dup link-get-data               \ act0 cstr-lst' crn-lst' crn-lnk crnx
-        #4 pick                         \ act0 cstr-lst' crn-lst' crn-lnk crnx act0
-        action-corner-calc-set-rate     \ act0 cstr-lst' crn-lst' crn-lnk
-    next
-    
-    #2 pick action-get-defining-regions \ act0 cstr-lst' crn-lst' def-lst
-    list-copy-struct                    \ act0 cstr-lst' crn-lst' def-lst'
+    #3 pick                                     \ act0 cstr-lst' crn-lst' act0
+    action-get-possible-regions                 \ act0 cstr-lst' crn-lst' pos-regs
+    over                                        \ act0 cstr-lst' crn-lst' pos-regs crn-lst'
+    corner-list-calc-set-rate                   \ act0 cstr-lst' crn-lst'
 
     begin
-        2dup                            \ act0 cstr-lst' crn-lst' def-lst' crn-lst' def-lst'
-        #4 pick                         \ act0 cstr-lst' crn-lst' def-lst' crn-lst' def-lst' act0
-        action-calc-corner-cluster      \ act0 cstr-lst' crn-lst' def-lst', clstr' t | f
-        if
-            \ Remove corner regions from defining region list.
-            dup                         \ act0 cstr-lst' crn-lst' def-lst' clstr' clstr'
-            foreach                     \ act0 cstr-lst' crn-lst' def-lst' clstr' clstr-lnk
-                dup link-get-data       \ act0 cstr-lst' crn-lst' def-lst' clstr' clstr-lnk crnx
-                corner-get-region       \ act0 cstr-lst' crn-lst' def-lst' clstr' clstr-lnk crnx-reg
-
-                \ Remove region from defining region list.
-                #3 pick                 \ act0 cstr-lst' crn-lst' def-lst' clstr' clstr-lnk crnx-reg def-lst'
-                region-list-remove      \ act0 cstr-lst' crn-lst' def-lst' clstr' clstr-lnk
-            next
+        dup                                     \ act0 cstr-lst' crn-lst' crn-lst'
+        #3 pick                                 \ act0 cstr-lst' crn-lst' crn-lst' act0
+        action-calc-corner-cluster              \ act0 cstr-lst' crn-lst', clstr' t | f
+        if                                      \ act0 cstr-lst' crn-lst', clstr'
+            \ Add cluster to cluster list.
+            dup                                 \ act0 cstr-lst' crn-lst' clstr' clstr'
+            #3 pick                             \ act0 cstr-lst' crn-lst' clstr' clstr' cstr-lst'
+            list-push-struct                    \ act0 cstr-lst' crn-lst' clstr'
 
             \ Remove corners from corner list.
-            dup                         \ act0 cstr-lst' crn-lst' def-lst' clstr' clstr'
-            foreach                     \ act0 cstr-lst' crn-lst' def-lst' clstr' clstr-lnk
-                dup link-get-data       \ act0 cstr-lst' crn-lst' def-lst' clstr' clstr-lnk crnx
-                corner-get-region       \ act0 cstr-lst' crn-lst' def-lst' clstr' clstr-lnk regx
+            foreach                             \ act0 cstr-lst' crn-lst' crn-lnk
+                dup link-get-data               \ act0 cstr-lst' crn-lst' crn-lnk crnx
+                corner-get-region               \ act0 cstr-lst' crn-lst' crn-lnk regx
 
                 \ Remove corners from corner list.
-                #4 pick                         \ act0 cstr-lst' crn-lst' def-lst' clstr' clstr-lnk regx crn-lst'
-                corner-list-remove-by-region    \ act0 cstr-lst' crn-lst' def-lst' clstr' clstr-lnk
+                #3 pick                         \ act0 cstr-lst' crn-lst' crn-lnk regx crn-lst'
+                corner-list-remove-by-region    \ act0 cstr-lst' crn-lst' crn-lnk
             next
-
-            \ Add cluster to cluster list.
-            #3 pick                     \ act0 cstr-lst' crn-lst' def-lst' clstr' cstr-lst'
-            list-push-struct            \ act0 cstr-lst' crn-lst' def-lst'
-
-            false                       \ Do not end the loop.
-        else
-            true                        \ End the loop.
+                                                \ act0 cstr-lst' crn-lst'
+            false                               \ Do not end the loop.
+        else                                    \ act0 cstr-lst' crn-lst'
+            true                                \ End the loop.
         then
     until
 
     \ Clean up.
-    region-list-deallocate              \ act0 cstr-lst' crn-lst'
-    region-list-deallocate              \ act0 cstr-lst'
+    corner-list-deallocate              \ act0 cstr-lst'
 
     \ Save clusters.
     swap                                \ cstr-lst' act0

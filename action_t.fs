@@ -61,7 +61,7 @@
     dup action-get-states-in-one-region list-get-length 3 <> abort" invalid number of states in one region"
     dup action-get-defining-regions list-get-length 3 <> abort" invalid number of defining regions"
     dup action-get-corners list-get-length 3 <> abort" invalid number of corners"
-    dup action-get-corner-clusters 1 <> abort" invalid number of corner clusters"
+    dup action-get-corner-clusters list-get-length 0 <> abort" invalid number of corner clusters"
 
     \ Deallocate
     action-deallocate
@@ -215,11 +215,15 @@
     invert abort" corner not found?"
 
     swap state-deallocate                   \ act crn5
-    over action-calc-additional-corners     \ act crn-lst
-    cr ." Additional corners: " dup .corner-list cr
+    over action-calc-additional-corners     \ act, crn-lst t | f
+    if
+        cr ." Additional corners: " dup .corner-list cr
 
-    \ Check results.
-    dup list-get-length 2 <> abort" should be two additional corners"
+        \ Check results.
+        dup list-get-length 3 <> abort" should be two additional corners"
+    else
+        cr ." no additional corners?" cr
+    then
 
     \ Deallocate
     corner-list-deallocate

@@ -191,6 +191,7 @@ list-new to structinfo-list-store
     group-tests
 \    domain-tests
     corner-tests
+    corner-list-tests
     cr
 ;
 

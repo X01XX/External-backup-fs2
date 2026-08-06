@@ -1,8 +1,5 @@
 \ corner-list tests.
 
-\ For use with list function, having xt signature is ( item link-data -- flag )
-: corner-test-rate ( val corner -- bool ) corner-get-rate = ;
-
 : corner-list-test-x
     \ Init data.
     s" (r0X0X rxX1X r1XxX)" list-from-string-a  \ reg-lst
@@ -38,7 +35,20 @@
 
     \ Deallocate.
     state-deallocate                            \ reg-lst crn-lst crnx
-    drop                                        \ reg-lst crn-lst
+
+    #2 pick                                     \ reg-lst crn-lst crnx reg-lst
+    swap                                        \ reg-lst crn-lst reg-lst crnx
+    corner-additional-corners                   \ reg-lst crn-lst, crn-lst t | f
+    if
+        cr ." addl corners found: " dup .corner-list cr
+    else
+        cr ." NO addl corners found: " cr abort
+    then
+
+    \ Number of corners = number defining regions?
+
+    \ Deallocate.
+    corner-list-deallocate
     corner-list-deallocate
     region-list-deallocate
 
@@ -46,4 +56,9 @@
     structinfo-list-store structinfo-list-project-deallocated
 
     cr ." corner-list-test-x - Ok"
+;
+
+: corner-list-tests
+    corner-list-test-x
+    cr
 ;

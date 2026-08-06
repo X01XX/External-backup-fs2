@@ -1,5 +1,6 @@
 : corner-test-new
-    s" s0101 r0XX1" string-to-stack corner-new  \ crn
+    s" c0Xx1" string-to-stack                   \ crn
+
     \ cr ." crn: " dup .corner cr
 
     \ Test.

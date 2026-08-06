@@ -405,9 +405,11 @@ corner-region-disp          cell+   constant corner-adjacent-states-disp    \ Al
 \ Otherwise, generate a corner from the string.
 \ Valid chars are 0, 1, X, x, and underscore as separator.
 \ All bit positions must be specified.
+\
 \ Like s" c01Xx" corner-from-string
-\ The anchor will be the region state-0,
-\ X will be 1 in state-0, x will be 0 in state-0.
+\ The anchor will be the region state-0, 0110.
+\ X indicates 1 in state-0, 0 in state-1.
+\ x indicates 0 in state-0, 1 in state-1.
 : corner-from-string ( c-addr u --  crn t | f)
 
     \ Check length GT 1.
