@@ -366,3 +366,12 @@
     next
     drop
 ;
+
+: .corner-cluster-list ( clstr-lst0 -- )
+    \ Check arg.
+    assert( tos is-list? )
+
+    foreach
+        space .corner-list
+    next
+;

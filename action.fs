@@ -1147,6 +1147,15 @@ action-groups-disp                          cell+   constant action-function-dis
     \ Clean up.
     corner-list-deallocate              \ act0 cstr-lst'
 
+    \ FYI
+    dup list-get-length                 \ act0 cstr-lst' len
+    1 >                                 \ act0 cstr-lst' bool
+    if
+        cr ." Multiple corner clusters found!"
+        dup .corner-cluster-list
+        abort
+    then
+
     \ Save clusters.
     swap                                \ cstr-lst' act0
     _action-update-corner-clusters
