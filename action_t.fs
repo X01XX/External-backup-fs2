@@ -182,7 +182,7 @@
     cr ." action-test-corners - Ok"
 ;
 
-: action-test-calc-additional-corners
+: action-test-corners2
     \ Init action.
     [ ' calc-result-x ] literal
     #4 0 0 action-new      \ act
@@ -208,37 +208,29 @@
 
     cr dup .action cr
 
-    s" s0101" state-from-string-a           \ act sta5'
-    dup                                     \ act sta5' sta5'
-    #2 pick action-get-corners              \ act sta5' sta5' crn-lst
-    corner-list-find                        \ act sta5', crn5 t | f
-    invert abort" corner not found?"
+    \ Test
+    dup action-get-corner-clusters          \ act clstr-lst
+    dup list-get-length                     \ act clstr-lst len
+    1 <> abort" corner cluster list length ne 1?"
 
-    swap state-deallocate                   \ act crn5
-    over action-calc-additional-corners     \ act, crn-lst t | f
-    if
-        cr ." Additional corners: " dup .corner-list cr
-
-        \ Check results.
-        dup list-get-length 3 <> abort" should be two additional corners"
-    else
-        cr ." no additional corners?" cr
-    then
+    dup list-get-first-item                 \ act clstr-lst clstr
+    list-get-length                         \ act clstr-lst len
+    3 <> abort" corner cluster length ne 3?"
+    drop                                    \ act
 
     \ Deallocate
-    corner-list-deallocate
     action-deallocate
 
     \ Check for memory leaks.
     structinfo-list-store structinfo-list-project-deallocated
 
-    cr ." action-test-calc-additional-corners - Ok"
+    cr ." action-test-corners2 - Ok"
 ;
 
 : action-tests
     action-test-basic
     action-test-check-incompatible-pairs-for-changed-square
     action-test-corners
-    action-test-calc-additional-corners
+    action-test-corners2
     cr
 ;

@@ -733,7 +733,7 @@ action-groups-disp                          cell+   constant action-function-dis
     \ Check args.
     assert( tos is-action? )
     assert( nos is-square? )
-    cr ." action-udpate-groups-with-new-square: start" cr
+    \ cr ." action-udpate-groups-with-new-square: start" cr
 
     dup action-get-groups               \ sqr1 act0 grp-lst
     over action-get-possible-regions    \ sqr1 act0 grp-lst pos-lst
@@ -1090,6 +1090,14 @@ action-groups-disp                          cell+   constant action-function-dis
     swap                                \ crn-lst1 act0 pos-regs crnx
     corner-additional-corners           \ crn-lst1 act0, crn-lst t | f
 
+    if
+        nip nip
+        true
+    else
+        2drop
+        false
+    then
+
     \ cr ." action-calc-corner-cluster: end: " .stack-gbl cr
 ;
 
@@ -1121,7 +1129,9 @@ action-groups-disp                          cell+   constant action-function-dis
     begin
         dup                                     \ act0 cstr-lst' crn-lst' crn-lst'
         #3 pick                                 \ act0 cstr-lst' crn-lst' crn-lst' act0
+
         action-calc-corner-cluster              \ act0 cstr-lst' crn-lst', clstr' t | f
+
         if                                      \ act0 cstr-lst' crn-lst', clstr'
             \ Add cluster to cluster list.
             dup                                 \ act0 cstr-lst' crn-lst' clstr' clstr'
@@ -1134,7 +1144,7 @@ action-groups-disp                          cell+   constant action-function-dis
                 corner-get-region               \ act0 cstr-lst' crn-lst' crn-lnk regx
 
                 \ Remove corners from corner list.
-                #3 pick                         \ act0 cstr-lst' crn-lst' crn-lnk regx crn-lst'
+                #2 pick                         \ act0 cstr-lst' crn-lst' crn-lnk regx crn-lst'
                 corner-list-remove-by-region    \ act0 cstr-lst' crn-lst' crn-lnk
             next
                                                 \ act0 cstr-lst' crn-lst'
@@ -1220,7 +1230,7 @@ action-groups-disp                          cell+   constant action-function-dis
 
     tuck _action-update-corners         \ act
 
-    drop \ action-calc-corner-clusters         \
+    action-calc-corner-clusters         \
 ;
 
 \ Evaluate possible regions, to generate corners and corner clusters.
