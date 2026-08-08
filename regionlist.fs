@@ -573,6 +573,7 @@
     drop
 ;
 
+\ Return a list of regions a list of states are in.
 : region-list-states-in ( sta-lst1 reg-lst0 -- reg-lst )
     \ Check args.
     assert( tos is-region-list? )

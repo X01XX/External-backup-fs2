@@ -12,7 +12,7 @@
 
     foreach                                 \ adj-prs' nadj-prs' reg-lnk
         dup link-get-data                   \ adj-prs' nadj-prs' reg-lnk regx
-        dup regions-states-adjacent?        \ adj-prs' nadj-prs' reg-lnk regx bool
+        dup region-states-adjacent?         \ adj-prs' nadj-prs' reg-lnk regx bool
         if
             #3 pick                         \ adj-prs' nadj-prs' reg-lnk regx adj-prs'
         else
@@ -34,12 +34,15 @@
         \ Get number of occurences in the non-adjacent list.
         dup link-get-data                   \ adj-prs' nadj-prs' nadj-stas' max nadj-stas-lnk stax
         #4 pick                             \ adj-prs' nadj-prs' nadj-stas' max nadj-stas-lnk stax nadj-stas'
-        region-list-number-regions-state-in \ adj-prs' nadj-prs' nadj-stas' max nadj-stas-lnk nadj-num-in
+        region-list-num-state-in            \ adj-prs' nadj-prs' nadj-stas' max nadj-stas-lnk nadj-num-in
 
         \ Get number of occurences in the adjacent list.
         over link-get-data                  \ adj-prs' nadj-prs' nadj-stas' max nadj-stas-lnk nadj-num-in stax
         #6 pick                             \ adj-prs' nadj-prs' nadj-stas' max nadj-stas-lnk nadj-num-in stax adj-prs'
-        region-list-number-regions-state-in \ adj-prs' nadj-prs' nadj-stas' max nadj-stas-lnk nadj-num-in adj-num-in
+        region-list-num-state-in            \ adj-prs' nadj-prs' nadj-stas' max nadj-stas-lnk nadj-num-in adj-num-in
+
+        \ Add priority for some pairs in the adjacent list.
+        20 *                                \ adj-prs' nadj-prs' nadj-stas' max nadj-stas-lnk nadj-num-in adj-num-in
 
         \ Add adjacent and non-adjacent values.
         +                                   \ adj-prs' nadj-prs' nadj-stas' max nadj-stas-lnk num-in
@@ -62,19 +65,22 @@
     foreach                                 \ adj-prs' nadj-prs' nadj-stas' max pri-stas' nadj-sna-lnk
         \ Get number of occurences in the non-adjacent list.
         dup link-get-data                   \ adj-prs' nadj-prs' nadj-stas' max pri-stas' nadj-stas-lnk stax
-        #4 pick                             \ adj-prs' nadj-prs' nadj-stas' max pri-stas' nadj-stas-lnk stax nadj-stas'
-        region-list-number-regions-state-in \ adj-prs' nadj-prs' nadj-stas' max pri-stas' nadj-stas-lnk nadj-num-in
+        #5 pick                             \ adj-prs' nadj-prs' nadj-stas' max pri-stas' nadj-stas-lnk stax nadj-prs'
+        region-list-num-state-in            \ adj-prs' nadj-prs' nadj-stas' max pri-stas' nadj-stas-lnk nadj-num-in
 
         \ Get number of occurences in the adjacent list.
         over link-get-data                  \ adj-prs' nadj-prs' nadj-stas' max pri-stas' nadj-stas-lnk nadj-num-in stax
-        #6 pick                             \ adj-prs' nadj-prs' nadj-stas' max pri-stas' nadj-stas-lnk nadj-num-in stax adj-prs'
-        region-list-number-regions-state-in \ adj-prs' nadj-prs' nadj-stas' max pri-stas' nadj-stas-lnk nadj-num-in adj-num-in
+        #7 pick                             \ adj-prs' nadj-prs' nadj-stas' max pri-stas' nadj-stas-lnk nadj-num-in stax adj-prs'
+        region-list-num-state-in            \ adj-prs' nadj-prs' nadj-stas' max pri-stas' nadj-stas-lnk nadj-num-in adj-num-in
+
+        \ Add priority for some pairs in the adjacent list.
+        20 *                                \ adj-prs' nadj-prs' nadj-stas' max pri-stas' nadj-stas-lnk nadj-num-in adj-num-in
 
         \ Add adjacent and non-adjacent values.
         +                                   \ adj-prs' nadj-prs' nadj-stas' max pri-stas' nadj-stas-lnk num-in
 
         \ Check max value.
-        #2 pick                             \ adj-prs' nadj-prs' nadj-stas' max pri-stas' nadj-stas-lnk num-in max
+        #3 pick                             \ adj-prs' nadj-prs' nadj-stas' max pri-stas' nadj-stas-lnk num-in max
         =                                   \ adj-prs' nadj-prs' nadj-stas' max pri-stas' nadj-stas-lnk bool
         if
             \ Add state to priority states list.
@@ -85,4 +91,19 @@
     next
                                             \ adj-prs' nadj-prs' nadj-stas' max pri-stas'
     nip                                     \ adj-prs' nadj-prs' nadj-stas' pri-stas'
+
+    \ Get priority regions.
+    dup                                     \ adj-prs' nadj-prs' nadj-stas' pri-stas' pri-stas'
+    #3 pick                                 \ adj-prs' nadj-prs' nadj-stas' pri-stas' pri-stas' nadj-prs'
+    region-list-states-in                   \ adj-prs' nadj-prs' nadj-stas' pri-stas' pri-regs'
+
+    cr ." priority pairs: " dup .region-list cr
+
+    \ Clean up.
+    swap state-list-deallocate              \ adj-prs' nadj-prs' nadj-stas' pri-regs'
+    swap state-list-deallocate              \ adj-prs' nadj-prs' pri-regs'
+    swap region-list-deallocate             \ adj-prs' pri-regs'
+    swap region-list-deallocate             \ pri-regs'
+
+    region-list-deallocate
 ;

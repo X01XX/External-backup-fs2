@@ -28,6 +28,7 @@ include state.fs
 include region.fs
 include statelist.fs
 include regionlist.fs
+include incpairs.fs
 include region2.fs
 include state2.fs
 include regionlist2.fs
@@ -79,6 +80,7 @@ include cornerlist_t.fs
 include squarelist_t.fs
 include action_t.fs
 include group_t.fs
+include incpairs_t.fs
 \ include domain_t.fs
 
 \ Init array-stacks.
