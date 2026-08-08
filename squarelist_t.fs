@@ -123,7 +123,7 @@
         cr ." found " dup .region-list cr
         dup list-get-first-item                 \ lst regx
         region-states-adjacent?                 \ lst bool
-        ifnot cr ." states not adjacent?" abort then
+        invert abort" states not adjacent?"
         region-list-deallocate
     then
 
@@ -133,7 +133,7 @@
         cr ." found " dup .region-list cr
         dup list-get-first-item                 \ lst regx
         region-states-adjacent?                 \ lst bool
-        if cr ." states adjacent?" abort then
+        abort" states adjacent?"
         region-list-deallocate
     then
 

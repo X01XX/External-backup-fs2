@@ -141,7 +141,7 @@ corner-region-disp          cell+   constant corner-adjacent-states-disp    \ Al
     assert( over state-get-num-bits over region-get-num-bits = )
 
     2dup region-superset-of-state?      \ sta1 reg0 bool
-    ifnot cr ." corner-new: region not superset state?" abort then
+    invert abort" corner-new: region not superset state?"
 
     \ Init adjacent state list.
     list-new                            \ sta1 reg0 sta-lst

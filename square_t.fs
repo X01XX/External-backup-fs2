@@ -20,7 +20,7 @@
     \ Add a sample 2.
     s" s0101->s0111" sample-from-string-a   \ sqr smpl
     over square-add-sample                  \ sqr bool
-    ifnot abort" square did not change?" then
+    invert abort" square did not change?"
     cr ." square 2 smpl: " dup .square
 
     \ Add a sample 3.

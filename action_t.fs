@@ -9,7 +9,7 @@
     \ Add A->A
     s" s1010->s1010" sample-from-string-a   \ act smpl1
     over action-add-sample                  \ act bool
-    ifnot ." Did not return true?" abort then
+    invert abort" Did not return true?"
 
     cr dup .action cr
 
@@ -17,7 +17,7 @@
     s" s1111->s0111" sample-from-string-a   \ act smpl1
 
     over action-add-sample                  \ act bool
-    ifnot ." Did not return true?" abort then
+    invert abort" Did not return true?"
 
     cr dup .action cr
 
@@ -35,21 +35,21 @@
     s" s1011->s1011" sample-from-string-a   \ act smpl1
     over action-add-sample                  \ act bool
 
-    ifnot ." Did not return true?" abort then
+    invert abort" Did not return true?"
 
     cr dup .action cr
 
     \ Add to B->B
     s" s1011->s1010" sample-from-string-a   \ act smpl1
     over action-add-sample                  \ act bool
-    ifnot ." Did not return true?" abort then
+    invert abort" Did not return true?"
 
     cr dup .action cr
 
     \ Update A->A
     s" s1010->s1010" sample-from-string-a   \ act smpl1
     over action-add-sample                  \ act bool
-    ifnot ." Did not returned true?" abort then
+    invert abort" Did not returned true?"
 
     cr dup .action cr
 
@@ -84,54 +84,50 @@
     \ Add 4->4
     s" s0100->s0100" sample-from-string-a   \ act smpl1
     over action-add-sample                  \ act bool
-    ifnot ." Did not return true?" abort then
+    invert abort" Did not return true?"
 
     \ Add 1->3
     s" s0001->s0011" sample-from-string-a   \ act smpl1
     over action-add-sample                  \ act bool
-    ifnot ." Did not return true?" abort then
+    invert abort" Did not return true?"
 
     cr dup .action cr
 
     \ Add 3->1
     s" s0011->s0001" sample-from-string-a   \ act smpl1
     over action-add-sample                  \ act bool
-    ifnot ." Did not return true?" abort then
+    invert abort" Did not return true?"
 
     \ Add 6->6
     s" s0110->s0110" sample-from-string-a   \ act smpl1
     over action-add-sample                  \ act bool
-    ifnot ." Did not return true?" abort then
+    invert abort" Did not return true?"
 
     cr dup .action cr
 
     \ Add 9->9
     s" s1001->s1001" sample-from-string-a   \ act smpl1
     over action-add-sample                  \ act bool
-    ifnot ." Did not return true?" abort then
+    invert abort" Did not return true?"
 
     \ Add F->7
     s" s1111->s0111" sample-from-string-a   \ act smpl1
     over action-add-sample                  \ act bool
-    ifnot ." Did not return true?" abort then
+    invert abort" Did not return true?"
 
     cr dup .action cr
 
     \ Update square 9, to make it MSN with square F.
     s" s1001->s0001" sample-from-string-a   \ act smpl1
     over action-add-sample                  \ act bool
-    ifnot
-        cr ." sample did not change sqr9?" abort
-    then
+    invert abort" sample did not change sqr9?"
 
     cr dup .action cr
 
     \ Update square F, to make it Compatible with square 9.
     s" s1111->s1111" sample-from-string-a   \ act smpl1
     over action-add-sample                  \ act bool
-    ifnot
-        cr ." sample did not change sqrF?" abort
-    then
+    invert abort" sample did not change sqrF?"
 
     cr dup .action cr
 
@@ -153,19 +149,19 @@
     \ Add 5->5
     s" s0101->s0101" sample-from-string-a   \ act smpl1
     over action-add-sample                  \ act bool
-    ifnot ." Did not return true?" abort then
+    invert abort" Did not return true?"
 
     \ Add 7->F
     s" s0111->s1111" sample-from-string-a   \ act smpl1
     over action-add-sample                  \ act bool
-    ifnot ." Did not return true?" abort then
+    invert abort" Did not return true?"
 
     cr dup .action cr
 
     \ Add 8->A
     s" s1000->s1010" sample-from-string-a   \ act smpl1
     over action-add-sample                  \ act bool
-    ifnot ." Did not return true?" abort then
+    invert abort" Did not return true?"
 
     cr dup .action cr
 
@@ -192,19 +188,19 @@
     \ Add 5->5
     s" s0101->s0101" sample-from-string-a   \ act smpl1
     over action-add-sample                  \ act bool
-    ifnot ." Did not return true?" abort then
+    invert abort" Did not return true?"
 
     \ Add 7->F
     s" s0111->s1111" sample-from-string-a   \ act smpl1
     over action-add-sample                  \ act bool
-    ifnot ." Did not return true?" abort then
+    invert abort" Did not return true?"
 
     cr dup .action cr
 
     \ Add D->F
     s" s1101->s1111" sample-from-string-a   \ act smpl1
     over action-add-sample                  \ act bool
-    ifnot ." Did not return true?" abort then
+    invert abort" Did not return true?"
 
     cr dup .action cr
 
