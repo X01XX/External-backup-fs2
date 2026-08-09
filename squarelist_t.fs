@@ -103,14 +103,14 @@
     \ Add square to list. Save ref for testing results.
     over list-push-struct                   \ lst
 
-    \ Create adjacent, incompatible, to square 5, square 7. 
+    \ Create adjacent, incompatible, to square 5, square 7.
     s" s0111->s0110" sample-from-string-a   \ lst smpl
     square-new                              \ lst sqr7
 
     \ Add square to list.
     over list-push-struct                   \ lst
 
-    \ Create non-adjacent, incompatible, to square 5, square C. 
+    \ Create non-adjacent, incompatible, to square 5, square C.
     s" s1100->s1000" sample-from-string-a   \ lst smpl
     square-new                              \ lst sqrC
 

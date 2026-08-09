@@ -1,5 +1,10 @@
 \ Functions to execute to get the result from a given state.
 
+\ Act zero for any domain, return the current state with no change.
+: act-0-get-sample ( current-state -- result )
+    state-copy
+;
+
 \ Result x
 : calc-result-x ( sta -- rslt )
     \ Check arg.

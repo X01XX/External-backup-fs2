@@ -55,11 +55,19 @@
     list-push-end-struct
 ;
 
+: action-id-eq? ( id1 act0 -- bool )
+    \ Check args.
+    assert( tos is-action? )
+
+    action-get-inst-id  \ id1 id0
+    =
+;
+
 \ Find a action in a list, by instance id, if any.
 : action-list-find ( id1 list0 -- dom t | f )
     \ Check arg.
     assert( tos is-action-list? )
 
-    [ ' action-id-eq ] literal -rot list-find
+    [ ' action-id-eq? ] literal -rot list-find
 ;
 

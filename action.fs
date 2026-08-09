@@ -1829,7 +1829,7 @@ action-groups-disp                          cell+   constant action-function-dis
     \ Recalc adj regions.
     tuck action-recalc-adj-pair-regions                 \ act0 sta1
     swap                                                \ sta1 act0
-    
+
     \ Delete non-adjacent incompatible pairs that are no longer within one of the adj-pair regions.
     dup action-remove-orphaned-nadj-pairs               \ sta1 act0
 
@@ -1993,4 +1993,31 @@ action-groups-disp                          cell+   constant action-function-dis
     \ Confirm defining groups.
 
     drop
+;
+
+\ Get a sample from an action.
+\ Depends on the current domain being set correctly.
+\ Add the sample to the action.
+: action-get-sample ( sta1 act0 -- smpl )
+    \ cr ." action-get-sample: start" cr
+    \ Check args.
+    assert( tos is-action? )
+    assert( nos is-state? )
+
+    2dup                    \ sta1 act0 sta1 act0
+    dup                     \ sta1 act0 sta1 act0 act0
+    action-get-function     \ sta1 act0 sta1 act0 xt
+    execute                 \ sta1 act0 rslt
+    rot                     \ act0 rslt sta1
+    sample-new              \ act0 smpl
+    tuck                    \ smpl act0 smpl
+    swap                    \ smpl smpl act0
+
+    cr
+    ." Dom: " dup action-get-parent domain-get-inst-id-xt execute #3 dec.r
+    space ." Act: " dup action-get-inst-id #3 dec.r
+    space ." adding sample: " over .sample
+    cr
+
+    action-add-sample       \ smpl
 ;

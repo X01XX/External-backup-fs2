@@ -58,7 +58,7 @@
 
 ' xtabort value domain-get-sample-xt
 
-' xtabort value domain-get-parent-session-xt
+' xtabort value domain-get-parent-xt
 
 
 ' xtabort value action-get-inst-id-xt
@@ -149,6 +149,7 @@
 ' xtabort value corner-list-find-xt
 
 ' xtabort value corner-list-find-region-xt
+
 
 
 

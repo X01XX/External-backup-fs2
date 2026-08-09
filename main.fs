@@ -50,9 +50,6 @@ include list2.fs
 include square.fs
 include squarelist.fs
 
-\ include squarepair.fs
-\ include squarepairlist.fs
-
 include group.fs
 include grouplist.fs
 
@@ -61,9 +58,10 @@ include cornerlist.fs
 
 include actionxts.fs
 include action.fs
+include actionlist.fs
 
 include frame.fs
-\ include domain.fs
+include domain.fs
 
 cr
 
@@ -81,7 +79,7 @@ include squarelist_t.fs
 include action_t.fs
 include group_t.fs
 include incpairs_t.fs
-\ include domain_t.fs
+include domain_t.fs
 
 \ Init array-stacks.
 #301 link-mma-init
@@ -99,7 +97,7 @@ include incpairs_t.fs
 #110 corner-mma-init
 #130 group-mma-init
 #010 frame-mma-init
-\ #010 domain-mma-init
+#010 domain-mma-init
 cr cr
 
 \ Init structinfo list.
@@ -122,7 +120,7 @@ list-new to structinfo-list-store
 ' =             ' noop                  ' square-deallocate     ' .square   s" Square"      square-mma      square-struct-id    structinfo-new structinfo-list-store structinfo-list-push-end
 ' =             ' noop                  ' group-deallocate      ' .group    s" Group"       group-mma       group-struct-id     structinfo-new structinfo-list-store structinfo-list-push-end
 ' noop          ' noop                  ' frame-deallocate      ' .frame    s" Frame"       frame-mma       frame-struct-id     structinfo-new structinfo-list-store structinfo-list-push-end
-\ ' noop          ' noop                  ' domain-deallocate     ' .domain   s" Domain"      domain-mma      domain-struct-id    structinfo-new structinfo-list-store structinfo-list-push-end
+' noop          ' noop                  ' domain-deallocate     ' .domain   s" Domain"      domain-mma      domain-struct-id    structinfo-new structinfo-list-store structinfo-list-push-end
 
 : main
 
@@ -191,9 +189,10 @@ list-new to structinfo-list-store
     square-list-tests
     action-tests
     group-tests
-\    domain-tests
+    domain-tests
     corner-tests
     corner-list-tests
+    inc-pair-tests
     cr
 ;
 

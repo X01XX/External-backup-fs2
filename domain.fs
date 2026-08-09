@@ -6,7 +6,7 @@
 \ Struct fields
 0                                   constant domain-header-disp         \ 16-bits [0] struct id, [1] use count, [2] instance id (8 bits), num-bits (8 bits)
 domain-header-disp          cell+   constant domain-parent-disp         \ A session ref.
-domain-parent-session-disp  cell+   constant domain-actions-disp        \ An action list.
+domain-parent-disp          cell+   constant domain-actions-disp        \ An action list.
 domain-actions-disp         cell+   constant domain-current-state-disp  \ A state.
 domain-current-state-disp   cell+   constant domain-max-region-disp     \ A region with all valid bits set to X.
 domain-max-region-disp      cell+   constant domain-all-bits-mask-disp  \ A mask of all bits set to 1.
@@ -249,7 +249,7 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
 
     \ Set parent session field.
     tuck                            \ nb1 dom ses0 dom
-    _domain-set-parent-session      \ nb1 dom
+    _domain-set-parent              \ nb1 dom
 
     \ Set actions list.
     list-new                        \ nb1 dom lst
@@ -305,7 +305,7 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
     dup domain-get-actions
     list-get-length
     ."  num actions: " dec.
-    dup domain-get-current-state ." cur: " .value
+    dup domain-get-current-state ." cur: " .state
     cr
     domain-get-actions .action-list
 ;
@@ -343,8 +343,6 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
     2dup                        \ actx dom0 actx dom0
     domain-get-actions          \ actx dom0 actx act-lst
     action-list-push-end        \ actx dom0
-
-    domain-set-current-action   \
 ;
 
 \ Get a sample from an action in a domain.
@@ -370,10 +368,7 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
 \    space dup .sample
 \    cr
 
-    swap                            \ act1 smpl dom
-    domain-update-session-points    \ act1 smpl
-
-    nip
+    nip nip                         \ smpl
 ;
 
 ' domain-get-sample to domain-get-sample-xt
@@ -398,8 +393,7 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
     then
 
     list-get-item               \ dom0 act
-    tuck swap                   \ act act dom0
-    domain-set-current-action   \ act
+    nip
     true
 ;
 

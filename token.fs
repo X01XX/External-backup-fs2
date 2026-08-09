@@ -67,7 +67,7 @@ token-header-disp cell+ constant token-string-disp
     begin
         dup
     while
-        over c@ 32 =
+        over c@ #32 =
         if
             swap 1+ swap
             1-
@@ -82,7 +82,7 @@ token-header-disp cell+ constant token-string-disp
     begin
         dup
     while
-        2dup + 1- c@ 32 =
+        2dup + 1- c@ #32 =
         if
             1-
         else

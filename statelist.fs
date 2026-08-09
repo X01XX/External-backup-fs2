@@ -209,7 +209,7 @@
 ;
 
 \ Append nos state-list to the tos state-list.
-: state-list-append ( lst1 lst0 -- )                                                                                                                     
+: state-list-append ( lst1 lst0 -- )
     \ Check args.
     assert( tos is-state-list? )
     assert( nos is-state-list? )
@@ -226,7 +226,7 @@
         link-get-next
     repeat
                             \ lst0
-    drop 
+    drop
 ;
 
 \ Return true if the tos corner is a proper superset of the nos corner.

@@ -81,7 +81,7 @@
     \ Test results.
     dup list-get-length                                 \ reg-lst crn len
     4 <> abort" Corner cluster not 4 corners?"
-    
+
     \ Deallocate.
     corner-list-deallocate
     drop                                                \ Corner deallocated, above.

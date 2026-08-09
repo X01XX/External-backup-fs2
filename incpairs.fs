@@ -45,7 +45,7 @@
         region-list-num-state-in            \ nadj-prs adj-prs nadj-stas' max nadj-stas-lnk nadj-num-in adj-num-in
 
         \ Add priority for some pairs in the adjacent list.
-        20 *                                \ nadj-prs adj-prs nadj-stas' max nadj-stas-lnk nadj-num-in adj-num-in
+        #20 *                               \ nadj-prs adj-prs nadj-stas' max nadj-stas-lnk nadj-num-in adj-num-in
 
         \ Add adjacent and non-adjacent values.
         +                                   \ nadj-prs adj-prs nadj-stas' max nadj-stas-lnk num-in
@@ -77,7 +77,7 @@
         region-list-num-state-in            \ nadj-prs adj-prs nadj-stas' max pri-stas' nadj-stas-lnk nadj-num-in adj-num-in
 
         \ Add priority for some pairs in the adjacent list.
-        20 *                                \ nadj-prs adj-prs nadj-stas' max pri-stas' nadj-stas-lnk nadj-num-in adj-num-in
+        #20 *                               \ nadj-prs adj-prs nadj-stas' max pri-stas' nadj-stas-lnk nadj-num-in adj-num-in
 
         \ Add adjacent and non-adjacent values.
         +                                   \ nadj-prs adj-prs nadj-stas' max pri-stas' nadj-stas-lnk num-in

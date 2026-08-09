@@ -904,7 +904,7 @@
 ;
 
 \ Append nos region-list to the tos region-list.
-: region-list-append ( lst1 lst0 -- )                                                                                                                     
+: region-list-append ( lst1 lst0 -- )
     \ Check args.
     assert( tos is-region-list? )
     assert( nos is-region-list? )
@@ -921,5 +921,5 @@
         link-get-next
     repeat
                             \ lst0
-    drop 
+    drop
 ;
