@@ -1,19 +1,42 @@
+\ Test action functions.
 
-: action-test-basic
+: action-test-new
+    \ Run function..
+    [ ' calc-result-x ] literal
+    #4 0 0 action-new      \ act
+
+    \ Display results.
+    cr dup .action cr
+
+    \ Test results.
+    dup action-get-num-bits #4 <> abort" num bits s/b 4?"
+    dup action-get-inst-id 0<> abort" inst-id s/b 0?"
+    dup action-get-parent 0<> abort" parent s/b 0?"
+
+    \ Deallocate
+    action-deallocate
+
+    \ Check for memory leaks.
+    structinfo-list-store structinfo-list-project-deallocated
+
+    cr ." action-test-new - Ok"
+;
+
+: action-test-add-sample
     \ Init action.
     [ ' calc-result-x ] literal
     #4 0 0 action-new      \ act
 
     cr dup .action cr
 
-    \ Add A->A
+    \ Add A->A, create a new square.
     s" s1010->s1010" sample-from-string-a   \ act smpl1
     over action-add-sample                  \ act bool
     invert abort" Did not return true?"
 
     cr dup .action cr
 
-    \ Add F->7
+    \ Add F->7, create a new square.
     s" s1111->s0111" sample-from-string-a   \ act smpl1
 
     over action-add-sample                  \ act bool
@@ -31,7 +54,7 @@
         cr ." problem?"  abort cr
     then
 
-    \ Add B->B, adjacent F
+    \ Add B->B, adjacent F, create a new square.
     s" s1011->s1011" sample-from-string-a   \ act smpl1
     over action-add-sample                  \ act bool
 
@@ -39,14 +62,14 @@
 
     cr dup .action cr
 
-    \ Add to B->B
+    \ Add to B->B, update an existing square.
     s" s1011->s1010" sample-from-string-a   \ act smpl1
     over action-add-sample                  \ act bool
     invert abort" Did not return true?"
 
     cr dup .action cr
 
-    \ Update A->A
+    \ Update A->A, update an existing square.
     s" s1010->s1010" sample-from-string-a   \ act smpl1
     over action-add-sample                  \ act bool
     invert abort" Did not returned true?"
@@ -61,7 +84,7 @@
     dup action-get-states-in-one-region list-get-length 3 <> abort" invalid number of states in one region"
     dup action-get-defining-regions list-get-length 3 <> abort" invalid number of defining regions"
     dup action-get-corners list-get-length 3 <> abort" invalid number of corners"
-    dup action-get-corner-clusters list-get-length 0 <> abort" invalid number of corner clusters"
+    dup action-get-corner-clusters list-get-length 1 <> abort" invalid number of corner clusters"
 
     \ Deallocate
     action-deallocate
@@ -69,7 +92,7 @@
     \ Check for memory leaks.
     structinfo-list-store structinfo-list-project-deallocated
 
-    cr ." action-test-basic - Ok"
+    cr ." action-test-add-sample - Ok"
 ;
 
 \ Set up an incompatible pair, then use updates to
@@ -224,7 +247,8 @@
 ;
 
 : action-tests
-    action-test-basic
+    action-test-new
+    action-test-add-sample
     action-test-check-incompatible-pairs-for-changed-square
     action-test-corners
     action-test-corners2

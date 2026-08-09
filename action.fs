@@ -467,6 +467,7 @@ action-groups-disp                          cell+   constant action-function-dis
 \ Return a new action, given a functian to run to get a sample,
 \ and the number of bits being used.
 : action-new ( xt num-bits inst-id parent -- addr)
+    \ cr ." action-new: start: " .stack-gbl cr
     assert( dup if tos is-domain?-xt execute else true then )
     assert( nos 0 >= )
     assert( nos #256 < )
@@ -596,25 +597,60 @@ action-groups-disp                          cell+   constant action-function-dis
     \ Check arg.
     assert( tos is-action? )
 
-    cr ." Action:"
+    cr ." Action: " dup action-get-inst-id dec.
     cr
     s"     Squares:              " #2 pick action-get-squares .square-list-prefix
     cr
-    #4 spaces ." Adjacent pairs:       " dup action-get-adj-pairs .region-list
+    #4 spaces ." Adjacent pairs:       " dup action-get-adj-pairs
+    dup list-is-empty?
+    if
+        drop
+        ." None"
+    else
+        .region-list
+    then
     cr
     #4 spaces ." Adj pair regions:     " dup action-get-adj-regions .region-list
     cr cr
-    #4 spaces ." Non-adjacent pairs:   " dup action-get-nadj-pairs .region-list
+    #4 spaces ." Non-adjacent pairs:   " dup action-get-nadj-pairs
+    dup list-is-empty?
+    if
+        drop
+        ." None"
+    else
+        .region-list
+    then
     cr
     #4 spaces ." Non-adj pair regions: " dup action-get-nadj-regions .region-list
     cr cr
     #4 spaces ." Possible regions:     " dup action-get-possible-regions .region-list
     cr cr
-    #4 spaces ." Sqrs in one poss reg: " dup action-get-states-in-one-region .state-list
+    #4 spaces ." Sqrs in one poss reg: " dup action-get-states-in-one-region
+    dup list-is-empty?
+    if
+        drop
+        ." None"
+    else
+        .state-list
+    then
     cr cr
-    #4 spaces ." Defining regions:     " dup action-get-defining-regions .region-list
+    #4 spaces ." Defining regions:     " dup action-get-defining-regions
+    dup list-is-empty?
+    if
+        drop
+        ." None"
+    else
+        .region-list
+    then
     cr cr
-    #4 spaces ." Sqrs not in def regs: " dup action-get-states-not-in-defining-regions .state-list
+    #4 spaces ." Sqrs not in def regs: " dup action-get-states-not-in-defining-regions
+    dup list-is-empty?
+    if
+        drop
+        ." None"
+    else
+        .state-list
+    then
     cr
     s"     Corners:              " #2 pick action-get-corners .corner-list-prefix
     cr
@@ -622,6 +658,7 @@ action-groups-disp                          cell+   constant action-function-dis
     cr
     s"     Groups:               " #2 pick action-get-groups .group-list-prefix
     drop
+    cr
 ;
 
 \ Deallocate a action.

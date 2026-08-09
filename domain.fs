@@ -287,9 +287,10 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
     #2 pick mask-new                \ nb2 dom mask
     over _domain-set-ms-bit-mask    \ nb2 dom
 
-cr ." domain-new: todo read cs store? change xts to set cur-store?" cr
-    \ Set arbitrary current state.
-    0 rot state-new                 \ dom sta
+    \ Set mostly random current state.
+    \ Don't use 2^n in case number bits is at maximum.
+    over all-bits random            \ nb2 dom rnd
+    rot state-new                   \ dom sta
     over                            \ dom sta dom
     _domain-set-current-state       \ dom
 ;
@@ -339,14 +340,19 @@ cr ." domain-new: todo read cs store? change xts to set cur-store?" cr
     \ Check args.
     assert( tos is-domain? )
 
-    tuck                        \ dom0 xt1 dom0
+    \ Save domain ref.
+    tuck                            \ dom0 xt dom0
 
-    action-new                  \ dom0 actx
+    \ Make action.
+    dup domain-get-num-bits swap    \ dom0 xt1 nb dom0
+    dup domain-get-actions          \ dom0 xt1 nb dom0 act-lst
+    list-get-length swap            \ dom0 xt1 nb id dom0 
+    action-new                      \ dom0 actx
 
-    swap                        \ actx dom0
-    2dup                        \ actx dom0 actx dom0
-    domain-get-actions          \ actx dom0 actx act-lst
-    action-list-push-end        \ actx dom0
+    \ Add action to domain action list.
+    swap                            \ actx dom0
+    domain-get-actions              \ actx act-lst
+    action-list-push-end            \
 ;
 
 \ Get a sample from an action in a domain.

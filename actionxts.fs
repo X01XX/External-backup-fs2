@@ -2,7 +2,54 @@
 
 \ Act zero for any domain, return the current state with no change.
 : act-0-get-result ( current-state -- result )
+    \ Check arg.
+    assert( tos is-state? )
+
     state-copy
+;
+
+: dom-0-act1-get-result ( current-state -- result )
+    \ Check arg.
+    assert( tos is-state? )
+
+    dup state-get-number        \ csta cnum
+    #1 xor                      \ csta rnum
+    swap                        \ rnum csta
+    state-get-num-bits          \ rnum nb
+    state-new                   \ rsta
+;
+
+: dom-0-act2-get-result ( current-state -- result )
+    \ Check arg.
+    assert( tos is-state? )
+
+    dup state-get-number        \ csta cnum
+    #2 xor                      \ csta rnum
+    swap                        \ rnum csta
+    state-get-num-bits          \ rnum nb
+    state-new                   \ rsta
+;
+
+: dom-0-act3-get-result ( current-state -- result )
+    \ Check arg.
+    assert( tos is-state? )
+
+    dup state-get-number        \ csta cnum
+    #4 xor                      \ csta rnum
+    swap                        \ rnum csta
+    state-get-num-bits          \ rnum nb
+    state-new                   \ rsta
+;
+
+: dom-0-act4-get-result ( current-state -- result )
+    \ Check arg.
+    assert( tos is-state? )
+
+    dup state-get-number        \ csta cnum
+    #8 xor                      \ csta rnum
+    swap                        \ rnum csta
+    state-get-num-bits          \ rnum nb
+    state-new                   \ rsta
 ;
 
 \ Result x
