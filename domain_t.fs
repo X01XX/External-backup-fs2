@@ -1,6 +1,9 @@
 \ Test domain functions.
 
 : domain-test-new
+
+    4 0 0 domain-new            \ dom
+
     \ Clean up.
     domain-deallocate
 

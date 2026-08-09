@@ -5,7 +5,7 @@
 
 \ Struct fields
 0                                   constant domain-header-disp         \ 16-bits [0] struct id, [1] use count, [2] instance id (8 bits), num-bits (8 bits)
-domain-header-disp          cell+   constant domain-parent-disp         \ A session ref.
+domain-header-disp          cell+   constant domain-parent-disp         \ A session ref, may be zero for testing.
 domain-parent-disp          cell+   constant domain-actions-disp        \ An action list.
 domain-actions-disp         cell+   constant domain-current-state-disp  \ A state.
 domain-current-state-disp   cell+   constant domain-max-region-disp     \ A region with all valid bits set to X.
@@ -91,7 +91,7 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
 ' domain-get-inst-id to domain-get-inst-id-xt
 
 \ Set the instance ID of an domain instance.
-: domain-set-inst-id ( u1 dom0 -- )
+: _domain-set-inst-id ( u1 dom0 -- )
     \ Check args.
     assert( tos is-domain? )
 
@@ -143,7 +143,7 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
 ' domain-get-current-state to domain-get-current-state-xt
 
 \ Set the current state of a domain instance.
-: domain-set-current-state ( sta1 dom0 -- )
+: _domain-set-current-state ( sta1 dom0 -- )
     \ Check args.
     assert( tos is-domain? )
     assert( nos is-state? )
@@ -222,75 +222,76 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
 \ using domain-set-inst-id, which avoids duplicates and may be useful as an index into the list.
 \
 \ The current state defaults to zero, but can be set with domain-set-current-state.
-: domain-new ( nb1 ses0 -- dom )
-    \ Check arg.
-    assert( dup if tos is-session?-xt execute else true then )
+: domain-new ( num-bits inst-id parent -- dom )
+    \ Check args.
 
     \ Check number bits.
-    over 1 < abort" Number bits < 1?"
+    #2 pick 1 < abort" Number bits < 1?"
 
     \ Get max num bits.
-    over [ 1 cells #8 * ] literal > abort" Number bits too large?"
+    #2 pick [ 1 cells #8 * ] literal > abort" Number bits too large?"
 
     \ Allocate space.
-    domain-struct-id domain-mma     \ nb1 ses0 id mma
-    struct-allocate                 \ nb1 ses0 dom
+    domain-struct-id domain-mma     \ nb2 id1 prnt0 id mma
+    struct-allocate                 \ nb2 id1 prnt0 dom
 
-    \ Set instance ID, based on its position in the session domain list.
-    over                            \ nb1 ses0 dom sess0
-    session-get-number-domains-xt   \ nb1 ses0 dom sess0 xt
-    execute                         \ nb1 ses0 dom nd
-    over                            \ nb1 ses0 dom nd dom
-    domain-set-inst-id              \ nb1 ses0 dom
+    \ Set parent.
+    tuck                            \ nb2 id1 dom prnt0 dom
+    _domain-set-parent              \ nb2 id1 dom
+
+    \ Set instance ID.
+    tuck                            \ nb2 dom id1 dom
+    _domain-set-inst-id             \ nb2 dom
 
     \ Set num bits.
-    #2 pick over                    \ nb1 ses0 dom nb1 dom
-    _domain-set-num-bits            \ nb1 ses0 dom
-
-    \ Set parent session field.
-    tuck                            \ nb1 dom ses0 dom
-    _domain-set-parent              \ nb1 dom
+    2dup                            \ nb2 dom nb2 dom
+    _domain-set-num-bits            \ nb2 dom
 
     \ Set actions list.
-    list-new                        \ nb1 dom lst
-    2dup swap                       \ nb1 dom lst lst dom
-    _domain-set-actions             \ nb1 dom lst
+    list-new                        \ nb2 dom act-lst
+    2dup swap                       \ nb2 dom act-lst lst dom
+    _domain-set-actions             \ nb2 dom act-lst
 
     \ Add action 0.
     \ When making multi-step plans of all regions, a no-op for one domain preserves
     \ knowledge of all result states for subsequent steps.
-    [ ' act-0-get-sample ] literal  \ nb1 dom lst xt
-    #2 pick                         \ nb1 dom lst xt dom
-    action-new dup                  \ nb1 dom lst act act
-    rot                             \ nb1 dom act act lst
-    action-list-push-end            \ nb1 dom act
+    [ ' act-0-get-result ] literal  \ nb2 dom act-lst xt
+    #3 pick                         \ nb2 dom act-lst xt nb2
+    0                               \ nb2 dom act-lst xt nb2 id
+    #4 pick                         \ nb2 dom act-lst xt nb2 id dom
+    action-new                      \ nb2 dom act-lst act
+    swap                            \ nb2 dom act act-lst
+    action-list-push-end            \ nb2 dom
 
     \ Set all bits mask.
-    over                            \ nb1 dom nb1
-    dup all-bits                    \ nb1 dom nb mask
-    swap mask-new                   \ nb1 dom msk
-    over _domain-set-all-bits-mask  \ nb1 dom
+    over                            \ nb2 dom nb2
+    dup all-bits                    \ nb2 dom nb2 mask
+    swap mask-new                   \ nb2 dom msk
+    over _domain-set-all-bits-mask  \ nb2 dom
 
     \ Set max region.
-    over                            \ nb1 dom nb1
-    all-bits                        \ nb1 dom value
-    #2 pick state-new               \ nb1 dom sta1
+    over                            \ nb2 dom nb2
+    all-bits                        \ nb2 dom value
+    #2 pick state-new               \ nb2 dom sta1
 
-    0                               \ nb1 dom sta1 0
-    #3 pick                         \ nb1 dom sta1 0 nb1
-    state-new                       \ nb1 dom sta1 sta2
+    0                               \ nb2 dom sta1 0
+    #3 pick                         \ nb2 dom sta1 0 nb2
+    state-new                       \ nb2 dom sta1 sta2
 
-    region-new                      \ nb1 dom regx
-    over _domain-set-max-region     \ nb1 dom
+    region-new                      \ nb2 dom regx
+    over _domain-set-max-region     \ nb2 dom
 
     \ Set the most significant bit mask.
-    over                            \ nb1 dom nb1
-    ms-bit                          \ nb1 dom msb
-    #2 pick mask-new                \ nb1 dom mask
-    over _domain-set-ms-bit-mask    \ dom
+    over                            \ nb2 dom nb2
+    ms-bit                          \ nb2 dom msb
+    #2 pick mask-new                \ nb2 dom mask
+    over _domain-set-ms-bit-mask    \ nb2 dom
 
+cr ." domain-new: todo read cs store? change xts to set cur-store?" cr
     \ Set arbitrary current state.
-    0 over domain-current-state-disp + ! \ dom
+    0 rot state-new                 \ dom sta
+    over                            \ dom sta dom
+    _domain-set-current-state       \ dom
 ;
 
 \ Print a domain.
@@ -322,7 +323,10 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
     if
         \ Clear fields.
         dup domain-get-actions action-list-deallocate
+        dup domain-get-current-state state-deallocate
         dup domain-get-max-region region-deallocate
+        dup domain-get-all-bits-mask mask-deallocate
+        dup domain-get-ms-bit-mask mask-deallocate
 
         \ Deallocate instance.
         domain-mma mma-deallocate
@@ -360,7 +364,7 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
     \ Set domain current state.
     dup sample-get-result           \ act1 dom0 | smpl sta
     #2 pick                         \ act1 dom0 | smpl sta dom
-    domain-set-current-state        \ act1 dom0 | smpl
+    _domain-set-current-state       \ act1 dom0 | smpl
 
 \    cr
 \    over domain-get-inst-id cr ." Dom: " #3 dec.r   \ act1 dom0 | smpl

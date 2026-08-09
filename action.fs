@@ -6,7 +6,7 @@
 \ Struct fields
 0                                                   constant action-header-disp                         \ 16 bits, [0] Struct id, [1] Use count [2] Number bits ( 8 bits )
                                                                                                         \ Action instance ID ( 8 bits ).
-action-header-disp                          cell+   constant action-parent-disp                         \ Domain ref, or 0.
+action-header-disp                          cell+   constant action-parent-disp                         \ Domain ref, or 0 for testing.
 
 action-parent-disp                          cell+   constant action-squares-disp                        \ A square list.
 
