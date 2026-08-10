@@ -1,15 +1,20 @@
 
 : group-test-new
-    \ Init square-list.
+    \ Init group.
     list-new                                    \ sqr-lst
     s" s1010->s1010" square-from-string-a       \ sqr-lst sqr1
     over list-push-struct                       \ sqr-lst
     s" rXX10" region-from-string-a              \ sqr-lst reg
 
-    0 group-new                                 \ grp t | f
+    2 1 group-new                               \ grp t | f
     invert abort" group-new failed?"
 
+    \ Display results.
     cr ." group: " dup .group
+
+    \ Test.
+    dup group-get-act-inst-id #2 <> abort" action inst id s/b 2?"
+    dup group-get-dom-inst-id #1 <> abort" action inst id s/b 1?"
 
     \ Clean up.
     group-deallocate
@@ -20,7 +25,7 @@
     s" s1001->s0001" square-from-string-a over list-push-struct
     s" rX0XX" region-from-string-a              \ lst reg
     2dup                                        \ lst reg lst reg
-    0 group-new                                 \ lst reg grp t | f
+    2 1 group-new                               \ lst reg grp t | f
     abort" group-new succeeded?"
 
     \ Clean up.
@@ -36,7 +41,6 @@
     s" s1010->s1010" sample-from-string-a       \ sqr-lst smpl
     dup square-new                              \ sqr-lst smpl sqr1
     2dup square-add-sample drop                 \ sqr-lst smpl sqr1
-
     2dup square-add-sample drop                 \ sqr-lst smpl sqr1
     tuck square-add-sample drop                 \ sqr-lst sqr1
     over list-push-struct                       \ sqr-lst
@@ -50,7 +54,7 @@
     over list-push-struct                       \ sqr-lst
 
     s" rXXXX" region-from-string-a              \ sqr-lst reg
-    0 group-new                                 \ grp t | f
+    2 1 group-new                               \ grp t | f
     invert abort" group-new failed?"
 
     cr ." group: " dup .group
@@ -72,7 +76,7 @@
     s" s1111->s1111" square-from-string-a tuck over list-push-struct    \ sqr8 sqrf lst
     s" rXXXX" region-from-string-a                                      \ sqr8 sqrf lst reg
     cr
-    0 group-new                                                         \ sqr8 sqrf, grp t | f
+    2 1 group-new                                                       \ sqr8 sqrf, grp t | f
     invert abort" group-new failed?"
 
     cr ." initial group: " dup .group cr
@@ -137,7 +141,7 @@
     rot                                         \ smpl sqr1 sqr-lst
 
     s" rXXXX" region-from-string-a              \ smpl sqr1 sqr-lst reg
-    0 group-new                                 \ smpl sqr1 grp t | f
+    2 1 group-new                               \ smpl sqr1 grp t | f
     invert abort" group-new failed?"
 
     cr ." group: " dup .group
@@ -166,7 +170,7 @@
     s" s1000->s1000" square-from-string-a over list-push-struct         \ lst
     s" rXXXX" region-from-string-a                                      \ lst reg
     cr
-    0 group-new                                                         \ grp t | f
+    2 1 group-new                                                       \ grp t | f
     invert abort" group-new failed?"
 
     cr ." initial group: " dup .group cr
@@ -185,14 +189,6 @@
     over group-get-s-region over                        \ grp reg-tmp' grp-reg reg-tmp'
     regions-eq? invert abort" r-region invalid?"        \ grp reg-tmp'
     region-deallocate                                   \
-
-    \ Add an incompatible square.
-    s" s1011->s0011" square-from-string-a                               \ grp sqr9
-    over
-    \ cr ." at 1: " .stack-gbl cr
-    group-add-new-square                                                \ grp
-    \ cr ." at 2: " .stack-gbl cr
-    cr ." group + sqrB: " dup .group cr
 
     \ Deallocate.
     group-deallocate

@@ -747,3 +747,15 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 
     swap mask-deallocate    \ bool
 ;
+
+\ Return true if a region is all X.
+: region-all-x? ( reg0 -- bool )
+    \ Check arg.
+    assert( tos is-region? )
+
+    region-edge-mask        \ msk'
+    dup                     \ msk' msk'
+    mask-is-zero?           \ msk' bool
+
+    swap mask-deallocate    \ bool
+;

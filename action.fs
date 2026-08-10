@@ -5,10 +5,10 @@
 
 \ Struct fields
 0                                                   constant action-header-disp                         \ 16 bits, [0] Struct id, [1] Use count [2] Number bits ( 8 bits )
-                                                                                                        \ Action instance ID ( 8 bits ).
-action-header-disp                          cell+   constant action-parent-disp                         \ Domain ref, or 0 for testing.
+                                                                                                        \ Action instance ID ( 8 bits ) [3] Domain instance ID.
+action-header-disp                          cell+   constant action-max-region-disp                     \ Maximum region.
 
-action-parent-disp                          cell+   constant action-squares-disp                        \ A square list.
+action-max-region-disp                      cell+   constant action-squares-disp                        \ A square list.
 
 action-squares-disp                         cell+   constant action-adj-pairs-disp                      \ A region list.
                                                                                                         \ Adjacent, incompatible, states, define the regions.
@@ -69,33 +69,17 @@ action-groups-disp                          cell+   constant action-function-dis
 
 \ Start accessors.
 
-\ Return the parent from an action instance.
-: action-get-parent ( act0 -- dom )
+\ Return the action domain id.
+: action-get-dom-inst-id ( act0 -- id )
     \ Check arg.
     assert( tos is-action? )
 
-    action-parent-disp +    \ Add offset.
-    @                       \ Fetch the field.
+    6c@                 \ Fetch the field.
 ;
 
-\ Set the parent of an action instance, use only in this file.
-\ Do not inc parent use count.
-: _action-set-parent ( dom1 act0 -- )
-    action-parent-disp +    \ Add offset.
-    !                       \ Set the field.
-;
-
-\ Get the number of bits.
-: action-get-num-bits ( act0 -- nb )
-    \ Check arg.
-    assert( tos is-action? )
-
-    4c@
-;
-
-\ Set the number of bits.
-: _action-set-num-bits ( nb act0 -- )
-    4c!
+\ Set the action domain id.
+: _action-set-dom-inst-id ( id1 act0 -- )
+    6c!
 ;
 
 \ Get the action id.
@@ -111,6 +95,25 @@ action-groups-disp                          cell+   constant action-function-dis
 \ Set the action id.
 : _action-set-inst-id ( id act0 -- )
     5c!
+;
+
+\ Return the maximum region from an action instance.
+: action-get-max-region ( act0 -- max-reg )
+    \ Check arg.
+    assert( tos is-action? )
+
+    action-max-region-disp +    \ Add offset.
+    @                           \ Fetch the field.
+;
+
+\ Set the maximum region of an action instance.
+: _action-set-max-region ( max-reg1 act0 -- )
+    \ Check args.
+    assert( tos is-action? )
+    assert( nos is-region? )
+
+    action-max-region-disp +    \ Add offset.
+    !struct                     \ Set the field.
 ;
 
 \ Return the square-list from an action instance.
@@ -360,8 +363,6 @@ action-groups-disp                          cell+   constant action-function-dis
     !struct                         \ Set the field.
 ;
 
-
-
 \ End accessors
 
 \ Start update functions.
@@ -464,86 +465,72 @@ action-groups-disp                          cell+   constant action-function-dis
 
 \ End update functions.
 
+\ Get the number of bits.
+: action-get-num-bits ( act0 -- nb )
+    \ Check arg.
+    assert( tos is-action? )
+
+    action-get-max-region
+    region-get-num-bits
+;
+
 \ Return a new action, given a functian to run to get a sample,
 \ and the number of bits being used.
-: action-new ( xt num-bits inst-id parent -- addr)
+: action-new ( xt3 max-region2 inst-id1 dom-id0 -- addr)
     \ cr ." action-new: start: " .stack-gbl cr
-    assert( dup if tos is-domain?-xt execute else true then )
+    assert( tos 0 >= )
+    assert( tos #256 < )
     assert( nos 0 >= )
     assert( nos #256 < )
-    assert( 3os 1 >= )
-    assert( 3os [ 1 cells #8 * ] literal <= )
+    assert( 3os is-region? )
+    assert( 3os region-all-x? )
 
     \ Allocate space.
-    action-struct-id action-mma         \ xt nb inst-id parent struct-id mma
-    struct-allocate                     \ xt nb inst-id parent act
+    action-struct-id action-mma         \ xt3 mr2 inst-id1 dom-id0 struct-id mma
+    struct-allocate                     \ xt3 mr2 inst-id1 dom-id0 act
 
-    \ Set parent.
-    tuck _action-set-parent             \ xx num-bits inst-id act
+    \ Set parent domain intance id.
+    tuck _action-set-dom-inst-id        \ xt3 mr2 inst-id1 act
 
-    \ Set inst id.
-    tuck _action-set-inst-id            \ xt nb act
+    \ Set action instance id.
+    tuck _action-set-act-inst-id        \ xt3 mr2 act
 
-    \ Set number bits.
-    2dup _action-set-num-bits           \ xt nb act
+    \ Init adj regions list.
+    list-new                            \ xt3 mr2 act lst
+    #2 pick                             \ xt3 mr2 act lst mr2
+    over list-push-struct               \ xt3 mr2 act lst
+    over                                \ xt3 mr2 act lst act
+    _action-set-adj-regions             \ xt3 mr2 act
 
-    \ Set squares list.
-    list-new                            \ xt nb act lst
-    over _action-set-squares            \ xt nb act
+    \ Init non-adj regions list.
+    list-new                            \ xt3 mr2 act lst
+    #2 pick                             \ xt3 mr2 act lst mr2
+    over list-push-struct               \ xt3 mr2 act lst
+    over                                \ xt3 mr2 act lst act
+    _action-set-nadj-regions            \ xt3 mr2 act
 
-    \ Set adjacent incompatible pairs list.
-    list-new                            \ xt nb act lst
-    over                                \ xt nb act lst act
-    _action-set-adj-pairs               \ xt nb act
+    \ Init possible-regions list.
+    list-new                            \ xt3 mr2 act lst
+    #2 pick                             \ xt3 mr2 act lst mr2
+    over list-push-struct               \ xt3 mr2 act lst
+    over                                \ xt3 mr2 act lst act
+    _action-set-possible-regions        \ xt3 mr2 act
 
-    \ Set adj regions list.
-    list-new                            \ xt nb act lst
-    #2 pick                             \ xt nb act lst nb
-    region-max-x                        \ xt nb act lst reg-max
-    over list-push-struct               \ xt nb act lst
-    over                                \ xt nb act lst act
-    _action-set-adj-regions             \ xt nb act
-
-    \ Set non-adjacent incompatible pairs list.
-    list-new                            \ xt nb act lst
-    over                                \ xt nb act lst act
-    _action-set-nadj-pairs              \ xt nb act
-
-    \ Set non-adj regions list.
-    list-new                            \ xt nb act lst
-    #2 pick                             \ xt nb act lst nb
-    region-max-x                        \ xt nb act lst reg-max
-    over list-push-struct               \ xt nb act lst
-    over                                \ xt nb act lst act
-    _action-set-nadj-regions            \ xt nb act
-
-    \ Set possible-regions list.
-    list-new                            \ xt nb act lst
-    rot                                 \ xt act lst nb
-    region-max-x                        \ xt act lst reg-max
-    over list-push-struct               \ xt act lst
-    over                                \ xt act lst act
-    _action-set-possible-regions        \ xt act
-
-    \ Set initial group list.
-    list-new over _action-set-groups    \ xt act
+    \ Set maximum region.
+    tuck _action-set-max-region         \ xt3 act
 
     \ Set function.
     tuck _action-set-function           \ act
 
-    \ Set squares-in-one-region.
+    \ Init empty list fields.
+    list-new over _action-set-squares
+    list-new over _action-set-adj-pairs
+    list-new over _action-set-nadj-pairs
+    list-new over _action-set-groups
     list-new over _action-set-states-in-one-region
-
-    \ Set defining regions.
     list-new over _action-set-defining-regions
-
-    \ Set states-not-in-defining-regions.
     list-new over _action-set-states-not-in-defining-regions
-
-    \ Set corners.
     list-new over _action-set-corners
-
-    \ Set corner clusters.
     list-new over _action-set-corner-clusters
 ;
 
@@ -580,13 +567,15 @@ action-groups-disp                          cell+   constant action-function-dis
    \ Check arg.
     assert( tos is-action? )
 
-    action-get-parent           \ dom
-    dup ifnot drop exit then    \ Print nothing.
-
-    cr ." .action-parent: todo " cr
+\    action-get-parent       \ dom
+\    dup                     \ dom dom
+\    if
+\        domain-get-id       \ dom-id
+\        ." Dom: " dec.
+\    else
+\        ." Dom: None"
+\    then
     drop
-    \ domain-get-id             \ dom-id
-    \ ." Dom: " dec.
 ;
 
 ' .action-parent to .action-parent-xt
@@ -597,7 +586,7 @@ action-groups-disp                          cell+   constant action-function-dis
     \ Check arg.
     assert( tos is-action? )
 
-    cr ." Action: " dup action-get-inst-id dec.
+    cr dup .action-parent space ." Act: " dup action-get-inst-id dec.
     cr
     s"     Squares:              " #2 pick action-get-squares .square-list-prefix
     cr
@@ -672,6 +661,7 @@ action-groups-disp                          cell+   constant action-function-dis
     #2 <
     if
         \ Clear fields.
+        dup action-get-max-region region-deallocate
         dup action-get-squares square-list-deallocate
 
         dup action-get-adj-pairs region-list-deallocate

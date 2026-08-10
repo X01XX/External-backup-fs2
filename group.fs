@@ -1,12 +1,13 @@
 \ Implement a group struct and functions.
 
 #43717 constant group-struct-id
-    #6 constant group-struct-number-cells
+    #5 constant group-struct-number-cells
 
 \ Struct fields
-0                           constant group-header-disp      \ 16 bits, [0] struct id, [1] use count (16), [2] pnc (8 bits)
-group-header-disp   cell+   constant group-parent-disp      \ Parent action, may be zero for testing.
-group-parent-disp   cell+   constant group-region-disp      \ The group region.
+0                           constant group-header-disp      \ 16 bits, [0] struct id, [1] use count (16),
+                                                            \ [2] pnc (8 bits) Action instance ID ( 8 bits )
+                                                            \ [3] Domain instance ID ( 8 bits )
+group-header-disp   cell+   constant group-region-disp      \ The group region.
 group-region-disp   cell+   constant group-s-region-disp    \ A Region covered by the group's base-pn squares, often a proper subset of the group-region.
 group-s-region-disp cell+   constant group-squares-disp     \ A square-list.
 group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
@@ -39,20 +40,31 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 
 \ Start accessors.
 
-\ Return the group parent.
-: group-get-parent ( grp0 -- par )
+\ Return the group action id.
+: group-get-act-inst-id ( grp0 -- id )
     \ Check arg.
     assert( tos is-group? )
 
-    group-parent-disp + \ Add offset.
-    @                   \ Fetch the field.
+    5c@                 \ Fetch the field.
 ;
 
-\ Set the parent of a group instance, use only in this file.
+\ Set the group action id.
 \ Do not inc parent use count.
-: _group-set-parent ( par1 grp0 -- )
-    group-parent-disp + \ Add offset.
-    !                   \ Set the field, don't increment use count of parent.
+: _group-set-act-inst-id ( id1 grp0 -- )
+    5c!
+;
+
+\ Return the group domain id.
+: group-get-dom-inst-id ( grp0 -- id )
+    \ Check arg.
+    assert( tos is-group? )
+
+    6c@                 \ Fetch the field.
+;
+
+\ Set the group domain id.
+: _group-set-dom-inst-id ( id1 grp0 -- )
+    6c!
 ;
 
 \ Return the group region.
@@ -75,7 +87,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     \ Check arg.
     assert( tos is-group? )
 
-    group-s-region-disp +   \ Add offset.
+    group-s-region-disp +   \ Add offset.group-check-changed-square
     @                       \ Fetch the field.
 ;
 
@@ -135,25 +147,6 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 ;
 
 \ End accessors.
-
-\ Print parent domain id, action id, if any.
-\ Group parent action ref may be zero, action parent ref may be zero.
-: .group-parents ( grp0 -- )
-   \ Check arg.
-    assert( tos is-group? )
-
-    group-get-parent            \ act
-    dup ifnot drop exit then    \ Print nothing.
-
-    \ cr ." .group-parent: todo " cr
-    \ drop
-    dup                         \ act act
-    action-get-inst-id-xt       \ act act xt
-    execute                     \ act act-id
-    swap                        \ act-id act
-    .action-parent-xt execute   \ act-id
-    ." Act: " dec.
-;
 
 \ Calc, and set, group s-region, based on group square list.
 : _group-calc-set-s-region ( grp0 -- )
@@ -255,75 +248,62 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     then
 ;
 
-\ Return a new group, given a parent action ( may be zero ), region and square-list.
+\ Return a new group, given a domain id, action id, region and square-list.
 \ Return false if the given square list is empty,
 \ or contains an incompatible pair,
 \ or are not all within the given region.
-: group-new    ( sqrs2 reg1 act0 -- grp t | f )
+\
+\ Due to the incompatible pairs logic, every group region will match
+\ a possible region, and no squares in the group will be incompatible.
+: group-new    ( sqrs4 reg3 action-inst-id2 domain-inst-id1 -- grp t | f )
     \ Check args.
-    dup 0<>
-    if
-        assert( tos is-action?-xt execute )
-    then
-    assert( nos is-region? )
-    assert( 3os is-square-list? )
+    assert( tos 0 >= )
+    assert( tos 256 < )
+    assert( nos 0 >= )
+    assert( nos 256 < )
+    assert( 3os is-region? )
+    assert( 4os is-square-list? )
 
-    -rot                            \ act0 sqrs2 reg1
-
-    \ Check squares are in region, save the square's region.
-    over square-list-region         \ act0 sqrs2 reg1, s-reg t | f
+    \ Calc the square list's region.
+    #3 pick                         \ sqrs4 reg3 act-id2 dom-id1 | sqrs4
+    square-list-region              \ sqrs4 reg3 act-id2 dom-id1 | s-reg' t | f
     invert abort" group-new: square-list-region failed?"
-    2dup swap                       \ act0 sqrs2 reg1 s-reg' s-reg reg1
-    region-superset?                \ act0 sqrs2 reg1 s-reg' bool
+
+    \ Check if square list region is a subset of the given group region.
+    dup #4 pick                     \ sqrs4 reg3 act-id2 dom-id1 | s-reg' s-reg' reg3
+    region-superset?                \ sqrs4 reg3 act-id2 dom-id1 | s-reg' bool
     ifnot
-        \ cr ." group-new: at 1: " .stack-gbl cr
         region-deallocate
-        2drop drop
+        2drop 2drop
         false
+        \ cr ." group-new: exit 1" cr
         exit
     then
-    -rot                            \ act0 s-reg' sqrs2 reg1
 
-    \ Get square rules, and check all squares are compatible.
-    \ cr ." group-new: at 2: " .stack-gbl cr
-    over square-list-calc-rules     \ act0 s-reg' sqrs2 reg1, ruls' t | f
-    \ cr ." group-new: at 3: " .stack-gbl cr
+    \ Calc square rules.
+    #4 pick                         \ sqrs4 reg3 act-id2 dom-id1 | s-reg' sqrs4
+    square-list-calc-rules          \ sqrs4 reg3 act-id2 dom-id1 | s-reg', ruls' t | f
     ifnot
-        \ cr ." group-new: at 4: " .stack-gbl cr
-        2drop
-        \ cr ." group-new: at 5: " .stack-gbl cr
         region-deallocate
-        drop
+        2drop 2drop
         false
         \ cr ." group-new: exit 2" cr
         exit
     then
 
-    -rot                            \ act0 s-reg' ruls' sqrs2 reg1
-
     \ Allocate instance.
-    group-struct-id group-mma       \ act0 s-reg' ruls' sqrs2 reg1 id mma
-    struct-allocate                 \ act0 s-reg' ruls' sqrs2 reg1 grp
+    group-struct-id group-mma       \ sqrs4 reg3 act-id2 dom-id1 | s-reg' ruls' id mma
+    struct-allocate                 \ sqrs4 reg3 act-id2 dom-id1 | s-reg' ruls' grp
 
-    \ Set region.
-    tuck                            \ act0 s-reg' ruls' sqrs2 grp reg1 grp
-    _group-set-region               \ act0 s-reg' ruls' sqrs2 grp
+    \ Set fields.
+    tuck _group-set-rules           \ sqrs4 reg3 act-id2 dom-id1 | s-reg' grp
+    tuck _group-set-s-region        \ sqrs4 reg3 act-id2 dom-id1 | grp
+    tuck _group-set-dom-inst-id     \ sqrs4 reg3 act-id2 grp
+    tuck _group-set-act-inst-id     \ sqrs4 reg3 grp
+    tuck _group-set-region          \ sqrs4 grp
+    tuck _group-set-squares         \ grp
 
-    \ Set squares.
-    tuck                            \ act0 s-reg' ruls' grp sqrs2 grp
-    _group-set-squares              \ act0 s-reg' ruls' grp
-
-    \ Set rules
-    tuck _group-set-rules           \ act0 s-reg' grp
-
-    \ Set s-region
-    tuck _group-set-s-region        \ act0 grp
-
-    \ Set pnc
-    dup _group-calc-set-pnc         \ act0 grp
-
-    \ Set parent.
-    tuck _group-set-parent          \ grp
+    dup _group-calc-set-pnc         \ grp
 
     true
 ;
