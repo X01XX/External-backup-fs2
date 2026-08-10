@@ -62,6 +62,8 @@ include actionlist.fs
 
 include frame.fs
 include domain.fs
+include domainlist.fs
+include session.fs
 
 cr
 
@@ -80,6 +82,7 @@ include action_t.fs
 include group_t.fs
 include incpairs_t.fs
 include domain_t.fs
+include session_t.fs
 
 \ Init array-stacks.
 #301 link-mma-init
@@ -98,6 +101,7 @@ include domain_t.fs
 #130 group-mma-init
 #010 frame-mma-init
 #010 domain-mma-init
+#005 session-mma-init
 cr cr
 
 \ Init structinfo list.
@@ -121,6 +125,7 @@ list-new to structinfo-list-store
 ' =             ' noop                  ' group-deallocate      ' .group    s" Group"       group-mma       group-struct-id     structinfo-new structinfo-list-store structinfo-list-push-end
 ' noop          ' noop                  ' frame-deallocate      ' .frame    s" Frame"       frame-mma       frame-struct-id     structinfo-new structinfo-list-store structinfo-list-push-end
 ' noop          ' noop                  ' domain-deallocate     ' .domain   s" Domain"      domain-mma      domain-struct-id    structinfo-new structinfo-list-store structinfo-list-push-end
+' noop          ' noop                  ' session-deallocate    ' .session  s" Domain"      session-mma     session-struct-id   structinfo-new structinfo-list-store structinfo-list-push-end
 
 : main
 
@@ -193,6 +198,7 @@ list-new to structinfo-list-store
     corner-tests
     corner-list-tests
     inc-pair-tests
+    session-tests
     cr
 ;
 

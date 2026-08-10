@@ -48,12 +48,20 @@
     list-push-end-struct        \
 ;
 
+: domain-id-eq? ( id1 dom0 -- bool )
+    \ Check args.
+    assert( tos is-domain? )
+
+    domain-get-inst-id  \ id1 id0
+    =
+;
+
 \ Find a domain in a list, by instance id, if any.
 : domain-list-find ( id1 list0 -- dom t | f )
     \ Check args.
     assert( tos is-domain-list? )
 
-    [ ' domain-id-eq ] literal -rot list-find
+    [ ' domain-id-eq? ] literal -rot list-find
 ;
 
 

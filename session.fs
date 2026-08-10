@@ -4,7 +4,7 @@
     #2 constant session-struct-number-cells
 
 \ Struct fields
-0                                               constant session-header-disp                        \ 16-bits [0] struct id [1] use count:w
+0                                               constant session-header-disp                        \ 16-bits [0] struct id [1] use count
 
 session-header-disp                     cell+   constant session-domains-disp                       \ A domain-list, kind of like senses.
 
@@ -25,7 +25,7 @@ session-header-disp                     cell+   constant session-domains-disp   
     dup session-mma mma-is-item?    \ addr bool
     if
         struct-get-id
-        session-id =                \ bool
+        session-struct-id =         \ bool
     else
         drop
         false                       \ f
@@ -67,11 +67,6 @@ session-header-disp                     cell+   constant session-domains-disp   
     list-new swap                   \ sess0 reg-lst dom-lst
 
     foreach                         \ sess0 reg-lst d-link
-        \ Set current domain.
-        dup link-get-data           \ sess0 reg-lst d-link domx
-        #3 pick                     \ sess0 reg-lst d-link domx sess0
-        session-set-current-domain  \ sess0 reg-lst d-link
-
         \ Add next region.
         dup link-get-data           \ sess0 reg-lst d-lisk domx
         domain-get-max-region       \ sess0 reg-lst d-lisk max-reg
@@ -80,7 +75,8 @@ session-header-disp                     cell+   constant session-domains-disp   
     next
                                     \ sess0 reg-lst
     nip                             \ reg-lst
-    regioncorr-new
+    cr ." todo regioncorr-new" cr
+    \ regioncorr-new
 ;
 
 ' session-calc-max-regions to session-calc-max-regions-xt
@@ -92,7 +88,7 @@ session-header-disp                     cell+   constant session-domains-disp   
 
     \ cr ." session-new: start " .s cr
     \ Allocate space.
-    session-id session-mma
+    session-struct-id session-mma
     struct-allocate                 \ ses
 
     \ Set domains list.
@@ -148,37 +144,25 @@ session-header-disp                     cell+   constant session-domains-disp   
     over session-get-domains        \ cur-dom sess0 sta-lst dom-lst
 
     foreach                         \ cur-dom sess0 sta-lst link
-        dup link-get-data           \ cur-dom sess0 sta-lst link domx
-
-        dup #4 pick session-set-current-domain
-
         domain-get-current-state    \ cur-dom sess0 sta-lst link stax
         #2 pick                     \ cur-dom sess0 sta-lst link stax sta-lst
         list-push-end               \ cur-dom sess0 sta-lst link
     next
                                     \ cur-dom sess0 sta-lst
 
-    \ Restore original current domain.
-    -rot                            \ sta-lst cur-dom sess0
-    session-set-current-domain      \ sta-lst
+    nip nip                         \ sta-lst
 ;
 
 : session-get-current-regions ( sess0 -- regcorr )  \ Return a list of regions, one for each domain state, in domain list order.
     \ Check args.
     assert( tos is-session? )
 
-    \ Save current domain.
-    dup session-get-current-domain  \ sess0 cur-dom
-    swap                            \ cur-dom sess0
-
     \ Init return list.
     list-new                        \ cur-dom sess0 sat-lst
     over session-get-domains        \ cur-dom sess0 reg-lst dom-lst
 
     foreach                         \ cur-dom sess0 reg-lst link
-        dup link-get-data           \  sess0 reg-lst link domx
-
-        dup #4 pick session-set-current-domain
+        dup link-get-data           \ cur-dom sess0 reg-lst link domx
 
         domain-get-current-state    \ cur-dom sess0 reg-lst link stax
         dup region-new              \ cur-dom sess0 reg-lst link regx
@@ -186,20 +170,14 @@ session-header-disp                     cell+   constant session-domains-disp   
         list-push-end               \ cur-dom sess0 reg-lst link
     next
                                     \ cur-dom sess0 reg-lst
-    \ Restore original current domain.
-    -rot                            \ reg-lst cur-dom sess0
-    session-set-current-domain      \ reg-lst
-
-    regioncorr-new
+    nip nip                         \ reg-lst
+cr ." todo session-get-current-regions" cr
+    \ regioncorr-new
 ;
 
 : .session-current-states ( sess0 -- )  \ Print a list of current states.
     \ Check args.
     assert( tos is-session? )
-
-    \ Save current domain.
-    dup session-get-current-domain  \ sess0 cur-dom
-    swap                            \ cur-dom sess0
 
     dup session-get-domains         \ cur-dom sess0 dom-lst
     list-get-links                  \ cur-dom sess0 d-link
@@ -207,14 +185,9 @@ session-header-disp                     cell+   constant session-domains-disp   
     begin
         ?dup
     while
-        \ Set current domain.
-        dup link-get-data           \ cur-dom sess0 d-link domx
-        #2 pick                     \ cur-dom sess0 d-link domx sess0
-        session-set-current-domain  \ cur-dom sess0 d-link
-
         dup link-get-data           \ cur-dom sess0 d-link domx
         domain-get-current-state    \ cur-dom sess0 d-link d-sta
-        .value                      \ cur-dom sess0 d-link
+        .state                      \ cur-dom sess0 d-link
 
         link-get-next               \ cur-dom sess0 d-link-nxt
         dup 0<> if
@@ -222,8 +195,7 @@ session-header-disp                     cell+   constant session-domains-disp   
         then
     repeat
                                     \ cur-dom sess0
-    \ Restore original current domain.
-    session-set-current-domain      \
+    2drop                           \
     ." )"
 ;
 
@@ -246,8 +218,7 @@ session-header-disp                     cell+   constant session-domains-disp   
     then
 
     list-get-item               \ sess0 dom
-    tuck swap                   \ dom dom sess0
-    session-set-current-domain  \ dom
+    nip                         \ dom
     true
 ;
 
@@ -262,10 +233,9 @@ session-header-disp                     cell+   constant session-domains-disp   
     session-get-domains                 \ dom1 sess0 dom1 dom-lst
     domain-list-push-end                \ dom1 sess0
 
-    \ Set current-domain, if it is zero/invalid.
-    tuck session-set-current-domain     \ sess0
-
-    session-process-regioncorrrates     \ To get rate 0, max region regc.
+    cr ." todo session-add-domain" cr
+    2drop
+    \ session-process-regioncorrrates     \ To get rate 0, max region regc.
 ;
 
 \ Return the numebr of domains.
@@ -278,6 +248,10 @@ session-header-disp                     cell+   constant session-domains-disp   
 ;
 
 ' session-get-number-domains to session-get-number-domains-xt
+
+: session-do-zero-token-command
+
+;
 
 \ Do commands from user input.
 \ Return true if the read-eval loop should continue.
@@ -319,6 +293,14 @@ session-header-disp                     cell+   constant session-domains-disp   
     true
 ;
 
+: session-set-all-needs
+
+;
+
+: session-get-needs
+
+;
+
 \ Get input of up to TOS characters from user, using the PAD area, up to a given number of characters.
 \ Evaluate the input.
 \ like: 80 s" Enter command: > " get-user-input
@@ -353,7 +335,7 @@ session-header-disp                     cell+   constant session-domains-disp   
         2drop
     else
         drop
-        cr ." Needs:" cr .need-list cr  \ sess0
+        \ cr ." Needs:" cr .need-list cr  \ sess0
         cr ." Press Enter to randomly choose a need."
     then
 
