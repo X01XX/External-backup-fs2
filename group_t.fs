@@ -6,7 +6,7 @@
     over list-push-struct                       \ sqr-lst
     s" rXX10" region-from-string-a              \ sqr-lst reg
 
-    2 1 group-new                               \ grp t | f
+    #2 1 group-new                              \ grp t | f
     invert abort" group-new failed?"
 
     \ Display results.
@@ -25,7 +25,7 @@
     s" s1001->s0001" square-from-string-a over list-push-struct
     s" rX0XX" region-from-string-a              \ lst reg
     2dup                                        \ lst reg lst reg
-    2 1 group-new                               \ lst reg grp t | f
+    #2 1 group-new                              \ lst reg grp t | f
     abort" group-new succeeded?"
 
     \ Clean up.
@@ -54,7 +54,7 @@
     over list-push-struct                       \ sqr-lst
 
     s" rXXXX" region-from-string-a              \ sqr-lst reg
-    2 1 group-new                               \ grp t | f
+    #2 1 group-new                              \ grp t | f
     invert abort" group-new failed?"
 
     cr ." group: " dup .group
@@ -64,7 +64,7 @@
     group-deallocate
 
     \ Check for memory leaks.
-    structinfo-list-store structinfo-list-project-deallocated
+     structinfo-list-store-project-deallocated
 
     cr ." group-test-new - Ok"
 ;
@@ -76,7 +76,7 @@
     s" s1111->s1111" square-from-string-a tuck over list-push-struct    \ sqr8 sqrf lst
     s" rXXXX" region-from-string-a                                      \ sqr8 sqrf lst reg
     cr
-    2 1 group-new                                                       \ sqr8 sqrf, grp t | f
+    #2 1 group-new                                                      \ sqr8 sqrf, grp t | f
     invert abort" group-new failed?"
 
     cr ." initial group: " dup .group cr
@@ -141,7 +141,7 @@
     rot                                         \ smpl sqr1 sqr-lst
 
     s" rXXXX" region-from-string-a              \ smpl sqr1 sqr-lst reg
-    2 1 group-new                               \ smpl sqr1 grp t | f
+    #2 1 group-new                              \ smpl sqr1 grp t | f
     invert abort" group-new failed?"
 
     cr ." group: " dup .group
@@ -159,7 +159,7 @@
     2drop
 
     \ Check for memory leaks.
-    structinfo-list-store structinfo-list-project-deallocated
+     structinfo-list-store-project-deallocated
 
     cr ." group-test-check-changed-square - Ok"
 ;
@@ -170,7 +170,7 @@
     s" s1000->s1000" square-from-string-a over list-push-struct         \ lst
     s" rXXXX" region-from-string-a                                      \ lst reg
     cr
-    2 1 group-new                                                       \ grp t | f
+    #2 1 group-new                                                      \ grp t | f
     invert abort" group-new failed?"
 
     cr ." initial group: " dup .group cr
@@ -194,7 +194,7 @@
     group-deallocate
 
     \ Check for memory leaks.
-    structinfo-list-store structinfo-list-project-deallocated
+     structinfo-list-store-project-deallocated
 
     cr ." group-test-add-new-square - Ok"
 ;

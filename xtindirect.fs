@@ -58,8 +58,6 @@
 
 ' xtabort value domain-get-sample-xt
 
-' xtabort value domain-get-parent-xt
-
 
 ' xtabort value action-get-inst-id-xt
 
@@ -116,7 +114,7 @@
 ' xtabort value .regioncorr-xt
 
 
-' xtabort value structinfo-list-project-deallocated-xt
+' xtabort value structinfo-list-store-project-deallocated-xt
 
 ' xtabort value structinfo-list-print-memory-use-xt
 

@@ -3,7 +3,7 @@
 : action-test-new
     \ Run function..
     [ ' calc-result-x ] literal
-    s" rXXXX 0 0" string-to-stack
+    s" rXXXX 2 1" string-to-stack
     action-new              \ act
 
     \ Display results.
@@ -11,14 +11,14 @@
 
     \ Test results.
     dup action-get-num-bits #4 <> abort" num bits s/b 4?"
-    dup action-get-inst-id 0<> abort" inst-id s/b 0?"
-    dup action-get-parent 0<> abort" parent s/b 0?"
+    dup action-get-inst-id #2 <> abort" inst-id s/b 1?"
+    dup action-get-dom-inst-id 1 <> abort" parent s/b 2?"
 
     \ Deallocate
     action-deallocate
 
     \ Check for memory leaks.
-    structinfo-list-store structinfo-list-project-deallocated
+    structinfo-list-store-project-deallocated
 
     cr ." action-test-new - Ok"
 ;
@@ -79,20 +79,20 @@
     cr dup .action cr
 
     \ Test results.
-    dup action-get-adj-pairs list-get-length 2 <> abort" invalid number of adj pairs"
-    dup action-get-adj-regions list-get-length 5 <> abort" invalid number of adj regions"
+    dup action-get-adj-pairs list-get-length #2 <> abort" invalid number of adj pairs"
+    dup action-get-adj-regions list-get-length #5 <> abort" invalid number of adj regions"
     dup action-get-nadj-pairs list-get-length 0 <> abort" invalid number of nadj pairs"
     dup action-get-nadj-regions list-get-length 1 <> abort" invalid number of nadj regions"
-    dup action-get-states-in-one-region list-get-length 3 <> abort" invalid number of states in one region"
-    dup action-get-defining-regions list-get-length 3 <> abort" invalid number of defining regions"
-    dup action-get-corners list-get-length 3 <> abort" invalid number of corners"
+    dup action-get-states-in-one-region list-get-length #3 <> abort" invalid number of states in one region"
+    dup action-get-defining-regions list-get-length #3 <> abort" invalid number of defining regions"
+    dup action-get-corners list-get-length #3 <> abort" invalid number of corners"
     dup action-get-corner-clusters list-get-length 1 <> abort" invalid number of corner clusters"
 
     \ Deallocate
     action-deallocate
 
     \ Check for memory leaks.
-    structinfo-list-store structinfo-list-project-deallocated
+    structinfo-list-store-project-deallocated
 
     cr ." action-test-add-sample - Ok"
 ;
@@ -160,7 +160,7 @@
     action-deallocate
 
     \ Check for memory leaks.
-    structinfo-list-store structinfo-list-project-deallocated
+    structinfo-list-store-project-deallocated
 
     cr ." action-test-check-incompatible-pairs-for-changed-square - Ok"
 ;
@@ -200,7 +200,7 @@
     action-deallocate
 
     \ Check for memory leaks.
-    structinfo-list-store structinfo-list-project-deallocated
+    structinfo-list-store-project-deallocated
 
     cr ." action-test-corners - Ok"
 ;
@@ -239,14 +239,14 @@
 
     dup list-get-first-item                 \ act clstr-lst clstr
     list-get-length                         \ act clstr-lst len
-    3 <> abort" corner cluster length ne 3?"
+    #3 <> abort" corner cluster length ne 3?"
     drop                                    \ act
 
     \ Deallocate
     action-deallocate
 
     \ Check for memory leaks.
-    structinfo-list-store structinfo-list-project-deallocated
+    structinfo-list-store-project-deallocated
 
     cr ." action-test-corners2 - Ok"
 ;

@@ -258,9 +258,9 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 : group-new    ( sqrs4 reg3 action-inst-id2 domain-inst-id1 -- grp t | f )
     \ Check args.
     assert( tos 0 >= )
-    assert( tos 256 < )
+    assert( tos #256 < )
     assert( nos 0 >= )
-    assert( nos 256 < )
+    assert( nos #256 < )
     assert( 3os is-region? )
     assert( 4os is-square-list? )
 

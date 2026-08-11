@@ -53,7 +53,7 @@
     region-list-deallocate
 
     \ Check for memory leaks.
-    structinfo-list-store structinfo-list-project-deallocated
+     structinfo-list-store-project-deallocated
 
     cr ." region-list-test-defining-regions - Ok"
 ;
@@ -128,7 +128,7 @@
     state-list-deallocate
 
     \ Check for memory leaks.
-    structinfo-list-store structinfo-list-project-deallocated
+     structinfo-list-store-project-deallocated
 
     cr ." region-list-test-evaluate-for-corners - Ok"
 ;

@@ -44,7 +44,7 @@
     rule-deallocate            \ rul-u
 
     \ Check for memory leaks.
-    structinfo-list-store structinfo-list-project-deallocated
+     structinfo-list-store-project-deallocated
 
     cr ." rule-test-union - Ok"
 ;
@@ -93,7 +93,7 @@
     rule-deallocate
 
     \ Check for memory leaks.
-    structinfo-list-store structinfo-list-project-deallocated
+     structinfo-list-store-project-deallocated
 
     cr ." rule-test-intersection - Ok"
 ;

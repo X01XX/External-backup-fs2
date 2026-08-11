@@ -15,7 +15,7 @@
     cr ." max is: " dup . cr
 
     \ Test.
-    dup 2 <> abort" max not 2?"
+    dup #2 <> abort" max not 2?"
 
     [ ' corner-test-rate ] literal              \ reg-lst crn-lst val xt
     swap                                        \ reg-lst crn-lst xt val
@@ -53,7 +53,7 @@
     region-list-deallocate
 
      \ Check for memory leaks.
-    structinfo-list-store structinfo-list-project-deallocated
+    structinfo-list-store-project-deallocated
 
     cr ." corner-list-test-x - Ok"
 ;

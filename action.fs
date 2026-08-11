@@ -493,7 +493,7 @@ action-groups-disp                          cell+   constant action-function-dis
     tuck _action-set-dom-inst-id        \ xt3 mr2 inst-id1 act
 
     \ Set action instance id.
-    tuck _action-set-act-inst-id        \ xt3 mr2 act
+    tuck _action-set-inst-id            \ xt3 mr2 act
 
     \ Init adj regions list.
     list-new                            \ xt3 mr2 act lst
@@ -756,6 +756,14 @@ action-groups-disp                          cell+   constant action-function-dis
     \ cr ." _action-delete-orphaned-groups: end: " .stack-gbl cr
 ;
 
+\ Get both action, and domain, instance ids.
+: action-get-inst-ids ( act0 -- act-id dom-id )
+    assert( tos is-action? )
+
+    dup action-get-inst-id          \ act0 act-id
+    swap action-get-dom-inst-id     \ act-id dom-id
+;
+
 : action-udpate-groups-with-new-square ( sqr1 act0 -- )
     \ Check args.
     assert( tos is-action? )
@@ -786,6 +794,7 @@ action-groups-disp                          cell+   constant action-function-dis
                 over list-push-struct   \ sqr1 act0 grp-lst pos-lnk sqr-lst
                 over link-get-data      \ sqr1 act0 grp-lst pos-lnk sqr-lst regx
                 #4 pick                 \ sqr1 act0 grp-lst pos-lnk sqr-lst regx act0
+                action-get-inst-ids     \ sqr1 act0 grp-lst pos-lnk sqr-lst regx act-id dom-id
                 group-new               \ sqr1 act0 grp-lst pos-lnk, grp-new t | f
                 if
                     \ Add group to group list.
@@ -830,6 +839,7 @@ action-groups-disp                          cell+   constant action-function-dis
                 dup                     \ act0 grp-lst pos-lnk in-lst' in-lst'
                 #2 pick link-get-data   \ act0 grp-lst pos-lnk in-lst' in-lst' pos-reg
                 #5 pick                 \ act0 grp-lst pos-lnk in-lst' in-lst' pos-reg act0
+                action-get-inst-ids     \ act0 grp-lst pos-lnk in-lst' in-lst' pos-reg actsid dom-id
                 group-new               \ act0 grp-lst pos-lnk in-lst', grp t | f
                 if
                     nip                 \ act0 grp-lst pos-lnk grp
@@ -2041,7 +2051,7 @@ action-groups-disp                          cell+   constant action-function-dis
     swap                    \ smpl smpl act0
 
     cr
-    ." Dom: " dup action-get-parent domain-get-inst-id-xt execute #3 dec.r
+    ." Dom: " dup action-get-dom-inst-id #3 dec.r
     space ." Act: " dup action-get-inst-id #3 dec.r
     space ." adding sample: " over .sample
     cr

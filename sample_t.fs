@@ -26,7 +26,7 @@
     sample-deallocate
 
     \ Check for memory leaks.
-    structinfo-list-store structinfo-list-project-deallocated
+    structinfo-list-store-project-deallocated
 
     cr ." sample-test-basic - Ok"
 ;

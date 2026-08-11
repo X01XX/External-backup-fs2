@@ -349,7 +349,13 @@
     assert-forth-stack-empty
 ;
 
-' structinfo-list-project-deallocated to structinfo-list-project-deallocated-xt
+: structinfo-list-store-project-deallocated ( )
+    structinfo-list-store
+    structinfo-list-project-deallocated
+;
+
+' structinfo-list-store-project-deallocated to structinfo-list-store-project-deallocated-xt
+
 
 \ Free heap of all mm_arrays.
 : structinfo-list-free-heap ( snf-lst0 -- )
@@ -388,6 +394,14 @@
     list-push-end-struct
 ;
 
+: structinfo-list-store-push-end ( snf1 -- )
+    \ Check arg.
+    assert( tos is-structinfo? )
+
+    structinfo-list-store
+    structinfo-list-push-end
+;
+
 \ Push a structinfo instance, insure no duplicat id.
 : structinfo-list-push ( snf1 snf-lst0 -- )
     \ Check args.
@@ -401,6 +415,14 @@
     abort" structinfo-list-push: Duplicate struct id?"
 
     list-push-struct
+;
+
+: structinfo-list-store-push ( snf1 -- )
+    \ Check arg.
+    assert( tos is-structinfo? )
+
+    structinfo-list-store
+    structinfo-list-push
 ;
 
 \ Return true if an number/address refers to a strcut.

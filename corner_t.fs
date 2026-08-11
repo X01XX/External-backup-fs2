@@ -6,13 +6,13 @@
     \ Test.
     dup corner-get-adjacent-states              \ crn sta-lst
     list-get-length                             \ crn len
-    2 <> abort" not 2 adjacent states?"         \ crn
+    #2 <> abort" not 2 adjacent states?"        \ crn
 
     \ Deallocate.
     corner-deallocate
 
     \ Check for memory leaks.
-    structinfo-list-store structinfo-list-project-deallocated
+     structinfo-list-store-project-deallocated
 
     cr ." corner-test-new - Ok"
 ;
@@ -25,14 +25,14 @@
     \ cr ." states: " dup .state-list cr
 
     dup list-get-length                     \ crn sta-lst' len
-    3 <> abort" len ne 3?"
+    #3 <> abort" len ne 3?"
 
     \ Deallocate.
     state-list-deallocate
     corner-deallocate
 
     \ Check for memory leaks.
-    structinfo-list-store structinfo-list-project-deallocated
+     structinfo-list-store-project-deallocated
 
     cr ." corner-test-states - Ok"
 ;
@@ -61,7 +61,7 @@
     corner-deallocate
 
     \ Check for memory leaks.
-    structinfo-list-store structinfo-list-project-deallocated
+     structinfo-list-store-project-deallocated
 
     cr ." corner-test-states - Ok"
 ;
@@ -80,7 +80,7 @@
 
     \ Test results.
     dup list-get-length                                 \ reg-lst crn len
-    4 <> abort" Corner cluster not 4 corners?"
+    #4 <> abort" Corner cluster not 4 corners?"
 
     \ Deallocate.
     corner-list-deallocate
@@ -88,7 +88,7 @@
     region-list-deallocate
 
     \ Check for memory leaks.
-    structinfo-list-store structinfo-list-project-deallocated
+     structinfo-list-store-project-deallocated
 
     cr ." corner-test-additional-corners - Ok"
 ;
@@ -106,14 +106,14 @@
 
     \ Test results.
     dup corner-get-rate                                 \ reg-lst crn rt
-    3 <> abort" corner rate ne 3?"
+    #3 <> abort" corner rate ne 3?"
 
     \ Deallocate.
     corner-deallocate
     region-list-deallocate
 
     \ Check for memory leaks.
-    structinfo-list-store structinfo-list-project-deallocated
+     structinfo-list-store-project-deallocated
 
     cr ." corner-test-calc-set-rate - Ok"
 ;

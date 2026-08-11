@@ -20,7 +20,7 @@
     state-list-deallocate
 
     \ Check for memory leaks.
-    structinfo-list-store structinfo-list-project-deallocated
+     structinfo-list-store-project-deallocated
 
     cr ." state-list-test-or-items - Ok"
 ;
@@ -45,7 +45,7 @@
     state-list-deallocate
 
     \ Check for memory leaks.
-    structinfo-list-store structinfo-list-project-deallocated
+     structinfo-list-store-project-deallocated
 
     cr ." state-list-test-and-items - Ok"
 ;

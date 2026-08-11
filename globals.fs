@@ -1,6 +1,6 @@
 
 \ A store for the current session.
-0 value current-session-store
+0 value session-store
 
 : .stack-gbl
     .stack-structs-xt execute

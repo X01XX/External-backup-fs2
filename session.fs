@@ -83,9 +83,6 @@ session-header-disp                     cell+   constant session-domains-disp   
 
 \ Create a session instance.
 : session-new ( -- sess ) \ new session pushed onto session stack.
-
-    structinfo-list-store structinfo-list-project-deallocated-xt execute
-
     \ cr ." session-new: start " .s cr
     \ Allocate space.
     session-struct-id session-mma
@@ -95,7 +92,7 @@ session-header-disp                     cell+   constant session-domains-disp   
     list-new                        \ ses lst
     over _session-set-domains       \ ses
 
-    dup to current-session-store
+    dup to session-store
 ;
 
 \ Print a session.
@@ -103,11 +100,10 @@ session-header-disp                     cell+   constant session-domains-disp   
     \ Check arg.
     assert( tos is-session? )
 
-    cr ." Sess: "
+    cr ." Session: "
     dup session-get-domains
     dup list-get-length
-    ."  num domains: " dec.
-    ." domains "
+    ."  Num domains: " dec.
 
                                                 \ sess0 dom-lst
     foreach                                     \ sess0 link
@@ -130,9 +126,7 @@ session-header-disp                     cell+   constant session-domains-disp   
     \ Deallocate session.
     session-mma mma-deallocate
 
-    0 to current-session-store
-
-    structinfo-list-store structinfo-list-project-deallocated-xt execute
+    0 to session-store
 ;
 
 \ Return a list of states, one for each domain, in domain list order.
@@ -222,20 +216,22 @@ cr ." todo session-get-current-regions" cr
     true
 ;
 
-: session-add-domain ( dom1 sess0 -- )
+\ Create, and add, a domain, with a given number of bits.
+: session-add-domain ( num-bits1 sess0 -- dom )
     \ Check args.
     assert( tos is-session? )
-    assert( nos is-domain? )
+
     \ cr ." session-add-domain: start " .stack-gbl execute cr
 
-    \ Add domain
-    2dup                                \ dom1 sess0 dom1 sess0
-    session-get-domains                 \ dom1 sess0 dom1 dom-lst
-    domain-list-push-end                \ dom1 sess0
+    \ Create a domain.
+    tuck session-get-domains            \ sess0 nb1 dom-lst
+    list-get-length                     \ sess0 nb1 len
+    domain-new                          \ sess0 dom
 
-    cr ." todo session-add-domain" cr
-    2drop
-    \ session-process-regioncorrrates     \ To get rate 0, max region regc.
+    \ Add domain
+    tuck swap                           \ dom dom sess0
+    session-get-domains                 \ dom dom dom-lst
+    list-push-end-struct                \ dom
 ;
 
 \ Return the numebr of domains.

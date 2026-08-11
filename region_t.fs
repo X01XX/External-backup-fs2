@@ -21,7 +21,7 @@
     region-deallocate
 
     \ Check for memory leaks.
-    structinfo-list-store structinfo-list-project-deallocated
+     structinfo-list-store-project-deallocated
 
     cr ." region-test-basic - Ok"
 ;
@@ -71,7 +71,7 @@
     region-deallocate                   \
 
     \ Check for memory leaks.
-    structinfo-list-store structinfo-list-project-deallocated
+     structinfo-list-store-project-deallocated
 
     cr ." region-test-intersection - Ok"
 ;
