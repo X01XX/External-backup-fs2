@@ -514,12 +514,17 @@
     \ Check arg.
     assert( tos is-list? )
 
-    dup struct-get-use-count                \ lst0 uc
+    dup struct-get-use-count                    \ lst0 uc
     0< abort" structinfo-list-deallocate-struct-list: Invalid use count"
 
-    structinfo-list-deallocate-struct-xt        \ lst xt
-    swap                                        \ xt lst
-    list-deallocate-recursive-struct            \
+    dup struct-get-use-count                    \ lst0 uc
+    #2 < if
+        structinfo-list-deallocate-struct-xt    \ lst xt
+        swap                                    \ xt lst
+        list-deallocate-recursive-struct
+    else
+        struct-dec-use-count
+    then
 ;
 
 ' structinfo-list-deallocate-struct-list to structinfo-list-deallocate-struct-list-xt

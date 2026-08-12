@@ -1,12 +1,12 @@
 \ Implement a Session struct and functions.
 
 #31319 constant session-struct-id
-    #2 constant session-struct-number-cells
+    #3 constant session-struct-number-cells
 
 \ Struct fields
-0                                               constant session-header-disp                        \ 16-bits [0] struct id [1] use count
-
-session-header-disp                     cell+   constant session-domains-disp                       \ A domain-list, kind of like senses.
+0                               constant session-header-disp                        \ 16-bits [0] struct id [1] use count
+session-header-disp     cell+   constant session-domains-disp                       \ A domain-list, kind of like senses.
+session-domains-disp    cell+   constant session-step-num-disp                      \ Starts at zero.
 
 
 0 value session-mma     \ Storage for session mma instance.
@@ -55,7 +55,28 @@ session-header-disp                     cell+   constant session-domains-disp   
     !struct                 \ Set the field.
 ;
 
+: session-get-step-num ( sess0 -- u )
+\ Check arg.
+    assert( tos is-session? )
+
+    session-step-num-disp + \ Add offset.
+    @                       \ Fetch the field.
+;
+
+: _session-set-step-num ( sess0 -- u )
+    session-step-num-disp + \ Add offset.
+    !                       \ Fetch the field.
+;
+
 \ End accessors.
+
+: session-inc-step-num ( sess0 -- )
+\ Check arg.
+    assert( tos is-session? )
+
+    session-step-num-disp + \ Add offset.
+    1 swap +!               \ Add one to the field.
+;
 
 \ Return an regc of max domain regions.
 : session-calc-max-regions ( sess0 -- regioncorr )
@@ -91,6 +112,8 @@ session-header-disp                     cell+   constant session-domains-disp   
     \ Set domains list.
     list-new                        \ ses lst
     over _session-set-domains       \ ses
+
+    0 over _session-set-step-num
 
     dup to session-store
 ;
@@ -173,23 +196,23 @@ cr ." todo session-get-current-regions" cr
     \ Check args.
     assert( tos is-session? )
 
-    dup session-get-domains         \ cur-dom sess0 dom-lst
-    list-get-links                  \ cur-dom sess0 d-link
+    dup session-get-domains         \ sess0 dom-lst
+    list-get-links                  \ sess0 d-link
     ." ("
     begin
         ?dup
     while
-        dup link-get-data           \ cur-dom sess0 d-link domx
-        domain-get-current-state    \ cur-dom sess0 d-link d-sta
-        .state                      \ cur-dom sess0 d-link
+        dup link-get-data           \ sess0 d-link domx
+        domain-get-current-state    \ sess0 d-link d-sta
+        .state                      \ sess0 d-link
 
-        link-get-next               \ cur-dom sess0 d-link-nxt
+        link-get-next               \ sess0 d-link-nxt
         dup 0<> if
             space
         then
     repeat
-                                    \ cur-dom sess0
-    2drop                           \
+                                    \ sess0
+    drop                            \
     ." )"
 ;
 
@@ -245,8 +268,12 @@ cr ." todo session-get-current-regions" cr
 
 ' session-get-number-domains to session-get-number-domains-xt
 
-: session-do-zero-token-command
+: session-do-zero-token-command ( sess -- bool )
+    \ Check args.
+    assert( tos is-session? )
+    \ cr ." session-do-zero-token-command" cr
 
+    session-inc-step-num
 ;
 
 \ Do commands from user input.
@@ -255,17 +282,28 @@ cr ." todo session-get-current-regions" cr
     \ Check args.
     assert( tos is-session? )
     assert( nos is-list? )
+    cr ." session-eval-user-input: start " over .token-list cr
 
     \ Check for no tokens
     over list-is-empty?                 \ cmd-lst1 sess0 bool
     if
         nip                             \ sess0
         session-do-zero-token-command   \ bool
+        \ cr ." session-eval-user-input: end: 1" cr
         exit
     then
 
     \ Check command.
     over list-get-first-item            \ cmd-lst1 sess0 tkn0
+
+    dup token-get-string                \ cmd-lst1 sess0 tkn0 c-addr u
+    s" q" str=                          \ cmd-lst1 sess0 tkn0 bool
+    if
+        2drop drop
+        false
+        \ cr ." session-eval-user-input: end: 2" cr
+        exit
+    then
 
     dup token-get-string                \ cmd-lst1 sess0 tkn0 c-addr u
     s" ps" str=                         \ cmd-lst1 sess0 tkn0 bool
@@ -278,14 +316,34 @@ cr ." todo session-get-current-regions" cr
             .session                    \
         else                            \ sess0
             drop                        \
-            cr ." ps command: invalid number of arguments" cr
+            \ cr ." ps command: invalid number of arguments" cr
         then
         true
+        \ cr ." session-eval-user-input: end: 3" cr
         exit
     then
 
-    cr ." Did not understand the command" cr
+    dup token-get-string                \ cmd-lst1 sess0 tkn0 c-addr u
+    s" mu" str=                         \ cmd-lst1 sess0 tkn0 bool
+    if   
+        2drop                           \ cmd-lst1
+        list-get-length                 \ len
+        1 =  
+        if   
+            \ Display Memory Usage.
+            structinfo-list-store structinfo-list-print-memory-use-xt execute
+        else 
+            cr ." mu command: invalid number of arguments" cr
+        then 
+        true 
+        exit 
+    then 
+
+\ dn, cds?, scs, sas?, tos, to: remember to do session-inc-step-num
+
+    cr ." Did not understand the command." cr
     drop 2drop                          \
+    \ cr ." session-eval-user-input: end: 4" cr
     true
 ;
 
@@ -322,15 +380,15 @@ cr ." todo session-get-current-regions" cr
     assert( tos is-session? )
 
     \ Display needs.
-    dup session-set-all-needs   \ sess0
-    dup session-get-needs       \ sess0 ned-lst
-    dup list-get-length         \ sess0 ned-lst len
-    dup 0=
+    \ dup session-set-all-needs   \ sess0
+    \ dup session-get-needs       \ sess0 ned-lst
+    \ dup list-is-empty?          \ sess0 ned-lst bool
+    true
     if
         cr ." Needs: No needs found" cr
-        2drop
+        \ 2drop
     else
-        drop
+        \ drop
         \ cr ." Needs:" cr .need-list cr  \ sess0
         cr ." Press Enter to randomly choose a need."
     then
@@ -361,17 +419,25 @@ cr ." todo session-get-current-regions" cr
     dup                         \ sess0 p-addr p-addr
     #80                         \ sess0 p-addr p-addr #80
     accept                      \ sess0 pad-add n
-    cr
-    list-from-string-xt execute                             \ sess0, lst' t | f
+
+    \ Check for no input.
+    dup 0=
     if
-        2dup swap                                           \ sess0 lst' lst' sess0
-        session-eval-user-input                             \ sess0 lst' bool
-        swap                                                \ sess0 bool lst'
-        structinfo-list-deallocate-struct-list-xt execute   \ sess0 bool
-        nip                                                 \ bool
+        2drop
+        dup session-do-zero-token-command
     else
-        cr ." Did not understand input string as a list."
-        drop
-        true
+        cr
+        list-from-string-xt execute                             \ sess0, lst' t | f
+        if
+            2dup swap                                           \ sess0 lst' lst' sess0
+            session-eval-user-input                             \ sess0 lst' bool
+            swap                                                \ sess0 bool lst'
+            structinfo-list-deallocate-struct-list-xt execute   \ sess0 bool
+            nip                                                 \ bool
+        else
+            cr ." Did not understand the command." cr
+            drop
+            true
+        then
     then
 ;

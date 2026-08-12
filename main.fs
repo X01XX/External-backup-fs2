@@ -125,54 +125,42 @@ list-new to structinfo-list-store
 ' =             ' noop                  ' group-deallocate      ' .group    s" Group"       group-mma       group-struct-id     structinfo-new structinfo-list-store-push-end
 ' noop          ' noop                  ' frame-deallocate      ' .frame    s" Frame"       frame-mma       frame-struct-id     structinfo-new structinfo-list-store-push-end
 ' noop          ' noop                  ' domain-deallocate     ' .domain   s" Domain"      domain-mma      domain-struct-id    structinfo-new structinfo-list-store-push-end
-' noop          ' noop                  ' session-deallocate    ' .session  s" Domain"      session-mma     session-struct-id   structinfo-new structinfo-list-store-push-end
+' noop          ' noop                  ' session-deallocate    ' .session  s" Session"     session-mma     session-struct-id   structinfo-new structinfo-list-store-push-end
 
 : main
+    session-new                 \ sess
 
-    cr cr
-    s" (s1010->s0111 (1 rX001) (3 m1010) (5 s1000) 01/10/XX/Xx/ 4.2e)"
-    cr 2dup ." list string: " [char] " emit type [char] " emit cr
-    list-from-string        \ lst t | f
-    if
-        cr ." List: " dup structinfo-list-print-struct-list
-    else
-        cr ." list-from-string failed" cr
-        abort
-    then
+    #4 over session-add-domain  \ sess dom
+    drop
 
-    cr cr
-    s" (r1001 r00000 r101)"
-    cr 2dup ." Region list string: " [char] " emit type [char] " emit cr
-    region-list-from-string        \ lst t | f
-    if
-        cr ." List: " dup structinfo-list-print-struct-list
-    else
-        cr ." list-from-string failed" cr
-        abort
-    then
+    cr dup .session cr
 
-    s" r1001" region-from-string
-    invert abort" region-from-string: failed"
-    s" rX0X1" region-from-string
-    invert abort" region-from-string: failed"
-    2dup region-subtract            \ reg2 reg1 reg-lst
-    cr cr ." rX0X1 - r1001 = " dup .region-list cr
+    true
+    begin
+    while
+                                                        \ sess
+
+        \ Print header.
+        cr ." ***************************"
+        cr ." Step: " dup session-get-step-num dec.
+        space ." Current state: "
+        dup .session-current-states                     \ sess
+
+        dup session-get-user-input                      \ sess bool ( t  = continue )
+    repeat
 
     \ Finish.
-    cr structinfo-list-print-memory-use cr
-
-    \ Deallocate remaining struct instances.
-    cr ." Deallocating ..."
-
-    region-list-deallocate
-    region-deallocate
-    region-deallocate
-    region-list-deallocate
-    structinfo-list-deallocate-struct-list
-
     cr structinfo-list-store structinfo-list-print-memory-use cr
 
-     structinfo-list-store-project-deallocated
+    \ Clean up.
+    cr ." Deallocating ..."
+    session-deallocate
+
+    \ Finish.
+    cr structinfo-list-store structinfo-list-print-memory-use cr
+
+    \ Check for memory leaks.
+    structinfo-list-store-project-deallocated
 ;
 
 : free-heap
