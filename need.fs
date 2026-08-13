@@ -188,7 +188,7 @@ need-target-disp    cell+   constant need-info-disp     \ Zero, a region, or oth
             5os 0<> abort" Invalid extra info, s/b zero."
             4os is-region-list? invert abort" Invalid target, s/b a region-list."
         endof
-        ." Unrecognized type value" abort
+        cr ." Unrecognized need type value" cr abort
     endcase
 
     \ Allocate space.
@@ -209,12 +209,6 @@ need-target-disp    cell+   constant need-info-disp     \ Zero, a region, or oth
     dup is-state?
     if
         .state
-        exit
-    then
-
-    dup is-region?
-    if
-        .region
         exit
     then
 
@@ -239,12 +233,6 @@ need-target-disp    cell+   constant need-info-disp     \ Zero, a region, or oth
 : .need ( ned0 -- )
     \ Check arg.
     assert( tos is-need? )
-
-    ." Dom: " dup need-get-dom-inst-id #3 dec.r space
-    ." Act: " dup need-get-act-inst-id #3 dec.r space
-
-    ." Target: "
-    dup need-get-target .target
 
     need-get-type
     case
@@ -280,13 +268,11 @@ need-target-disp    cell+   constant need-info-disp     \ Zero, a region, or oth
             need-get-info .corner
         endof
         need-type-exn of
-            20 spaces
             ." Target: "
             need-get-target .target
             space ." Exit negative state"
         endof
         need-type-spos of
-            20 spaces
             ." Target: "
             need-get-target .target
             space ." Seek positive state "

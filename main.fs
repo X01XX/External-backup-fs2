@@ -32,6 +32,7 @@ include incpairs.fs
 include region2.fs
 include state2.fs
 include regionlist2.fs
+include regionlistcorr.fs
 
 include sample.fs
 include samplelist.fs
@@ -57,6 +58,7 @@ include corner.fs
 include cornerlist.fs
 
 include need.fs
+include needlist.fs
 
 include actionxts.fs
 include action.fs

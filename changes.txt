@@ -6,6 +6,7 @@ A pn=1 square should be considered changed at the second sample, since it will b
 formerly compatible superset, pn=2 square.
  
 Allow union of rules ( 0->0, 0->1 ) ( 1->1, 1->0 ), to make ( XX, Xx) or ( X0, X1 ).
+A bit changes, or it does not.  If it does not, and there are no other changes, its easy to retry the action.
 
 Separate adjacent-incompatible pairs, and possible regions, from non-adjacent-incompatible pairs, and possible regions.
 Non-adjacent pairs must be within at least one region calculated from only adjacent-incompatible pairs.
@@ -15,4 +16,12 @@ Final possible regions containing at least one sample, map to a group.
 
 Functions in actionxts.fs return a state result, instead of a sample.  The action will create a sample
 from the current state and the result.
+
+Changes in developing corner clusters.
+
+The need struct now accomodates action and session needs.
+An action need, of one state, can be translated into a session need, using a corresponding region list that contains the needed state.
+Then the state can be sought without straying into negative regions.
+
+Groups are not directly invalidated by a new, or changed, square.  Changes to possible regions leads to a group being deleted.
 

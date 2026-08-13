@@ -105,7 +105,7 @@
 : ?need-list-contains-target ( sta1 lst0 -- bool )
     \ Check args.
     assert( tos is-need-list? )
-    assert( nos is-value? )
+    assert( nos is-state? )
 
     list-get-links          \ sta1 link
     begin
