@@ -28,3 +28,14 @@ display-debug-status
     #3 pick
 ;
 
+: 5os ( 5os 4os 3os nos tos -- 5os 4os 3os nos tos 5os )
+    #4 pick
+;
+
+: is-valid-inst-id? ( n -- bool )
+    dup 0 >= swap #256 < and
+;
+
+: is-valid-num-bits? ( n -- bool )
+    dup 0 > swap [ 1 cells #8 * ] literal <= and
+;

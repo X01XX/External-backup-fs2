@@ -478,10 +478,8 @@ action-groups-disp                          cell+   constant action-function-dis
 \ and the number of bits being used.
 : action-new ( xt3 max-region2 inst-id1 dom-id0 -- addr)
     \ cr ." action-new: start: " .stack-gbl cr
-    assert( tos 0 >= )
-    assert( tos #256 < )
-    assert( nos 0 >= )
-    assert( nos #256 < )
+    assert( tos is-valid-inst-id? )
+    assert( nos is-valid-inst-id? )
     assert( 3os is-region? )
     assert( 3os region-all-x? )
 

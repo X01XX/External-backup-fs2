@@ -203,12 +203,8 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
 \ The current state defaults to zero, but can be set with domain-set-current-state.
 : domain-new ( num-bits inst-id -- dom )
     \ Check args.
-
-    \ Check number bits.
-    over 1 < abort" Number bits < 1?"
-
-    \ Get max num bits.
-    over [ 1 cells #8 * ] literal > abort" Number bits too large?"
+    assert( is-valid-inst-id? )
+    assert( is-valid-num-bits? )
 
     \ Allocate space.
     domain-struct-id domain-mma     \ nb1 id0 id mma
@@ -269,6 +265,16 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
     rot state-new                   \ dom sta
     over                            \ dom sta dom
     _domain-set-current-state       \ dom
+;
+
+: domain-valid-act-id? ( id dom -- bool )
+    \ Check arg.
+    assert( tos is-domain? )
+
+    over 0< if 2drop false exit then
+
+    domain-get-actions list-get-length
+    <
 ;
 
 \ Print a domain.

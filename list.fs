@@ -1384,3 +1384,10 @@ list-header-disp    cell+   constant list-links-disp
                                 \ ret-lst
 ;
 
+: lists-equal-length? ( lst1 lst0 -- bool )
+    \ Check args.
+    assert( tos is-list? )
+    assert( nos is-list? )
+
+    list-get-length swap list-get-length =
+;

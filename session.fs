@@ -118,6 +118,16 @@ session-domains-disp    cell+   constant session-step-num-disp                  
     dup to session-store
 ;
 
+: session-valid-dom-id? ( id sess -- bool )
+    \ Check arg.
+    assert( tos is-session? )
+
+    over 0< if 2drop false exit then
+
+    session-get-domains list-get-length
+    <
+;
+
 \ Print a session.
 : .session ( sess0 -- )
     \ Check arg.
@@ -283,15 +293,6 @@ cr ." todo session-get-current-regions" cr
     assert( tos is-session? )
     assert( nos is-list? )
     cr ." session-eval-user-input: start " over .token-list cr
-
-    \ Check for no tokens
-    over list-is-empty?                 \ cmd-lst1 sess0 bool
-    if
-        nip                             \ sess0
-        session-do-zero-token-command   \ bool
-        \ cr ." session-eval-user-input: end: 1" cr
-        exit
-    then
 
     \ Check command.
     over list-get-first-item            \ cmd-lst1 sess0 tkn0

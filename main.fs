@@ -56,6 +56,8 @@ include grouplist.fs
 include corner.fs
 include cornerlist.fs
 
+include need.fs
+
 include actionxts.fs
 include action.fs
 include actionlist.fs
@@ -63,6 +65,7 @@ include actionlist.fs
 include frame.fs
 include domain.fs
 include domainlist.fs
+
 include session.fs
 
 cr
@@ -76,6 +79,7 @@ include sample_t.fs
 include regionlist_t.fs
 include square_t.fs
 include corner_t.fs
+include need_t.fs
 include cornerlist_t.fs
 include squarelist_t.fs
 include action_t.fs
@@ -98,6 +102,7 @@ include session_t.fs
 #200 square-mma-init
 #010 action-mma-init
 #110 corner-mma-init
+#110 need-mma-init
 #130 group-mma-init
 #010 frame-mma-init
 #010 domain-mma-init
@@ -121,6 +126,7 @@ list-new to structinfo-list-store
 ' samples-eq?   ' sample-from-string    ' sample-deallocate     ' .sample   s" Sample"      sample-mma      sample-struct-id    structinfo-new structinfo-list-store-push-end
 ' noop          ' noop                  ' action-deallocate     ' .action   s" Action"      action-mma      action-struct-id    structinfo-new structinfo-list-store-push-end
 ' noop          ' corner-from-string    ' corner-deallocate     ' .corner   s" Corner"      corner-mma      corner-struct-id    structinfo-new structinfo-list-store-push-end
+' noop          ' noop                  ' need-deallocate       ' .need     s" Need"        need-mma        need-struct-id      structinfo-new structinfo-list-store-push-end
 ' =             ' noop                  ' square-deallocate     ' .square   s" Square"      square-mma      square-struct-id    structinfo-new structinfo-list-store-push-end
 ' =             ' noop                  ' group-deallocate      ' .group    s" Group"       group-mma       group-struct-id     structinfo-new structinfo-list-store-push-end
 ' noop          ' noop                  ' frame-deallocate      ' .frame    s" Frame"       frame-mma       frame-struct-id     structinfo-new structinfo-list-store-push-end
@@ -185,6 +191,7 @@ list-new to structinfo-list-store
     domain-tests
     corner-tests
     corner-list-tests
+    need-tests
     inc-pair-tests
     session-tests
     cr
