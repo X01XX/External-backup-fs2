@@ -89,7 +89,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 ;
 
 \ End accessors.
-
+ 
 \ Create a region from two states on the stack.
 \ The states may be the same.
 : region-new ( sta1 sta0 -- reg )
@@ -382,6 +382,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     \ Check args.
     assert( tos is-region? )
     assert( nos is-state? )
+    assert( over state-get-num-bits over region-get-num-bits = )
 
     region-get-states           \ sta1 reg-sta1 reg-sta0
     #2 pick                     \ sta1 reg-sta1 reg-sta0 sta1
@@ -696,11 +697,13 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 
 \ Return a region with all X bit positions for a given number of bits.
 : region-max-x ( nb -- reg )
-    dup all-bits                        \ nb u
-    over state-new                      \ nb sta1
-    swap                                \ sta1 nb
-    0 swap                              \ sta1 0 nb
-    state-new                           \ sta1 sta0
+    0                                   \ nb 0
+    over state-new                      \ nb sta0
+
+    swap                                \ sta0 nb
+    dup all-bits                        \ sta0 nb all-bits
+    swap state-new                      \ sta0 sta1
+
     region-new                          \ reg-max
 ;
 

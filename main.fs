@@ -136,10 +136,15 @@ list-new to structinfo-list-store
 ' noop          ' noop                  ' session-deallocate    ' .session  s" Session"     session-mma     session-struct-id   structinfo-new structinfo-list-store-push-end
 
 : main
-    session-new                 \ sess
+    session-new                     \ sess
 
-    #4 over session-add-domain  \ sess dom
+    #4 over session-add-domain      \ sess dom
     drop
+
+    #6 over session-add-domain      \ sess dom
+    drop
+
+    dup session-init-after-domains  \ sess
 
     cr dup .session cr
 

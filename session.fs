@@ -1,12 +1,13 @@
 \ Implement a Session struct and functions.
 
 #31319 constant session-struct-id
-    #3 constant session-struct-number-cells
+    #4 constant session-struct-number-cells
 
 \ Struct fields
 0                               constant session-header-disp                        \ 16-bits [0] struct id [1] use count
 session-header-disp     cell+   constant session-domains-disp                       \ A domain-list, kind of like senses.
 session-domains-disp    cell+   constant session-step-num-disp                      \ Starts at zero.
+session-step-num-disp   cell+   constant session-max-regions-disp                   \ A list of maximum regions, corresponding in order to the domain list.
 
 
 0 value session-mma     \ Storage for session mma instance.
@@ -68,6 +69,23 @@ session-domains-disp    cell+   constant session-step-num-disp                  
     !                       \ Fetch the field.
 ;
 
+: session-get-max-regions ( sess0 -- reg-lst )  \ Return the max regions list.
+    \ Check arg.
+    assert( tos is-session? )
+
+    session-max-regions-disp +  \ Add offset.
+    @                           \ Fetch the field.
+;
+
+: _session-set-max-regions ( reg-lst sess0 -- ) \ Set the max regions list.
+    \ Check arg.
+    assert( tos is-session? )
+    assert( nos is-region-list? )
+
+    session-max-regions-disp +  \ Add offset.
+    !struct                     \ Set the field.
+;
+
 \ End accessors.
 
 : session-inc-step-num ( sess0 -- )
@@ -78,8 +96,8 @@ session-domains-disp    cell+   constant session-step-num-disp                  
     1 swap +!               \ Add one to the field.
 ;
 
-\ Return an regc of max domain regions.
-: session-calc-max-regions ( sess0 -- regioncorr )
+\ Return an region list corr of max domain regions.
+: session-calc-max-regions ( sess0 -- max-regs )
 
     \ Get domain-list.
     dup session-get-domains         \ sess0 dom-lst
@@ -95,9 +113,8 @@ session-domains-disp    cell+   constant session-step-num-disp                  
         region-list-push-end        \ sess0 reg-lst d-lisk
     next
                                     \ sess0 reg-lst
-    nip                             \ reg-lst
-    cr ." todo regioncorr-new" cr
-    \ regioncorr-new
+
+    nip
 ;
 
 ' session-calc-max-regions to session-calc-max-regions-xt
@@ -137,6 +154,7 @@ session-domains-disp    cell+   constant session-step-num-disp                  
     dup session-get-domains
     dup list-get-length
     ."  Num domains: " dec.
+    space ." Max regions: " over session-get-max-regions .region-list cr
 
                                                 \ sess0 dom-lst
     foreach                                     \ sess0 link
@@ -155,6 +173,7 @@ session-domains-disp    cell+   constant session-step-num-disp                  
 
     \ Clear fields.
     dup session-get-domains domain-list-deallocate
+    dup session-get-max-regions region-list-deallocate
 
     \ Deallocate session.
     session-mma mma-deallocate
@@ -253,8 +272,7 @@ cr ." todo session-get-current-regions" cr
 : session-add-domain ( num-bits1 sess0 -- dom )
     \ Check args.
     assert( tos is-session? )
-
-    \ cr ." session-add-domain: start " .stack-gbl execute cr
+    \ cr ." session-add-domain: start " .stack-gbl cr
 
     \ Create a domain.
     tuck session-get-domains            \ sess0 nb1 dom-lst
@@ -441,4 +459,16 @@ cr ." todo session-get-current-regions" cr
             true
         then
     then
+;
+
+\ Do initialization tasks after all domains have benn added.
+: session-init-after-domains ( sess -- )
+    \ Check arg.
+    assert( tos is-session? )
+
+    \ Calc and store the domain list maximum regions list.
+    dup session-calc-max-regions    \ sess max-regs
+    over _session-set-max-regions   \ sess
+
+    drop
 ;
