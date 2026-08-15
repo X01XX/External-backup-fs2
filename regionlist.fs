@@ -1065,9 +1065,9 @@
     again
 ;
 
-\ Return true if all items in the nos list are not proper intersections of any
+\ Return true if any item in the nos list are proper intersections of any
 \ region in the tos list.
-: region-list-none-proper-intersections ( reg-lst1 reg-lst0 -- bool )
+: region-list-any-proper-intersections? ( reg-lst1 reg-lst0 -- bool )
     \ Check args.
     assert( tos is-region-list? )
     assert( nos is-region-list? )
@@ -1083,10 +1083,60 @@
             \ cr ." reg: " dup link-get-data .region
             \ space ." is a proper subset of: " over .region-list cr
             2drop
-            false
+            true
             exit
         then
     next
     drop
-    true
+    false
+;
+
+: region-list-defining-region-parts ( reg-lst0 -- reg-lst )
+    \ Check arg.
+    assert( tos is-region-list? )
+
+    \ Init return list.
+    list-new swap                               \ ret-lst reg-lst0
+    dup                                         \ ret-lst reg-lst0 reg-lst0
+
+    foreach                                     \ ret-lst reg-lst0 reg-lnk
+        \ Init temp list.
+        list-new                                \ ret-lst reg-lst0 reg-lnk tmp-lst'
+        over link-get-data                      \ ret-lst reg-lst0 reg-lnk tmp-lst' regx
+        2dup swap                               \ ret-lst reg-lst0 reg-lnk tmp-lst' regx regx tmp-lst
+        list-push-struct                        \ ret-lst reg-lst0 reg-lnk tmp-lst' regx
+        swap                                    \ ret-lst reg-lst0 reg-lnk regx tmp-lst'
+        #3 pick                                 \ ret-lst reg-lst0 reg-lnk regx tmp-lst' reg-lst0
+
+        foreach                                 \ ret-lst reg-lst0 reg-lnk regx tmp-lst' reg-lnk
+            dup link-get-data                   \ ret-lst reg-lst0 reg-lnk regx tmp-lst' reg-lnk regy
+            #3 pick                             \ ret-lst reg-lst0 reg-lnk regx tmp-lst' reg-lnk regy regx
+            <>                                  \ ret-lst reg-lst0 reg-lnk regx tmp-lst' reg-lnk bool
+            if
+                \ Region not the target region.
+                dup link-get-data               \ ret-lst reg-lst0 reg-lnk regx tmp-lst' reg-lnk regy
+                #2 pick                         \ ret-lst reg-lst0 reg-lnk regx tmp-lst' reg-lnk regy tmp-lst'
+                region-list-any-intersection?   \ ret-lst reg-lst0 reg-lnk regx tmp-lst' reg-lnk bool
+                if
+                    \ There is a reason to subtract.
+                    dup link-get-data           \ ret-lst reg-lst0 reg-lnk regx tmp-lst' reg-lnk regy
+                    #2 pick                     \ ret-lst reg-lst0 reg-lnk regx tmp-lst' reg-lnk regy tmp-lst'
+                    region-list-subtract-region \ ret-lst reg-lst0 reg-lnk regx tmp-lst' reg-lnk rslt-lst'
+
+                    \ Replace the temp list with the new result.
+                    rot                         \ ret-lst reg-lst0 reg-lnk regx reg-lnk rslt-lst' tmp-lst'
+                    region-list-dealocate       \ ret-lst reg-lst0 reg-lnk regx reg-lnk rslt-lst'
+                    swap                        \ ret-lst reg-lst0 reg-lnk regx rslt-lst' reg-lnk
+                then
+            then
+                                                \ ret-lst reg-lst0 reg-lnk regx tmp-lst'
+            dup                                 \ ret-lst reg-lst0 reg-lnk regx tmp-lst' tmp-lst'
+            #5 pick                             \ ret-lst reg-lst0 reg-lnk regx tmp-lst' tmp-lst' ret-lst
+            region-list-append-nosubs           \ ret-lst reg-lst0 reg-lnk regx tmp-lst'
+            region-list-deallocate              \ ret-lst reg-lst0 reg-lnk regx
+            drop                                \ ret-lst reg-lst0 reg-lnk
+        next
+        
+    next
+    drop
 ;

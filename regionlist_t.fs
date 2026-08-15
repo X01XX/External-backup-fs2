@@ -182,15 +182,17 @@
 
     \ Test that the results cover the whole original list.
     2dup swap region-list-subtract                  \ reg-lst' reg-ints' sub-regs'
-    cr ." sub regs: " dup .region-list cr
+    \ cr ." sub regs: " dup .region-list cr
     dup list-get-length 0<> abort" ints don't cover original regions"
 
     \ Test no result regions are a proper intersection of any region in the original list.
     over                                            \ reg-lst' reg-ints' sub-regs' reg-ints'
     #3 pick                                         \ reg-lst' reg-ints' sub-regs' reg-ints' reg-lst'
-    region-list-none-proper-intersections           \ reg-lst' reg-ints' sub-regs' bool
-    invert abort" some are proper intersections?"
+    region-list-any-proper-intersections?           \ reg-lst' reg-ints' sub-regs' bool
+    abort" some are proper intersections?"
 
+    \ Calc all regions in only one region.
+    
     \ Clean up.                                     \ reg-lst' reg-ints' sub-regs'
     region-list-deallocate                          \ reg-lst' reg-ints'
     region-list-deallocate                          \ reg-lst'
