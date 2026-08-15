@@ -179,39 +179,63 @@
     true
 ;
 
+\ Push a region onto a list, if there are no duplicates in the list.
+\ Return true if the region is added to the list.
+: region-list-push-nodups ( reg1 reg-lst0 -- flag )
+    \ Check args.
+    assert( tos is-region-list? )
+    assert( nos is-region? )
+
+    \ Return if any region in the list is a superset of reg1.
+    2dup                                    \ reg1 reg-lst0 reg1 reg-lst0
+    [ ' regions-eq? ] literal               \ reg1 reg-lst0 reg1 reg-lst0 xt
+    -rot                                    \ reg1 reg-lst0 xt reg1 reg-lst0
+    list-member?                            \ reg1 reg-lst0 flag
+    if
+        2drop
+        false
+        exit
+    then
+                                            \ reg1 reg-lst0
+
+    \ Add region to list.                   \ reg1 reg-lst0
+    region-list-push
+    true
+;
+
 \ Return a list of region intersections with a region-list, no subsets.
-: region-list-intersections-nosubs ( reg-lst1 list0 -- reg-lst )
+: region-list-intersections-nosubs ( reg-lst1 list0 -- reg-lst)
     \ Check args.
     assert( tos is-region-list? )
     assert( nos is-region-list? )
 
     \ reg-lst1 reg-lst0
-    list-new -rot                       \ ret-list reg-lst1 reg-lst0
-    foreach                             \ ret-list reg-lst1 reg-lnk0
-        dup link-get-data               \ ret-list reg-lst1 reg-lnk0 reg0
-        #2 pick                         \ ret-list reg-lst1 reg-lnk0 reg0 reg-lst1
+    list-new -rot                       \ ret-lst reg-lst1 reg-lst0
+    foreach                             \ ret-lst reg-lst1 reg-lnk0
+        dup link-get-data               \ ret-lst reg-lst1 reg-lnk0 reg0
+        #2 pick                         \ ret-lst reg-lst1 reg-lnk0 reg0 reg-lst1
 
-        foreach                         \ ret-list reg-lst1 reg-lnk0 reg0 reg-lnk1
-            dup link-get-data           \ ret-list reg-lst1 reg-lnk0 reg0 reg-lnk1 reg1
-            #2 pick                     \ ret-list reg-lst1 reg-lnk0 reg0 reg-lnk1 reg1 reg0
-            region-intersection         \ ret-list reg-lst1 reg-lnk0 reg0 reg-lnk1, reg-int t | f
+        foreach                         \ ret-lst reg-lst1 reg-lnk0 reg0 reg-lnk1
+            dup link-get-data           \ ret-lst reg-lst1 reg-lnk0 reg0 reg-lnk1 reg1
+            #2 pick                     \ ret-lst reg-lst1 reg-lnk0 reg0 reg-lnk1 reg1 reg0
+            region-intersection         \ ret-lst reg-lst1 reg-lnk0 reg0 reg-lnk1, reg-int t | f
             if
-                                        \ ret-list reg-lst1 reg-lnk0 reg0 reg-lnk1 reg-int
-                dup                     \ ret-list reg-lst1 reg-lnk0 reg0 reg-lnk1 reg-int reg-int
-                #6 pick                 \ ret-list reg-lst1 reg-lnk0 reg0 reg-lnk1 reg-int reg-int ret-list
-                region-list-push-nosubs \ ret-list reg-lst1 reg-lnk0 reg0 reg-lnk1 reg-int flag
+                                        \ ret-lst reg-lst1 reg-lnk0 reg0 reg-lnk1 reg-int
+                dup                     \ ret-lst reg-lst1 reg-lnk0 reg0 reg-lnk1 reg-int reg-int
+                #6 pick                 \ ret-lst reg-lst1 reg-lnk0 reg0 reg-lnk1 reg-int reg-int ret-list
+                region-list-push-nosubs \ ret-lst reg-lst1 reg-lnk0 reg0 reg-lnk1 reg-int flag
                 if
                     drop
                 else
                     region-deallocate
                 then
             then
-        next                            \ ret-list reg-lst1 link0 reg0 reg-lnk1
-                                        \ ret-list reg-lst1 link0 reg0
-        drop                            \ ret-list reg-lst1 link0
+        next                            \ ret-lst reg-lst1 link0 reg0 reg-lnk1
+                                        \ ret-lst reg-lst1 link0 reg0
+        drop                            \ ret-lst reg-lst1 link0
     next
-                                        \ ret-list reg-lst1
-    drop
+                                        \ ret-lst reg-lst1
+    drop                                \ ret-lst
 ;
 
 \ Combine two reigion-lists, deleting subsets.
@@ -294,7 +318,7 @@
             2drop
         else
             \ Check if they intersect
-            2dup region-intersects?         \ ret-lst reg1 reg-lnk0 reg1 reg2 flag
+            2dup regions-intersect?         \ ret-lst reg1 reg-lnk0 reg1 reg2 flag
             if
                 \ They intersect, there will be some remainder.
                 region-subtract-xt execute  \ ret-lst reg1 reg-lnk0 remainder-lst
@@ -900,7 +924,7 @@
     assert( tos is-region-list? )
     assert( nos is-region? )
 
-    [ ' region-intersects? ] literal -rot list-member?
+    [ ' regions-intersect? ] literal -rot list-member?
 ;
 
 \ Append nos region-list to the tos region-list.
@@ -924,3 +948,41 @@
     drop
 ;
 
+\ Return a list of propre intersections of any two regions in a list.
+: region-list-proper-intersections ( reg-lst0 -- reg-lst t | f )
+    \ Check arg.
+    assert( tos is-region-list? )
+    \ cr ." region-list-proper-intersections: start" cr
+    \ Init return list.
+    list-new swap                       \ ret-lst reg-lst
+
+    foreach                             \ ret-lst reg-lnk1
+        dup link-get-next               \ ret-lst reg-lnk1 reg-lnk2
+        begin
+            ?dup
+        while
+            over link-get-data          \ ret-lst reg-lnk1 reg-lnk2 reg1
+            over link-get-data          \ ret-lst reg-lnk1 reg-lnk2 reg1 reg2
+            region-proper-intersection  \ ret-lst reg-lnk1 reg-lnk2, reg-int' t | f
+            if
+                dup                     \ ret-lst reg-lnk1 reg-lnk2 reg-int' reg-int'
+                #4 pick                 \ ret-lst reg-lnk1 reg-lnk2 reg-int' reg-int' ret-lst
+                region-list-push-nodups \ ret-lst reg-lnk1 reg-lnk2 reg-int' bool
+                if
+                    drop                \ ret-lst reg-lnk1 reg-lnk2
+                else
+                    region-deallocate   \ ret-lst reg-lnk1 reg-lnk2
+                then
+            then
+        next
+    next
+                                        \ ret-lst
+    dup list-is-empty?
+    if
+        list-deallocate
+        false
+    else
+        true
+    then
+    \ cr ." region-list-proper-intersections: end" cr
+;

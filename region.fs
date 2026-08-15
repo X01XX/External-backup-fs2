@@ -474,12 +474,13 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 
 \ Return true if two regions intersect, no corresponding
 \ trits are 0 and 1.
-: region-intersects? ( reg1 reg0 -- flag )
+: regions-intersect? ( reg1 reg0 -- flag )
     \ Check args.
     assert( tos is-region? )
     assert( nos is-region? )
     assert( 2dup regions-same-num-bits? )
-    \ cr ." region-intersects: reg1: " over .region space ." reg0: " dup .region cr
+    \ cr ." regions-intersect? start: "
+    \ cr ." regions-intersect?: reg1: " over .region space ." reg0: " dup .region cr
 
     \ Get different bits mask of any pair states from reg1 and reg0.
     over region-get-state-0     \ reg1 reg0 reg1-sta0
@@ -508,6 +509,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     \ Return result
     dup mask-is-zero?           \ edge-dif-msk' bool
     swap mask-deallocate        \ bool
+    \ cr ." regions-intersect? end: "
 ;
 
 \ Return the highest state in a region.
@@ -548,9 +550,10 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     assert( tos is-region? )
     assert( nos is-region? )
     assert( 2dup regions-same-num-bits? )
+    \ cr ." region-intersection: start" cr
 
     \ Check that the two regions intersect.
-    2dup region-intersects?     \ reg1 reg0 bool
+    2dup regions-intersect?     \ reg1 reg0 bool
     if
         \ Get high and low state of reg0
         region-high-low         \ reg1 reg0high' reg0low'
@@ -582,6 +585,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
         2drop
         false
     then
+    \ cr ." region-intersection: end" cr
 ;
 
 \ Return true if two regions are equal.
@@ -625,8 +629,9 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     assert( tos is-region? )
     assert( nos is-region? )
     assert( 2dup regions-same-num-bits? )
+    \ cr ." region-superset?: start" cr
 
-    2dup region-intersects?         \ reg1 reg-sup flag
+    2dup regions-intersect?         \ reg1 reg-sup flag
     if
         \ Regions intersect.
         over region-intersection    \ reg1 reg-int flag
@@ -639,6 +644,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
         2drop
         false
     then
+    \ cr ." region-superset?: end" cr
 ;
 
 \ Return true if a TOS region is a superset of the NOS state.
@@ -679,7 +685,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     assert( nos is-region? )
     assert( 2dup regions-same-num-bits? )
 
-    2dup region-intersects?         \ reg1 reg-sub flag
+    2dup regions-intersect?         \ reg1 reg-sub flag
     if
         \ Regions intersect.
         tuck                        \ reg-sub reg1 reg-sub
@@ -761,4 +767,67 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     mask-is-zero?           \ msk' bool
 
     swap mask-deallocate    \ bool
+;
+
+\ Return true if two regions are a prorer intersection.
+: region-proper-intersection? ( reg1 reg0 -- bool )
+    \ Check args.
+    assert( tos is-region? )
+    assert( nos is-region? )
+
+    2dup regions-intersect?     \ reg1 reg0 bool
+    ifnot
+        2drop
+        false
+        exit
+    then
+
+    2dup region-superset?       \ reg1 reg0 bool
+    if
+        2drop
+        false
+        exit
+    then
+
+    region-superset?            \ bool
+    invert
+;
+
+\ Return true if neither region is a superset of the other.
+: regions-neither-superset? ( reg1 reg0 -- bool )
+    \ Check args.
+    assert( tos is-region? )
+    assert( nos is-region? )
+    \ cr ." regions-neither-superset?: start" cr
+
+    2dup region-superset?       \ reg1 reg0 bool
+    if
+        2drop
+        false
+        \ cr ." regions-neither-superset?: exit" cr
+        exit
+    then
+
+    region-superset?            \ bool
+    invert
+    \ cr ." regions-neither-superset?: end" cr
+;
+
+\ Return the proper intersection of two regions.
+: region-proper-intersection ( reg1 reg0 -- reg t | f )
+    \ Check args.
+    assert( tos is-region? )
+    assert( nos is-region? )
+    \ cr ." region-proper-intersection: start" cr
+
+    2dup regions-neither-superset?  \ reg1 reg0 bool
+    ifnot
+        2drop
+        false
+        \ cr ." region-proper-intersection: exit" cr
+        exit
+    then
+
+    region-intersection             \ reg t
+    \ cr ." region-proper-intersection: end" cr
 ;

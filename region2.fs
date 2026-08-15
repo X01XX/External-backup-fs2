@@ -45,11 +45,11 @@
     \ Check args.
     assert( tos is-region? )
     assert( nos is-region? )
+    assert( 2dup regions-same-num-bits? )
 
     \ Check if any subtraction is needed.
-    2dup region-intersects?         \ reg1 reg0 flag
-    if
-    else
+    2dup regions-intersect?         \ reg1 reg0 flag
+    ifnot
         list-new tuck               \ reg1 ret-lst reg0 ret-lst
         region-list-push-xt execute \ reg1 ret-lst
         nip                         \ ret-lst
@@ -98,11 +98,11 @@
     \ Check args.
     assert( tos is-region? )
     assert( nos is-state? )
+    assert( over state-get-num-bits over region-get-num-bits = )
 
     \ Check if any subtraction is needed.
     2dup region-superset-of-state?  \ sta1 reg0 | flag
-    if
-    else
+    ifnot
         nip                         \ reg0
         list-new tuck               \ ret-lst reg0 ret-lst
         region-list-push            \ ret-lst

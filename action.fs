@@ -1304,7 +1304,6 @@ action-groups-disp                          cell+   constant action-function-dis
     over action-get-nadj-regions            \ act0 adj-regs nadj-regs
     region-list-intersections-nosubs        \ act0 reg-lst'
 
-
     over _action-update-possible-regions    \ act0
 
     dup _action-delete-orphaned-groups      \ act0
