@@ -970,6 +970,28 @@
     drop
 ;
 
+\ Append nos region-list to the tos region-list, no subsets.
+: region-list-append-nosubs ( lst1 lst0 -- )
+    \ Check args.
+    assert( tos is-region-list? )
+    assert( nos is-region-list? )
+
+    swap                        \ lst0 lst1
+    list-get-links              \ lst0 link
+    begin
+        ?dup
+    while
+        dup link-get-data       \ lst0 link regx
+        #2 pick                 \ lst0 link regx lst0
+        region-list-push-nosubs \ lst0 link bool
+        drop
+
+        link-get-next
+    repeat
+                                \ lst0
+    drop
+;
+
 \ Return a list of propre intersections of any two regions in a list.
 : region-list-proper-intersections ( reg-lst0 -- reg-lst t | f )
     \ Check arg.
@@ -1102,18 +1124,23 @@
     foreach                                     \ ret-lst reg-lst0 reg-lnk
         \ Init temp list.
         list-new                                \ ret-lst reg-lst0 reg-lnk tmp-lst'
+
+        \ Get current target region.
         over link-get-data                      \ ret-lst reg-lst0 reg-lnk tmp-lst' regx
-        2dup swap                               \ ret-lst reg-lst0 reg-lnk tmp-lst' regx regx tmp-lst
+
+        \ Create target list.
+        2dup swap                               \ ret-lst reg-lst0 reg-lnk tmp-lst' regx regx tmp-lst'
         list-push-struct                        \ ret-lst reg-lst0 reg-lnk tmp-lst' regx
         swap                                    \ ret-lst reg-lst0 reg-lnk regx tmp-lst'
-        #3 pick                                 \ ret-lst reg-lst0 reg-lnk regx tmp-lst' reg-lst0
 
+        \ Subtract all regions, except itself.
+        #3 pick                                 \ ret-lst reg-lst0 reg-lnk regx tmp-lst' reg-lst0
         foreach                                 \ ret-lst reg-lst0 reg-lnk regx tmp-lst' reg-lnk
             dup link-get-data                   \ ret-lst reg-lst0 reg-lnk regx tmp-lst' reg-lnk regy
             #3 pick                             \ ret-lst reg-lst0 reg-lnk regx tmp-lst' reg-lnk regy regx
             <>                                  \ ret-lst reg-lst0 reg-lnk regx tmp-lst' reg-lnk bool
             if
-                \ Region not the target region.
+                \ Region is not the target region.
                 dup link-get-data               \ ret-lst reg-lst0 reg-lnk regx tmp-lst' reg-lnk regy
                 #2 pick                         \ ret-lst reg-lst0 reg-lnk regx tmp-lst' reg-lnk regy tmp-lst'
                 region-list-any-intersection?   \ ret-lst reg-lst0 reg-lnk regx tmp-lst' reg-lnk bool
@@ -1125,18 +1152,17 @@
 
                     \ Replace the temp list with the new result.
                     rot                         \ ret-lst reg-lst0 reg-lnk regx reg-lnk rslt-lst' tmp-lst'
-                    region-list-dealocate       \ ret-lst reg-lst0 reg-lnk regx reg-lnk rslt-lst'
+                    region-list-deallocate      \ ret-lst reg-lst0 reg-lnk regx reg-lnk rslt-lst'
                     swap                        \ ret-lst reg-lst0 reg-lnk regx rslt-lst' reg-lnk
                 then
             then
-                                                \ ret-lst reg-lst0 reg-lnk regx tmp-lst'
-            dup                                 \ ret-lst reg-lst0 reg-lnk regx tmp-lst' tmp-lst'
-            #5 pick                             \ ret-lst reg-lst0 reg-lnk regx tmp-lst' tmp-lst' ret-lst
-            region-list-append-nosubs           \ ret-lst reg-lst0 reg-lnk regx tmp-lst'
-            region-list-deallocate              \ ret-lst reg-lst0 reg-lnk regx
-            drop                                \ ret-lst reg-lst0 reg-lnk
         next
-        
+                                                \ ret-lst reg-lst0 reg-lnk regx tmp-lst'
+        dup                                     \ ret-lst reg-lst0 reg-lnk regx tmp-lst' tmp-lst'
+        #5 pick                                 \ ret-lst reg-lst0 reg-lnk regx tmp-lst' tmp-lst' ret-lst
+        region-list-append-nosubs               \ ret-lst reg-lst0 reg-lnk regx tmp-lst'
+        region-list-deallocate                  \ ret-lst reg-lst0 reg-lnk regx
+        drop                                    \ ret-lst reg-lst0 reg-ln
     next
     drop
 ;

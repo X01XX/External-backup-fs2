@@ -204,6 +204,22 @@
     cr ." region-list-test-proper-intersections-of-intersections - Ok"
 ;
 
+: region-list-test-defining-region-parts
+    s" (rx10x r1x0x rxxx1 r0xxx)" list-from-string-a    \ reg-lst'
+
+    dup region-list-defining-region-parts               \ reg-lst' def-regs'
+    cr ." defining parts: " dup .region-list cr
+
+    \ Clean up.                                         \ reg-lst' def-regs'
+    region-list-deallocate                              \ reg-lst'
+    region-list-deallocate
+
+    \ Check for memory leaks.
+    structinfo-list-store-project-deallocated
+
+    cr ." region-list-test-defining-region-parts - Ok"
+;
+
 : region-list-tests
     region-list-test-defining-regions
     region-list-test-evaluate-for-corners
