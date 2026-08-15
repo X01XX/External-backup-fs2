@@ -1014,11 +1014,17 @@
     assert( tos is-region-list? )
 
     \ Try first pass.
-    region-list-proper-intersections        \ int-regs' t | f
+    dup region-list-proper-intersections    \ reg-lst0 int-regs' t | f
     ifnot
+        drop
         false
         exit
     then
+
+    tuck swap                               \ int-regs' int-regs' reg-lst0
+    region-list-subtract                    \ int-regs' rem-lst'
+    cr ." remainders: " dup .region-list cr
+    region-list-deallocate
 
     \ Init return list.
     list-new swap                           \ ret-lst int-regs'
@@ -1026,6 +1032,7 @@
     begin
         \ Add intersections to the return list.
         dup                                 \ ret-lst int-regs' int-regs'
+
         #2 pick                             \ ret-lst int-regs' int-regs' ret-lst
         region-list-append-nodups           \ ret-lst int-regs'
 
