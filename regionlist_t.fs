@@ -136,24 +136,26 @@
 : region-list-test-proper-intersections
     s" (rx10x r1x0x rxxx1 r0xxx)" list-from-string-a    \ reg-lst'
 
-cr ." at 1: " .stack-gbl cr
     dup region-list-proper-intersections                \ reg-lst', reg-ints' t | f
-cr ." at 2: " .stack-gbl cr
     invert abort" no intersections?"
 
     \ Display.
     cr cr ." ints of " over .region-list space ." are: " dup .region-list cr
 
-cr ." at 3: " .stack-gbl cr
+    \ Test.
+    dup list-get-length #5 <> abort" s/b 5 regions"
+
     dup region-list-proper-intersections                \ reg-lst' reg-ints', reg-ints2' t | f
-cr ." at 4: " .stack-gbl cr
     invert abort" no intersections?"
 
     \ Display.
     cr ." ints of " over .region-list space ." are: " dup .region-list cr
 
-\    2dup region-list-proper-intersections           \ reg-lst' reg-ints' reg-ints2', reg-ints3' t | f
-\    abort" intersections?"
+    \ Test.
+    dup list-get-length #2 <> abort" s/b 2 regions"
+
+    dup region-list-proper-intersections            \ reg-lst' reg-ints' reg-ints2', reg-ints3' t | f
+    abort" intersections?"
 
     \ Clean up.                                     \ reg-lst' reg-ints' reg-ints2'
     region-list-deallocate                          \ reg-lst' reg-ints'
@@ -166,7 +168,30 @@ cr ." at 4: " .stack-gbl cr
     cr ." region-list-test-proper-intersections - Ok"
 ;
 
+: region-list-test-proper-intersections-of-intersections
+    s" (rx10x r1x0x rxxx1 r0xxx)" list-from-string-a        \ reg-lst'
+
+    dup region-list-proper-intersections-of-intersections   \ reg-lst', reg-ints' t | f
+    invert abort" no intersections?"
+
+    \ Display.
+    cr cr ." ints of " over .region-list space ." are: " dup .region-list cr
+
+    \ Test.
+    dup list-get-length #7 <> abort" s/b 7 regions"
+
+    \ Clean up.                                     \ reg-lst' reg-ints'
+    region-list-deallocate                          \ reg-lst'
+    region-list-deallocate
+
+    \ Check for memory leaks.
+    structinfo-list-store-project-deallocated
+
+    cr ." region-list-test-proper-intersections-of-intersections - Ok"
+;
+
 : region-list-tests
     region-list-test-defining-regions
     region-list-test-evaluate-for-corners
+    region-list-test-proper-intersections
 ;
