@@ -1014,37 +1014,79 @@
     assert( tos is-region-list? )
 
     \ Try first pass.
-    dup region-list-proper-intersections    \ reg-lst0 int-regs' t | f
+    dup region-list-proper-intersections    \ reg-lst0, int-regs' t | f
     ifnot
         drop
         false
         exit
     then
 
-    tuck swap                               \ int-regs' int-regs' reg-lst0
-    region-list-subtract                    \ int-regs' rem-lst'
-    cr ." remainders: " dup .region-list cr
-    region-list-deallocate
-
     \ Init return list.
-    list-new swap                           \ ret-lst int-regs'
+    list-new -rot                           \ ret-lst reg-lst0 int-regs'
+
+    \ Get arg regions minus intersections.
+    2dup swap                               \ ret-lst reg-lst0 int-regs' int-regs' reg-lst0
+    region-list-subtract                    \ ret-lst reg-lst0 int-regs' rem-lst'
+    \ cr ." remainders: " dup .region-list cr
+
+    \ Add remainders to the return list.
+    dup #4 pick                             \ ret-lst reg-lst0 int-regs' rem-lst' rem-lst' ret-lst
+    region-list-append-nodups               \ ret-lst reg-lst0 int-regs' rem-lst'
+
+    \ Replace the current regions with the intersections.
+    region-list-deallocate                  \ ret-lst reg-lst0 int-regs'
+    swap drop                               \ ret-lst int-regs'
 
     begin
-        \ Add intersections to the return list.
-        dup                                 \ ret-lst int-regs' int-regs'
-
-        #2 pick                             \ ret-lst int-regs' int-regs' ret-lst
-        region-list-append-nodups           \ ret-lst int-regs'
-
-        dup                                 \ ret-lst int-regs' int-regs'
-        region-list-proper-intersections    \ ret-lst int-regs', int-regs2' t | f
+        dup                                 \ ret-lst cur-regs' cur-regs'
+        region-list-proper-intersections    \ ret-lst cur-regs', int-regs' t | f
         if
-            swap
-            region-list-deallocate          \ ret-lst int-regs2'
+            \ Get current regions minus intersections.
+            2dup swap                       \ ret-lst cur-regs' int-regs' int-regs' cur-regs'
+            region-list-subtract            \ ret-lst cur-regs' int-regs' rem-lst'
+            \ cr ." remainders: " dup .region-list cr
+
+            \ Add remainders to the return list.
+            dup #4 pick                     \ ret-lst cur-regs' int-regs' rem-lst' rem-lst' ret-lst
+            region-list-append-nodups       \ ret-lst cur-regs' int-regs' rem-lst'
+
+            \ Replace the current regions with the intersections.
+            region-list-deallocate          \ ret-lst cur-regs' int-regs'
+            swap region-list-deallocate     \ ret-lst int-regs'
         else
+            \ No new intersections, add whats left.
+            2dup swap                       \ ret-lst cur-regs' cur-regs' ret-lst
+            region-list-append-nodups       \ ret-lst cur-regs'
+            \ cr ." remainders: " dup .region-list cr
             region-list-deallocate
             true
             exit
         then
     again
+;
+
+\ Return true if all items in the nos list are not proper intersections of any
+\ region in the tos list.
+: region-list-none-proper-intersections ( reg-lst1 reg-lst0 -- bool )
+    \ Check args.
+    assert( tos is-region-list? )
+    assert( nos is-region-list? )
+
+    swap                                           \ reg-lst0 reg-lst1
+
+    foreach                                         \ reg-lst0 reg-lnk
+        [ ' region-proper-intersection? ] literal   \ reg-lst0 reg-lnk xt
+        over link-get-data                          \ reg-lst0 reg-lnk xt regx
+        #3 pick                                     \ reg-lst0 reg-lnk xt regx reg-lst0
+        list-member?                                \ reg-lst0 reg-lnk bool
+        if
+            \ cr ." reg: " dup link-get-data .region
+            \ space ." is a proper subset of: " over .region-list cr
+            2drop
+            false
+            exit
+        then
+    next
+    drop
+    true
 ;
