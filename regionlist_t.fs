@@ -208,7 +208,16 @@
     s" (rx10x r1x0x rxxx1 r0xxx)" list-from-string-a    \ reg-lst'
 
     dup region-list-defining-region-parts               \ reg-lst' def-regs'
-    cr ." defining parts: " dup .region-list cr
+    cr ." defining parts: "
+    dup                                                 \ reg-lst' def-regs' def-regs'
+    foreach                                             \ reg-lst' def-regs' def-lnk
+        dup link-get-data                               \ reg-lst' def-regs' def-lnk regx
+        cr ."            reg: " dup .region
+        #3 pick                                         \ reg-lst' def-regs' def-lnk regx reg-lst'
+        region-list-supersets-of                        \ reg-lst' def-regs' def-lnk sup-lst'
+        space dup .region-list                          \ reg-lst' def-regs' def-lnk sup-lst'
+        region-list-deallocate                          \ reg-lst' def-regs' def-lnk
+    next
 
     \ Clean up.                                         \ reg-lst' def-regs'
     region-list-deallocate                              \ reg-lst'
