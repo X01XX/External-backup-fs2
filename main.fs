@@ -32,8 +32,6 @@ include incpairs.fs
 include region2.fs
 include state2.fs
 include regionlist2.fs
-include regioncorr.fs
-include regioncorrlist.fs
 
 include sample.fs
 include samplelist.fs
@@ -43,6 +41,8 @@ include floatnum.fs
 
 include token.fs
 include tokenlist.fs
+include regioncorr.fs
+include regioncorrlist.fs
 
 include structinfo.fs
 include structinfolist.fs
@@ -116,28 +116,28 @@ cr cr
 
 \ Init structinfo list.
 list-new to structinfo-list-store
-' noop          ' noop                  ' link-deallocate       ' .link         s" Link"        link-mma        link-struct-id          structinfo-new structinfo-list-store-push
-' lists-eq?     ' noop                  ' deallocate-struct-list ' print-struct-list s" List" list-mma list-struct-id structinfo-new structinfo-list-store-push-end
-' noop          ' noop                  ' structinfo-deallocate ' .structinfo   s" StructInfo" structinfo-mma   structinfo-struct-id    structinfo-new structinfo-list-store-push-end
+' noop  ' noop  ' noop          ' noop                  ' link-deallocate       ' .link         s" Link"        link-mma        link-struct-id          structinfo-new structinfo-list-store-push
+' noop  ' noop  ' lists-eq?     ' noop                  ' deallocate-struct-list ' print-struct-list s" List" list-mma list-struct-id structinfo-new structinfo-list-store-push-end
+' noop  ' noop  ' noop          ' noop                  ' structinfo-deallocate ' .structinfo   s" StructInfo" structinfo-mma   structinfo-struct-id    structinfo-new structinfo-list-store-push-end
 
 \ The list, link, and StructInfo structs allow for the creation of the structinfo-list-store,
 
-' masks-eq?     ' mask-from-string      ' mask-deallocate       ' .mask         s" Mask"        mask-mma        mask-struct-id          structinfo-new structinfo-list-store-push-end
-' states-eq?    ' state-from-string     ' state-deallocate      ' .state        s" State"       state-mma       state-struct-id         structinfo-new structinfo-list-store-push-end
-' regions-eq?   ' region-from-string    ' region-deallocate     ' .region       s" Region"      region-mma      region-struct-id        structinfo-new structinfo-list-store-push-end
-' floatnums-eq? ' floatnum-from-string  ' floatnum-deallocate   ' .floatnum     s" FloatNum"    floatnum-mma    floatnum-struct-id      structinfo-new structinfo-list-store-push-end
-' tokens-eq?    ' noop                  ' token-deallocate      ' .token        s" Token"       token-mma       token-struct-id         structinfo-new structinfo-list-store-push-end
-' rules-eq?     ' rule-from-string      ' rule-deallocate       ' .rule         s" Rule"        rule-mma        rule-struct-id          structinfo-new structinfo-list-store-push-end
-' samples-eq?   ' sample-from-string    ' sample-deallocate     ' .sample       s" Sample"      sample-mma      sample-struct-id        structinfo-new structinfo-list-store-push-end
-' noop          ' noop                  ' action-deallocate     ' .action       s" Action"      action-mma      action-struct-id        structinfo-new structinfo-list-store-push-end
-' noop          ' corner-from-string    ' corner-deallocate     ' .corner       s" Corner"      corner-mma      corner-struct-id        structinfo-new structinfo-list-store-push-end
-' noop          ' noop                  ' regioncorr-deallocate ' .regioncorr   s" Regioncorr"  regioncorr-mma  regioncorr-struct-id    structinfo-new structinfo-list-store-push-end
-\ ' noop          ' noop                  ' need-deallocate       ' .need       s" Need"        need-mma        need-struct-id          structinfo-new structinfo-list-store-push-end
-' =             ' noop                  ' square-deallocate     ' .square       s" Square"      square-mma      square-struct-id        structinfo-new structinfo-list-store-push-end
-' =             ' noop                  ' group-deallocate      ' .group        s" Group"       group-mma       group-struct-id         structinfo-new structinfo-list-store-push-end
-' noop          ' noop                  ' frame-deallocate      ' .frame        s" Frame"       frame-mma       frame-struct-id         structinfo-new structinfo-list-store-push-end
-' noop          ' noop                  ' domain-deallocate     ' .domain       s" Domain"      domain-mma      domain-struct-id        structinfo-new structinfo-list-store-push-end
-' noop          ' noop                  ' session-deallocate    ' .session      s" Session"     session-mma     session-struct-id       structinfo-new structinfo-list-store-push-end
+' noop  ' noop  ' masks-eq?     ' mask-from-string      ' mask-deallocate       ' .mask         s" Mask"        mask-mma        mask-struct-id          structinfo-new structinfo-list-store-push-end
+' noop  ' noop  ' states-eq?    ' state-from-string     ' state-deallocate      ' .state        s" State"       state-mma       state-struct-id         structinfo-new structinfo-list-store-push-end
+' noop  ' noop  ' regions-eq?   ' region-from-string    ' region-deallocate     ' .region       s" Region"      region-mma      region-struct-id        structinfo-new structinfo-list-store-push-end
+' noop  ' noop  ' floatnums-eq? ' floatnum-from-string  ' floatnum-deallocate   ' .floatnum     s" FloatNum"    floatnum-mma    floatnum-struct-id      structinfo-new structinfo-list-store-push-end
+' noop  ' noop  ' tokens-eq?    ' noop                  ' token-deallocate      ' .token        s" Token"       token-mma       token-struct-id         structinfo-new structinfo-list-store-push-end
+' noop  ' noop  ' rules-eq?     ' rule-from-string      ' rule-deallocate       ' .rule         s" Rule"        rule-mma        rule-struct-id          structinfo-new structinfo-list-store-push-end
+' noop  ' noop  ' samples-eq?   ' sample-from-string    ' sample-deallocate     ' .sample       s" Sample"      sample-mma      sample-struct-id        structinfo-new structinfo-list-store-push-end
+' noop  ' noop  ' noop          ' noop                  ' action-deallocate     ' .action       s" Action"      action-mma      action-struct-id        structinfo-new structinfo-list-store-push-end
+' noop  ' noop  ' noop          ' corner-from-string    ' corner-deallocate     ' .corner       s" Corner"      corner-mma      corner-struct-id        structinfo-new structinfo-list-store-push-end
+' regioncorr-from-list  ' regioncorr-valid-list?    ' noop  ' noop  ' regioncorr-deallocate ' .regioncorr   s" Regioncorr"  regioncorr-mma  regioncorr-struct-id    structinfo-new structinfo-list-store-push-end
+\ ' noop  ' noop  ' noop          ' noop                  ' need-deallocate       ' .need       s" Need"        need-mma        need-struct-id          structinfo-new structinfo-list-store-push-end
+' noop  ' noop  ' =             ' noop                  ' square-deallocate     ' .square       s" Square"      square-mma      square-struct-id        structinfo-new structinfo-list-store-push-end
+' noop  ' noop  ' =             ' noop                  ' group-deallocate      ' .group        s" Group"       group-mma       group-struct-id         structinfo-new structinfo-list-store-push-end
+' noop  ' noop  ' noop          ' noop                  ' frame-deallocate      ' .frame        s" Frame"       frame-mma       frame-struct-id         structinfo-new structinfo-list-store-push-end
+' noop  ' noop  ' noop          ' noop                  ' domain-deallocate     ' .domain       s" Domain"      domain-mma      domain-struct-id        structinfo-new structinfo-list-store-push-end
+' noop  ' noop  ' noop          ' noop                  ' session-deallocate    ' .session      s" Session"     session-mma     session-struct-id       structinfo-new structinfo-list-store-push-end
 
 : main
     session-new                     \ sess

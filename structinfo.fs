@@ -2,7 +2,7 @@
 \ This is an add-on to the memory managment code, it is not required for memory management
 \ unless you want the functions it provides.
 #53731 constant structinfo-struct-id
-   #11 constant structinfo-struct-number-cells
+   #13 constant structinfo-struct-number-cells
 
 \ Struct info struct fields.
 0                                       constant structinfo-header-disp         \ 16 bits, [0] id, [1] use count.
@@ -10,9 +10,14 @@ structinfo-header-disp          cell+   constant structinfo-inst-id-disp        
 structinfo-inst-id-disp         cell+   constant structinfo-mma-disp            \ Struct mma address.
 structinfo-mma-disp             cell+   constant structinfo-print-xt-disp       \ ' noop, or an xt to print a struct. ( instance -- )
 structinfo-print-xt-disp        cell+   constant structinfo-deallocate-xt-disp  \ ' noop, or an xt to deallocate a struct. ( instance -- )
-structinfo-deallocate-xt-disp   cell+   constant structinfo-from-string-xt-disp \ ' noop, or an xt to return a struct. ( c-addr u -- instance t | f )
+structinfo-deallocate-xt-disp   cell+   constant structinfo-from-string-xt-disp \ ' noop, or an xt to return struct from string. ( c-addr u -- instance t | f )
 structinfo-from-string-xt-disp  cell+   constant structinfo-eq-xt-disp          \ ' noop, or an xt to return <struct>s-eq?
 structinfo-eq-xt-disp           cell+   constant structinfo-name-disp           \ Up to 4 cells for name string.
+
+structinfo-name-disp            cell+   constant structinfo-valid-list?-xt-disp \ ' noop, or an xt to validate a list defining a struct.
+structinfo-valid-list?-xt-disp  cell+   constant structinfo-from-list-xt-disp   \ ' noop, or an xt to return a struct from a validated list.
+                                                                                \ Should be both noop xt, or both non-noop xt.
+
 
 0 value structinfo-mma     \ Storage for the structinfo mma instance addr.
 
@@ -146,10 +151,37 @@ structinfo-eq-xt-disp           cell+   constant structinfo-name-disp           
 
     structinfo-eq-xt-disp + @
 ;
+
+\ Set structinfo valid-list?-xt cell, can be ' noop.
+: _structinfo-set-valid-list?-xt ( xt1 snf0 -- )
+    structinfo-valid-list?-xt-disp + !
+;
+
+\ Get structinfo valid-list?-xt cell, may be ' noop.
+: structinfo-get-valid-list?-xt ( snf0 -- xt )
+    \ Check arg.
+    assert( tos is-structinfo? )
+
+    structinfo-valid-list?-xt-disp + @
+;
+
+\ Set structinfo from-list-xt cell, can be ' noop.
+: _structinfo-set-from-list-xt ( xt1 snf0 -- )
+    structinfo-from-list-xt-disp + !
+;
+
+\ Get structinfo from-list-xt cell, may be ' noop.
+: structinfo-get-from-list-xt ( snf0 -- xt )
+    \ Check arg.
+    assert( tos is-structinfo? )
+
+    structinfo-from-list-xt-disp + @
+;
+
 \ End accessors.
 
 \ Return a new structinfo struct instance address, with given data value.
-: structinfo-new ( eq-xt from-string-xt deallocate-xt print-xt c-addr u mma1 id0 -- snf )
+: structinfo-new ( from-list-xt valid-list?-xt eq-xt from-string-xt deallocate-xt print-xt c-addr u mma1 id0 -- snf )
 
     \ Check struct id is not zero, or negative.
     \ With a <struct>-deallocate wrapper, using argument checking,
@@ -158,30 +190,36 @@ structinfo-eq-xt-disp           cell+   constant structinfo-name-disp           
     dup 1 < abort" Invalid struct id."
 
     structinfo-struct-id structinfo-mma
-    struct-allocate                     \ eq-xt fs-xt d-xt p-xt c-addr u snf
+    struct-allocate                     \ fl-xt vl-xt eq-xt fs-xt d-xt p-xt c-addr u snf
 
     \ Set struct instance id.
-    tuck _structinfo-set-inst-id        \ eq-xt fs-xt d-xt p-xt c-addr u mma1 snf
+    tuck _structinfo-set-inst-id        \ fl-xt vl-xt eq-xt fs-xt d-xt p-xt c-addr u mma1 snf
 
     \ Set struct mma.
-    tuck _structinfo-set-mma            \ eq-xt fs-xt d-xt p-xt c-addr u snf
+    tuck _structinfo-set-mma            \ fl-xt vl-xt eq-xt fs-xt d-xt p-xt c-addr u snf
 
     \ Set struct name.
-    -rot                                \ eq-xt fs-xt d-xt p-xt snf c-addr u
-    #2 pick                             \ eq-xt fs-xt d-xt p-xt snf c-addr u snf
-    _structinfo-set-name                \ eq-xt fs-xt d-xt p-xt snf
+    -rot                                \ fl-xt vl-xt eq-xt fs-xt d-xt p-xt snf c-addr u
+    #2 pick                             \ fl-xt vl-xt eq-xt fs-xt d-xt p-xt snf c-addr u snf
+    _structinfo-set-name                \ fl-xt vl-xt eq-xt fs-xt d-xt p-xt snf
 
     \ Set print xt.
-    tuck _structinfo-set-print-xt       \ eq-xt fs-xt d-xt snf
+    tuck _structinfo-set-print-xt       \ fl-xt vl-xt eq-xt fs-xt d-xt snf
 
     \ Set deallocate xt.
-    tuck _structinfo-set-deallocate-xt  \ eq-xt fs-xt snf
+    tuck _structinfo-set-deallocate-xt  \ fl-xt vl-xt eq-xt fs-xt snf
 
     \ Set from-string xt.
-    tuck _structinfo-set-from-string-xt \ eq-xt snf
+    tuck _structinfo-set-from-string-xt \ fl-xt vl-xt eq-xt snf
 
     \ Set eq-xt.
-    tuck _structinfo-set-eq-xt          \ snf
+    tuck _structinfo-set-eq-xt          \ fl-xt vl-xt snf
+
+    \ Set valid-list?-xt.
+    tuck _structinfo-set-valid-list?-xt \ fl-xt snf
+
+    \ Set from-lst xt.
+    tuck _structinfo-set-from-list-xt   \ snf
 ;
 
 \ Print a structinfo struct instance.

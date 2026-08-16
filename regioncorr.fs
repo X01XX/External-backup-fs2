@@ -102,7 +102,7 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
 \ End accessors.
 
 \ Create a regioncorr from a region-list.
-: regioncorr-new ( reg-lst0 -- addr)
+: regioncorr-new ( reg-lst0 -- regc )
     \ Check arg.
     assert( tos is-region-list? )
 
@@ -138,7 +138,7 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
     \ Check arg.
     assert( tos is-regioncorr? )
 
-    ." ("
+    ." ( regc "
     dup regioncorr-get-pos-value    \ regc pos
     dec.
     dup regioncorr-get-neg-value    \ regc neg
@@ -353,22 +353,117 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
 
 ' regioncorr-subtract to regioncorr-subtract-xt
 
+: is-valid-neg-value? ( val -- bool )
+    dup 0> if drop false exit then
+    abs 256 <
+;
+
+: is-valid-pos-value? ( val -- bool )
+    dup 0< if drop false exit then
+    256 <
+;
+
+\ Check if a list could be a regioncorr definintion.
+: regioncorr-valid-list? ( lst -- bool )
+    \ Check arg.
+    assert( is-list? )
+
+    \ Check list length.
+    dup list-get-length 4 =
+    ifnot
+        drop false exit
+    then
+
+    \ Check hint token.
+    dup list-get-first-item             \ lst first
+    is-token?
+    ifnot
+        drop false exit
+    then
+
+    s" regc"                            \ lst c-addr u
+    #2 pick list-get-first-item         \ lst c-addr u first
+    token-eq-string                     \ lst bool
+    ifnot
+        drop false exit
+    then
+
+    \ Check positive value.
+    dup list-get-second-item            \ lst second
+    is-valid-pos-value?
+    ifnot
+        drop false exit
+    then
+
+    \ Check-negative value.
+    dup list-get-third-item             \ lst third
+    is-valid-neg-value?
+    ifnot
+        drop false exit
+    then
+
+    \ Check region list.
+    dup list-get-fourth-item            \ lst fourth
+    is-region-list?
+    ifnot
+        drop false exit
+    then
+
+    dup list-get-fourth-item            \ lst fourth
+    list-is-empty?
+    ifnot
+        drop false exit
+    then
+
+    true
+;
+
+\ Return a regioncorr from a list.
+: regioncorr-from-list ( lst -- regc t | f)
+    \ Check arg.
+    assert( is-list? )
+
+    dup regioncorr-valid-list?  \ lst bool
+    ifnot
+        drop false exit
+    then
+
+    \ Allocate new regioncorr.
+    dup list-get-fourth-item            \ lst fourth
+    regioncorr-new                      \ lst regc
+
+    \ Set positive value.
+    over list-get-second-item           \ lst regc pos
+    over _regioncorr-set-pos-value      \ lst regc
+
+    \ Set negative value.
+    swap list-get-third-item            \ regc neg
+    over _regioncorr-set-neg-value      \ regc
+;
+
 \ Return a regioncorr from a string.
 \ Like (1 -2 (rxxxx r1010))
 \ Like (0 0 (rxxxx r1010))
 : regioncorr-from-string ( str-addr str-n -- regc t | f )
     \ cr ." regioncorr-from-string: start: " 2dup type cr
+
+    \ Convert string to list.
     list-from-string-xt execute             \ lst t | f
     ifnot
         false
         exit
     then
 
-    dup list-get-length 3 =
+    dup regioncorr-from-list                \ lst, regc t | f
     ifnot
         deallocate-struct-list
+    else
+        swap
+        deallocate-struct-list
+        true
     then
 ;
+
 
 \ Return a regioncorr from a string, or abort.
 : regioncorr-from-string-a ( str-addr str-n -- regc )
