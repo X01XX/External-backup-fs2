@@ -1,1 +1,3 @@
-Experimental rewrite of UES-Forth.
+A rewrite of UES-Forth.
+
+Try new things, experiment.
