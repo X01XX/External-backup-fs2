@@ -85,7 +85,7 @@
     square-deallocate
 
     \ Check for memory leaks.
-     structinfo-list-store-project-deallocated
+     check-project-deallocated
 
     cr ." square-test-basic - Ok"
 ;
@@ -136,7 +136,7 @@
     square-deallocate
 
     \ Check for memory leaks.
-     structinfo-list-store-project-deallocated
+     check-project-deallocated
 
     cr ." square-test-compare-pnx-pn0 - Ok"
 ;
@@ -180,7 +180,7 @@
     square-deallocate
 
     \ Check for memory leaks.
-     structinfo-list-store-project-deallocated
+     check-project-deallocated
 
     cr ." square-test-compare-pn1-pn1 - Ok"
 ;
@@ -242,7 +242,7 @@
     square-deallocate
 
     \ Check for memory leaks.
-     structinfo-list-store-project-deallocated
+     check-project-deallocated
 
     cr ." square-test-compare-pn1-pn2 - Ok"
 ;
@@ -250,7 +250,7 @@
 : squares-test-compare-pn2-pn2
 
     \ Check for memory leaks.
-     structinfo-list-store-project-deallocated
+     check-project-deallocated
 
     cr ." square-test-compare-pn2-pn2 - Ok"
 ;

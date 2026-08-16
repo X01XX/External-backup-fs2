@@ -1,0 +1,4 @@
+
+: regioncorr-tests
+    cr
+;

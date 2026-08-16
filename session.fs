@@ -88,6 +88,16 @@ session-step-num-disp   cell+   constant session-max-regions-disp               
 
 \ End accessors.
 
+: _session-update-max-regions ( reg-lst sess0 -- ) \ Set the max regions list.
+    \ Check arg.
+    assert( tos is-session? )
+    assert( nos is-region-list? )
+
+    dup session-get-max-regions -rot
+    _session-set-max-regions
+    region-list-deallocate
+;
+
 : session-inc-step-num ( sess0 -- )
 \ Check arg.
     assert( tos is-session? )
@@ -131,6 +141,7 @@ session-step-num-disp   cell+   constant session-max-regions-disp               
     over _session-set-domains       \ ses
 
     0 over _session-set-step-num
+    list-new over _session-set-max-regions
 
     dup to session-store
 ;
@@ -350,7 +361,7 @@ cr ." todo session-get-current-regions" cr
         1 =  
         if   
             \ Display Memory Usage.
-            structinfo-list-store structinfo-list-print-memory-use-xt execute
+            print-memory-use
         else 
             cr ." mu command: invalid number of arguments" cr
         then 
@@ -451,7 +462,7 @@ cr ." todo session-get-current-regions" cr
             2dup swap                                           \ sess0 lst' lst' sess0
             session-eval-user-input                             \ sess0 lst' bool
             swap                                                \ sess0 bool lst'
-            structinfo-list-deallocate-struct-list-xt execute   \ sess0 bool
+            deallocate-struct-list                              \ sess0 bool
             nip                                                 \ bool
         else
             cr ." Did not understand the command." cr
@@ -467,8 +478,8 @@ cr ." todo session-get-current-regions" cr
     assert( tos is-session? )
 
     \ Calc and store the domain list maximum regions list.
-    dup session-calc-max-regions    \ sess max-regs
-    over _session-set-max-regions   \ sess
+    dup session-calc-max-regions        \ sess max-regs
+    over _session-update-max-regions    \ sess
 
     drop
 ;

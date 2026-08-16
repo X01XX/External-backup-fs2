@@ -80,60 +80,60 @@
 ;
 
 \ Print memory use of structs.
-: structinfo-list-print-memory-use ( si-lst0 -- )
+: structinfo-list-print-memory-use ( snf-lst -- )
     \ Check args.
     assert( tos is-structinfo-list? )
 
     cr ." Memory use:"
     \ Get/store longest name length.
-    dup structinfo-list-max-name-length \ si-lst0 max
-    over                                \ si-lst0 max si-lst0
+    dup structinfo-list-max-name-length \ si-lst max
+    over                                \ si-lst max si-lst
 
-    foreach                             \ si-lst0 max si-link
-        dup link-get-data               \ si-lst0 max si-link six
+    foreach                             \ si-lst max si-link
+        dup link-get-data               \ si-lst max si-link six
 
         \ Print struct name, and filler.
-        dup                             \ si-lst0 max si-link six six
-        structinfo-get-name             \ si-lst0 max si-link six c-addr u
-        tuck                            \ si-lst0 max si-link six u c-addr u
-        cr #4 spaces type               \ si-lst0 max si-link six u
+        dup                             \ si-lst max si-link six six
+        structinfo-get-name             \ si-lst max si-link six c-addr u
+        tuck                            \ si-lst max si-link six u c-addr u
+        cr #4 spaces type               \ si-lst max si-link six u
         [char] : emit space
         #3 pick swap -
-        spaces           \ si-lst0 max si-link six
+        spaces           \ si-lst max si-link six
 
         \ Print memory use.
-        structinfo-get-mma              \ si-lst0 max si-link mmax
-        .mma-usage                      \ si-lst0 max si-link
+        structinfo-get-mma              \ si-lst max si-link mmax
+        .mma-usage                      \ si-lst max si-link
     next
-                                        \ si-lst0 max
+                                        \ si-lst max
     \ Print Summary line.
     cr
     spaces
     #46 spaces ." Totals: "
 
     \ Sum struct instances in use.
-    0 over                          \ si-lst0 cnt si-lst0
+    0 over                          \ si-lst cnt si-lst
 
-    foreach                         \ si-lst0 cnt si-link
-        dup link-get-data           \ si-lst0 cnt si-link six
-        structinfo-get-mma          \ si-lst0 cnt si-link mmax
-        mma-in-use                  \ si-lst0 cnt si-link totx
-        rot                         \ si-lst0 si-link totx cnt
-        + swap                      \ si-lst0 cnt+ si-link
+    foreach                         \ si-lst cnt si-link
+        dup link-get-data           \ si-lst cnt si-link six
+        structinfo-get-mma          \ si-lst cnt si-link mmax
+        mma-in-use                  \ si-lst cnt si-link totx
+        rot                         \ si-lst si-link totx cnt
+        + swap                      \ si-lst cnt+ si-link
     next
 
     \ Print array instances in use.
     #6 dec.r
 
     \ Sum array memory use.
-    0 over                          \ si-lst0 cnt si-lst0
+    0 over                          \ si-lst cnt si-lst
 
-    foreach                         \ si-lst0 cnt si-link
-        dup link-get-data           \ si-lst0 cnt si-link six
-        structinfo-get-mma          \ si-lst0 cnt si-link mmax
-        mma-get-array-memory-use    \ si-lst0 cnt si-link totx
-        rot                         \ si-lst0 si-link totx cnt
-        + swap                      \ si-lst0 cnt+ si-link
+    foreach                         \ si-lst cnt si-link
+        dup link-get-data           \ si-lst cnt si-link six
+        structinfo-get-mma          \ si-lst cnt si-link mmax
+        mma-get-array-memory-use    \ si-lst cnt si-link totx
+        rot                         \ si-lst si-link totx cnt
+        + swap                      \ si-lst cnt+ si-link
     next
 
     \ Print array memory use.
@@ -141,28 +141,28 @@
     #7 dec.r
 
     \ Sum overhead memory use.
-    0 over                          \ si-lst0 cnt si-lst0
+    0 over                          \ si-lst cnt si-lst
 
-    foreach                         \ si-lst0 cnt si-link
-        dup link-get-data           \ si-lst0 cnt si-link six
-        structinfo-get-mma          \ si-lst0 cnt si-link mmax
-        mma-get-overhead-memory-use \ si-lst0 cnt si-link totx
-        rot                         \ si-lst0 si-link totx cnt
-        + swap                      \ si-lst0 cnt+ si-link
+    foreach                         \ si-lst cnt si-link
+        dup link-get-data           \ si-lst cnt si-link six
+        structinfo-get-mma          \ si-lst cnt si-link mmax
+        mma-get-overhead-memory-use \ si-lst cnt si-link totx
+        rot                         \ si-lst si-link totx cnt
+        + swap                      \ si-lst cnt+ si-link
     next
 
     \ Print overhead memory use.
     #11 spaces #7 dec.r
 
     \ Sum total memory use.
-    0 over                          \ si-lst0 cnt si-lst0
+    0 over                          \ si-lst cnt si-lst
 
-    foreach                         \ si-lst0 cnt si-link
-        dup link-get-data           \ si-lst0 cnt si-link six
-        structinfo-get-mma          \ si-lst0 cnt si-link mmax
-        mma-get-total-memory-use    \ si-lst0 cnt si-link totx
-        rot                         \ si-lst0 si-link totx cnt
-        + swap                      \ si-lst0 cnt+ si-link
+    foreach                         \ si-lst cnt si-link
+        dup link-get-data           \ si-lst cnt si-link six
+        structinfo-get-mma          \ si-lst cnt si-link mmax
+        mma-get-total-memory-use    \ si-lst cnt si-link totx
+        rot                         \ si-lst si-link totx cnt
+        + swap                      \ si-lst cnt+ si-link
     next
 
     \ Print total memory use.
@@ -171,24 +171,29 @@
     cell / #8 spaces #7 dec.r
 
     \ Sum number allocations.
-    0 over                          \ si-lst0 cnt si-lst0
+    0 over                          \ si-lst cnt si-lst
 
-    foreach                         \ si-lst0 cnt si-link
-        dup link-get-data           \ si-lst0 cnt si-link six
-        structinfo-get-mma          \ si-lst0 cnt si-link mmax
-        _mma-get-num-allocations    \ si-lst0 cnt si-link allocx
-        rot                         \ si-lst0 si-link allocx cnt
-        + swap                      \ si-lst0 cnt+ si-link
+    foreach                         \ si-lst cnt si-link
+        dup link-get-data           \ si-lst cnt si-link six
+        structinfo-get-mma          \ si-lst cnt si-link mmax
+        _mma-get-num-allocations    \ si-lst cnt si-link allocx
+        rot                         \ si-lst si-link allocx cnt
+        + swap                      \ si-lst cnt+ si-link
     next
 
     \ Print number allocations.
     #7 spaces #12 dec.r
 
     drop
-    cr .stack-structs-xt execute cr	\ si-lst0
+    cr .stack-structs-xt execute cr	\ si-lst
 ;
 
-' structinfo-list-print-memory-use to structinfo-list-print-memory-use-xt
+: structinfo-list-store-print-memory-use ( -- )
+    structinfo-list-store
+    structinfo-list-print-memory-use
+;
+
+' structinfo-list-store-print-memory-use to structinfo-list-store-print-memory-use-xt
 
 : assert-forth-stack-empty ( -- )
     depth 0<>
@@ -274,10 +279,10 @@
 
 \ Check all project struct instances are deallocated.
 \ A lost higher-level struct instance will also complain about struct instances it contains.
-: structinfo-list-project-deallocated ( snf-lst0 -- )
+: structinfo-list-check-project-deallocated ( snf-lst0 -- )
     \ Check args.
     assert( tos is-structinfo-list? )
-    \ cr ." structinfo-list-project-deallocated" cr
+    \ cr ." check-project-deallocated" cr
 
     \ Init error flag.
     0                                           \ snf-lst0 flg
@@ -349,12 +354,12 @@
     assert-forth-stack-empty
 ;
 
-: structinfo-list-store-project-deallocated ( )
+: structinfo-list-store-check-project-deallocated ( )
     structinfo-list-store
-    structinfo-list-project-deallocated
+    structinfo-list-check-project-deallocated
 ;
 
-' structinfo-list-store-project-deallocated to structinfo-list-store-project-deallocated-xt
+' structinfo-list-store-check-project-deallocated to structinfo-list-store-check-project-deallocated-xt
 
 
 \ Free heap of all mm_arrays.
@@ -454,7 +459,7 @@
 ;
 
 \ Print a list of structures.
-: structinfo-list-print-struct-list ( lst0 -- )
+: structinfo-list-store-print-struct-list ( lst0 -- )
     \ Check args.
     assert( tos is-list? )
 
@@ -484,13 +489,14 @@
     ." )"                               \
 ;
 
-' structinfo-list-print-struct-list to structinfo-list-print-struct-list-xt
+' structinfo-list-store-print-struct-list to structinfo-list-store-print-struct-list-xt
 
 \ Deallocate any struct instance.
 \ Do nothing to a non-struct.
 \ So this will deallocate everything, when applied to a list.
-: structinfo-list-deallocate-struct ( inst0 -- )
-    structinfo-list-store                   \ inst0 snf-lst
+: structinfo-list-deallocate-struct ( inst1 snf-lst -- )
+    \ Check arg.
+    assert( tos is-structinfo-list? )
 
     over get-first-word                     \ inst0 snf-lst0, w t | f
     if
@@ -507,27 +513,40 @@
     then
 ;
 
-' structinfo-list-deallocate-struct to structinfo-list-deallocate-struct-xt
+: structinfo-list-store-deallocate-struct ( inst0 -- )
+    structinfo-list-store
+    structinfo-list-deallocate-struct
+;
 
-\ Deallocate a list of structures.
-: structinfo-list-deallocate-struct-list ( lst0 -- )
-    \ Check arg.
-    assert( tos is-list? )
+' structinfo-list-store-deallocate-struct to structinfo-list-store-deallocate-struct-xt
 
-    dup struct-get-use-count                    \ lst0 uc
-    0< abort" structinfo-list-deallocate-struct-list: Invalid use count"
+\ Deallocate a list of anything, that may include struct instances.
+: structinfo-list-deallocate-struct-list ( lst0 snf-lst -- )
+    \ Check args.
+    assert( tos is-structinfo-list? )
+    assert( nos is-list? )
 
-    dup struct-get-use-count                    \ lst0 uc
+    drop
+
+    dup struct-get-use-count                        \ lst0 uc
+    0< abort" deallocate-struct-list: Invalid use count"
+
+    dup struct-get-use-count                        \ lst0 uc
     #2 < if
-        structinfo-list-deallocate-struct-xt    \ lst xt
-        swap                                    \ xt lst
+        structinfo-list-store-deallocate-struct-xt  \ lst xt
+        swap                                        \ xt lst
         list-deallocate-recursive-struct
     else
         struct-dec-use-count
     then
 ;
 
-' structinfo-list-deallocate-struct-list to structinfo-list-deallocate-struct-list-xt
+: structinfo-list-store-deallocate-struct-list ( lst -- )
+    structinfo-list-store
+    structinfo-list-deallocate-struct-list
+;
+
+' structinfo-list-store-deallocate-struct-list to structinfo-list-store-deallocate-struct-list-xt
 
 \ Return a struct instance from a string.
 : structinfolist-interpret-string ( c-addr u lst0 -- inst t | f )
@@ -634,7 +653,7 @@
     \ cr ." structinfo-list-member?: "
     \ over structinfo-list-print-struct
     \ space
-    \ dup structinfo-list-print-struct-list
+    \ dup print-struct-list
     \ cr
 
     foreach                         \ item link

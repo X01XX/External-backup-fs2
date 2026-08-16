@@ -112,6 +112,7 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
     \ Check args.
     assert( tos is-state? )
     assert( nos is-state? )
+    assert( 2dup states-same-num-bits? )
 
     rule-struct-id rule-mma \ s-r s-i id mma
     struct-allocate         \ s-r s-i rul

@@ -76,7 +76,7 @@
         if
             true
         else
-            structinfo-list-deallocate-struct-list-xt execute
+            deallocate-struct-list
             false
         then
     else
@@ -362,6 +362,7 @@
     next
                                 \ ret-lst
 ;
+
 \ From the TOS region-list, subtract the NOS region-list.
 : region-list-subtract ( reg-lst1 reg-lst0 -- ret-lst )
     \ Check args.
@@ -703,10 +704,10 @@
     \ Get list of (states-not-in (regions in)), sorted in ascending order by number regions in.
     #3 pick                                     \ sta-lst1 reg-lst0 stas-in-one def-regs stas-not-in pos-reg-lst0
     over state-list-regions-states-in           \ sta-lst1 reg-lst0 stas-in-one def-regs stas-not-in stas-reg
-    cr ." State-regs list: " dup structinfo-list-print-struct-list-xt execute cr
+    cr ." State-regs list: " dup print-struct-list cr
     [ ' state-regs-sort-xt ] literal over       \ sta-lst1 reg-lst0 stas-in-one def-regs stas-not-in stas-reg xt stas-reg
     list-sort                                   \ sta-lst1 reg-lst0 stas-in-one def-regs stas-not-in stas-reg
-    cr ." State-regs list sorted: " dup structinfo-list-print-struct-list-xt execute cr
+    cr ." State-regs list sorted: " dup print-struct-list cr
 
     \ Check for corners.
     #2 pick                                     \ sta-lst1 reg-lst0 stas-in-one def-regs stas-not-in stas-reg def-regs
@@ -719,11 +720,10 @@
     dup                                         \ sta-lst1 reg-lst0 stas-in-one def-regs stas-not-in stas-reg stas-reg
     foreach                                     \ sta-lst1 reg-lst0 stas-in-one def-regs stas-not-in stas-reg stas-reg-lnk
         dup link-get-data                       \ sta-lst1 reg-lst0 stas-in-one def-regs stas-not-in stas-reg stas-reg-lnk sta-regx
-        cr ." sta-regs: " structinfo-list-print-struct-list-xt execute cr
+        cr ." sta-regs: " print-struct-list cr
     next
                                                 \ sta-lst1 reg-lst0 stas-in-one def-regs stas-not-in stas-reg
-    structinfo-list-deallocate-struct-list-xt   \ sta-lst1 reg-lst0 stas-in-one def-regs stas-not-in xt
-    execute                                     \ sta-lst1 reg-lst0 stas-in-one def-regs stas-not-in
+    deallocate-struct-list                      \ sta-lst1 reg-lst0 stas-in-one def-regs stas-not-in
     state-list-deallocate                       \ sta-lst1 reg-lst0 stas-in-one def-regs
     region-list-deallocate                      \ sta-lst1 reg-lst0 stas-in-one
     state-list-deallocate                       \ sta-lst1 reg-lst0
@@ -948,7 +948,7 @@
     drop
 ;
 
-\ Append nos region-list to the tos region-list, except deplicates.
+\ Append nos region-list to the tos region-list, except duplicates.
 : region-list-append-nodups ( lst1 lst0 -- )
     \ Check args.
     assert( tos is-region-list? )
@@ -1031,12 +1031,54 @@
     \ cr ." region-list-proper-intersections: end" cr
 ;
 
-: region-list-proper-intersections-of-intersections ( reg-lst0 -- reg-lst t | f )
+\ Return a list of intersections of any two regions in a list.
+: region-list-self-intersections-nodups ( reg-lst0 -- reg-lst t | f )
+    \ Check arg.
+    assert( tos is-region-list? )
+    \ cr ." region-list-self-intersections-nodups: start" cr
+    \ Init return list.
+    list-new swap                       \ ret-lst reg-lst
+
+    foreach                             \ ret-lst reg-lnk1
+        dup link-get-next               \ ret-lst reg-lnk1 reg-lnk2
+        begin
+            ?dup
+        while
+            over link-get-data          \ ret-lst reg-lnk1 reg-lnk2 reg1
+            over link-get-data          \ ret-lst reg-lnk1 reg-lnk2 reg1 reg2
+            region-intersection         \ ret-lst reg-lnk1 reg-lnk2, reg-int' t | f
+            if
+                dup                     \ ret-lst reg-lnk1 reg-lnk2 reg-int' reg-int'
+                #4 pick                 \ ret-lst reg-lnk1 reg-lnk2 reg-int' reg-int' ret-lst
+                region-list-push-nodups \ ret-lst reg-lnk1 reg-lnk2 reg-int' bool
+                if
+                    drop                \ ret-lst reg-lnk1 reg-lnk2
+                else
+                    region-deallocate   \ ret-lst reg-lnk1 reg-lnk2
+                then
+            then
+        next
+    next
+                                        \ ret-lst
+    dup list-is-empty?
+    if
+        list-deallocate
+        false
+    else
+        true
+    then
+    \ cr ." region-list-self-intersections-nodups: end" cr
+;
+
+\ Split a region list by intersections.
+\ So each result region is a subset of one, or more, of the original regions,
+\ but never a proper intersection.
+: region-list-split-by-intersections ( reg-lst0 -- reg-lst t | f )
     \ Check arg.
     assert( tos is-region-list? )
 
     \ Try first pass.
-    dup region-list-proper-intersections    \ reg-lst0, int-regs' t | f
+    dup region-list-self-intersections-nodups \ reg-lst0, int-regs' t | f
     ifnot
         drop
         false
@@ -1061,7 +1103,7 @@
 
     begin
         dup                                 \ ret-lst cur-regs' cur-regs'
-        region-list-proper-intersections    \ ret-lst cur-regs', int-regs' t | f
+        region-list-self-intersections-nodups   \ ret-lst cur-regs', int-regs' t | f
         if
             \ Get current regions minus intersections.
             2dup swap                       \ ret-lst cur-regs' int-regs' int-regs' cur-regs'
@@ -1102,8 +1144,8 @@
         #3 pick                                     \ reg-lst0 reg-lnk xt regx reg-lst0
         list-member?                                \ reg-lst0 reg-lnk bool
         if
-            \ cr ." reg: " dup link-get-data .region
-            \ space ." is a proper subset of: " over .region-list cr
+            cr ." reg: " dup link-get-data .region
+            space ." is a proper subset of: " over .region-list cr
             2drop
             true
             exit
@@ -1113,6 +1155,7 @@
     false
 ;
 
+\ Return non-overlapped parts of regions.
 : region-list-defining-region-parts ( reg-lst0 -- reg-lst )
     \ Check arg.
     assert( tos is-region-list? )

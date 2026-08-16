@@ -448,6 +448,26 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     swap mask-deallocate    \ msk-edg
 ;
 
+: region-diff-mask ( reg1 reg0 -- msk )                                                                    
+    \ Check args.
+    assert( tos is-region? )
+    assert( nos is-region? )
+
+    \ Get mask of trit positions that are not X in either region.
+    over region-edge-mask           \ reg1 reg0 e1-msk
+    over region-edge-mask           \ reg1 reg0 e1-msk e0-msk
+    mask-and                        \ reg1 reg0 e-msk
+    -rot                            \ e-msk reg1 reg0
+
+    \ Get region state dif-mask, which may include X bit positions.
+    region-get-state-0              \ e-msk reg1 sta-0
+    swap region-get-state-0         \ e-msk sta-0 sta-1
+    state-xor-to-mask               \ e-msk sta0-dif-msk
+
+    \ Remove X trit positions from the mask.
+    mask-and                             \ dif-msk
+;
+
 \ Return true if two regions have a different number of bits.
 : regions-dif-num-bits? ( reg1 reg0 -- flag )
     \ Check args.
@@ -808,7 +828,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
         exit
     then
 
-    region-superset?            \ bool
+    swap region-superset?       \ bool
     invert
     \ cr ." regions-neither-superset?: end" cr
 ;
@@ -830,4 +850,14 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 
     region-intersection             \ reg t
     \ cr ." region-proper-intersection: end" cr
+;
+
+\ Return the number of corresponding trits that are 0 and 1, between two regions.                          
+: region-distance ( reg1 reg0 -- u )
+    \ Check args.
+    assert( tos is-region? )
+    assert( nos is-region? )
+
+    region-diff-mask        \ msk
+    state-num-bits-set      \ nb
 ;

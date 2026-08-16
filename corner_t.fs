@@ -12,7 +12,7 @@
     corner-deallocate
 
     \ Check for memory leaks.
-     structinfo-list-store-project-deallocated
+     check-project-deallocated
 
     cr ." corner-test-new - Ok"
 ;
@@ -32,7 +32,7 @@
     corner-deallocate
 
     \ Check for memory leaks.
-     structinfo-list-store-project-deallocated
+     check-project-deallocated
 
     cr ." corner-test-states - Ok"
 ;
@@ -61,7 +61,7 @@
     corner-deallocate
 
     \ Check for memory leaks.
-     structinfo-list-store-project-deallocated
+     check-project-deallocated
 
     cr ." corner-test-states - Ok"
 ;
@@ -88,7 +88,7 @@
     region-list-deallocate
 
     \ Check for memory leaks.
-     structinfo-list-store-project-deallocated
+     check-project-deallocated
 
     cr ." corner-test-additional-corners - Ok"
 ;
@@ -113,7 +113,7 @@
     region-list-deallocate
 
     \ Check for memory leaks.
-     structinfo-list-store-project-deallocated
+     check-project-deallocated
 
     cr ." corner-test-calc-set-rate - Ok"
 ;

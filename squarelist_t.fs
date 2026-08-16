@@ -42,7 +42,7 @@
     square-deallocate
 
     \ Check for memory leaks.
-     structinfo-list-store-project-deallocated
+     check-project-deallocated
 
     cr ." square-list-test-any-between? - Ok"
 ;
@@ -85,7 +85,7 @@
     square-deallocate
 
     \ Check for memory leaks.
-     structinfo-list-store-project-deallocated
+     check-project-deallocated
 
     cr ." square-list-test-between-any - Ok"
 ;
@@ -141,7 +141,7 @@
     square-list-deallocate              \
 
     \ Check for memory leaks.
-     structinfo-list-store-project-deallocated
+     check-project-deallocated
 
     cr ." square-list-test-find-incompatible-pair - Ok"
 ;

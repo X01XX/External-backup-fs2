@@ -30,7 +30,7 @@
     need-deallocate
 
     \ Check for memory leaks.
-     structinfo-list-store-project-deallocated
+     check-project-deallocated
 
     cr ." need-test-new - Ok"
 ;

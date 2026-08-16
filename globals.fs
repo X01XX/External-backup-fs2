@@ -39,3 +39,19 @@ display-debug-status
 : is-valid-num-bits? ( n -- bool )
     dup 0 > swap [ 1 cells #8 * ] literal <= and
 ;
+
+: deallocate-struct-list ( lst -- )
+    structinfo-list-store-deallocate-struct-list-xt execute
+;
+
+: print-struct-list ( lst -- )
+    structinfo-list-store-print-struct-list-xt execute
+;
+
+: print-memory-use ( -- )
+    structinfo-list-store-print-memory-use-xt execute
+;
+
+: check-project-deallocated ( -- )
+    structinfo-list-store-check-project-deallocated-xt execute
+;

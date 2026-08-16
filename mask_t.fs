@@ -15,7 +15,7 @@
     mask-deallocate
 
     \ Check for memory leaks.
-     structinfo-list-store-project-deallocated
+     check-project-deallocated
 
     cr ." mask-test-basic - Ok"
 ;
@@ -37,7 +37,7 @@
     mask-deallocate
 
     \ Check for memory leaks.
-     structinfo-list-store-project-deallocated
+     check-project-deallocated
 
     cr ." mask-test-eq - Ok"
 ;
@@ -53,7 +53,7 @@
     mask-deallocate
 
     \ Check for memory leaks.
-     structinfo-list-store-project-deallocated
+     check-project-deallocated
 
     cr ." mask-test-bit - Ok"
 ;
@@ -75,7 +75,7 @@
     mask-deallocate
 
     \ Check for memory leaks.
-     structinfo-list-store-project-deallocated
+     check-project-deallocated
 
     cr ." mask-test-and - Ok"
 ;
@@ -94,7 +94,7 @@
     mask-deallocate
 
     \ Check for memory leaks.
-     structinfo-list-store-project-deallocated
+     check-project-deallocated
 
     cr ." mask-test-invert - Ok"
 ;
@@ -117,7 +117,7 @@
     mask-deallocate
 
     \ Check for memory leaks.
-     structinfo-list-store-project-deallocated
+     check-project-deallocated
 
     cr ." mask-test-same-num-bits - Ok"
 ;

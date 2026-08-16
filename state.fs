@@ -480,8 +480,8 @@ state-header-disp cell+   constant state-number-disp
     \ Check args.
     assert( tos is-state? )
     assert( nos is-state? )
-    assert( 3os is-state? )
     assert( 2dup states-same-num-bits? )
+    assert( 3os is-state? )
     assert( #2 pick over states-same-num-bits? )
 
     \ Get sta0 dif masks.
@@ -511,3 +511,10 @@ state-header-disp cell+   constant state-number-disp
     swap mask-deallocate
 ;
 
+: state-num-bits-set ( sta0 -- u )
+    \ Check arg.
+    assert( tos is-state? )
+
+    state-get-number    \ u
+    num-bits-set        \ u
+;

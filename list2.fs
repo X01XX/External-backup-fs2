@@ -211,9 +211,9 @@
     assert( nos is-list? )
 
     \ cr ." lists-eq?: "
-    \ over structinfo-list-print-struct-list-xt execute
+    \ over print-struct-list-xt execute
     \ space
-    \ over structinfo-list-print-struct-list-xt execute
+    \ over print-struct-list-xt execute
     \ cr
 
     \ Check lengths.

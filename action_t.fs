@@ -18,7 +18,7 @@
     action-deallocate
 
     \ Check for memory leaks.
-    structinfo-list-store-project-deallocated
+    check-project-deallocated
 
     cr ." action-test-new - Ok"
 ;
@@ -92,7 +92,7 @@
     action-deallocate
 
     \ Check for memory leaks.
-    structinfo-list-store-project-deallocated
+    check-project-deallocated
 
     cr ." action-test-add-sample - Ok"
 ;
@@ -160,7 +160,7 @@
     action-deallocate
 
     \ Check for memory leaks.
-    structinfo-list-store-project-deallocated
+    check-project-deallocated
 
     cr ." action-test-check-incompatible-pairs-for-changed-square - Ok"
 ;
@@ -200,7 +200,7 @@
     action-deallocate
 
     \ Check for memory leaks.
-    structinfo-list-store-project-deallocated
+    check-project-deallocated
 
     cr ." action-test-corners - Ok"
 ;
@@ -246,7 +246,7 @@
     action-deallocate
 
     \ Check for memory leaks.
-    structinfo-list-store-project-deallocated
+    check-project-deallocated
 
     cr ." action-test-corners2 - Ok"
 ;

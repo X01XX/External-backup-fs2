@@ -76,7 +76,7 @@
         if
             true
         else
-            structinfo-list-deallocate-struct-list-xt execute
+            deallocate-struct-list
             false
         then
     else
