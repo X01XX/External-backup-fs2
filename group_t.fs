@@ -92,9 +92,8 @@
     s" s1000->s0000" sample-from-string-a               \ sqr8 sqrf grp smpl
     #3 pick square-add-sample                           \ sqr8 sqrf grp bool
     drop                                                \ sqr8 sqrf grp
-    \ cr ." at 1: " .stack-gbl cr
+
     #2 pick over group-check-changed-square             \ sqr8 sqrf grp
-    \ cr ." at 2: " .stack-gbl cr
     cr ." after changing sqr8: " dup .group cr
 
     \ Check group.
@@ -112,7 +111,6 @@
     cr ." after changing sqrf: " dup .group cr
 
     \ Deallocate.
-    \ cr ." at 3: " .stack-gbl cr
     group-deallocate
     2drop
 
@@ -179,9 +177,9 @@
     \ Add a compatible square.
     s" s1001->s1001" square-from-string-a                               \ grp sqr9
     over
-    \ cr ." at 1: " .stack-gbl cr
+
     group-add-new-square                                                \ grp
-    \ cr ." at 2: " .stack-gbl cr
+
     cr ." group + sqr9: " dup .group cr
 
     \ Check group.

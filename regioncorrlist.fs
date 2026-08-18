@@ -104,9 +104,8 @@
     list-new -rot                               \ ret-lst regc1 regc-lst0
 
     \ Scan through the given list.
-    foreach                                     \ ret-lst regc1 regc-lnk0
-        over                                    \ ret-lst regc1 regc-lnk0 regc1
-        over link-get-data                      \ ret-lst regc1 regc-lnk0 regc1 regc2
+    foreach                                     \ ret-lst regc1 regc-lnk0 regc2
+        #2 pick swap                            \ ret-lst regc1 regc-lnk0 regc1 regc2
 
         \ Test if equal
         2dup regioncorr-subset?                 \ ret-lst regc1 regc-lnk0 regc1 regc2 flag
@@ -123,8 +122,7 @@
                 \ Add remainders to the return list
                 dup                             \ ret-lst regc1 regc-lnk0 rem-lst rem-lst
 
-                foreach                         \ ret-lst regc1 regc-lnk0 rem-lst rem-lnk
-                    dup link-get-data           \ ret-lst regc1 regc-lnk0 rem-lst rem-lnk rem-reg
+                foreach                         \ ret-lst regc1 regc-lnk0 rem-lst rem-lnk rem-reg
                     #5 pick                     \ ret-lst regc1 regc-lnk0 rem-lst rem-lnk rem-reg ret-lst
                     regioncorr-list-push-nosubs \ ret-lst regc1 regc-lnk0 rem-lst rem-lnk flag
                     drop                        \ ret-lst regc1 regc-lnk0 rem-lst rem-lnk
@@ -152,13 +150,13 @@
     \ Init return list.
     list-new swap                           \ ret-lst regc-lst0
 
-    foreach                                 \ ret-lst regc-lnk1
-        dup link-get-next                   \ ret-lst regc-lnk1 regc-lnk2
+    foreach                                 \ ret-lst regc-lnk1 regc-lnk2
         begin
             ?dup
         while
             over link-get-data              \ ret-lst regc-lnk1 regc-lnk2 regc1
             over link-get-data              \ ret-lst regc-lnk1 regc-lnk2 regc1 regc2
+
             regioncorr-intersection         \ ret-lst regc-lnk1 regc-lnk2, regc-int' t | f
             if
                 dup                         \ ret-lst regc-lnk1 regc-lnk2 regc-int' regc-int'
@@ -191,8 +189,7 @@
     \ Init return list.
     list-new swap               \ ret-lst regc-lst0
 
-    foreach                     \ ret-lst regc-lnk0
-        dup link-get-data       \ ret-lst regc-lnk0 regc
+    foreach                     \ ret-lst regc-lnk0 regc
         #2 pick                 \ ret-lst regc-lnk0 regc ret-lst
         list-push-end-struct    \ ret-lst regc-lnk0
     next
@@ -211,8 +208,7 @@
     swap                                \ ret-lst regc-lst1
 
     \ Process each region in reg-lst1.
-    foreach                             \ ret-lst regc-lnk1
-        dup link-get-data               \ ret-lst regc-lnk1 regc0
+    foreach                             \ ret-lst regc-lnk1 regc0
         rot                             \ regc-lnk1 regc0 ret-lst
         swap                            \ regc-lnk1 ret-lst regc0
         over                            \ regc-lnk1 retc-lst regc0 ret-lst

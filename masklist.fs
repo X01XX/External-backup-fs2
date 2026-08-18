@@ -76,7 +76,7 @@
         if
             true
         else
-            deallocate-struct-list
+            struct-list-deallocate
             false
         then
     else

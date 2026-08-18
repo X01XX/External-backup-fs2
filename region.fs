@@ -89,7 +89,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 ;
 
 \ End accessors.
- 
+
 \ Create a region from two states on the stack.
 \ The states may be the same.
 : region-new ( sta1 sta0 -- reg )
@@ -448,7 +448,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     swap mask-deallocate    \ msk-edg
 ;
 
-: region-diff-mask ( reg1 reg0 -- msk )                                                                    
+: region-diff-mask ( reg1 reg0 -- msk )
     \ Check args.
     assert( tos is-region? )
     assert( nos is-region? )
@@ -852,7 +852,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     \ cr ." region-proper-intersection: end" cr
 ;
 
-\ Return the number of corresponding trits that are 0 and 1, between two regions.                          
+\ Return the number of corresponding trits that are 0 and 1, between two regions.
 : region-distance ( reg1 reg0 -- u )
     \ Check args.
     assert( tos is-region? )

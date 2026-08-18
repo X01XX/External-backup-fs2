@@ -64,9 +64,8 @@
     region-list-max-x                       \ anc sta-lst ret-lst
     swap                                    \ anc ret-lst sta-lst
 
-    foreach                                 \ anc ret-lst lnk
+    foreach                                 \ anc ret-lst lnk stax
         \ Get ~a + ~b.
-        dup link-get-data                   \ anc ret-lst lnk stax
         #3 pick                             \ anc ret-lst lnk stax anc
         state-~a+~b                         \ anc ret-lst lnk reg-lst'
 
@@ -94,8 +93,7 @@
     region-list-max-x                       \ crn-lst0 ret-lst
     swap                                    \ ret-lst crn-lst0
 
-    foreach                                 \ ret-lst lnk
-        dup link-get-data                   \ ret-lst lnk crnx
+    foreach                                 \ ret-lst lnk crnx
         state-regions-from-corner           \ ret-lst lnk reg-lst'
 
         \ Intersect new region list.

@@ -76,7 +76,7 @@
         if
             true
         else
-            deallocate-struct-list
+            struct-list-deallocate
             false
         then
     else
@@ -168,13 +168,11 @@
     then
 
     \  Check list contents.
-    foreach                             \ sta-lst1 lnk0
-        \ Get current state.
-        dup link-get-data               \ sta-lst1 lnk0 data
+    foreach                             \ sta-lst1 lnk0 sta0
 
         \ Check if its in the other list.
-        [ ' states-eq? ] literal swap   \ sta-lst1 lnk0 xt data
-        #3 pick                         \ sta-lst1 lnk0 xt data lst1
+        [ ' states-eq? ] literal swap   \ sta-lst1 lnk0 xt sta0
+        #3 pick                         \ sta-lst1 lnk0 xt sta0 lst1
         list-member?                    \ sta-lst1 lnk0 flag
 
         ifnot

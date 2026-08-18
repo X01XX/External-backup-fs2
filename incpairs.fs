@@ -32,10 +32,9 @@
     \ Init maximum connections-per-state value.
     0 over                                  \ nadj-prs adj-prs nadj-stas' max nadj-stas'
 
-    foreach                                 \ nadj-prs adj-prs nadj-stas' max nadj-stas-lnk
+    foreach                                 \ nadj-prs adj-prs nadj-stas' max nadj-stas-lnk stax
 
         \ Get number of occurences in the non-adjacent list.
-        dup link-get-data                   \ nadj-prs adj-prs nadj-stas' max nadj-stas-lnk stax
         #5 pick                             \ nadj-prs adj-prs nadj-stas' max nadj-stas-lnk stax nadj-stas'
         region-list-num-state-in            \ nadj-prs adj-prs nadj-stas' max nadj-stas-lnk nadj-num-in
 
@@ -65,9 +64,8 @@
     list-new                                \ nadj-prs adj-prs nadj-stas' max pri-stas'
 
     #2 pick                                 \ nadj-prs adj-prs nadj-stas' max pri-stas' nadj-stas'
-    foreach                                 \ nadj-prs adj-prs nadj-stas' max pri-stas' nadj-sna-lnk
+    foreach                                 \ nadj-prs adj-prs nadj-stas' max pri-stas' nadj-sna-lnk stax
         \ Get number of occurences in the non-adjacent list.
-        dup link-get-data                   \ nadj-prs adj-prs nadj-stas' max pri-stas' nadj-stas-lnk stax
         #6 pick                             \ nadj-prs adj-prs nadj-stas' max pri-stas' nadj-stas-lnk stax nadj-prs'
         region-list-num-state-in            \ nadj-prs adj-prs nadj-stas' max pri-stas' nadj-stas-lnk nadj-num-in
 

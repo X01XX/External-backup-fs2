@@ -41,6 +41,7 @@ include floatnum.fs
 
 include token.fs
 include tokenlist.fs
+
 include regioncorr.fs
 include regioncorrlist.fs
 
@@ -62,7 +63,9 @@ include cornerlist.fs
 \ include needlist.fs
 
 include actionxts.fs
+
 include action.fs
+
 include actionlist.fs
 
 include frame.fs
@@ -117,8 +120,8 @@ cr cr
 \ Init structinfo list.
 list-new to structinfo-list-store
 ' noop  ' noop  ' noop          ' noop                  ' link-deallocate       ' .link         s" Link"        link-mma        link-struct-id          structinfo-new structinfo-list-store-push
-' noop  ' noop  ' lists-eq?     ' noop                  ' deallocate-struct-list ' print-struct-list s" List" list-mma list-struct-id structinfo-new structinfo-list-store-push-end
-' noop  ' noop  ' noop          ' noop                  ' structinfo-deallocate ' .structinfo   s" StructInfo" structinfo-mma   structinfo-struct-id    structinfo-new structinfo-list-store-push-end
+' noop  ' noop  ' lists-eq?     ' noop                  ' struct-list-deallocate ' .struct-list s" List"        list-mma        list-struct-id          structinfo-new structinfo-list-store-push-end
+' noop  ' noop  ' noop          ' noop                  ' structinfo-deallocate ' .structinfo   s" StructInfo"  structinfo-mma  structinfo-struct-id    structinfo-new structinfo-list-store-push-end
 
 \ The list, link, and StructInfo structs allow for the creation of the structinfo-list-store,
 
@@ -167,14 +170,14 @@ list-new to structinfo-list-store
     repeat
 
     \ Finish.
-    cr print-memory-use cr
+    cr .memory-use cr
 
     \ Clean up.
     cr ." Deallocating ..."
     session-deallocate
 
     \ Finish.
-    cr print-memory-use cr
+    cr .memory-use cr
 
     \ Check for memory leaks.
     check-project-deallocated

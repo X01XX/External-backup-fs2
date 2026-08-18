@@ -151,9 +151,8 @@ corner-region-disp          cell+   constant corner-adjacent-states-disp    \ Al
     dup mask-split                      \ sta1 reg0 sta-lst edg-msk' msk-lst'
     swap mask-deallocate                \ sta1 reg0 sta-lst msk-lst'
     dup                                 \ sta1 reg0 sta-lst msk-lst' msk-lst'
-    foreach                             \ sta1 reg0 sta-lst msk-lst' msk-lnk
+    foreach                             \ sta1 reg0 sta-lst msk-lst' msk-lnk mskx
         \ Calc one anchor-adjacent, external to region, state.
-        dup link-get-data               \ sta1 reg0 sta-lst msk-lst' msk-lnk mskx
         #5 pick                         \ sta1 reg0 sta-lst msk-lst' msk-lnk mskx sta1
         state-xor-mask                  \ sta1 reg0 sta-lst msk-lst' msk-lnk sta'
 
@@ -323,13 +322,11 @@ corner-region-disp          cell+   constant corner-adjacent-states-disp    \ Al
     \ Check each corner.
     \ The list starts with one corner.
     \ New corners can be added to the end of the list, which the loop will get to next.
-    foreach                                 \ pos-regs1 ret-lst ret-lnk
-        dup link-get-data                   \ pos-regs1 ret-lst ret-lnk crnx
+    foreach                                 \ pos-regs1 ret-lst ret-lnk crnx
         corner-get-adjacent-states          \ pos-regs1 ret-lst ret-lnk adj-lst
 
         \ Check each adjacent state.
-        foreach                             \ pos-regs1 ret-lst ret-lnk adj-lnk
-            dup link-get-data               \ pos-regs1 ret-lst ret-lnk adj-lnk stax
+        foreach                             \ pos-regs1 ret-lst ret-lnk adj-lnk stax
             #4 pick                         \ pos-regs1 ret-lst ret-lnk adj-lnk stax pos-regs1
             region-list-state-in            \ pos-regs1 ret-lst ret-lnk adj-lnk reg-in'
             dup list-get-length 1 <>        \ pos-regs1 ret-lst ret-lnk adj-lnk reg-in' bool
@@ -385,8 +382,7 @@ corner-region-disp          cell+   constant corner-adjacent-states-disp    \ Al
     \ Init counter.
     0 swap                              \ crn0 pos-lst cnt adj-lst
 
-    foreach                             \ crn0 pos-lst cnt adj-lnk
-        dup link-get-data               \ crn0 pos-lst cnt adj-lnk stax
+    foreach                             \ crn0 pos-lst cnt adj-lnk stax
         #3 pick                         \ crn0 pos-lst cnt adj-lnk stax pos-lst
         region-list-num-state-in        \ crn0 pos-lst cnt adj-lnk num-in
         1 =                             \ crn0 pos-lst cnt adj-lnk bool

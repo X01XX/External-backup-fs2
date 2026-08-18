@@ -371,12 +371,12 @@ need-target-disp    cell+   constant need-info-disp     \ Zero, a region, or oth
         if
             region-list-corr-superset?
             exit
-        then 
+        then
         over is-state-list?
         if
             region-list-corr-superset-of-states?
             exit
-        then 
+        then
     else
         cr ." need-satisfied-by? invalid target?" cr abort
     then

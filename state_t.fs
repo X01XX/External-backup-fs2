@@ -234,7 +234,7 @@
     cr ." regs: " dup .region-list cr
 
     region-list-deallocate                          \ sta-lst
-    deallocate-struct-list
+    struct-list-deallocate
 
     \ Check for memory leaks.
      check-project-deallocated
@@ -250,7 +250,7 @@
     cr ." regs: " dup .region-list cr
 
     region-list-deallocate                          \ sta-lst
-    deallocate-struct-list
+    struct-list-deallocate
 
     \ Check for memory leaks.
      check-project-deallocated

@@ -69,8 +69,7 @@
     \ Init length counter.
     0 swap                       \ cnt si-lst0
 
-    foreach                      \ cnt si-link
-        dup link-get-data       \ cnt si-link si
+    foreach                     \ cnt si-link si
         structinfo-get-name     \ cnt si-link c-addr u
         nip                     \ cnt si-link u
         rot                     \ si-link u cnt
@@ -80,7 +79,7 @@
 ;
 
 \ Print memory use of structs.
-: structinfo-list-print-memory-use ( snf-lst -- )
+: structinfo-list-.memory-use ( snf-lst -- )
     \ Check args.
     assert( tos is-structinfo-list? )
 
@@ -89,9 +88,7 @@
     dup structinfo-list-max-name-length \ si-lst max
     over                                \ si-lst max si-lst
 
-    foreach                             \ si-lst max si-link
-        dup link-get-data               \ si-lst max si-link six
-
+    foreach                             \ si-lst max si-link six
         \ Print struct name, and filler.
         dup                             \ si-lst max si-link six six
         structinfo-get-name             \ si-lst max si-link six c-addr u
@@ -114,8 +111,7 @@
     \ Sum struct instances in use.
     0 over                          \ si-lst cnt si-lst
 
-    foreach                         \ si-lst cnt si-link
-        dup link-get-data           \ si-lst cnt si-link six
+    foreach                         \ si-lst cnt si-link six
         structinfo-get-mma          \ si-lst cnt si-link mmax
         mma-in-use                  \ si-lst cnt si-link totx
         rot                         \ si-lst si-link totx cnt
@@ -128,8 +124,7 @@
     \ Sum array memory use.
     0 over                          \ si-lst cnt si-lst
 
-    foreach                         \ si-lst cnt si-link
-        dup link-get-data           \ si-lst cnt si-link six
+    foreach                         \ si-lst cnt si-link six
         structinfo-get-mma          \ si-lst cnt si-link mmax
         mma-get-array-memory-use    \ si-lst cnt si-link totx
         rot                         \ si-lst si-link totx cnt
@@ -143,8 +138,7 @@
     \ Sum overhead memory use.
     0 over                          \ si-lst cnt si-lst
 
-    foreach                         \ si-lst cnt si-link
-        dup link-get-data           \ si-lst cnt si-link six
+    foreach                         \ si-lst cnt si-link six
         structinfo-get-mma          \ si-lst cnt si-link mmax
         mma-get-overhead-memory-use \ si-lst cnt si-link totx
         rot                         \ si-lst si-link totx cnt
@@ -157,8 +151,7 @@
     \ Sum total memory use.
     0 over                          \ si-lst cnt si-lst
 
-    foreach                         \ si-lst cnt si-link
-        dup link-get-data           \ si-lst cnt si-link six
+    foreach                         \ si-lst cnt si-link six
         structinfo-get-mma          \ si-lst cnt si-link mmax
         mma-get-total-memory-use    \ si-lst cnt si-link totx
         rot                         \ si-lst si-link totx cnt
@@ -173,8 +166,7 @@
     \ Sum number allocations.
     0 over                          \ si-lst cnt si-lst
 
-    foreach                         \ si-lst cnt si-link
-        dup link-get-data           \ si-lst cnt si-link six
+    foreach                         \ si-lst cnt si-link six
         structinfo-get-mma          \ si-lst cnt si-link mmax
         _mma-get-num-allocations    \ si-lst cnt si-link allocx
         rot                         \ si-lst si-link allocx cnt
@@ -188,12 +180,12 @@
     cr .stack-structs-xt execute cr	\ si-lst
 ;
 
-: structinfo-list-store-print-memory-use ( -- )
+: structinfo-list-store-.memory-use ( -- )
     structinfo-list-store
-    structinfo-list-print-memory-use
+    structinfo-list-.memory-use
 ;
 
-' structinfo-list-store-print-memory-use to structinfo-list-store-print-memory-use-xt
+' structinfo-list-store-.memory-use to structinfo-list-store-.memory-use-xt
 
 : assert-forth-stack-empty ( -- )
     depth 0<>
@@ -218,8 +210,11 @@
 
     \ Check links and stores.
     structinfo-list-store           \ addr store
+    list-get-links                  \ addr link
 
-    foreach                         \ addr lnk
+    begin
+        ?dup
+    while                           \ addr lnk
         \ Check link.
         2dup =                      \ addr lnk bool
         if
@@ -288,8 +283,7 @@
     0                                           \ snf-lst0 flg
     over                                        \ snf-lst0 flg snf-lst0
 
-    foreach                                     \ snf-lst0 flg snf-link
-        dup link-get-data                       \ snf-lst0 flg snf-link snfx
+    foreach                                     \ snf-lst0 flg snf-link snfx
         dup structinfo-get-mma                  \ snf-lst0 flg snf-link snfx snf-mma
         swap structinfo-get-inst-id             \ snf-lst0 flg snf-link snf-mma snf-id
         case
@@ -371,8 +365,7 @@
     dup list-get-length swap                \ cnt snf-lst0
 
     \ Gather all mm array addresses.
-    foreach                                 \ cnt snf-link
-        dup link-get-data                   \ cnt snf-link snfx
+    foreach                                 \ cnt snf-link snfx
         structinfo-get-mma                  \ cnt snf-link snf-mma
         -rot                                \ snf-mma cnt snf-link
     next
@@ -446,6 +439,8 @@
         false
     then
 ;
+
+' is-struct? to is-struct?-xt
 
 \ Return a structinfo instance for an address, if its a struct instance.
 : get-structinfo ( addr -- snf t | f )
@@ -521,7 +516,7 @@
 ' structinfo-list-store-deallocate-struct to structinfo-list-store-deallocate-struct-xt
 
 \ Deallocate a list of anything, that may include struct instances.
-: structinfo-list-deallocate-struct-list ( lst0 snf-lst -- )
+: structinfo-list-struct-list-deallocate ( lst0 snf-lst -- )
     \ Check args.
     assert( tos is-structinfo-list? )
     assert( nos is-list? )
@@ -529,24 +524,26 @@
     drop
 
     dup struct-get-use-count                        \ lst0 uc
-    0< abort" deallocate-struct-list: Invalid use count"
+    0< abort" struct-list-deallocate: Invalid use count"
 
     dup struct-get-use-count                        \ lst0 uc
     #2 < if
+
         structinfo-list-store-deallocate-struct-xt  \ lst xt
         swap                                        \ xt lst
         list-deallocate-recursive-struct
+
     else
         struct-dec-use-count
     then
 ;
 
-: structinfo-list-store-deallocate-struct-list ( lst -- )
+: structinfo-list-store-struct-list-deallocate ( lst -- )
     structinfo-list-store
-    structinfo-list-deallocate-struct-list
+    structinfo-list-struct-list-deallocate
 ;
 
-' structinfo-list-store-deallocate-struct-list to structinfo-list-store-deallocate-struct-list-xt
+' structinfo-list-store-struct-list-deallocate to structinfo-list-store-struct-list-deallocate-xt
 
 \ Return a struct instance from a string.
 : structinfolist-interpret-string ( c-addr u lst0 -- inst t | f )
@@ -554,8 +551,7 @@
     assert( tos is-structinfo-list? )
     \ cr ." structinfolist-interpret-string: " #2 pick #2 pick type cr
 
-    foreach                             \ c-addr u link
-        dup link-get-data               \ c-addr u link snfx
+    foreach                             \ c-addr u link snfx
         structinfo-get-from-string-xt   \ c-addr u link xt
         [ ' noop ] literal              \ c-addr u link xt xt-nop
         over =                          \ c-addr u link xt bool
@@ -653,13 +649,13 @@
     \ cr ." structinfo-list-member?: "
     \ over structinfo-list-print-struct
     \ space
-    \ dup print-struct-list
+    \ dup .struct-list
     \ cr
 
-    foreach                         \ item link
+    foreach                         \ item link data
         \ Look for link item match.
-        over                        \ item link item
-        over link-get-data          \ item link item link-data
+        #2 pick swap                \ item link item link-data
+
         structinfo-list-items-eq?   \ item link bool
         if
             2drop
@@ -685,3 +681,49 @@
     then
 ;
 
+\ Given a list that has a token as its first item,
+\ check structures to see if it can be turned into a struct.
+: structinfo-list-list-to-struct ( lst1 snf-lst0 -- strct t | f )
+    \ Check args.
+    assert( tos is-structinfo-list? )
+    assert( nos is-list? )
+
+    foreach                                         \ lst1 snf-lnk snfx
+        dup structinfo-get-valid-list?-xt           \ lst1 snf-lnk snfx is-valid?-xt
+        [ ' noop ] literal =                        \ lst1 snf-lnk snfx bool
+        if
+            drop
+        else
+            #2 pick                                 \ lst1 snf-lnk snfx lst1
+            over structinfo-get-valid-list?-xt      \ lst1 snf-lnk snfx lst1 is-valid?-xt
+            execute                                 \ lst1 snf-lnk snfx bool
+            if
+                #2 pick                             \ lst1 snf-lnk snfx lst1
+                over structinfo-get-from-list-xt    \ lst1 snf-lnk snfx lst1 from-list-xt
+                execute                             \ lst1 snf-lnk snfx, strct t | f
+                if
+                    nip nip nip                     \ strct
+                    true
+                    exit
+                else
+                    cr ." from list failed?: " #2 pick .struct-list cr
+                    drop                            \ lst1 snf-lnk
+                then
+            else
+                drop                                \ lst1 snf-lnk
+            then
+        then
+    next
+                    \ lst1
+    drop
+    false
+;
+
+\ Given a list that has a token as its first item,
+\ check structures to see if it can be turned into a struct.
+: structinfo-list-store-list-to-struct ( lst1 -- strct t | f )
+    structinfo-list-store           \ lst1 snf-lst
+    structinfo-list-list-to-struct
+;
+
+' structinfo-list-store-list-to-struct to structinfo-list-store-list-to-struct-xt

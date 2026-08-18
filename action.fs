@@ -543,8 +543,7 @@ action-groups-disp                          cell+   constant action-function-dis
     over action-get-possible-regions    \ act0 ret-lst pos-lst
     #2 pick action-get-squares          \ act0 ret-lst pos-lst sqr-lst
 
-    foreach                             \ act0 ret-lst pos-lst sqr-lnk
-        dup link-get-data               \ act0 ret-lst pos-lst sqr-lnk sqrx
+    foreach                             \ act0 ret-lst pos-lst sqr-lnk sqrx
         square-get-state                \ act0 ret-lst pos-lst sqr-lnk sta
         #2 pick                         \ act0 ret-lst pos-lst sqr-lnk sta pos-lst
         region-list-num-state-in        \ act0 ret-lst pos-lst sqr-lnk u
@@ -721,9 +720,8 @@ action-groups-disp                          cell+   constant action-function-dis
     over action-get-possible-regions    \ act0 del-grps pos-regs
     #2 pick action-get-groups           \ act0 del-grps pos-regs grp-lst
 
-    foreach                             \ act0 del-grps pos-regs grp-lnk
-        [ ' regions-eq? ] literal       \ act0 del-grps pos-regs grp-lnk xt
-        over link-get-data              \ act0 del-grps pos-regs grp-lnk xt grpx
+    foreach                             \ act0 del-grps pos-regs grp-lnk grpx
+        [ ' regions-eq? ] literal swap  \ act0 del-grps pos-regs grp-lnk xt grpx
         group-get-region                \ act0 del-grps pos-regs grp-lnk xt regx
         #3 pick                         \ act0 del-grps pos-regs grp-lnk xt regx pos-regs
         list-member?                    \ act0 del-grps pos-regs grp-lnk bool
@@ -741,8 +739,7 @@ action-groups-disp                          cell+   constant action-function-dis
     over action-get-groups              \ act0 del-grps grps-lst
     over                                \ act0 del-grps grps-lst del-grps
 
-    foreach                             \ act0 del-grps grp-lst del-lnk
-        dup link-get-data               \ act0 del-grps grp-lst del-lnk grpx
+    foreach                             \ act0 del-grps grp-lst del-lnk grpx
         cr ." Orphan group deleted: " dup group-get-region .region cr
         #2 pick                         \ act0 del-grps grp-lst del-lnk grpx grp-lst
         group-list-remove               \ act0 del-grps grp-lst del-lnk
@@ -771,10 +768,9 @@ action-groups-disp                          cell+   constant action-function-dis
     dup action-get-groups               \ sqr1 act0 grp-lst
     over action-get-possible-regions    \ sqr1 act0 grp-lst pos-lst
 
-    foreach                             \ sqr1 act0 grp-lst pos-lnk
+    foreach                             \ sqr1 act0 grp-lst pos-lnk pos-reg
         \ Check if square is in group.
-        #3 pick square-get-state        \ sqr1 act0 grp-lst pos-lnk sta1
-        over link-get-data              \ sqr1 act0 grp-lst pos-lnk sta1 pos-reg
+        #4 pick square-get-state swap   \ sqr1 act0 grp-lst pos-lnk sta1 pos-reg
         region-superset-of-state?       \ sqr1 act0 grp-lst pos-lnk bool
         if
             dup link-get-data           \ sqr1 act0 grp-lst pos-lnk pos-reg
@@ -820,8 +816,7 @@ action-groups-disp                          cell+   constant action-function-dis
     dup action-get-groups               \ act0 grp-lst
     over action-get-possible-regions    \ act0 grp-lst pos-regs
 
-    foreach                             \ act0 grp-lst pos-lnk
-        dup link-get-data               \ act0 grp-lst pos-lnk pos-reg
+    foreach                             \ act0 grp-lst pos-lnk pos-reg
         #2 pick                         \ act0 grp-lst pos-lnk pos-reg grp-lst
         group-list-member?              \ act0 grp-lst pos-lnk bool
         ifnot
@@ -867,9 +862,8 @@ action-groups-disp                          cell+   constant action-function-dis
     \ Get states in one region.
     #2 pick action-get-states-in-one-region \ act0 rslt-lst pos-lst sta-lst
 
-    foreach                                 \ act0 rslt-lst pos-lst sta-lnk
+    foreach                                 \ act0 rslt-lst pos-lst sta-lnk stax
         \ Get region state is in.
-        dup link-get-data                   \ act0 rslt-lst pos-lst sta-lnk stax
         #2 pick                             \ act0 rslt-lst pos-lst sta-lnk stax pos-lst
         region-list-state-in                \ act0 rslt-lst pos-lst sta-lnk regs-in'
 
@@ -911,8 +905,7 @@ action-groups-disp                          cell+   constant action-function-dis
 
     \ Find states needed.
     dup                                 \ act0 rslt-lst def-regs sta-lst' sta-lst'
-    foreach                             \ act0 rslt-lst def-regs sta-lst' sta-lnk
-        dup link-get-data               \ act0 rslt-lst def-regs sta-lst' sta-lnk stax
+    foreach                             \ act0 rslt-lst def-regs sta-lst' sta-lnk stax
         #3 pick                         \ act0 rslt-lst def-regs sta-lst' sta-lnk stax def-regs
         region-list-any-superset-state? \ act0 rslt-lst def-regs sta-lst' sta-lnk bool
         ifnot
@@ -983,8 +976,7 @@ action-groups-disp                          cell+   constant action-function-dis
     #3 pick corner-get-adjacent-states  \ crn1 act0 sqr-lst anc-sqr adj-stas
 
     \ Check each adjacent square.
-    foreach                             \ crn1 act0 sqr-lst anc-sqr adj-stas-lnk
-        dup link-get-data               \ crn1 act0 sqr-lst anc-sqr adj-stas-lnk adj-sta
+    foreach                             \ crn1 act0 sqr-lst anc-sqr adj-stas-lnk adj-sta
         #3 pick square-list-find        \ crn1 act0 sqr-lst anc-sqr adj-stas-lnk, sqr t | f
         if
             \ Check square pnc.
@@ -1061,8 +1053,7 @@ action-groups-disp                          cell+   constant action-function-dis
     #3 pick corner-get-adjacent-states  \ crn1 act0 sqr-lst anc-sqr adj-stas
 
     \ Check each adjacent square.
-    foreach                             \ crn1 act0 sqr-lst anc-sqr adj-stas-lnk
-        dup link-get-data               \ crn1 act0 sqr-lst anc-sqr adj-stas-lnk adj-sta
+    foreach                             \ crn1 act0 sqr-lst anc-sqr adj-stas-lnk adj-sta
         #3 pick square-list-find        \ crn1 act0 sqr-lst anc-sqr adj-stas-lnk, sqr t | f
         if
             \ Check square pnc.
@@ -1174,8 +1165,7 @@ action-groups-disp                          cell+   constant action-function-dis
             list-push-struct                    \ act0 cstr-lst' crn-lst' clstr'
 
             \ Remove corners from corner list.
-            foreach                             \ act0 cstr-lst' crn-lst' crn-lnk
-                dup link-get-data               \ act0 cstr-lst' crn-lst' crn-lnk crnx
+            foreach                             \ act0 cstr-lst' crn-lst' crn-lnk crnx
                 corner-get-region               \ act0 cstr-lst' crn-lst' crn-lnk regx
 
                 \ Remove corners from corner list.
@@ -1232,17 +1222,15 @@ action-groups-disp                          cell+   constant action-function-dis
     dup action-get-states-in-one-region \ pre-lst act0 stas-in1
     over action-get-defining-regions    \ pre-lst act0 stas-in1 def-lst
 
-    foreach                             \ pre-lst act0 stas-in1 def-lnk
+    foreach                             \ pre-lst act0 stas-in1 def-lnk regx
         \ Get squares in only the current defining region.
-        dup link-get-data               \ pre-lst act0 stas-in1 def-lnk regx
         #2 pick                         \ pre-lst act0 stas-in1 def-lnk regx stas-in1
         state-list-in-region            \ pre-lst act0 stas-in1 def-lnk stas-in-reg'
 
         \ cr ." For defining region: " over link-get-data .region space ." squares in: " dup .state-list cr
         dup                             \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-reg'
-        foreach                         \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk
+        foreach                         \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk stax
             \ Make corner.
-            dup link-get-data           \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk stax
             #3 pick                     \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk stax def-lnk
             link-get-data               \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk stax regx
             corner-new                  \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk crn'
@@ -1323,8 +1311,7 @@ action-groups-disp                          cell+   constant action-function-dis
 
     over action-get-adj-pairs               \ act0 pos-new pr-lst
 
-    foreach                                 \ act0 pos-new pr-lnk
-        dup link-get-data                   \ act0 pos-new pr-lnk regx
+    foreach                                 \ act0 pos-new pr-lnk regx
         region-get-states                   \ act0 pos-new pr-lnk sta1 sta1
         state-~a+~b                         \ act0 pos-new pr-lnk reg-lst'
         dup                                 \ act0 pos-new pr-lnk reg-lst' reg-lst'
@@ -1372,8 +1359,7 @@ action-groups-disp                          cell+   constant action-function-dis
     \ Check each pair.
     over action-get-nadj-pairs              \ act0 pos-new pr-lst
 
-    foreach                                 \ act0 pos-new pr-lnk
-        dup link-get-data                   \ act0 pos-new pr-lnk regx
+    foreach                                 \ act0 pos-new pr-lnk regx
         region-get-states                   \ act0 pos-new pr-lnk sta1 sta0
         state-~a+~b                         \ act0 pos-new pr-lnk reg-lst'
         dup                                 \ act0 pos-new pr-lnk reg-lst' reg-lst'
@@ -1430,8 +1416,7 @@ action-groups-disp                          cell+   constant action-function-dis
     action-get-nadj-regions     \ act0 adj-lst del-lst' nadj-lst
 
     \ Check each non-adjacent region.
-    foreach                             \ act0 adj-lst del-lst' nadj-lnk
-        dup link-get-data               \ act0 adj-lst del-lst' nadj-lnk regx
+    foreach                             \ act0 adj-lst del-lst' nadj-lnk regx
         #3 pick                         \ act0 adj-lst del-lst' nadj-lnk regx adj-lst
         region-list-any-superset-of?    \ act0 adj-lst del-lst' nadj-lnk bool
         if
@@ -1455,8 +1440,7 @@ action-groups-disp                          cell+   constant action-function-dis
 
     \ Remove regions.
     dup                         \ act0 nadj-lst del-lst' del-lst'
-    foreach                     \ act0 nadj-lst del-lst' del-lnk
-        dup link-get-data       \ act0 nadj-lst del-lst' del-lnk reg
+    foreach                     \ act0 nadj-lst del-lst' del-lnk reg
         #3 pick                 \ act0 nadj-lst del-lst' del-lnk reg nadj-lst
         region-list-remove      \ act0 nadj-lst del-lst' del-lnk, reg t | f
     next
@@ -1514,10 +1498,9 @@ action-groups-disp                          cell+   constant action-function-dis
     #3 pick square-get-state            \ sqr2 act0 pr-lst1 del-lst sta2
     rot                                 \ sqr2 act0 del-lst sta2 pr-lst1
 
-    foreach                             \ sqr2 act0 del-lst sta2 pr-lnk
+    foreach                             \ sqr2 act0 del-lst sta2 pr-lnk regx
+        #2 pick swap                    \ sqr2 act0 del-lst sta2 pr-lnk sta2 regx
 
-        over                            \ sqr2 act0 del-lst sta2 pr-lnk sta2
-        over link-get-data              \ sqr2 act0 del-lst sta2 pr-lnk sta2 regx
         region-uses-state?              \ sqr2 act0 del-lst sta2 pr-lnk bool
         if
             dup link-get-data           \ sqr2 act0 del-lst sta2 pr-lnk regx
@@ -1596,8 +1579,7 @@ action-groups-disp                          cell+   constant action-function-dis
     \ Remove pairs.
     over action-get-adj-pairs                           \ sqr1 act0 del-lst' adj-lst
     over                                                \ sqr1 act0 del-lst' adj-lst del-lst'
-    foreach                                             \ sqr1 act0 del-lst' adj-lst del-lnk
-        dup link-get-data                               \ sqr1 act0 del-lst' adj-lst del-lnk regx
+    foreach                                             \ sqr1 act0 del-lst' adj-lst del-lnk regx
         #2 pick                                         \ sqr1 act0 del-lst' adj-lst del-lnk regx adj-lst
         region-list-remove                              \ sqr1 act0 del-lst' adj-lst del-lnk
     next
@@ -1633,8 +1615,7 @@ action-groups-disp                          cell+   constant action-function-dis
     \ Remove pairs.
     over action-get-nadj-pairs                          \ sqr1 act0 del-lst' nadj-lst
     over                                                \ sqr1 act0 del-lst' nadj-lst del-lst'
-    foreach                                             \ sqr1 act0 del-lst' nadj-lst del-lnk
-        dup link-get-data                               \ sqr1 act0 del-lst' nadj-lst del-lnk regx
+    foreach                                             \ sqr1 act0 del-lst' nadj-lst del-lnk regx
         #2 pick                                         \ sqr1 act0 del-lst' nadj-lst del-lnk regx nadj-lst
         region-list-remove                              \ sqr1 act0 del-lst' nadj-lst del-lnk
     next
@@ -1681,9 +1662,8 @@ action-groups-disp                          cell+   constant action-function-dis
     dup action-get-squares                                  \ pr-lst sta1 act0 sqr-lst
     over action-get-adj-regions                             \ pr-lst sta1 act0 sqr-lst pos-regs
 
-    foreach                                                 \ pr-lst sta1 act0 sqr-lst pos-lnk
-        #3 pick                                             \ pr-lst sta1 act0 sqr-lst pos-lnk sta1
-        over link-get-data                                  \ pr-lst sta1 act0 sqr-lst pos-lnk sta1 pos-reg
+    foreach                                                 \ pr-lst sta1 act0 sqr-lst pos-lnk pos-reg
+        #4 pick swap                                        \ pr-lst sta1 act0 sqr-lst pos-lnk sta1 pos-reg
         region-superset-of-state?                           \ pr-lst sta1 act0 sqr-lst pos-lnk bool
         if
             \ Get squares in region.
@@ -1699,9 +1679,8 @@ action-groups-disp                          cell+   constant action-function-dis
                 if
                     swap square-list-deallocate             \ pr-lst sta1 act0 sqr-lst pos-lnk reg-lst'
                     dup                                     \ pr-lst sta1 act0 sqr-lst pos-lnk reg-lst' reg-lst'
-                    foreach                                 \ pr-lst sta1 act0 sqr-lst pos-lnk reg-lst' reg-lnk
+                    foreach                                 \ pr-lst sta1 act0 sqr-lst pos-lnk reg-lst' reg-lnk regx
                         \ Check if any subset/eq pair is in the nadj list.
-                        dup link-get-data                   \ pr-lst sta1 act0 sqr-lst pos-lnk reg-lst' reg-lnk regx
                         #5 pick action-get-nadj-pairs       \ pr-lst sta1 act0 sqr-lst pos-lnk reg-lst' reg-lnk regx nadj-prs
                         region-list-any-subset-of?          \ pr-lst sta1 act0 sqr-lst pos-lnk reg-lst' reg-lnk bool
                         ifnot
@@ -1734,8 +1713,7 @@ action-groups-disp                          cell+   constant action-function-dis
         \ Add pairs to adj list.
         dup action-get-nadj-pairs                           \ pr-lst act0 nadj-prs
         #2 pick                                             \ pr-lst act0 nadj-pairs pr-lst
-        foreach                                             \ pr-lst act0 nadj-pairs pr-lnk
-            dup link-get-data                               \ pr-lst act0 nadj-pairs pr-lnk prx
+        foreach                                             \ pr-lst act0 nadj-pairs pr-lnk prx
             #2 pick                                         \ pr-lst act0 nadj-pairs pr-lnk prx nadj-pairs
             region-list-push-nosups                         \ pr-lst act0 nadj-pairs pr-lnk bool
             drop
@@ -1763,8 +1741,7 @@ action-groups-disp                          cell+   constant action-function-dis
     dup action-get-adj-regions          \ del-lst act0 adj-regs
     over action-get-nadj-pairs          \ del-lst act0 adj-regs nadj-prs
 
-    foreach                             \ del-lst act0 adj-regs nadj-lnk
-        dup link-get-data               \ del-lst act0 adj-regs nadj-lnk prx
+    foreach                             \ del-lst act0 adj-regs nadj-lnk prx
         #2 pick                         \ del-lst act0 adj-regs nadj-lnk prx adj-regs
         region-list-any-superset-of?    \ del-lst act0 adj-regs nadj-lnk bool
         ifnot
@@ -1779,8 +1756,7 @@ action-groups-disp                          cell+   constant action-function-dis
     \ Delete selected regions.
     dup action-get-nadj-pairs           \ del-lst act0 nadj-prs
     #2 pick                             \ del-lst act0 nadj-prs del-lst
-    foreach                             \ del-lst act0 nadj-prs del-lnk
-        dup link-get-data               \ del-lst act0 nadj-prs del-lnk prx
+    foreach                             \ del-lst act0 nadj-prs del-lnk prx
         #2 pick                         \ del-lst act0 nadj-prs del-lnk prx nadj-prs
         region-list-remove              \ del-lst act0 nadj-prs del-lnk
     next
@@ -1809,9 +1785,8 @@ action-groups-disp                          cell+   constant action-function-dis
     dup action-get-squares                              \ pr-lst sta1 act0 sqr-lst
     over action-get-adj-regions                         \ pr-lst sta1 act0 sqr-lst pos-regs
 
-    foreach                                             \ pr-lst sta1 act0 sqr-lst pos-lnk
-        #3 pick                                         \ pr-lst sta1 act0 sqr-lst pos-lnk sta1
-        over link-get-data                              \ pr-lst sta1 act0 sqr-lst pos-lnk sta1 pos-reg
+    foreach                                             \ pr-lst sta1 act0 sqr-lst pos-lnk pos-reg
+        #4 pick swap                                    \ pr-lst sta1 act0 sqr-lst pos-lnk sta1 pos-reg
         region-superset-of-state?                       \ pr-lst sta1 act0 sqr-lst pos-lnk bool
         if
             \ Get squares in region.
@@ -1827,8 +1802,7 @@ action-groups-disp                          cell+   constant action-function-dis
                 if
                     swap square-list-deallocate         \ pr-lst sta1 act0 sqr-lst pos-lnk reg-lst'
                     dup                                 \ pr-lst sta1 act0 sqr-lst pos-lnk reg-lst' reg-lst'
-                    foreach                             \ pr-lst sta1 act0 sqr-lst pos-lnk reg-lst' reg-lnk
-                        dup link-get-data               \ pr-lst sta1 act0 sqr-lst pos-lnk reg-lst' reg-lnk regx
+                    foreach                             \ pr-lst sta1 act0 sqr-lst pos-lnk reg-lst' reg-lnk regx
                         #7 pick                         \ pr-lst sta1 act0 sqr-lst pos-lnk reg-lst' reg-lnk regx pr-lst
                         region-list-push-nosups         \ pr-lst sta1 act0 sqr-lst pos-lnk reg-lst' reg-lnk bool
                         drop
@@ -1919,12 +1893,12 @@ action-groups-disp                          cell+   constant action-function-dis
 
     over                            \ sqr2 grp-lst act0 grp-lst
 
-    foreach                         \ sqr2 grp-lst act0 grp-lnk
-        #3 pick over link-get-data  \ sqr2 grp-lst act0 grp-lnk sqr2 grpx
-        group-superset-square?      \ sqr2 grp-lst act0 grp-lnk sqr2 grpx
+    foreach                         \ sqr2 grp-lst act0 grp-lnk grpx
+        #4 pick swap                \ sqr2 grp-lst act0 grp-lnk sqr2 grpx
+        group-superset-square?      \ sqr2 grp-lst act0 grp-lnk bool
         if
-            #3 pick over            \ sqr2 grp-lst act0 grp-lnk sqr2 grp-lnk
-            link-get-data           \ sqr2 grp-lst act0 grp-lnk sqr2 grpx
+            #3 pick                 \ sqr2 grp-lst act0 grp-lnk sqr2
+            over link-get-data      \ sqr2 grp-lst act0 grp-lnk sqr2 grpx
             group-add-new-square    \ sqr2 grp-lst act0 grp-lnk
         then
     next
@@ -1944,13 +1918,10 @@ action-groups-disp                          cell+   constant action-function-dis
     over square-get-state over                      \ sqr1 act0 sta1 act0
 
     action-check-adj-regions-for-incompatible-pairs \ sqr1 act0 bool
-    \ cr ." action-check-new-square: at 1: " .stack-gbl cr
     if
-        \ cr ." action-check-new-square: at 2: " .stack-gbl cr
         dup action-recalc-possible-regions          \ sqr1 act0
-        \ cr ." action-check-new-square: at 3: " .stack-gbl cr
     then
-    \ cr ." action-check-new-square: at 4: " .stack-gbl cr
+
     action-udpate-groups-with-new-square            \
 
     \ cr ." action-check-new-square: end: " .stack-gbl cr

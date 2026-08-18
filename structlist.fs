@@ -95,7 +95,10 @@
     \ Init return list.
     list-new -rot                   \ new-item2 ret-lst index1 lst0
 
-    foreach                         \ new-item2 ret-lst index1 link
+    list-get-links                  \ new-item2 ret-lst index1 link
+    begin
+        ?dup
+    while                           \ new-item2 ret-lst index1 link
         over 0=
         if
             #3 pick #3 pick         \ new-item2 ret-lst index1 link new-item2 ret-lst
@@ -193,9 +196,9 @@
     then
 
     \ Check elements.
-    foreach                         \ xt sct-lst1 lnk
-        #2 pick                     \ xt sct-lst1 lnk xt
-        over link-get-data          \ xt sct-lst1 lnk xt regx
+    foreach                         \ xt sct-lst1 lnk regx
+        #3 pick swap                \ xt sct-lst1 lnk xt regx
+
         #3 pick                     \ xt sct-lst1 lnk xt regx sct-lst1
         list-member?                \ xt sct-lst1 lnk bool
         if
@@ -216,9 +219,35 @@
     \ Check arg.
     assert( tos is-list? )
 
-    tuck                        \ lst0 xt1 lst0
-    list-apply-recursive        \ lst0 ( may now be invalid )
-    list-deallocate-recursive
+    dup struct-get-use-count        \ xt1 lst0 uc
+    #2 <                            \ xt1 lst0 bool
+    if
+        dup                         \ xt1 lst0 lst0
+        foreach                     \ xt1 lst0 lnk item
+            dup is-list?
+            if
+                #3 pick swap        \ xt1 lst0 lnk xt1 item
+                recurse             \ xt1 lst0 lnk
+            else
+                dup is-struct?-xt execute
+                if
+                    #3 pick             \ xt1 lst0 lnk item xt1
+                    execute             \ xt1 lst0 lnk
+                else
+                    drop
+                then
+            then
+        next
+        list-deallocate             \ xt1 lst0
+        drop
+    else
+        struct-dec-use-count        \ xt1
+        drop
+    then
+    
+\    tuck                        \ lst0 xt1 lst0
+\    list-apply-recursive        \ lst0 ( may now be invalid )
+\    list-deallocate-recursive
 ;
 
 : list-remove-struct ( xt item list -- data t | f )
@@ -242,8 +271,7 @@
 
     swap                        \ lst0 lst1
 
-    foreach                     \ lst0 link
-        dup link-get-data       \ lst0 link data
+    foreach                     \ lst0 link data
         #2 pick                 \ lst0 link data lst0
         list-push-end-struct    \ lst0 link
     next

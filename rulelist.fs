@@ -58,7 +58,7 @@
         if
             true
         else
-            deallocate-struct-list
+            struct-list-deallocate
             false
         then
     else
@@ -127,9 +127,9 @@
     list-new -rot                   \ ret-lst1 rul-lst1 rul-lst0
     over list-get-first-item        \ ret-lst1 rul-lst1 rul-lst0 rul1a
     over list-get-first-item        \ ret-lst1 rul-lst1 rul-lst0 rul1a rul0a
-    \ cr ." rule-list-union: at 1: " .stack-gbl cr
+
     rule-union                      \ ret-lst1 rul-lst1 rul-lst0, rul-u t | f
-    \ cr ." rule-list-union: at 2: " .stack-gbl cr
+
     if
         \ Check for two length 1 rule lists.
         over list-get-length        \ ret-lst1 rul-lst1 rul-lst0 rul-u len
@@ -203,8 +203,7 @@
 
     list-new swap               \ lst-n lst0
 
-    foreach                     \ lst-n link
-        dup link-get-data       \ lst-n link rule
+    foreach                     \ lst-n link rule
         #2 pick                 \ lst-n link rule lst-n
         list-push-end-struct    \ lst-n link
     next

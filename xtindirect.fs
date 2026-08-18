@@ -116,13 +116,15 @@
 
 ' xtabort value structinfo-list-store-check-project-deallocated-xt
 
-' xtabort value structinfo-list-store-print-memory-use-xt
+' xtabort value structinfo-list-store-.memory-use-xt
 
 ' xtabort value structinfo-list-store-print-struct-list-xt
 
-' xtabort value structinfo-list-store-deallocate-struct-list-xt
+' xtabort value structinfo-list-store-struct-list-deallocate-xt
 
 ' xtabort value structinfo-list-store-deallocate-struct-xt
+
+' xtabort value structinfo-list-store-list-to-struct-xt
 
 ' xtabort value structinfo-get-mma-xt
 
@@ -149,6 +151,9 @@
 ' xtabort value corner-list-find-region-xt
 
 ' xtabort value regioncorr-subtract-xt
+
+' xtabort value is-struct?-xt
+
 
 
 

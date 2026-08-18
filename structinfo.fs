@@ -12,11 +12,10 @@ structinfo-mma-disp             cell+   constant structinfo-print-xt-disp       
 structinfo-print-xt-disp        cell+   constant structinfo-deallocate-xt-disp  \ ' noop, or an xt to deallocate a struct. ( instance -- )
 structinfo-deallocate-xt-disp   cell+   constant structinfo-from-string-xt-disp \ ' noop, or an xt to return struct from string. ( c-addr u -- instance t | f )
 structinfo-from-string-xt-disp  cell+   constant structinfo-eq-xt-disp          \ ' noop, or an xt to return <struct>s-eq?
-structinfo-eq-xt-disp           cell+   constant structinfo-name-disp           \ Up to 4 cells for name string.
-
-structinfo-name-disp            cell+   constant structinfo-valid-list?-xt-disp \ ' noop, or an xt to validate a list defining a struct.
+structinfo-eq-xt-disp           cell+   constant structinfo-valid-list?-xt-disp \ ' noop, or an xt to validate a list defining a struct.
 structinfo-valid-list?-xt-disp  cell+   constant structinfo-from-list-xt-disp   \ ' noop, or an xt to return a struct from a validated list.
                                                                                 \ Should be both noop xt, or both non-noop xt.
+structinfo-from-list-xt-disp    cell+   constant structinfo-name-disp           \ Up to 4 cells for name string.
 
 
 0 value structinfo-mma     \ Storage for the structinfo mma instance addr.

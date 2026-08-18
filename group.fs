@@ -346,7 +346,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     ." )"
 ;
 
-: .group-region ( grp0 -- )
+: .group-regionforeach ( grp0 -- )
     \ Check arg.
     assert( tos is-group? )
 
@@ -448,7 +448,6 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     over group-get-region                   \ sqr1 grp0 sta reg
     region-superset-of-state?               \ sqr1 grp0 bool
     invert abort" square is not subset of group region?"
-    \ cr ." group-add-new-square: at 1: " .stack-gbl cr
 
     \ Check if the square is already in the square list.
     over square-get-state                   \ sqr1 grp0 sta
@@ -459,7 +458,6 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
         drop
         exit
     then
-    \ cr ." group-add-new-square: at 2: " .stack-gbl cr
 
     \ Check if the square will invalidate the group.
 
@@ -467,7 +465,6 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     2dup                                    \ sqr1 grp0 sqr1 grp0
     group-get-squares                       \ sqr1 grp0 sqr1 sqr-lst
     list-push-struct                        \ sqr1 grp0
-    \ cr ." group-add-new-square: at 4: " .stack-gbl cr
 
     \ Check if the new square is in the s-region.
     over square-get-state                   \ sqr1 grp0 sta

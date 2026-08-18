@@ -18,8 +18,8 @@
     \ Get defining regions info.
     dup
     region-list-defining-regions-parts          \ reg-lst' def-lst'
-    cr ." defining: " dup print-struct-list
-    deallocate-struct-list                      \ reg-lst' def-lst'
+    cr ." defining: " dup .struct-list
+    struct-list-deallocate                      \ reg-lst' def-lst'
     cr
     \ Calc one pair.
     s" s0101" state-from-string-a       \ reg-lst' sta5'
@@ -34,11 +34,11 @@
     \ Get defining regions info.
     dup
     region-list-defining-regions-parts      \ reg-lst' def-lst'
-    cr ." defining: " dup print-struct-list
+    cr ." defining: " dup .struct-list
 
     \ Check results.
     s" ((r0X0X (r0101)) (rXX1X (r0111)) (r1XXX (r1101)))" list-from-string-a  \ reg-lst' def-lst' tst-list'
-    \ cr ." test lt: " dup print-struct-list
+    \ cr ." test lt: " dup .struct-list
 
     2dup lists-eq?
     if
@@ -48,8 +48,8 @@
     then
 
     \ Clean up.                                     \ reg-lst' def-lst' tst-list'
-    deallocate-struct-list                          \ reg-lst' def-lst'
-    deallocate-struct-list                          \ reg-lst'
+    struct-list-deallocate                          \ reg-lst' def-lst'
+    struct-list-deallocate                          \ reg-lst'
     region-list-deallocate
 
     \ Check for memory leaks.
@@ -81,8 +81,8 @@
     \ Get defining regions info.
     dup
     region-list-defining-regions-parts          \ sta-lst' reg-lst' def-lst'
-    cr ." defining: " dup print-struct-list
-    deallocate-struct-list                      \ reg-lst' def-lst'
+    cr ." defining: " dup .struct-list
+    struct-list-deallocate                      \ reg-lst' def-lst'
     cr
     \ Calc one pair.
     s" s0000" state-from-string-a       \ sta-lst' reg-lst' sta0'
@@ -99,11 +99,11 @@
     \ Get defining regions info.
     dup
     region-list-defining-regions-parts  \ sta-lst' reg-lst' def-lst'
-    cr ." defining: " dup print-struct-list
+    cr ." defining: " dup .struct-list
 
     \ Check results.
     s" ((rXX1X (r0111)) (r1XXX (r1000)))" list-from-string-a  \ sta-lst' reg-lst' def-lst' tst-list'
-    cr ." test lt: " dup print-struct-list
+    cr ." test lt: " dup .struct-list
 
     2dup lists-eq?
     if
@@ -111,8 +111,8 @@
         cr ." lists ne?" cr
         abort
     then
-    deallocate-struct-list                      \ sta-lst' reg-lst' def-lst'
-    deallocate-struct-list                      \ sta-lst' reg-lst'
+    struct-list-deallocate                      \ sta-lst' reg-lst' def-lst'
+    struct-list-deallocate                      \ sta-lst' reg-lst'
 
     \ Add 9, 1.
     s" s1001" state-from-string-a               \ sta-lst' reg-lst' sta9'
@@ -178,8 +178,7 @@
     cr cr ." ints of " over .region-list space ." are: " dup .region-list cr
 
     dup                                             \ reg-lst' reg-ints' reg-ints'
-    foreach                                         \ reg-lst' reg-ints' int-lnk
-        dup link-get-data                           \ reg-lst' reg-ints' int-lnk intx
+    foreach                                         \ reg-lst' reg-ints' int-lnk intx
         cr dup .region
         #3 pick                                     \ reg-lst' reg-ints' int-lnk intx reg-lst'
         region-list-supersets-of                    \ reg-lst' reg-ints' int-lnk regs-in'
@@ -223,8 +222,7 @@
     cr cr ." ints of " over .region-list space ." are: " dup .region-list cr
 
     dup                                             \ reg-lst' reg-ints' reg-ints'
-    foreach                                         \ reg-lst' reg-ints' int-lnk
-        dup link-get-data                           \ reg-lst' reg-ints' int-lnk intx
+    foreach                                         \ reg-lst' reg-ints' int-lnk intx
         cr dup .region
         #3 pick                                     \ reg-lst' reg-ints' int-lnk intx reg-lst'
         region-list-supersets-of                    \ reg-lst' reg-ints' int-lnk regs-in'
@@ -264,8 +262,7 @@
     dup region-list-defining-region-parts               \ reg-lst' def-regs'
     cr cr ." defining parts of: " over .region-list space ." are: " dup .region-list cr cr
     dup                                                 \ reg-lst' def-regs' def-regs'
-    foreach                                             \ reg-lst' def-regs' def-lnk
-        dup link-get-data                               \ reg-lst' def-regs' def-lnk regx
+    foreach                                             \ reg-lst' def-regs' def-lnk regx
         dup .region
         #3 pick                                         \ reg-lst' def-regs' def-lnk regx reg-lst'
         region-list-supersets-of                        \ reg-lst' def-regs' def-lnk sup-lst'

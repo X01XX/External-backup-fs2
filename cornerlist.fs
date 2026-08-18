@@ -66,8 +66,7 @@
     \ Check arg.
     assert( tos is-corner-list? )
     ." ("
-    foreach                 \ crn-lnk
-        dup link-get-data   \ crn-lnk crnx
+    foreach                 \ crn-lnk crnx
         .corner
 
         link-get-next       \ crn-lnk
@@ -91,8 +90,8 @@
         exit
     then
 
-    foreach             \ u lnk
-        dup link-get-data .corner
+    foreach             \ u lnk crnx
+        .corner
 
         link-get-next
         dup 0<> if
@@ -118,8 +117,8 @@
         exit
     then
 
-    foreach             \ u lnk
-        dup link-get-data .corner-list
+    foreach             \ u lnk crn-lst
+        .corner-list
 
         link-get-next
         dup 0<> if
@@ -217,9 +216,8 @@
     assert( tos is-corner-list? )
     assert( nos is-state? )
 
-    foreach                 \ sta1 crn-lnk
-        over                \ sta1 crn-lnk sta1
-        over link-get-data  \ sta1 crn-lnk sta1 crnx
+    foreach                 \ sta1 crn-lnk crnx
+        #2 pick swap        \ sta1 crn-lnk sta1 crnx
         corner-uses-state?  \ sta1 crn-lnk bool
         if
             2drop
@@ -250,8 +248,7 @@
 
     \ Check each adjacent state.
     swap corner-get-adjacent-states     \ crn-lst0 sta-lst
-    foreach                             \ crn-lst0 sta-lnk
-        dup link-get-data               \ crn-lst0 sta-lnk stax
+    foreach                             \ crn-lst0 sta-lnk stax
         #2 pick                         \ crn-lst0 sta-lnk stax crn-lst0
         corner-list-uses-state?         \ crn-lst0 sta-lnk bool
         ifnot
@@ -283,8 +280,7 @@
 
     \ Check each adjacent state.
     swap corner-get-adjacent-states     \ crn-lst0 sta-lst
-    foreach                             \ crn-lst0 sta-lnk
-        dup link-get-data               \ crn-lst0 sta-lnk stax
+    foreach                             \ crn-lst0 sta-lnk stax
         #2 pick                         \ crn-lst0 sta-lnk stax crn-lst0
         corner-list-uses-state?         \ crn-lst0 sta-lnk bool
         if
@@ -329,8 +325,7 @@
 
     \ Collect corners to delete.
     over                        \ reg1 crn-lst0 del-lst' crn-lst0
-    foreach                     \ reg1 crn-lst0 del-lst' crn-lnk0
-        dup link-get-data       \ reg1 crn-lst0 del-lst' crn-lnk0 crnx
+    foreach                     \ reg1 crn-lst0 del-lst' crn-lnk0 crnx
         corner-get-region       \ reg1 crn-lst0 del-lst' crn-lnk0 regx
         #4 pick                 \ reg1 crn-lst0 del-lst' crn-lnk0 regx reg1
         regions-eq?             \ reg1 crn-lst0 del-lst' crn-lnk0 bool
@@ -343,8 +338,7 @@
 
     \ Delete corners.
     dup                         \ reg1 crn-lst0 del-lst' del-lst'
-    foreach                     \ reg1 crn-lst0 del-lst' del-lnk
-        dup link-get-data       \ reg1 crn-lst0 del-lst' del-lnk crnx
+    foreach                     \ reg1 crn-lst0 del-lst' del-lnk crnx
         #3 pick                 \ reg1 crn-lst0 del-lst' del-lnk crnx crn-lst0
         corner-list-remove      \ reg1 crn-lst0 del-lst' del-lnk
     next
@@ -359,9 +353,8 @@
     assert( tos is-corner-list? )
     assert( nos is-region-list? )
 
-    foreach                     \ pos-lst1 crn-lnk
-        over                    \ pos-lst1 crn-lnk pos-lst1
-        over link-get-data      \ pos-lst1 crn-lnk pos-lst1 crnx
+    foreach                     \ pos-lst1 crn-lnk crnx
+        #2 pick swap            \ pos-lst1 crn-lnk pos-lst1 crnx
         corner-calc-set-rate    \ pos-lst1 crn-lnk
     next
     drop

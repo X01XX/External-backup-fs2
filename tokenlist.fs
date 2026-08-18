@@ -52,10 +52,11 @@
     0 swap                          \ max tkn-lst
     0 swap                          \ max cnt tkn-lst
 
-    foreach                         \ max cnt link
+    foreach                         \ max cnt link tkn
         \ Check for left paren.
-        s" ("                       \ max cnt link c-addr u
-        #2 pick link-get-data       \ max cnt link c-addr u tkt
+        s" ("                       \ max cnt link tkn c-addr u
+        rot                         \ max cnt link c-addr u tkt
+
         token-eq-string             \ max cnt link flag
         if
             \ Inc paren counter.
@@ -272,10 +273,10 @@
 
     over                            \ ret-lst cnt ret-lst
 
-    foreach                         \ ret-lst cnt link
+    foreach                         \ ret-lst cnt link tkn
         \ Check for left paren.
-        s" ("                       \ ret-lst cnt link c-addr u
-        #2 pick link-get-data       \ ret-lst cnt link c-addr u tkt
+        s" ("                       \ ret-lst cnt link tkn c-addr u
+        rot                         \ ret-lst cnt link c-addr u tkt
         token-eq-string             \ ret-lst cnt link flag
         if
             \ Inc paren counter.
@@ -320,10 +321,10 @@
     \ Init counter.
     0 swap                          \ cnt tkn-lst
 
-    foreach                         \ cnt maxlink
+    foreach                         \ cnt maxlink tkn
         \ Check for left paren.
-        s" ("                       \ cnt link c-addr u
-        #2 pick link-get-data       \ cnt link c-addr u tkt
+        s" ("                       \ cnt link tkn c-addr u
+        rot                         \ cnt link c-addr u tkt
         token-eq-string             \ cnt link flag
         if
         else

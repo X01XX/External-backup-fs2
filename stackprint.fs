@@ -26,8 +26,7 @@
             drop                                        \ addr
             structinfo-list-store                       \ addr snf-lst
 
-            foreach                                     \ addr snf-link
-                dup link-get-data                       \ addr snf-link snf
+            foreach                                     \ addr snf-link snf
                 #2 pick swap                            \ addr snf-link addr snf
                 structinfo-get-mma-xt execute           \ addr snf-link addr mma
                 mma-within-array                        \ addr snf-link bool

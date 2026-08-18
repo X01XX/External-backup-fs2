@@ -45,8 +45,7 @@
     \ Check arg.
     assert( tos is-group-list? )
 
-    foreach                 \ grp-lnk
-        dup link-get-data   \ grp-lnk grpx
+    foreach                 \ grp-lnk grpx
         cr #8 spaces .group
     next
 ;
@@ -66,8 +65,8 @@
         exit
     then
 
-    foreach             \ u lnk
-        dup link-get-data .group
+    foreach             \ u lnk grpx
+        .group
 
         link-get-next
         dup 0<> if
@@ -89,9 +88,8 @@
     list-new swap                   \ sta1 ret-lst grp-lst0
 
     \ Prep for loop.
-    foreach
-        #2 pick                     \ sta1 ret-lst grp-lnk sta1
-        over link-get-data          \ sta1 ret-lst grp-lnk sta1 grpx
+    foreach                         \ sta1 ret-lst grp-lnk grpx
+        #3 pick swap                \ sta1 ret-lst grp-lnk sta1 grpx
         group-get-region            \ sta1 ret-lst grp-lnk sta1 grp-reg
         region-superset-of-state?   \ sta1 ret-lst grp-lnk bool
         if
@@ -160,8 +158,7 @@
     \ Init return list.
     list-new swap           \ ret-lst grp-lst0
 
-    foreach
-        dup link-get-data   \ ret-lst grp-lnk grpx
+    foreach                 \ ret-lst grp-lnk grpx
         group-get-region    \ ret-lst grp-lnk grp-reg
         #2 pick             \ ret-lst grp-lnk grp-reg ret-lst
         list-push-struct    \ ret-lst grp-lnk

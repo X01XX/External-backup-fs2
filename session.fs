@@ -115,12 +115,10 @@ session-step-num-disp   cell+   constant session-max-regions-disp               
     \ Init return list.
     list-new swap                   \ sess0 reg-lst dom-lst
 
-    foreach                         \ sess0 reg-lst d-link
-        \ Add next region.
-        dup link-get-data           \ sess0 reg-lst d-lisk domx
-        domain-get-max-region       \ sess0 reg-lst d-lisk max-reg
-        #2 pick                     \ sess0 reg-lst d-lisk max-reg reg-lst
-        region-list-push-end        \ sess0 reg-lst d-lisk
+    foreach                         \ sess0 reg-lst d-link domx
+        domain-get-max-region       \ sess0 reg-lst d-link max-reg
+        #2 pick                     \ sess0 reg-lst d-link max-reg reg-lst
+        region-list-push-end        \ sess0 reg-lst d-link
     next
                                     \ sess0 reg-lst
 
@@ -168,9 +166,7 @@ session-step-num-disp   cell+   constant session-max-regions-disp               
     space ." Max regions: " over session-get-max-regions .region-list cr
 
                                                 \ sess0 dom-lst
-    foreach                                     \ sess0 link
-        dup link-get-data                       \ sess0 link dom
-
+    foreach                                     \ sess0 link dom
         \ Print domain
         .domain
     next
@@ -200,7 +196,7 @@ session-step-num-disp   cell+   constant session-max-regions-disp               
     list-new                        \ cur-dom sess0 sat-lst
     over session-get-domains        \ cur-dom sess0 sta-lst dom-lst
 
-    foreach                         \ cur-dom sess0 sta-lst link
+    foreach                         \ cur-dom sess0 sta-lst link dom
         domain-get-current-state    \ cur-dom sess0 sta-lst link stax
         #2 pick                     \ cur-dom sess0 sta-lst link stax sta-lst
         list-push-end               \ cur-dom sess0 sta-lst link
@@ -218,8 +214,7 @@ session-step-num-disp   cell+   constant session-max-regions-disp               
     list-new                        \ cur-dom sess0 sat-lst
     over session-get-domains        \ cur-dom sess0 reg-lst dom-lst
 
-    foreach                         \ cur-dom sess0 reg-lst link
-        dup link-get-data           \ cur-dom sess0 reg-lst link domx
+    foreach                         \ cur-dom sess0 reg-lst link domx
 
         domain-get-current-state    \ cur-dom sess0 reg-lst link stax
         dup region-new              \ cur-dom sess0 reg-lst link regx
@@ -355,19 +350,19 @@ cr ." todo session-get-current-regions" cr
 
     dup token-get-string                \ cmd-lst1 sess0 tkn0 c-addr u
     s" mu" str=                         \ cmd-lst1 sess0 tkn0 bool
-    if   
+    if
         2drop                           \ cmd-lst1
         list-get-length                 \ len
-        1 =  
-        if   
+        1 =
+        if
             \ Display Memory Usage.
-            print-memory-use
-        else 
+            .memory-use
+        else
             cr ." mu command: invalid number of arguments" cr
-        then 
-        true 
-        exit 
-    then 
+        then
+        true
+        exit
+    then
 
 \ dn, cds?, scs, sas?, tos, to: remember to do session-inc-step-num
 
@@ -462,7 +457,7 @@ cr ." todo session-get-current-regions" cr
             2dup swap                                           \ sess0 lst' lst' sess0
             session-eval-user-input                             \ sess0 lst' bool
             swap                                                \ sess0 bool lst'
-            deallocate-struct-list                              \ sess0 bool
+            struct-list-deallocate                              \ sess0 bool
             nip                                                 \ bool
         else
             cr ." Did not understand the command." cr

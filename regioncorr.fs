@@ -55,6 +55,8 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
 : _regioncorr-set-list ( lst1 regc0 -- )
     \ Check args.
     assert( tos is-regioncorr? )
+    assert( nos is-region-list? )
+    assert( nos list-is-empty? invert )
 
     \ Store list
     regioncorr-list-disp +    \ Add offset.
@@ -74,7 +76,7 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
     \ Check args.
     assert( tos is-regioncorr? )
     assert( nos 0 >= )
-    assert( nos 256 > )
+    assert( nos #256 < )
 
     4c!
 ;
@@ -84,7 +86,7 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
     \ Check args.
     assert( tos is-regioncorr? )
 
-    4c@                 \ val
+    5c@                 \ val
     -1 *                \ -val
 ;
 
@@ -93,10 +95,10 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
     \ Check args.
     assert( tos is-regioncorr? )
     assert( nos 0 <= )
-    assert( nos -256 > )
+    assert( nos #-256 > )
 
     swap abs swap       \ val regc0
-    4c!
+    5c!
 ;
 
 \ End accessors.
@@ -125,7 +127,7 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
 
     dup regioncorr-get-pos-value swap   \ pos regc0
     dup regioncorr-get-neg-value swap   \ pos neg regc0
-    
+
     regioncorr-get-list                 \ pos neg reg-lst
     regioncorr-new                      \ pos neg regc
 
@@ -143,7 +145,7 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
     dec.
     dup regioncorr-get-neg-value    \ regc neg
     space dec.
-   
+
     regioncorr-get-list             \ lst
     .region-list
     ." )"
@@ -355,22 +357,24 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
 
 : is-valid-neg-value? ( val -- bool )
     dup 0> if drop false exit then
-    abs 256 <
+    abs #256 <
 ;
 
 : is-valid-pos-value? ( val -- bool )
     dup 0< if drop false exit then
-    256 <
+    #256 <
 ;
 
 \ Check if a list could be a regioncorr definintion.
 : regioncorr-valid-list? ( lst -- bool )
     \ Check arg.
-    assert( is-list? )
+    assert( tos is-list? )
+    \ cr ." regioncorr-valid-list?: start: " dup .struct-list cr
 
     \ Check list length.
-    dup list-get-length 4 =
+    dup list-get-length #4 =
     ifnot
+        \ cr ." regioncorr-valid-list?: exit 1: " cr
         drop false exit
     then
 
@@ -378,6 +382,7 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
     dup list-get-first-item             \ lst first
     is-token?
     ifnot
+        \ cr ." regioncorr-valid-list?: exit 2: " cr
         drop false exit
     then
 
@@ -385,6 +390,7 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
     #2 pick list-get-first-item         \ lst c-addr u first
     token-eq-string                     \ lst bool
     ifnot
+        \ cr ." regioncorr-valid-list?: exit 3: " cr
         drop false exit
     then
 
@@ -392,6 +398,7 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
     dup list-get-second-item            \ lst second
     is-valid-pos-value?
     ifnot
+        \ cr ." regioncorr-valid-list?: exit 4: " cr
         drop false exit
     then
 
@@ -399,6 +406,7 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
     dup list-get-third-item             \ lst third
     is-valid-neg-value?
     ifnot
+        \ cr ." regioncorr-valid-list?: exit 5: " cr
         drop false exit
     then
 
@@ -406,22 +414,27 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
     dup list-get-fourth-item            \ lst fourth
     is-region-list?
     ifnot
+        \ cr ." regioncorr-valid-list?: exit 6: " cr
         drop false exit
     then
 
     dup list-get-fourth-item            \ lst fourth
     list-is-empty?
-    ifnot
+    if
+        \ cr ." regioncorr-valid-list?: exit 7: " cr
         drop false exit
     then
 
+    drop
     true
+    \ cr ." regioncorr-valid-list?: end: " dup .bool cr
 ;
 
 \ Return a regioncorr from a list.
 : regioncorr-from-list ( lst -- regc t | f)
     \ Check arg.
-    assert( is-list? )
+    assert( tos is-list? )
+    \ cr ." regioncorr-from-list: start" cr
 
     dup regioncorr-valid-list?  \ lst bool
     ifnot
@@ -439,6 +452,9 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
     \ Set negative value.
     swap list-get-third-item            \ regc neg
     over _regioncorr-set-neg-value      \ regc
+
+    true
+    \ cr ." regioncorr-from-list: end: " .stack-gbl cr
 ;
 
 \ Return a regioncorr from a string.
@@ -456,10 +472,10 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
 
     dup regioncorr-from-list                \ lst, regc t | f
     ifnot
-        deallocate-struct-list
+        struct-list-deallocate
     else
         swap
-        deallocate-struct-list
+        struct-list-deallocate
         true
     then
 ;
@@ -527,7 +543,7 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
     over regioncorr-get-neg-value           \ pos regc1 regc0 val1
     over regioncorr-get-neg-value           \ pos regc1 regc0 val1 val0
     + -rot                                  \ pos neg regc1 regc0
-    
+
     \ Init return list.
     list-new -rot                           \ pos neg reg-lst regc1 regc0
 
@@ -544,10 +560,10 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
         region-intersection                 \ pos neg reg-lst link1 link0 reg-int t | f
         if                                  \ pos neg reg-lst link1 link0 reg-int
             #4 pick                         \ pos neg reg-lst link1 link0 reg-int reg-lst
-            region-list-push-end            \ pos neg reg-lst link1 link0 
+            region-list-push-end            \ pos neg reg-lst link1 link0
         else
             2drop                           \ pos neg reg-lst
-            region-list-deallocate          \ pos neg 
+            region-list-deallocate          \ pos neg
             2drop                           \
             false                           \ bool
             exit

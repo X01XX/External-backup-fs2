@@ -16,10 +16,10 @@
     \ Prep for loop.
     swap                                    \ xt stk tkn-lst
 
-    foreach                                 \ xt stk tkn-link
+    foreach                                 \ xt stk tkn-link tkn
         \ Check for left paren.
-        s" ("                               \ xt stk tkn-link c-addr u
-        #2 pick link-get-data               \ xt stk tkn-link c-addr u tkt
+        s" ("                               \ xt stk tkn-link tkn c-addr u
+        rot                                 \ xt stk tkn-link c-addr u tkn
         token-eq-string                     \ xt stk tkn-link flag
         if
             \ Process left paren.
@@ -145,23 +145,117 @@
     token-new                           \ tkn t | f
 ;
 
+\ Go through a list, adding elements to the return list,
+\ converting selected lists to complex structs.
+\ Note: A single list, describing a complex struct, coul`   d return a struct instead of a list.
+: list-from-string2 ( lst0 -- lst t | f )
+    \ Check arg.
+    assert( tos is-list? )
+
+    \ Check if the list is a struct definition.
+    dup list-get-first-item                     \ lst0 first
+    is-token?
+    if
+\ cr ." at 1: " .stack-gbl cr
+        dup structinfo-list-store-list-to-struct-xt execute   \ lst0, strct t | f
+        if
+            nip true exit
+        then
+    then
+
+    \ Process the list.
+
+    \ Init return list.
+    list-new swap                               \ ret-lst lst0
+
+    foreach                                     \ ret-lst lnk item
+        dup is-list?                            \ ret-lst lnk item bool
+        if
+\ cr ." at 2: " .stack-gbl cr
+            dup list-get-first-item             \ ret-lst lnk item first
+            is-token?                           \ ret-lst lnk item bool
+            if
+\ cr ." at 3: " .stack-gbl cr
+                structinfo-list-store-list-to-struct-xt execute  \ ret-lst lnk, strct t | f
+                if
+\ cr ." at 4: " .stack-gbl cr
+                    #2 pick                     \ ret-lst lnk strct ret-lst
+                    list-push-end-struct        \ ret-lst lnk
+                else
+\ cr ." at 5: " .stack-gbl cr
+                    dup link-get-data           \ ret-lst lnk item
+                    #2 pick                     \ ret-lst lnk item ret-lst
+                    list-push-end-struct        \ ret-lst lnk
+                then
+            else
+\ cr ." at 6: " .stack-gbl cr
+                recurse                         \ ret-lst lnk, ret t | f
+\ cr ." at 6.1: " .stack-gbl cr
+                if
+\ cr ." at 6.2: " .stack-gbl cr
+                    #2 pick                     \ ret-lst lnk ret ret-lst
+\ cr ." at 6.3: " .stack-gbl cr
+                    list-push-end-struct        \ ret-lst lnk
+                else
+\ cr ." at 6.4: " .stack-gbl cr
+                    drop
+                    struct-list-deallocate
+                    false
+                    exit
+                then
+            then
+        else
+\ cr ." at 7: " .stack-gbl cr
+            dup is-struct?                      \ ret-lst lnk item bool
+            if
+\ cr ." at 7.1: " .stack-gbl cr
+                #2 pick                         \ ret-lst lnk item ret-lst
+                list-push-end-struct            \ ret-lst lnk
+            else
+\ cr ." at 7.2: " .stack-gbl cr
+                #2 pick                         \ ret-lst lnk item ret-lst
+                list-push-end-struct            \ ret-lst lnk
+            then
+        then
+\ cr ." at 9: " .stack-gbl cr
+    next
+    true
+;
+
 \ Produce a, possibly complex, list from a string.
 : list-from-string ( c-addr u -- lst t | f )
-    token-list-from-string                              \ tkn-lst t | f
+    token-list-from-string                          \ tkn-lst t | f
+    ifnot
+        false
+        exit
+    then
 
+    [ ' list-interpret-string ] literal over        \ tkn-lst xt tkn-lst
+    list-from-token-list                            \ tkn-lst, lst t | f
+    ifnot
+        token-list-deallocate                       \
+        false
+        exit
+    then
+
+    swap token-list-deallocate                      \ lst
+
+    \ cr ." list 1: " dup .struct-list cr
+    dup list-from-string2                           \ lst, lst2 t | f
     if
-        [ ' list-interpret-string ] literal over        \ txs-lst xt tkn-lst
-        list-from-token-list                            \ tkn-lst, lst t | f
-        if
-            swap token-list-deallocate                  \ lst
-            true
-        else
-            token-list-deallocate                       \
-            false
+        dup is-list?
+        ifnot
+            list-new tuck list-push-struct
         then
-    else                                                \
+
+        swap struct-list-deallocate
+
+        true
+     else
+        struct-list-deallocate
         false
     then
+\    true
 ;
 
 ' list-from-string to list-from-string-xt
@@ -225,10 +319,9 @@
         exit
     then
 
-    foreach                         \ lst1 lnk0
+    foreach                         \ lst1 lnk0 stc0
         \ Get next item to check.
-        over                        \ lst0 lnk1 lst0
-        over link-get-data          \ lst0 lnk1 lst0 stc0
+        #2 pick swap                \ lst0 lnk1 lst0 stc0
         swap                        \ lst0 lnk1 stc0 lst0
 
         \ Check item.

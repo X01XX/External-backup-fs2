@@ -40,16 +40,16 @@ display-debug-status
     dup 0 > swap [ 1 cells #8 * ] literal <= and
 ;
 
-: deallocate-struct-list ( lst -- )
-    structinfo-list-store-deallocate-struct-list-xt execute
+: struct-list-deallocate ( lst -- )
+    structinfo-list-store-struct-list-deallocate-xt execute
 ;
 
-: print-struct-list ( lst -- )
+: .struct-list ( lst -- )
     structinfo-list-store-print-struct-list-xt execute
 ;
 
-: print-memory-use ( -- )
-    structinfo-list-store-print-memory-use-xt execute
+: .memory-use ( -- )
+    structinfo-list-store-.memory-use-xt execute
 ;
 
 : check-project-deallocated ( -- )
