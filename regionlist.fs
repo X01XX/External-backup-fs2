@@ -24,7 +24,7 @@
 \ Deallocate a region list.
 : region-list-deallocate ( reg-lst0 -- )
     \ Check arg.
-    assert( tos is-region-list? if true else cr ." tos not region-list? " .stack-gbl cr false then )
+    assert( tos is-region-list? )
 
     \ Check if the list will be deallocated for the last time.
     dup struct-get-use-count                        \ reg-lst0 uc

@@ -260,15 +260,13 @@
 
 : 3dup #2 pick #2 pick #2 pick ;
 
-\ Get the first word, 16 bits, of a, possibly invalid, address.
+\ Get the first word, 16 bits unsigned, of a, possibly invalid, address.
+\ Used to get the first word of a struct, a positive ID number.
 : get-first-word ( addr -- w  t | f )
-\ cr ." at 0: " .s cr
     try
-        0w@
-         \ cr ." at 1: " .s cr
+        uw@     \ Interpretation, below, could be a problem if a negative number is fetched.
     restore
-        \ cr ." at 2: " .s cr
-        dup 0<
+        dup 0<  \ True for an exception, or a negative number.
         if
             2drop
             false
@@ -276,7 +274,6 @@
             true
         then
     endtry
-\ cr ." at 3: " .s
 ;
 
 \ Drop two items from the stack, return true.

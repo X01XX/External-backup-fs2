@@ -186,12 +186,13 @@ structinfo-from-list-xt-disp    cell+   constant structinfo-name-disp           
     \ With a <struct>-deallocate wrapper, using argument checking,
     \ deallocating an invalid address, or deallocating a valid address twice,
     \ will be detected.
-    dup 1 < abort" Invalid struct id."
+    dup 1 < abort" Invalid structinfo struct id."
 
     structinfo-struct-id structinfo-mma
-    struct-allocate                     \ fl-xt vl-xt eq-xt fs-xt d-xt p-xt c-addr u snf
+    struct-allocate                     \ fl-xt vl-xt eq-xt fs-xt d-xt p-xt c-addr u mma1 id0 snf
 
     \ Set struct instance id.
+    over 1 < abort" Invalid target struct id"
     tuck _structinfo-set-inst-id        \ fl-xt vl-xt eq-xt fs-xt d-xt p-xt c-addr u mma1 snf
 
     \ Set struct mma.

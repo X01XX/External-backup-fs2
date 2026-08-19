@@ -47,7 +47,7 @@
 
     \ Return if any region in the list is a superset of regc1.
     2dup                                    \ regc1 regc-lst0 regc1 regc-lst0
-    [ ' regioncorrs-eq? ] literal           \ regc1 regc-lst0 regc1 regc-lst0 xt
+    [ ' regioncorrs-eq-regions? ] literal   \ regc1 regc-lst0 regc1 regc-lst0 xt
     -rot                                    \ regc1 regc-lst0 xt regc1 regc-lst0
     list-member?                            \ regc1 regc-lst0 flag
     if
@@ -274,60 +274,111 @@
     next
 ;
 
+: regioncorr-list-rate-regioncorr ( regc1 regc-lst0 -- )
+    \ Check args.
+    assert( tos is-regioncorr-list? )
+    assert( nos is-regioncorr? )
+
+    \ Set nos values to zero.
+    over
+    regioncorr-init-values                  \ regc1 regc-lst0
+
+    foreach                                 \ regc1 regc-lnk0 regc0
+        #2 pick swap                        \ regc1 regc-lnk0 regc1 regc0
+        regioncorr-superset?                \ regc1 regc-lnk0 bool
+        if
+            \ Get superset values.
+            dup link-get-data               \ regc1 regc-lnk0 regc0
+            dup regioncorr-get-pos-value    \ regc1 regc-lnk0 regc0 pos
+            swap regioncorr-get-neg-value   \ regc1 regc-lnk0 pos neg
+
+            \ Set subset values.
+            #3 pick                         \ regc1 regc-lnk0 pos neg regc1
+            regioncorr-add-neg-value        \ regc1 regc-lnk0 pos
+            #2 pick                         \ regc1 regc-lnk0 pos regc1
+            regioncorr-add-pos-value        \ regc1 regc-lnk0
+        then
+    next
+    drop
+;
+
+\ Rate regioncorrs in tos by supersets in nos.
+: regioncorr-list-rate-by ( regc-lst1 regc-lst0 -- )
+    \ Check args.
+    assert( tos is-regioncorr-list? )
+    assert( nos is-regioncorr-list? )
+
+    \ Set rates as an accumulation of superset values.
+    foreach                             \ regc-lst1 regc-lnk0 regc0
+        #2 pick                         \ regc-lst1 regc-lnk0 regc0 regc-lst1
+        regioncorr-list-rate-regioncorr \ regc-lst1 regc-lnk0
+    next
+    drop
+;
+
 \ Split a regioncorr list by intersections.
 \ So each result regioncorr is a subset of one, or more, of the original regioncorrs,
 \ but never a proper intersection.
+\ Regioncorrs with duplicate regions are allowed in the input.
 : regioncorr-list-split-by-intersections ( regc-lst0 -- ret-lst t | f )
     \ Check arg.
     assert( tos is-regioncorr-list? )
 
+    \ Save original list.
+    dup                                             \ regc-lst0 regc-lst0
     \ Try first pass.
-    dup regioncorr-list-self-intersections-nodups   \ regc-lst0, int-regcs' t | f
+    dup regioncorr-list-self-intersections-nodups   \ regc-lst0  regc-lst0, int-regcs' t | f
     ifnot
         drop
         false
         exit
     then
-    cr ." first pass: " dup .regioncorr-list cr
+    \ cr ." first pass: " dup .regioncorr-list cr
 
     \ Init return list.
-    list-new -rot                                   \ ret-lst regc-lst0 int-regcs'
+    list-new -rot                                   \ regc-lst0  ret-lst regc-lst0 int-regcs'
 
     \ Get arg regions minus intersections.
-    2dup swap                                       \ ret-lst regc-lst0 int-regcs' int-regcs' regc-lst0
-    regioncorr-list-subtract                        \ ret-lst regc-lst0 int-regcs' remc-lst'
+    2dup swap                                       \ regc-lst0  ret-lst regc-lst0 int-regcs' int-regcs' regc-lst0
+    regioncorr-list-subtract                        \ regc-lst0  ret-lst regc-lst0 int-regcs' remc-lst'
     \ cr ." remainders: " dup .regioncorr-list cr
 
     \ Add remainders to the return list.
-    dup #4 pick                                     \ ret-lst regc-lst0 int-regcs' remc-lst' remc-lst' ret-lst
-    regioncorr-list-append-nodups                   \ ret-lst regc-lst0 int-regcs' remc-lst'
+    dup #4 pick                                     \ regc-lst0  ret-lst regc-lst0 int-regcs' remc-lst' remc-lst' ret-lst
+    regioncorr-list-append-nodups                   \ regc-lst0  ret-lst regc-lst0 int-regcs' remc-lst'
 
     \ Replace the current regions with the intersections.
-    regioncorr-list-deallocate                      \ ret-lst regc-lst0 int-regcs'
-    swap drop                                       \ ret-lst int-regcs'
+    regioncorr-list-deallocate                      \ regc-lst0  ret-lst regc-lst0 int-regcs'
+    swap drop                                       \ regc-lst0  ret-lst int-regcs'
 
     begin
-        dup                                         \ ret-lst cur-regcs' cur-regcs'
-        regioncorr-list-self-intersections-nodups   \ ret-lst cur-regcs', int-regcs' t | f
+        dup                                         \ regc-lst0  ret-lst cur-regcs' cur-regcs'
+        regioncorr-list-self-intersections-nodups   \ regc-lst0  ret-lst cur-regcs', int-regcs' t | f
         if
             \ Get current regions minus intersections.
-            2dup swap                               \ ret-lst cur-regcs' int-regcs' int-regcs' cur-regcs'
-            regioncorr-list-subtract                \ ret-lst cur-regcs' int-regcs' rem-lst'
+            2dup swap                               \ regc-lst0  ret-lst cur-regcs' int-regcs' int-regcs' cur-regcs'
+            regioncorr-list-subtract                \ regc-lst0  ret-lst cur-regcs' int-regcs' rem-lst'
             \ cr ." remainders: " dup .regioncorr-list cr
 
             \ Add remainders to the return list.
-            dup #4 pick                             \ ret-lst cur-regcs' int-regcs' rem-lst' rem-lst' ret-lst
-            regioncorr-list-append-nodups           \ ret-lst cur-regcs' int-regcs' rem-lst'
+            dup #4 pick                             \ regc-lst0  ret-lst cur-regcs' int-regcs' rem-lst' rem-lst' ret-lst
+            regioncorr-list-append-nodups           \ regc-lst0  ret-lst cur-regcs' int-regcs' rem-lst'
 
             \ Replace the current regions with the intersections.
-            regioncorr-list-deallocate              \ ret-lst cur-regcs' int-regcs'
-            swap regioncorr-list-deallocate         \ ret-lst int-regcs'
+            regioncorr-list-deallocate              \ regc-lst0  ret-lst cur-regcs' int-regcs'
+            swap regioncorr-list-deallocate         \ regc-lst0  ret-lst int-regcs'
         else
             \ No new intersections, add whats left.
-            2dup swap                               \ ret-lst cur-regcs' cur-regcs' ret-lst
-            regioncorr-list-append-nodups           \ ret-lst cur-regsc'
+            2dup swap                               \ regc-lst0  ret-lst cur-regcs' cur-regcs' ret-lst
+            regioncorr-list-append-nodups           \ regc-lst0  ret-lst cur-regsc'
             \ cr ." remainders: " dup .regioncorr-list cr
-            regioncorr-list-deallocate
+            regioncorr-list-deallocate              \ regc-lst0  ret-lst
+
+            \ Set intersection fragment rates.
+            tuck                                    \ ret-lst regc-lst0 ret-lst
+            regioncorr-list-rate-by                 \ ret-lst
+
+            \ Return.
             true
             exit
         then
@@ -369,6 +420,7 @@
     \ Check args.
     assert( tos is-regioncorr-list? )
     assert( nos is-regioncorr-list? )
+    \ cr ." regioncorr-lists-eq?: start: " .stack-gbl cr
 
     \ Check list lengths.
     over list-get-length
@@ -377,6 +429,7 @@
     if
         2drop
         false
+        \ cr ." regioncorr-lists-eq?: exit 1" .s cr
         exit
     then
 
@@ -388,12 +441,15 @@
         list-member?                        \ regc-lst1 lnk0 flag
 
         ifnot
+            \ dup link-get-data cr ." not a member: " .regioncorr cr
             2drop
             false
+            \ cr ." regioncorr-lists-eq?: exit 2" .s cr
             exit
         then
     next
                                             \ regc-lst1
     drop
     true
+    \ cr ." regioncorr-lists-eq?: exit 3" .s cr
 ;

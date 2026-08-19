@@ -81,6 +81,22 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
     4c!
 ;
 
+\ Add a value to a regioncorr's positive value.
+\ Skip if the addition results in an invalid value.
+: regioncorr-add-pos-value ( val regc0 -- )
+    assert( tos is-regioncorr? )
+    assert( nos 0 >= )
+    assert( nos #256 < )
+
+    dup regioncorr-get-pos-value    \ val regc0 pos
+    rot +                           \ regc0 new-pos
+
+    dup #256 < ifnot 2drop exit then
+    dup 0 >= ifnot 2drop exit then
+
+    swap _regioncorr-set-pos-value  \
+;
+
 \ Get the negative value.
 : regioncorr-get-neg-value ( regc0 -- val )
     \ Check args.
@@ -99,6 +115,22 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
 
     swap abs swap       \ val regc0
     5c!
+;
+
+\ Add a value to a regioncorr's negative value.
+\ Skip if the addition results in an invalid value.
+: regioncorr-add-neg-value ( val regc0 -- )
+    assert( tos is-regioncorr? )
+    assert( nos 0 <= )
+    assert( nos #-256 > )
+
+    dup regioncorr-get-neg-value    \ val regc0 neg
+    rot +                           \ regc0 new-neg
+
+    dup #-256 > ifnot 2drop exit then
+    dup 0 <= ifnot 2drop exit then
+
+    swap _regioncorr-set-neg-value  \
 ;
 
 \ End accessors.
@@ -595,6 +627,19 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
     true
 ;
 
+\ Return true if two regioncorrs region lists are equal.
+: regioncorrs-eq-regions? ( regc1 regc0 -- bool )
+    \ Check args.
+    assert( tos is-regioncorr? )
+    assert( nos is-regioncorr? )
+
+    \ Get region lists.
+    regioncorr-get-list swap                \ reg-lst0 regc1
+    regioncorr-get-list swap                \ reg-lst1 reg-lst0
+
+    region-lists-corr-eq?
+;
+
 \ Return true if two regioncorrs are equal.
 : regioncorrs-eq? ( regc1 regc0 -- bool )
     \ Check args.
@@ -616,4 +661,13 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
     regioncorr-get-list swap                \ reg-lst1 reg-lst0
 
     region-lists-corr-eq?
+;
+
+\ Set tos values to zero.
+: regioncorr-init-values ( regc0 -- )
+    \ Check arg.
+    assert( tos is-regioncorr? )
+
+    0 over _regioncorr-set-pos-value
+    0 swap _regioncorr-set-neg-value
 ;
