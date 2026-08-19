@@ -3,7 +3,7 @@
 : action-test-new
     \ Run function..
     [ ' calc-result-x ] literal
-    s" rXXXX 2 1" string-to-stack
+    s" rXXXX 2 1" string-to-stack-a
     action-new              \ act
 
     \ Display results.
@@ -26,7 +26,7 @@
 : action-test-add-sample
     \ Init action.
     [ ' calc-result-x ] literal
-    s" rXXXX 0 0" string-to-stack
+    s" rXXXX 0 0" string-to-stack-a
     action-new                              \ act
 
     cr dup .action cr
@@ -102,7 +102,7 @@
 : action-test-check-incompatible-pairs-for-changed-square
     \ Init action.
     [ ' calc-result-x ] literal
-    s" rXXXX 0 0" string-to-stack
+    s" rXXXX 0 0" string-to-stack-a
     action-new                              \ act
 
     cr dup .action cr
@@ -168,7 +168,7 @@
 : action-test-corners
     \ Init action.
     [ ' calc-result-x ] literal
-    s" rXXXX 0 0" string-to-stack
+    s" rXXXX 0 0" string-to-stack-a
     action-new                              \ act
 
     cr dup .action cr
@@ -208,7 +208,7 @@
 : action-test-corners2
     \ Init action.
     [ ' calc-result-x ] literal
-    s" rXXXX 0 0" string-to-stack
+    s" rXXXX 0 0" string-to-stack-a
     action-new                              \ act
 
     cr dup .action cr

@@ -84,6 +84,7 @@ include rule_t.fs
 include sample_t.fs
 include regionlist_t.fs
 include regioncorr_t.fs
+include regioncorrlist_t.fs
 include square_t.fs
 include corner_t.fs
 \ include need_t.fs
@@ -208,6 +209,7 @@ list-new to structinfo-list-store
 \    need-tests
     inc-pair-tests
     regioncorr-tests
+    regioncorr-list-tests
     session-tests
     cr
 ;

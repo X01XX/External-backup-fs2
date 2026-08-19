@@ -95,7 +95,7 @@
 ;
 
 \ Return a TOS regioncorr-list minus the NOS regioncorr.
-: regioncorr-list-subtract-region ( regc1 regc-lst0 -- ret-lst )
+: regioncorr-list-subtract-regioncorr ( regc1 regc-lst0 -- ret-lst )
     \ Check args.
     assert( tos is-regioncorr-list? )
     assert( nos is-regioncorr? )
@@ -114,7 +114,7 @@
             2drop
         else
             \ Check if they intersect
-            2dup regions-intersect?             \ ret-lst regc1 regc-lnk0 regc1 regc2 flag
+            2dup regioncorrs-intersect?         \ ret-lst regc1 regc-lnk0 regc1 regc2 flag
             if
                 \ They intersect, there will be some remainder.
                 regioncorr-subtract-xt execute  \ ret-lst regc1 regc-lnk0 remainder-lst
@@ -203,20 +203,20 @@
     assert( nos is-regioncorr-list? )
 
     \ Make a list that way be returned empty, or deallocated.
-    regioncorr-list-copy                \ regc-lst1 ret-lst
+    regioncorr-list-copy                    \ regc-lst1 ret-lst
 
-    swap                                \ ret-lst regc-lst1
+    swap                                    \ ret-lst regc-lst1
 
     \ Process each region in reg-lst1.
-    foreach                             \ ret-lst regc-lnk1 regc0
-        rot                             \ regc-lnk1 regc0 ret-lst
-        swap                            \ regc-lnk1 ret-lst regc0
-        over                            \ regc-lnk1 retc-lst regc0 ret-lst
-        regioncorr-list-subtract-region \ regc-lnk1 retc-lst retc-lst-new
-        -rot                            \ ret-lst-new regc-lnk1 ret-lst
-        regioncorr-list-deallocate      \ ret-lst-new regc-lnk1
+    foreach                                 \ ret-lst regc-lnk1 regc0
+        rot                                 \ regc-lnk1 regc0 ret-lst
+        swap                                \ regc-lnk1 ret-lst regc0
+        over                                \ regc-lnk1 retc-lst regc0 ret-lst
+        regioncorr-list-subtract-regioncorr \ regc-lnk1 retc-lst retc-lst-new
+        -rot                                \ ret-lst-new regc-lnk1 ret-lst
+        regioncorr-list-deallocate          \ ret-lst-new regc-lnk1
     next
-                                        \ ret-lst
+                                            \ ret-lst
 ;
 
 \ Append nos regioncorr-list to the tos regioncorr-list, except duplicates.
@@ -298,4 +298,44 @@
             exit
         then
     again
+;
+
+\ Print a regioncorr list.
+: .regioncorr-list ( regc-lst0 -- )
+    \ Check arg.
+    assert( tos is-regioncorr-list? )
+
+    foreach                 \ regc-lnk regcx
+        cr #8 spaces .regioncorr
+    next
+;
+
+' .regioncorr-list to .regioncorr-list-xt
+
+: .regioncorr-list-prefix ( c-addr u list0 -- )
+    \ Check arg.
+    assert( tos is-regioncorr-list? )
+    cr
+    rot                 \ u list0 c-addr
+    #2 pick             \ u list0 c-addr u
+    type                \ u list0
+
+    dup list-is-empty?
+    if
+        ." None"
+        2drop
+        exit
+    then
+
+    foreach             \ u lnk regcx
+        .regioncorr
+
+        link-get-next
+        dup 0<> if
+            over cr spaces
+        then
+    repeat
+                        \ u
+    drop
+    cr
 ;

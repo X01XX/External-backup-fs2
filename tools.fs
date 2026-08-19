@@ -263,24 +263,14 @@
 \ Get the first word, 16 bits, of a, possibly invalid, address.
 : get-first-word ( addr -- w t | f )
     ['] 0w@ catch           \ addr exception-number | word 0
-    dup 0=
+    0=
     if
         \ Fetch worked.
-        drop
         true
-        exit
-    then
-
-    dup #-9 =
-    if
-        \ Invalid address.
-        2drop
+    else
+        drop
         false
-        exit
     then
-
-    \ Other error, likely stack underflow.
-    throw
 ;
 
 \ Drop two items from the stack, return true.

@@ -271,15 +271,20 @@
 ;
 
 \ Put zero, one, or more items on the stack, from a string.
-: string-to-stack ( c-addr u -- x* )
+: string-to-stack ( c-addr u -- x* t | f)
     \ Parse string to list.
-    list-from-string-a                  \ lst'
+    list-from-string                    \ lst' t | f
+    ifnot
+        false
+        exit
+    then
 
     \ Push each list item onto stack.
     begin
         dup list-is-empty?              \ lst' bool
         if
             list-deallocate             \ x*
+            true
             exit
         then
 
@@ -294,6 +299,12 @@
 
         swap
     again
+;
+
+\ Put zero, one, or more items on the stack, from a string.
+: string-to-stack-a ( c-addr u -- x* )
+    string-to-stack     \ x* t | f
+    invert abort" string-to-stack failed"
 ;
 
 \ Return true if two lists are equal, that is

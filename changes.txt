@@ -25,5 +25,5 @@ Then the state can be sought without straying into negative regions.
 
 Groups are not directly invalidated by a new, or changed, square.  Changes to possible regions leads to a group being deleted.
 
-Added two xts to the structinfo struct, to allow defining a complex struct, regioncorr, struct with a list.
+Added two xts to the structinfo struct, to allow defining a complex struct, regioncorr, with a list.
 

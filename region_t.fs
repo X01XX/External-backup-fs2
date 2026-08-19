@@ -3,17 +3,17 @@
 : region-test-basic
 
     \ Test region-new.
-    s" s0101 s0110" string-to-stack region-new  \ reg
+    s" s0101 s0110" string-to-stack-a region-new    \ reg
 
     \ Test .region works.
-    cr ." region: " dup .region     \ reg
+    cr ." region: " dup .region                     \ reg
 
     \ Test result.
-    dup region-get-state-0          \ reg sta0
+    dup region-get-state-0                          \ reg sta0
     state-get-number #6 =
     false? abort" result not as expected"
 
-    dup region-get-state-1          \ reg sta1
+    dup region-get-state-1                          \ reg sta1
     state-get-number #5 =
     false? abort" result not as expected"
 

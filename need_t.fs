@@ -1,7 +1,7 @@
 
 : need-test-new
     \ Try with state target.
-    s" 0 s1000 1 1 2" string-to-stack           \ tkn targ ned-typ act-id dom-id
+    s" 0 s1000 1 1 2" string-to-stack-a         \ tkn targ ned-typ act-id dom-id
     need-new                                    \ ned
 
     cr ." need 1: " dup .need cr
@@ -13,7 +13,7 @@
     dup need-get-info 0<> abort" action info s/b zero?"
 
     \ Try new with region-list target.
-    s" 0 (r1100 r1000) 1 1 2" string-to-stack           \ tkn targ ned-typ act-id dom-id
+    s" 0 (r1100 r1000) 1 1 2" string-to-stack-a \ tkn targ ned-typ act-id dom-id
     need-new                                    \ ned
 
     cr ." need 3: " dup .need cr

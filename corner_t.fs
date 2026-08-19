@@ -1,5 +1,5 @@
 : corner-test-new
-    s" c0Xx1" string-to-stack                   \ crn
+    s" c0Xx1" string-to-stack-a                 \ crn
 
     \ cr ." crn: " dup .corner cr
 
@@ -18,13 +18,13 @@
 ;
 
 : corner-test-states
-    s" s0101 r0XX1" string-to-stack corner-new  \ crn
+    s" s0101 r0XX1" string-to-stack-a corner-new    \ crn
     \ cr ." crn: " dup .corner cr
 
-    dup corner-states                       \ crn sta-lst'
+    dup corner-states                               \ crn sta-lst'
     \ cr ." states: " dup .state-list cr
 
-    dup list-get-length                     \ crn sta-lst' len
+    dup list-get-length                             \ crn sta-lst' len
     #3 <> abort" len ne 3?"
 
     \ Deallocate.
@@ -38,20 +38,20 @@
 ;
 
 : corner-test-is-proper-superset?
-    s" s0100 rXXX0" string-to-stack corner-new  \ crn1
+    s" s0100 rXXX0" string-to-stack-a corner-new    \ crn1
     \ cr ." crn1: " dup .corner cr
 
-    s" s0101 r0XX1" string-to-stack corner-new  \ crn1 crn2
+    s" s0101 r0XX1" string-to-stack-a corner-new    \ crn1 crn2
     \ cr ." crn2: " dup .corner cr
 
     \ Test.
-    2dup corner-is-proper-superset?         \ crn1 crn2 bool
+    2dup corner-is-proper-superset?                 \ crn1 crn2 bool
     ifnot
         cr ." not superset?" cr abort
     then
 
     swap
-    2dup corner-is-proper-superset?         \ crn1 crn2 bool
+    2dup corner-is-proper-superset?                 \ crn1 crn2 bool
     if
         cr ." superset?" cr abort
     then
@@ -69,7 +69,7 @@
 : corner-test-additional-corners
     \ Set up.
     s" (r00xx r010x rxx1x r1x0x)" list-from-string-a    \ reg-lst
-    s" s0101 r010x" string-to-stack corner-new          \ reg-lst crn
+    s" s0101 r010x" string-to-stack-a corner-new        \ reg-lst crn
 
     \ Run.
     2dup corner-additional-corners                      \ reg-lst crn, crn-lst t | f
@@ -96,7 +96,7 @@
 : corner-test-calc-set-rate
     \ Set up.
     s" (r00xx r010x rxx1x r1x0x)" list-from-string-a    \ reg-lst
-    s" s0101 r010x" string-to-stack corner-new          \ reg-lst crn
+    s" s0101 r010x" string-to-stack-a corner-new        \ reg-lst crn
 
     \ Run.
     2dup corner-calc-set-rate                           \ reg-lst crn

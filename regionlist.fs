@@ -1184,3 +1184,32 @@
     next
     drop
 ;
+
+\ Return true if regionslist corresponding regions are equal.
+: region-lists-corr-eq? ( reg-lst1 reg-lst0 -- bool )
+    \ Check args.
+    assert( tos is-region-list? )
+    assert( nos is-region-list? )
+
+    list-get-links swap         \ lnk0 reg-lst1
+    list-get-links              \ lnk0 lnk1
+
+    begin
+        ?dup
+    while
+        over link-get-data      \ lnk0 lnk1 reg0
+        over link-get-data      \ lnk0 lnk1 reg0 reg1
+        regions-eq?             \ lnk0 lnk1 bool
+        ifnot
+            2drop
+            false
+            exit
+        then
+
+        swap link-get-next
+        swap link-get-next
+    repeat
+                                \ lnk0
+    drop
+    true
+;
