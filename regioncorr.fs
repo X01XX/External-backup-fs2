@@ -359,7 +359,6 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
     2drop                                   \ regc0 ret-lst
     nip                                     \ ret-lst
     \ cr ." =           " dup .regioncorr-list-xt execute cr
-    true
 ;
 
 ' regioncorr-subtract to regioncorr-subtract-xt
@@ -375,7 +374,7 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
 ;
 
 \ Check if a list could be a regioncorr definintion.
-: regioncorr-valid-list? ( lst -- bool )
+: regioncorr-list-definition? ( lst -- bool )
     \ Check arg.
     assert( tos is-list? )
     \ cr ." regioncorr-valid-list?: start: " dup .struct-list cr
@@ -415,7 +414,7 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
     dup list-get-third-item             \ lst third
     is-valid-neg-value?
     ifnot
-        \ cr ." regioncorr-valid-list?: exit 5: " cr
+        \ cr ." regioncorr-valid-list?: exit 5: "( regc 1  -4 (rx1x1 r0x111))
         drop false exit
     then
 
@@ -445,7 +444,7 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
     assert( tos is-list? )
     \ cr ." regioncorr-from-list: start" cr
 
-    dup regioncorr-valid-list?  \ lst bool
+    dup regioncorr-list-definition?     \ lst bool
     ifnot
         drop false exit
     then
@@ -465,7 +464,6 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
     true
     \ cr ." regioncorr-from-list: end: " .stack-gbl cr
 ;
-
 \ Return a regioncorr from a string.
 \ Like (1 -2 (rxxxx r1010))
 \ Like (0 0 (rxxxx r1010))
@@ -490,7 +488,7 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
 ;
 
 
-\ Return a regioncorr from a string, or abort.
+\ Return a regioncorr from a string, or abort.( regc 1  -4 (rx1x1 r0x111))
 : regioncorr-from-string-a ( str-addr str-n -- regc )
     regioncorr-from-string    \ regc t | f
     false? abort" regioncorr-from-string-a failed?"
@@ -512,7 +510,7 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
     begin
         ?dup
     while
-        \ Add one region pair distance.
+        \ Add one region pair distance.( regc 1  -4 (rx1x1 r0x111))
         rot                     \ link1 link0 cnt
         #2 pick link-get-data   \ link1 link0 cnt reg1
         #2 pick link-get-data   \ link1 link0 cnt reg1 reg0
@@ -563,37 +561,37 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
 
     \ Init return list.
     list-new -rot                           \ pos neg reg-lst regc1 regc0
-\ cr ." at 1: " .stack-gbl cr
+
     \ Init links for loop.
     regioncorr-get-list list-get-links swap \ pos neg reg-lst link0 regc1
     regioncorr-get-list list-get-links swap \ pos neg reg-lst link1 link0
-\ cr ." at 2: " .stack-gbl cr
+
     begin
         ?dup
     while                                   \ pos neg reg-lst link1 link0
         \ Check regions
         over link-get-data                  \ pos neg reg-lst link1 link0 reg1
         over link-get-data                  \ pos neg reg-lst link1 link0 reg1 reg0
-\ cr ." at 3: " .stack-gbl cr
+
         region-intersection                 \ pos neg reg-lst link1 link0 reg-int t | f
         invert abort" intersection failed?"
-\ cr ." at 4: " .stack-gbl cr
+
         #3 pick                             \ pos neg reg-lst link1 link0 reg-int reg-lst
         region-list-push-end                \ pos neg reg-lst link1 link0
-\ cr ." at 5: " .stack-gbl cr
+
         \ Prep for next cycle.              \ pos neg reg-lst link1 link0
         swap link-get-next                  \ pos neg reg-lst link0 link1
         swap link-get-next                  \ pos neg reg-lst link1 link0
     repeat
                                             \ pos neg reg-lst link1
     drop                                    \ pos neg reg-lst
-\ cr ." at 6: " .stack-gbl cr
+
     \ Make return regioncorr.
     regioncorr-new                          \ pos neg regc
-\ cr ." at 7: " .stack-gbl cr
+
     tuck _regioncorr-set-neg-value          \ pos regc
     tuck _regioncorr-set-pos-value          \ regc
-\ cr ." at 8: " .stack-gbl cr
+
     true
 ;
 
@@ -603,28 +601,19 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
     assert( tos is-regioncorr? )
     assert( nos is-regioncorr? )
 
-    \ Init links for loop.
-    regioncorr-get-list list-get-links swap   \ link0 regc1
-    regioncorr-get-list list-get-links swap   \ link1 link0
+    \ Check positive value.
+    over regioncorr-get-pos-value           \ regc1 regc0 p1
+    over regioncorr-get-pos-value           \ regc1 regc0 p1 p0
+    <> if 2drop false exit then
 
-    begin
-        ?dup
-    while                           \ link1 link0
-        \ Check regions
-        #2 pick link-get-data       \ link1 link0 reg1
-        #2 pick link-get-data       \ link1 link0 reg1 reg0
-        regions-eq?                 \ link1 link0 bool
-        ifnot
-            2drop
-            false
-            exit
-        then
+    \ Check negative value.
+    over regioncorr-get-neg-value           \ regc1 regc0 n1
+    over regioncorr-get-neg-value           \ regc1 regc0 n1 n0
+    <> if 2drop false exit then
 
-        \ Prep for next cycle.      \ link1 link0
-        swap link-get-next          \ link0 link1
-        swap link-get-next          \ link1 link0
-    repeat
-                                    \ link1
-    drop                            \
-    true
+    \ Get region lists.
+    regioncorr-get-list swap                \ reg-lst0 regc1
+    regioncorr-get-list swap                \ reg-lst1 reg-lst0
+
+    region-lists-corr-eq?
 ;

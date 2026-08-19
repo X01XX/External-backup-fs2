@@ -529,3 +529,11 @@ mask-header-disp cell+  constant mask-number-disp
     mask-get-number     \ u
     only-one-bit-set?   \ bool
 ;
+
+: mask-num-bits-set ( msk0 -- u )
+    \ Check arg.
+    assert( tos is-mask? )
+
+    mask-get-number     \ u
+    num-bits-set        \ u
+;

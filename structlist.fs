@@ -244,7 +244,7 @@
         struct-dec-use-count        \ xt1
         drop
     then
-    
+
 \    tuck                        \ lst0 xt1 lst0
 \    list-apply-recursive        \ lst0 ( may now be invalid )
 \    list-deallocate-recursive

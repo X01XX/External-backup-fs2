@@ -20,16 +20,16 @@
 ;
 
 \ Deallocate a regioncorr list.
-: regioncorr-list-deallocate ( reg-lst0 -- )
+: regioncorr-list-deallocate ( regc-lst0 -- )
     \ Check arg.
     assert( tos is-regioncorr-list? if true else cr ." tos not regioncorr-list? " .stack-gbl cr false then )
 
     \ Check if the list will be deallocated for the last time.
-    dup struct-get-use-count                        \ reg-lst0 uc
+    dup struct-get-use-count                        \ regc-lst0 uc
     #2 < if
         \ Deallocate region instances in the list.
-        [ ' regioncorr-deallocate ] literal over    \ reg-lst0 xt reg-lst0
-        list-apply                                  \ reg-lst0
+        [ ' regioncorr-deallocate ] literal over    \ regc-lst0 xt regc-lst0
+        list-apply                                  \ regc-lst0
 
         \ Deallocate the list.
         list-deallocate                             \
@@ -45,7 +45,7 @@
     assert( tos is-regioncorr-list? )
     assert( nos is-regioncorr? )
 
-    \ Return if any region in the list is a superset of reg1.
+    \ Return if any region in the list is a superset of regc1.
     2dup                                    \ regc1 regc-lst0 regc1 regc-lst0
     [ ' regioncorrs-eq? ] literal           \ regc1 regc-lst0 regc1 regc-lst0 xt
     -rot                                    \ regc1 regc-lst0 xt regc1 regc-lst0
@@ -62,17 +62,37 @@
     true
 ;
 
+\ Remove the first subset region from a regioncorr-list, and deallocate.
+\ xt signature is ( item list-data -- flag )
+\ Return true if a region was removed.
+: regioncorr-list-remove-subsets ( regc1 regc-lst0 -- bool )
+    \ Check args.
+    assert( tos is-regioncorr-list? )
+    assert( nos is-regioncorr? )
+
+    [ ' regioncorr-subset? ] literal    \ regc1 regc-lst0  xt
+    -rot                                \ xt regc1 regc-lst0
+
+    list-remove                         \ regc2 t | f
+    if
+        regioncorr-deallocate
+        true
+    else
+        false
+    then
+;
+
 \ Push a regioncorr onto a list, if there are no supersets in the list.
 \ If there are no supersets in the list, delete any subsets and push the region.
 \ Return true if the region is added to the list.
 : regioncorr-list-push-nosubs ( regc1 regc-lst0 -- flag )
     \ Check args.
-    assert( tos is-region-list? )
+    assert( tos is-regioncorr-list? )
     assert( nos is-regioncorr? )
 
-    \ Return if any region in the list is a superset of reg1.
+    \ Return if any region in the list is a superset of regc1.
     2dup                                    \ regc1 regc-lst0 regc1 regc-lst0
-    [ ' region-superset? ] literal          \ regc1 regc-lst0 regc1 regc-lst0 xt
+    [ ' regioncorr-superset? ] literal      \ regc1 regc-lst0 regc1 regc-lst0 xt
     -rot                                    \ regc1 regc-lst0 xt regc1 regc-lst0
     list-member?                            \ regc1 regc-lst0 flag
     if
@@ -85,12 +105,12 @@
     \ Remove all subsets.
     begin
         2dup                                \ regc1 regc-lst0 regc1 regc-lst0
-        region-list-remove-subset           \ regc1 regc-lst0 | flag
+        regioncorr-list-remove-subsets      \ regc1 regc-lst0 | flag
     while
     repeat
 
     \ Add region to list.                   \ regc1 regc-lst0
-    region-list-push
+    list-push-struct
     true
 ;
 
@@ -121,7 +141,6 @@
 
                 \ Add remainders to the return list
                 dup                             \ ret-lst regc1 regc-lnk0 rem-lst rem-lst
-
                 foreach                         \ ret-lst regc1 regc-lnk0 rem-lst rem-lnk rem-reg
                     #5 pick                     \ ret-lst regc1 regc-lnk0 rem-lst rem-lnk rem-reg ret-lst
                     regioncorr-list-push-nosubs \ ret-lst regc1 regc-lnk0 rem-lst rem-lnk flag
@@ -150,7 +169,11 @@
     \ Init return list.
     list-new swap                           \ ret-lst regc-lst0
 
-    foreach                                 \ ret-lst regc-lnk1 regc-lnk2
+    list-get-links                          \ ret-lst regc-lnk0
+    begin
+        ?dup
+    while
+        dup link-get-next                   \ ret-lst regc-lnk1 regc-lnk2
         begin
             ?dup
         while
@@ -182,7 +205,7 @@
 ;
 
 \ Return a copy of a regioncorr-list.
-: regioncorr-list-copy ( regc-lst0 -- reg-lst )
+: regioncorr-list-copy ( regc-lst0 -- regc-lst )
     \ Check arg.
     assert( tos is-regioncorr-list? )
 
@@ -207,7 +230,7 @@
 
     swap                                    \ ret-lst regc-lst1
 
-    \ Process each region in reg-lst1.
+    \ Process each region in regc-lst1.
     foreach                                 \ ret-lst regc-lnk1 regc0
         rot                                 \ regc-lnk1 regc0 ret-lst
         swap                                \ regc-lnk1 ret-lst regc0
@@ -241,6 +264,16 @@
     drop
 ;
 
+\ Print a regioncorr list.
+: .regioncorr-list ( regc-lst0 -- )
+    \ Check arg.
+    assert( tos is-regioncorr-list? )
+
+    foreach                 \ regc-lnk regcx
+        cr #8 spaces .regioncorr
+    next
+;
+
 \ Split a regioncorr list by intersections.
 \ So each result regioncorr is a subset of one, or more, of the original regioncorrs,
 \ but never a proper intersection.
@@ -255,6 +288,7 @@
         false
         exit
     then
+    cr ." first pass: " dup .regioncorr-list cr
 
     \ Init return list.
     list-new -rot                                   \ ret-lst regc-lst0 int-regcs'
@@ -300,16 +334,6 @@
     again
 ;
 
-\ Print a regioncorr list.
-: .regioncorr-list ( regc-lst0 -- )
-    \ Check arg.
-    assert( tos is-regioncorr-list? )
-
-    foreach                 \ regc-lnk regcx
-        cr #8 spaces .regioncorr
-    next
-;
-
 ' .regioncorr-list to .regioncorr-list-xt
 
 : .regioncorr-list-prefix ( c-addr u list0 -- )
@@ -338,4 +362,38 @@
                         \ u
     drop
     cr
+;
+
+\ Return true if two regioncorr lists are equal.
+: regioncorr-lists-eq? ( regc-lst1 regc-lst0 -- bool )
+    \ Check args.
+    assert( tos is-regioncorr-list? )
+    assert( nos is-regioncorr-list? )
+
+    \ Check list lengths.
+    over list-get-length
+    over list-get-length                    \ regc-lst1 regc-lst0 len1 len0
+    <>
+    if
+        2drop
+        false
+        exit
+    then
+
+    \  Check list contents.
+    foreach                                 \ regc-lst1 lnk0 regcx
+        \ Check if its in the other list.
+        [ ' regioncorrs-eq? ] literal swap  \ regc-lst1 lnk0 xt regcx
+        #3 pick                             \ regc-lst1 lnk0 xt regcx lst1
+        list-member?                        \ regc-lst1 lnk0 flag
+
+        ifnot
+            2drop
+            false
+            exit
+        then
+    next
+                                            \ regc-lst1
+    drop
+    true
 ;

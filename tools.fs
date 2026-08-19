@@ -261,16 +261,22 @@
 : 3dup #2 pick #2 pick #2 pick ;
 
 \ Get the first word, 16 bits, of a, possibly invalid, address.
-: get-first-word ( addr -- w t | f )
-    ['] 0w@ catch           \ addr exception-number | word 0
-    0=
-    if
-        \ Fetch worked.
-        true
-    else
-        drop
-        false
-    then
+: get-first-word ( addr -- w  t | f )
+\ cr ." at 0: " .s cr
+    try
+        0w@
+         \ cr ." at 1: " .s cr
+    restore
+        \ cr ." at 2: " .s cr
+        dup 0<
+        if
+            2drop
+            false
+        else
+            true
+        then
+    endtry
+\ cr ." at 3: " .s
 ;
 
 \ Drop two items from the stack, return true.

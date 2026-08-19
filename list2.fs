@@ -156,7 +156,6 @@
     dup list-get-first-item                     \ lst0 first
     is-token?
     if
-\ cr ." at 1: " .stack-gbl cr
         dup structinfo-list-store-list-to-struct-xt execute   \ lst0, strct t | f
         if
             nip true exit
@@ -171,33 +170,27 @@
     foreach                                     \ ret-lst lnk item
         dup is-list?                            \ ret-lst lnk item bool
         if
-\ cr ." at 2: " .stack-gbl cr
             dup list-get-first-item             \ ret-lst lnk item first
             is-token?                           \ ret-lst lnk item bool
             if
-\ cr ." at 3: " .stack-gbl cr
                 structinfo-list-store-list-to-struct-xt execute  \ ret-lst lnk, strct t | f
                 if
-\ cr ." at 4: " .stack-gbl cr
+
                     #2 pick                     \ ret-lst lnk strct ret-lst
                     list-push-end-struct        \ ret-lst lnk
                 else
-\ cr ." at 5: " .stack-gbl cr
                     dup link-get-data           \ ret-lst lnk item
                     #2 pick                     \ ret-lst lnk item ret-lst
                     list-push-end-struct        \ ret-lst lnk
                 then
             else
-\ cr ." at 6: " .stack-gbl cr
+
                 recurse                         \ ret-lst lnk, ret t | f
-\ cr ." at 6.1: " .stack-gbl cr
                 if
-\ cr ." at 6.2: " .stack-gbl cr
+
                     #2 pick                     \ ret-lst lnk ret ret-lst
-\ cr ." at 6.3: " .stack-gbl cr
                     list-push-end-struct        \ ret-lst lnk
                 else
-\ cr ." at 6.4: " .stack-gbl cr
                     drop
                     struct-list-deallocate
                     false
@@ -205,19 +198,15 @@
                 then
             then
         else
-\ cr ." at 7: " .stack-gbl cr
             dup is-struct?                      \ ret-lst lnk item bool
             if
-\ cr ." at 7.1: " .stack-gbl cr
                 #2 pick                         \ ret-lst lnk item ret-lst
                 list-push-end-struct            \ ret-lst lnk
             else
-\ cr ." at 7.2: " .stack-gbl cr
                 #2 pick                         \ ret-lst lnk item ret-lst
-                list-push-end-struct            \ ret-lst lnk
+                list-push-end                   \ ret-lst lnk
             then
         then
-\ cr ." at 9: " .stack-gbl cr
     next
     true
 ;
