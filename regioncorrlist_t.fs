@@ -56,8 +56,8 @@
 \
 \ In this case, any start->goal,
 \ where the start, and goal, are not equal, and not 5,
-\ can be within a fragment,
-\ or start->A, if goal is A,
+\ can be within a complement region,
+\ or start->A, if the goal is A,
 \ or A->goal, if the start is A,
 \ or start->A-> goal.
 : regioncorr-list-test-split-by-intersections3
