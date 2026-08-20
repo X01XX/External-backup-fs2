@@ -671,3 +671,12 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
     0 over _regioncorr-set-pos-value
     0 swap _regioncorr-set-neg-value
 ;
+
+\ Set tos values to one.
+: regioncorr-init-pos-value-to-1 ( regc0 -- )
+    \ Check arg.
+    assert( tos is-regioncorr? )
+
+    1 over _regioncorr-set-pos-value
+    0 swap _regioncorr-set-neg-value
+;

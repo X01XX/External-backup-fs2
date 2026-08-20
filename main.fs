@@ -37,7 +37,7 @@ include sample.fs
 include samplelist.fs
 include rule.fs
 include rulelist.fs
-include floatnum.fs
+\ include floatnum.fs
 
 include token.fs
 include tokenlist.fs
@@ -68,7 +68,7 @@ include action.fs
 
 include actionlist.fs
 
-include frame.fs
+\ include frame.fs
 include domain.fs
 include domainlist.fs
 
@@ -106,14 +106,14 @@ include session_t.fs
 #200 rule-mma-init
 #200 sample-mma-init
 #100 token-mma-init
-#100 floatnum-mma-init
+\ #100 floatnum-mma-init
 #200 square-mma-init
 #010 action-mma-init
 #110 corner-mma-init
 \ #110 need-mma-init
 #130 group-mma-init
 #100 regioncorr-mma-init
-#010 frame-mma-init
+\ #010 frame-mma-init
 #010 domain-mma-init
 #005 session-mma-init
 cr cr
@@ -129,7 +129,7 @@ list-new to structinfo-list-store
 ' noop  ' noop  ' masks-eq?     ' mask-from-string      ' mask-deallocate       ' .mask         s" Mask"        mask-mma        mask-struct-id          structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' states-eq?    ' state-from-string     ' state-deallocate      ' .state        s" State"       state-mma       state-struct-id         structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' regions-eq?   ' region-from-string    ' region-deallocate     ' .region       s" Region"      region-mma      region-struct-id        structinfo-new structinfo-list-store-push-end
-' noop  ' noop  ' floatnums-eq? ' floatnum-from-string  ' floatnum-deallocate   ' .floatnum     s" FloatNum"    floatnum-mma    floatnum-struct-id      structinfo-new structinfo-list-store-push-end
+\ ' noop  ' noop  ' floatnums-eq? ' floatnum-from-string  ' floatnum-deallocate   ' .floatnum     s" FloatNum"    floatnum-mma    floatnum-struct-id      structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' tokens-eq?    ' noop                  ' token-deallocate      ' .token        s" Token"       token-mma       token-struct-id         structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' rules-eq?     ' rule-from-string      ' rule-deallocate       ' .rule         s" Rule"        rule-mma        rule-struct-id          structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' samples-eq?   ' sample-from-string    ' sample-deallocate     ' .sample       s" Sample"      sample-mma      sample-struct-id        structinfo-new structinfo-list-store-push-end
@@ -139,7 +139,7 @@ list-new to structinfo-list-store
 \ ' noop  ' noop  ' noop          ' noop                  ' need-deallocate       ' .need       s" Need"        need-mma        need-struct-id          structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' =             ' noop                  ' square-deallocate     ' .square       s" Square"      square-mma      square-struct-id        structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' =             ' noop                  ' group-deallocate      ' .group        s" Group"       group-mma       group-struct-id         structinfo-new structinfo-list-store-push-end
-' noop  ' noop  ' noop          ' noop                  ' frame-deallocate      ' .frame        s" Frame"       frame-mma       frame-struct-id         structinfo-new structinfo-list-store-push-end
+\ ' noop  ' noop  ' noop          ' noop                  ' frame-deallocate      ' .frame        s" Frame"       frame-mma       frame-struct-id         structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' noop          ' noop                  ' domain-deallocate     ' .domain       s" Domain"      domain-mma      domain-struct-id        structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' noop          ' noop                  ' session-deallocate    ' .session      s" Session"     session-mma     session-struct-id       structinfo-new structinfo-list-store-push-end
 

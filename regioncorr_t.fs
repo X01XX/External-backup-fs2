@@ -50,7 +50,7 @@
 
 : regioncorr-test-intersection
 
-    s" (regc 2 -1 (r0X0X r00x0x)) (regc 1 -4 (rx1x1 r0x1x1))" string-to-stack-a
+    s" (regc #2 -1 (r0X0X r00x0x)) (regc 1 #-4 (rx1x1 r0x1x1))" string-to-stack-a
 
     2dup regioncorr-intersection
     invert abort" regc does not intersect?"
@@ -79,7 +79,7 @@
 ;
 
 : regioncorr-test-subtract
-    s" (regc 2 -1 (r0X0X r00x0x)) (regc 1 -4 (rx1x1 r0x1x1))" string-to-stack-a
+    s" (regc #2 -1 (r0X0X r00x0x)) (regc 1 #-4 (rx1x1 r0x1x1))" string-to-stack-a
 
     cr dup .regioncorr space ." - " over .regioncorr
 
@@ -88,7 +88,7 @@
     space ." = " dup .regioncorr-list cr
 
     \ Test.
-    s" ( regc 1  -4 (rx1x1 r0x111)) ( regc 1  -4 (rx1x1 r011x1)) ( regc 1  -4 (rx111 r0x1x1)) ( regc 1  -4 (r11x1 r0x1x1))"
+    s" ( regc 1 #-4 (rx1x1 r0x111)) ( regc 1 #-4 (rx1x1 r011x1)) ( regc 1  #-4 (rx111 r0x1x1)) ( regc 1  #-4 (r11x1 r0x1x1))"
     list-from-string-a
 
     2dup regioncorr-lists-eq? invert abort" unexpected result"
@@ -106,7 +106,7 @@
 ;
 
 : regioncorr-test-distance
-    s" (regc 2 -1 (r0X0X r00x0x)) (regc 1 -4 (r10x0 r1x1x1))" string-to-stack-a
+    s" (regc #2 -1 (r0X0X r00x0x)) (regc 1 #-4 (r10x0 r1x1x1))" string-to-stack-a
 
     cr dup .regioncorr space ." vs " over .regioncorr
 
@@ -129,7 +129,7 @@
 ;
 
 : regioncorr-test-superset?
-    s" (regc 2 -1 (r10x0 r11101)) (regc 1 -4 (rx0x0 r1x1x1))" string-to-stack-a
+    s" (regc #2 -1 (r10x0 r11101)) (regc 1 #-4 (rx0x0 r1x1x1))" string-to-stack-a
 
     cr dup .regioncorr space ." vs " over .regioncorr
 
@@ -141,7 +141,7 @@
     if space ." - Ok" else cr ." not superset?" cr abort then
 
     \ Check non-superset.
-    s" (regc 2 -1 (r10x0 r11100)) (regc 1 -4 (rx0x0 r1x1x1))" string-to-stack-a
+    s" (regc #2 -1 (r10x0 r11100)) (regc 1 #-4 (rx0x0 r1x1x1))" string-to-stack-a
 
     cr dup .regioncorr space ." vs " over .regioncorr
 

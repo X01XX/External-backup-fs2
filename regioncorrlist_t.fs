@@ -50,8 +50,39 @@
     cr ." regioncorr-list-test-split-by-intersections2 - Ok"
 ;
 
+\ Get the complement of a regc, find intersections, and count
+\ the number of intersections of each freagment.
+\ A fragment intersection of gt 2 fragments may be useful.
+: regioncorr-list-test-split-by-intersections3
+    \ Init.
+    s"  (( regc 0  0 (r0101))) (( regc 1  0 (rXXXX)))" string-to-stack-a
+    cr ." at1: " .stack-gbl cr
+
+    \ Subtract.
+    2dup regioncorr-list-subtract               \ regc-lst1 regc-lst0 frag-lst
+    cr s" Complement: " #2 pick .regioncorr-list-prefix cr
+
+    dup regioncorr-list-split-by-intersections  \ regc-lst1 regc-lst0 frag-lst, regc-lst t | f
+    invert abort" split failed?"
+    cr s" Fragments: " #2 pick .regioncorr-list-prefix cr
+
+    \ Test.
+
+    \ Deallocate.
+    regioncorr-list-deallocate
+    regioncorr-list-deallocate
+    regioncorr-list-deallocate
+    regioncorr-list-deallocate
+
+    \ Check for memory leaks.
+    check-project-deallocated
+
+    cr ." regioncorr-list-test-split-by-intersections3 - Ok"
+;
+
 : regioncorr-list-tests
     regioncorr-list-test-split-by-intersections
     regioncorr-list-test-split-by-intersections2
+    regioncorr-list-test-split-by-intersections3
     cr
 ;

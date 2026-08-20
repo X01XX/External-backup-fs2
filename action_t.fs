@@ -3,7 +3,7 @@
 : action-test-new
     \ Run function..
     [ ' calc-result-x ] literal
-    s" rXXXX 2 1" string-to-stack-a
+    s" rXXXX #2 1" string-to-stack-a
     action-new              \ act
 
     \ Display results.

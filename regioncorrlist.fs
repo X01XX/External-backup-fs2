@@ -38,7 +38,8 @@
     then
 ;
 
-\ Push a regioncorr onto a list, if there are no duplicates in the list.
+\ Push a regioncorr onto a list, if there are no regioncorrs with
+\ duplicate regions in the list.
 \ Return true if the regioncorr is added to the list.
 : regioncorr-list-push-nodups ( regc1 regc-lst0 -- flag )
     \ Check args.
@@ -452,4 +453,13 @@
     drop
     true
     \ cr ." regioncorr-lists-eq?: exit 3" .s cr
+;
+
+: regioncorr-list-init-pos-value-to-1 ( regc-lst0 -- )
+    \ Check arg.
+    assert( tos is-regioncorr-list? )
+
+    foreach             \ regc-lnk regc
+        regioncorr-init-pos-value-to-1
+    next
 ;

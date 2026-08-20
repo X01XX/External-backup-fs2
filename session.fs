@@ -1,13 +1,36 @@
 \ Implement a Session struct and functions.
 
 #31319 constant session-struct-id
-    #4 constant session-struct-number-cells
+   #10 constant session-struct-number-cells
 
 \ Struct fields
-0                               constant session-header-disp                        \ 16-bits [0] struct id [1] use count
-session-header-disp     cell+   constant session-domains-disp                       \ A domain-list, kind of like senses.
-session-domains-disp    cell+   constant session-step-num-disp                      \ Starts at zero.
-session-step-num-disp   cell+   constant session-max-regions-disp                   \ A list of maximum regions, corresponding in order to the domain list.
+0                                       constant session-header-disp            \ 16-bits [0] struct id [1] use count
+session-header-disp             cell+   constant session-domains-disp           \ A domain-list, kind of like senses.
+session-domains-disp            cell+   constant session-step-num-disp          \ Starts at zero.
+session-step-num-disp           cell+   constant session-max-regions-disp       \ A list of maximum regions, corresponding in order to the domain list.
+
+session-max-regions-disp        cell+   constant session-valued-regions-disp    \ A valued regioncorr list, added during session definition.
+session-valued-regions-disp     cell+   constant session-vrf-fragments-disp     \ Valued regioncorr (vr) fragments (vrf).  To deal with valued region overlaps.
+session-vrf-fragments-disp      cell+   constant session-vrf-values-disp        \ Sorted vr fragment values, LT 0, like ( -1 -3 -5 ).
+
+session-vrf-values-disp         cell+   constant session-vrf-non-negative-disp  \ Max regions minus all negative vr fragments.
+                                                                                \ Commonly, there are a lot of overlaps, so a path can crawl from one to another,
+                                                                                \ towards a goal.
+session-vrf-non-negative-disp   cell+   constant session-vrf-path-lists-disp    \ Lists of regioncorr-lists corresponding to the vrf-values list.
+                                                                                \ To find a path without going through a more-negative fragment.
+                                                                                \ Each is the maximum regions, minus a succesive
+                                                                                \ number of more negative vr fragments.
+                                                                                \ Like, for vrf-values = ( -1 -3 -5)
+                                                                                \ so 0 = max regions minus all LT -1,
+                                                                                \    1 = max regions minus all LT -3,
+                                                                                \    2 = max regions.
+session-vrf-path-lists-disp     cell+   constant session-vr-goal-lists-disp     \ To find a path from a negative fragment to a non-negative fragment.
+                                                                                \ so 0 = non-negative regioncorrs intersection vrf path list 0.
+                                                                                \    1 = non-negative regioncorrs intersection vrf path list 1.
+                                                                                \    2 = non-negative regioncorrs.
+
+
+
 
 
 0 value session-mma     \ Storage for session mma instance.
