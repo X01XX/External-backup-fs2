@@ -50,9 +50,16 @@
     cr ." regioncorr-list-test-split-by-intersections2 - Ok"
 ;
 
-\ Get the complement of a regc, find intersections, and count
-\ the number of intersections of each freagment.
+\ Get the complement of a regc, 5, find intersections, and count
+\ the number of intersections of each fragment.
 \ A fragment intersection of gt 2 fragments may be useful.
+\
+\ In this case, any start->goal,
+\ where the start, and goal, are not equal, and not 5,
+\ can be within a fragment,
+\ or start->A, if goal is A,
+\ or A->goal, if the start is A,
+\ or start->A-> goal.
 : regioncorr-list-test-split-by-intersections3
     \ Init.
     s"  (( regc 0  0 (r0101))) (( regc 1  0 (rXXXX)))" string-to-stack-a
