@@ -56,10 +56,8 @@
 \
 \ In this case, any start->goal,
 \ where the start, and goal, are not equal, and not 5,
-\ can be within a complement region,
-\ or start->A, if the goal is A,
-\ or A->goal, if the start is A,
-\ or start->A-> goal.
+\ can be start->goal within a complement region,
+\ or start->A->goal.
 : regioncorr-list-test-split-by-intersections3
     \ Init.
     s"  (( regc 0  0 (r0101))) (( regc 1  0 (rXXXX)))" string-to-stack-a
