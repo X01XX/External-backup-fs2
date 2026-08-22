@@ -15,7 +15,7 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
 
 0 value regioncorr-mma \ Storage for region mma instance.
 
-\ Init region mma, return the addr of allocated memory.
+\ Init regioncorr mma, return an address of allocated memory.
 : regioncorr-mma-init ( num-items -- ) \ sets regioncorr-mma.
     dup 1 <
     abort" regioncorr-mma-init: Invalid number of items."
@@ -25,7 +25,7 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
 ;
 
 \ Check if tos is an allocated regioncorr.
-: is-regioncorr? ( xRtosaddr -- bool )
+: is-regioncorr? ( tos -- bool )
     dup regioncorr-mma mma-is-item? \ addr bool
     if
         struct-get-id
@@ -40,8 +40,8 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
 
 \ Start accessors.
 
-\ Return the list field from a region instance.
-: regioncorr-get-list ( regc0 -- lst )
+\ Return the list field from a regioncorr instance.
+: regioncorr-get-list ( regc0 -- regc-lst )
     \ Check arg.
     assert( tos is-regioncorr? )
 
@@ -51,8 +51,8 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
 
 ' regioncorr-get-list to regioncorr-get-list-xt
 
-\ Set the list field from a region instance, use only in this file.
-: _regioncorr-set-list ( lst1 regc0 -- )
+\ Set the list field from a regioncorr instance, use only in this file.
+: _regioncorr-set-list ( regc-lst1 regc0 -- )
     \ Check args.
     assert( tos is-regioncorr? )
     assert( nos is-region-list? )
@@ -81,22 +81,6 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
     4c!
 ;
 
-\ Add a value to a regioncorr's positive value.
-\ Skip if the addition results in an invalid value.
-: regioncorr-add-pos-value ( val regc0 -- )
-    assert( tos is-regioncorr? )
-    assert( nos 0 >= )
-    assert( nos #256 < )
-
-    dup regioncorr-get-pos-value    \ val regc0 pos
-    rot +                           \ regc0 new-pos
-
-    dup #256 < ifnot 2drop exit then
-    dup 0 >= ifnot 2drop exit then
-
-    swap _regioncorr-set-pos-value  \
-;
-
 \ Get the negative value.
 : regioncorr-get-neg-value ( regc0 -- val )
     \ Check args.
@@ -117,22 +101,6 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
     5c!
 ;
 
-\ Add a value to a regioncorr's negative value.
-\ Skip if the addition results in an invalid value.
-: regioncorr-add-neg-value ( val regc0 -- )
-    assert( tos is-regioncorr? )
-    assert( nos 0 <= )
-    assert( nos #-256 > )
-
-    dup regioncorr-get-neg-value    \ val regc0 neg
-    rot +                           \ regc0 new-neg
-
-    dup #-256 > ifnot 2drop exit then
-    dup 0 <= ifnot 2drop exit then
-
-    swap _regioncorr-set-neg-value  \
-;
-
 \ End accessors.
 
 \ Create a regioncorr from a region-list.
@@ -150,6 +118,38 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
 
     0 over _regioncorr-set-pos-value    \ regc
     0 over _regioncorr-set-neg-value    \ regc
+;
+
+\ Add a value to a regioncorr's positive value.
+\ Skip if the addition results in an invalid value.
+: regioncorr-add-pos-value ( val regc0 -- )
+    assert( tos is-regioncorr? )
+    assert( nos 0 >= )
+    assert( nos #256 < )
+
+    dup regioncorr-get-pos-value    \ val regc0 pos
+    rot +                           \ regc0 new-pos
+
+    dup #256 < ifnot 2drop exit then
+    dup 0 >= ifnot 2drop exit then
+
+    swap _regioncorr-set-pos-value  \
+;
+
+\ Add a value to a regioncorr's negative value.
+\ Skip if the addition results in an invalid value.
+: regioncorr-add-neg-value ( val regc0 -- )
+    assert( tos is-regioncorr? )
+    assert( nos 0 <= )
+    assert( nos #-256 > )
+
+    dup regioncorr-get-neg-value    \ val regc0 neg
+    rot +                           \ regc0 new-neg
+
+    dup #-256 > ifnot 2drop exit then
+    dup 0 <= ifnot 2drop exit then
+
+    swap _regioncorr-set-neg-value  \
 ;
 
 \ Return a copy of a regioncorr.

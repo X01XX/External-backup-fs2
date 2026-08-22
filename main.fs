@@ -44,6 +44,8 @@ include tokenlist.fs
 
 include regioncorr.fs
 include regioncorrlist.fs
+include regioncorrint.fs
+include regioncorrintlist.fs
 
 include structinfo.fs
 include structinfolist.fs
@@ -85,6 +87,8 @@ include sample_t.fs
 include regionlist_t.fs
 include regioncorr_t.fs
 include regioncorrlist_t.fs
+include regioncorrint_t.fs
+include regioncorrintlist_t.fs
 include square_t.fs
 include corner_t.fs
 \ include need_t.fs
@@ -112,7 +116,8 @@ include session_t.fs
 #110 corner-mma-init
 \ #110 need-mma-init
 #130 group-mma-init
-#100 regioncorr-mma-init
+#200 regioncorr-mma-init
+#100 regioncorrint-mma-init
 \ #010 frame-mma-init
 #010 domain-mma-init
 #005 session-mma-init
@@ -136,6 +141,7 @@ list-new to structinfo-list-store
 ' noop  ' noop  ' noop          ' noop                  ' action-deallocate     ' .action       s" Action"      action-mma      action-struct-id        structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' noop          ' corner-from-string    ' corner-deallocate     ' .corner       s" Corner"      corner-mma      corner-struct-id        structinfo-new structinfo-list-store-push-end
 ' regioncorr-from-list  ' regioncorr-list-definition?    ' noop  ' noop  ' regioncorr-deallocate ' .regioncorr   s" Regioncorr"  regioncorr-mma  regioncorr-struct-id    structinfo-new structinfo-list-store-push-end
+' noop  ' noop   ' noop  ' noop  ' regioncorrint-deallocate ' .regioncorrint   s" RegioncorrInt"  regioncorrint-mma  regioncorrint-struct-id    structinfo-new structinfo-list-store-push-end
 \ ' noop  ' noop  ' noop          ' noop                  ' need-deallocate       ' .need       s" Need"        need-mma        need-struct-id          structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' =             ' noop                  ' square-deallocate     ' .square       s" Square"      square-mma      square-struct-id        structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' =             ' noop                  ' group-deallocate      ' .group        s" Group"       group-mma       group-struct-id         structinfo-new structinfo-list-store-push-end
@@ -211,6 +217,8 @@ list-new to structinfo-list-store
     inc-pair-tests
     regioncorr-tests
     regioncorr-list-tests
+    regioncorrint-tests
+    regioncorrint-list-tests
     session-tests
     cr
 ;

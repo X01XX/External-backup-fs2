@@ -269,10 +269,41 @@
 : .regioncorr-list ( regc-lst0 -- )
     \ Check arg.
     assert( tos is-regioncorr-list? )
-
+    ." ("
     foreach                 \ regc-lnk regcx
-        cr #8 spaces .regioncorr
-    next
+        .regioncorr
+        link-get-next
+        dup 0> if space then
+    repeat
+    ." )"
+;
+
+: .regioncorr-list-prefix ( c-addr u regc-lst0 -- )
+    \ Check arg.
+    assert( tos is-regioncorr-list? )
+    cr
+    rot                 \ u regc-lst0 c-addr
+    #2 pick             \ u regc-lst0 c-addr u
+    type                \ u regc-lst0
+
+    dup list-is-empty?
+    if
+        ." None"
+        2drop
+        exit
+    then
+
+    foreach             \ u lnk grpx
+        .regioncorr
+
+        link-get-next
+        dup 0<> if
+            over cr spaces
+        then
+    repeat
+                        \ u
+    drop
+    cr
 ;
 
 : regioncorr-list-rate-regioncorr ( regc1 regc-lst0 -- )
@@ -462,4 +493,30 @@
     foreach             \ regc-lnk regc
         regioncorr-init-pos-value-to-1
     next
+;
+
+\ Return true if all items in a regioncorr list are a
+\ superset of a given regioncorr.
+: regioncorr-list-all-superset? ( regc1 regc-lst0 -- bool )
+    \ Check args.
+    assert( tos is-regioncorr-list? )
+    assert( nos is-regioncorr? )
+
+    list-get-links                  \ regc1 regc-lnk0
+    begin
+        ?dup
+    while
+        dup link-get-data           \ regc1 regc-lnk0 regcx
+        #2 pick                     \ regc1 regc-lnk0 regcx regc1
+        swap                        \ regc1 regc-lnk0 regc1 regcx
+        regioncorr-superset?        \ regc1 regc-lnk0 regc-lnk1 bool
+        ifnot
+            2drop drop
+            false
+            exit
+        then
+    next
+                                    \ regc1
+    drop
+    true
 ;

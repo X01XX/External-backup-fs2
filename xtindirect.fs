@@ -154,6 +154,12 @@
 
 ' xtabort value is-struct?-xt
 
+' xtabort value is-regioncorrint?-xt
+
+' xtabort value regioncorrint-get-list-xt
+
+' xtabort value .regioncorrint-xt
+
 
 
 
