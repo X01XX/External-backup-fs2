@@ -680,3 +680,53 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
     1 over _regioncorr-set-pos-value
     0 swap _regioncorr-set-neg-value
 ;
+
+\ Return a regioncorr with all regions with maximum X positions,
+\ with a positive 1 value.
+: regioncorr-max-x ( regc0 -- regc )
+    \ Check arg.
+    assert( tos is-regioncorr? )
+
+    \ Init max list.
+    list-new swap               \ max-lst regc0
+    regioncorr-get-list         \ max-lst regc-lst
+
+    foreach                     \ max-lst regc-lnk regcx
+        region-get-num-bits     \ max-lst regc-lnk nb
+        region-max-x            \ max-lst regc-lnk reg-max
+        #2 pick                 \ max-lst regc-lnk  reg-max max-lst
+        list-push-end-struct    \ max-lst regc-lnk
+    next
+                                \ max-lst
+    regioncorr-new              \ regc
+    1 over _regioncorr-set-pos-value
+;
+
+\ Return true if two regioncorrs are equal.
+: regionscorr-eq? ( regc1 regc0 -- flag )
+    \ Check args.
+    assert( tos is-regioncorr? )
+    assert( nos is-regioncorr? )
+
+    2dup = if 2drop true exit then
+
+    \ Prep for loop.
+    regioncorr-get-list list-get-links swap   \ lnk0 regc1
+    regioncorr-get-list list-get-links swap   \ lnk1 lnk0
+
+    begin
+        ?dup
+    while
+        \ Add one region pair distance.( regc 1  -4 (rx1x1 r0x111))
+        over link-get-data      \ lnk1 lnk0 reg1
+        over link-get-data      \ lnk1 lnk0 reg1 reg0
+        regions-eq?             \ lnk1 lnk0 bool
+
+        \ Point to next pair.
+        swap link-get-next
+        swap link-get-next
+    repeat
+                                \ lnk1
+    drop
+    true
+;

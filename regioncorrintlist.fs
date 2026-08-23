@@ -38,27 +38,7 @@
     then
 ;
 
-: regioncorr-list-supersets-of ( regc1 regc-lst0 -- regc-lst )
-    \ Check args.
-    \ cr ." regioncorr-list-in: start: " .stack-gbl cr
-    assert( tos is-regioncorr-list? )
-    assert( nos is-regioncorr? )
-
-    \ Init return list.
-    list-new -rot                   \ ret-lst sta1 reg-lst0
-
-    foreach                         \ ret-lst sta1 reg-lnk0 regx
-        #2 pick swap                \ ret-lst sta1 reg-lnk0 sta1 regx
-        regioncorr-superset?        \ ret-lst sta1 reg-lnk0 bool
-        if
-            dup link-get-data       \ ret-lst sta1 reg-lnk0 regx
-            #3 pick                 \ ret-lst sta1 reg-lnk0 regx ret-lst
-            list-push-struct        \ ret-lst sta1 reg-lnk0
-        then
-    next
-                                    \ ret-lst sta1
-    drop
-;
+' regioncorrint-list-deallocate to regioncorrint-list-deallocate-xt
 
 \ Print a regioncorrint list.
 : .regioncorrint-list ( regci-lst0 -- )
@@ -72,6 +52,8 @@
     repeat
     ." )"
 ;
+
+' .regioncorrint-list to .regioncorrint-list-xt
 
 : .regioncorrint-list-prefix ( c-addr u regci-lst0 -- )
     \ Check arg.
@@ -100,3 +82,41 @@
     drop
     cr
 ;
+
+' .regioncorrint-list-prefix to .regioncorrint-list-prefix-xt
+
+\ Return true if a regioncorr int contains a regioncorr in its regioncorr list.
+: regioncorrint-contains-regioncorr? ( regc2 regci0 -- bool )
+    \ Check args.
+    assert( tos is-regioncorrint? )
+    assert( nos is-regioncorr? )
+
+    regioncorrint-get-list          \ regc2 regc-lst
+
+    [ ' = ] literal -rot            \ xt regc2 regc-lst
+    list-member?
+;
+
+\ Return a list or regioncorrints that contain a regioncorr.
+: regioncorrint-list-regioncorr-in ( regc2 regci-lst0 -- regci-lst )
+    \ Check args.
+    assert( tos is-regioncorrint-list? )
+    assert( nos is-regioncorr? )
+    \ Init return list.
+    list-new -rot                           \ ret-lst regc2 regci-lst0
+    foreach                                 \ ret-lst regc2 regci-lnk regcix
+        #2 pick over                        \ ret-lst regc2 regci-lnk regcix regc2 regcix
+        regioncorrint-contains-regioncorr?  \ ret-lst regc2 regci-lnk regcix bool
+        if
+            #3 pick                         \ ret-lst regc2 regci-lnk regcix ret-lst
+            list-push-struct                \ ret-lst regc2 regci-lnk
+        else
+            drop
+        then
+    next
+                                            \ ret-lst regc2
+    drop
+;
+
+' regioncorrint-list-regioncorr-in to regioncorrint-list-regioncorr-in-xt
+

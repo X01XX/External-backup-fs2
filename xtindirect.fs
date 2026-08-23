@@ -160,7 +160,18 @@
 
 ' xtabort value .regioncorrint-xt
 
+' xtabort value regioncorrint-new-xt
 
+' xtabort value .regioncorrint-list-prefix-xt
 
+' xtabort value regioncorrint-list-deallocate-xt
+
+' xtabort value regioncorrint-list-regioncorr-in-xt
+
+' xtabort value .regioncorrint-list-xt
+
+' xtabort value regioncorrints-share-regioncorr?-xt
+
+' xtabort value regioncorrints-shared-regioncorr-xt
 
 

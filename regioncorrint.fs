@@ -100,6 +100,8 @@ regioncorrint-intersection-disp cell+   constant regioncorrint-list-disp        
     tuck _regioncorrint-set-list           \ regci
 ;
 
+' regioncorrint-new to regioncorrint-new-xt
+
 \ Print a region-list corresponding to the session domain list.
 : .regioncorrint ( regci0 -- )
     \ Check arg.
@@ -138,4 +140,44 @@ regioncorrint-intersection-disp cell+   constant regioncorrint-list-disp        
         struct-dec-use-count
     then
 ;
+
+: regioncorrints-share-regioncorr? ( regci1 regci0 -- bool )
+    \ Check args.
+    assert( tos is-regioncorrint? )
+    assert( nos is-regioncorrint? )
+
+    \ Get regioncorr lists.
+    swap regioncorrint-get-list
+    swap regioncorrint-get-list         \ regc-lst1 regc-lst0
+
+    \ Get intersection of lists.
+    regioncorr-list-set-intersection    \ regc-int-list
+
+    \ Return.
+    dup list-is-empty?
+    if
+        list-deallocate
+        false
+    else
+        regioncorr-list-deallocate
+        true
+    then
+;
+
+' regioncorrints-share-regioncorr? to regioncorrints-share-regioncorr?-xt
+
+: regioncorrints-shared-regioncorr ( regci1 regci0 -- bool )
+    \ Check args.
+    assert( tos is-regioncorrint? )
+    assert( nos is-regioncorrint? )
+
+    \ Get regioncorr lists.
+    swap regioncorrint-get-list
+    swap regioncorrint-get-list         \ regc-lst1 regc-lst0
+
+    \ Get intersection of lists.
+    regioncorr-list-set-intersection    \ regc-int-list
+;
+
+' regioncorrints-shared-regioncorr to regioncorrints-shared-regioncorr-xt
 

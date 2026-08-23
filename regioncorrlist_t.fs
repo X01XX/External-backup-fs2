@@ -52,8 +52,43 @@
     cr ." regioncorr-list-test-split-by-intersections2 - Ok"
 ;
 
+\ Get the complement of a regc, 5, find intersections, and count
+\ the number of intersections of each fragment.
+\ A fragment intersection of gt 2 fragments may be useful.
+\
+\ In the complement 5 case, any start->goal,
+\ where the start, and goal, are not equal, and not 5,
+\ can be start->goal within a complement region,
+\ or start->A->goal.
+\
+\ Create a lst of regionints.
+: regioncorr-list-test-map-routes
+    \ Calc complement list.
+    s" (( regc 0  0 (r0101)) ( regc 0 0 (r1111)))" list-from-string-a
+
+    dup regioncorr-list-complement
+    cr s" Complements: " #2 pick .regioncorr-list-prefix
+
+    dup regioncorr-list-map-routes  \ avoid-lst comp-lst ?
+
+    \ Display.
+\    s" regcorrints: " #2 pick .regioncorrint-list-prefix
+
+    \ Test.
+
+    \ Deallocate.
+    regioncorr-list-deallocate
+    regioncorr-list-deallocate
+
+    \ Check for memory leaks.
+    check-project-deallocated
+
+    cr ." regioncorr-list-test-map-routes - Ok"
+;
+
 : regioncorr-list-tests
     regioncorr-list-test-split-by-intersections
     regioncorr-list-test-split-by-intersections2
+    regioncorr-list-test-map-routes
     cr
 ;
