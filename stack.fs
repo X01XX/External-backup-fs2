@@ -165,7 +165,7 @@ stack-header-disp   cell+   constant stack-items-disp   \ Item on the stack.
     @                           \ n
 ;
 
-\ .stack-stats. Run like: "<stack-name> .stack-stats"
+\ Run like: "<stack-addr> .struct-stack-stats"
 : .stack-stats ( stack-addr -- )
     ." <"
     dup                     \ stack-addr stack-addr
@@ -178,8 +178,8 @@ stack-header-disp   cell+   constant stack-items-disp   \ Item on the stack.
    #32 emit                 \ (emit space)
 ;
 
-\ .stack. Run like: "<stack-name> .stack"
-: .stack ( stack-addr -- )
+\ Run like: "<stack-addr> .struct-stack"
+: .struct-stack ( stack-addr -- )
    dup .stack-stats         \ stack-addr
    dup stack-items-disp +   \ stack-addr stack-items
    swap                     \ stack-items stack-addr

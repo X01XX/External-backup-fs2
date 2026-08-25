@@ -183,7 +183,7 @@
 : square-list-find-adj-incompatible-pairs ( sqr-lst0 -- reg-lst t | f )
     \ Check arg.
     assert( tos is-square-list? )
-\    cr ." square-list-find-adj-incompatible-pairs: start: " .stack-gbl cr
+\    cr ." square-list-find-adj-incompatible-pairs: start: " .stack cr
 
     \ Check list length.
     dup list-get-length                     \ sqr-lst0 len
@@ -270,7 +270,7 @@
         true
     then
 
-    \ cr ." square-list-find-adj-incompatible-pairs: end: " .stack-gbl cr
+    \ cr ." square-list-find-adj-incompatible-pairs: end: " .stack cr
 ;
 
 \ Of the squares in a list with the highest pn ( order is 1, 2, 0),
@@ -279,7 +279,7 @@
 : square-list-find-nadj-incompatible-pairs ( sqr-lst0 -- reg-lst t | f )
     \ Check arg.
     assert( tos is-square-list? )
-\    cr ." square-list-find-nadj-incompatible-pairs: start: " .stack-gbl cr
+\    cr ." square-list-find-nadj-incompatible-pairs: start: " .stack cr
 
     \ Check list length.
     dup list-get-length                         \ sqr-lst0 len
@@ -373,7 +373,7 @@
         true
     then
 
-    \ cr ." square-list-find-nadj-incompatible-pairs: end: " .stack-gbl cr
+    \ cr ." square-list-find-nadj-incompatible-pairs: end: " .stack cr
 ;
 
 \ Find a square in a list, by state, if any.
@@ -465,7 +465,7 @@
 : square-list-all-compatible? ( sqr-lst0 -- bool )
     \ Check arg.
     assert( tos is-square-list? )
-    \ cr ." square-list-any-incompatible-pair?: start: " .stack-gbl cr
+    \ cr ." square-list-any-incompatible-pair?: start: " .stack cr
 
     \ Check list length.
     dup list-get-length                 \ s/qr-lst0 len
@@ -528,7 +528,7 @@
 : square-list-calc-rules ( sqr-lst0 -- rul-lst t | f )
     \ Check arg.
     assert( tos is-square-list? )
-    \ cr ." square-list-get-rules: start: " .stack-gbl cr
+    \ cr ." square-list-get-rules: start: " .stack cr
     \ cr dup .square-list cr
 
     \ Check for empty list.
@@ -536,7 +536,7 @@
     if
         drop
         false
-        cr ." square-list-calc-rules: exit 1: " .stack-gbl cr
+        cr ." square-list-calc-rules: exit 1: " .stack cr
         exit
     then
 
@@ -556,7 +556,7 @@
         2drop                           \
         list-new                        \ rul-lst
         true
-        cr ." square-list-calc-rules: exit 2: " .stack-gbl cr
+        cr ." square-list-calc-rules: exit 2: " .stack cr
         exit
     then
 
@@ -585,9 +585,9 @@
             over link-get-data          \ max-pn link rul-lst sqr
             square-get-rules            \ max-pn link rul-lst sqr-ruls
             over                        \ max-pn link rul-lst sqr-ruls rul-lst
-            \ cr ." about to union: " over .rule-list space dup .rule-list space .stack-gbl cr
+            \ cr ." about to union: " over .rule-list space dup .rule-list space .stack cr
             rule-list-union             \ max-pn link rul-lst, new-rules t | f
-            \ cr ." after to union: " .stack-gbl cr
+            \ cr ." after to union: " .stack cr
             if                          \ max-pn link rul-lst new-rules
                 swap                    \ max-pn link new-rules rul-lst
                 rule-list-deallocate    \ max-pn link new-rules
@@ -596,7 +596,7 @@
                 rule-list-deallocate    \ max-pn link
                 2drop
                 false
-                \ cr ." square-list-calc-rules: exit 3: " .stack-gbl cr
+                \ cr ." square-list-calc-rules: exit 3: " .stack cr
                 exit
             then
         then
@@ -604,7 +604,7 @@
                                         \ rul-lst max-pn
     drop                                \ rul-lst
     true
-    \ cr ." square-list-calc-rules: exit 4: " .stack-gbl cr
+    \ cr ." square-list-calc-rules: exit 4: " .stack cr
 ;
 
 \ Return squares in a given region.

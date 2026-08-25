@@ -191,7 +191,7 @@
     depth 0<>
     if
         cr ." Forth stack is not empty"
-        cr .stack-gbl cr
+        cr .stack cr
         abort
     then
 ;
@@ -687,6 +687,7 @@
     \ Check args.
     assert( tos is-structinfo-list? )
     assert( nos is-list? )
+    \ cr ." structinfo-list-list-to-struct: start: " .stack cr
 
     foreach                                         \ lst1 snf-lnk snfx
         dup structinfo-get-valid-list?-xt           \ lst1 snf-lnk snfx is-valid?-xt
@@ -704,19 +705,21 @@
                 if
                     nip nip nip                     \ strct
                     true
+                    \ cr ." structinfo-list-list-to-struct: end 1: " .stack cr
                     exit
                 else
                     cr ." from list failed?: " #2 pick .struct-list cr
                     drop                            \ lst1 snf-lnk
                 then
             else
-                drop                                \ lst1 snf-lnk
+                drop                                 \ lst1 snf-lnk
             then
         then
     next
                     \ lst1
     drop
     false
+    \ cr ." structinfo-list-list-to-struct: end 2: " .stack cr
 ;
 
 \ Given a list that has a token as its first item,

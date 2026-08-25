@@ -174,4 +174,7 @@
 
 ' xtabort value regioncorrints-shared-regioncorr-xt
 
+' xtabort value regioncorrint-get-length-xt
+
+' xtabort value is-token?-xt
 

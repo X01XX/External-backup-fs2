@@ -120,3 +120,54 @@
 
 ' regioncorrint-list-regioncorr-in to regioncorrint-list-regioncorr-in-xt
 
+\ Return true if any regioncorrint in a list shares a regioncorr
+\ with a givet regiotcorrint.
+: regioncorrint-list-share-regioncorr-with? ( regci1 regci-lst0 -- bool )
+    \ Check args.
+    assert( tos is-regioncorrint-list? )
+    assert( nos is-regioncorrint? )
+
+    foreach                                 \ regci1 regci-lnk0 regci0
+        #2 pick                             \ regci1 regci-lnk0 regci0 regci1
+        regioncorrints-share-regioncorr?    \ regci1 regci-lnk0 bool
+        if
+            2drop
+            true
+            exit
+        then
+    next
+    drop
+    false
+;
+
+\ Return a regioncorrint from the nos list, that is not in the
+\ tos list, is not aregioncorr subset of the list,
+\ and shares a regioncorr with a member of the tos list.
+: regioncorrint-list-additional-item ( regci-lst1 regci-lst0 -- regci t | f )
+    \ Check args.
+    assert( tos is-regioncorrint-list? )
+    assert( nos is-regioncorrint-list? )
+
+    swap                                                \ regci-lst0 regci-lst1
+    foreach                                             \ regci-lst0 regci-lnk1 regci1
+        \ Check if list regioncorrint is not already in the list.
+        [ ' = ] literal swap                            \ regci-lst0 regci-lnk1 xt regci1
+        #3 pick                                         \ regci-lst0 regci-lnk1 xt regci1 regci-lst0
+        list-member?                                    \ regci-lst0 regci-lnk1 bool
+        ifnot
+            \ Check if list regioncorrint shares a regioncorr with any item in regci-lst0.
+            dup link-get-data                           \ regci-lst0 regci-lnk1 regci1
+            #2 pick                                     \ regci-lst0 regci-lnk1 regci1 regci-lst0
+            regioncorrint-list-share-regioncorr-with?   \ regci-lst0 regci-lnk1 bool
+            if
+                nip                                     \ regci-lnk1
+                link-get-data                           \ regci
+                true
+                exit
+            then
+        then
+    next
+                                                        \ regci-lst0
+    drop
+    false
+;

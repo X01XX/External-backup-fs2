@@ -22,7 +22,7 @@
 \ Deallocate a regioncorr list.
 : regioncorr-list-deallocate ( regc-lst0 -- )
     \ Check arg.
-    assert( tos is-regioncorr-list? if true else cr ." tos not regioncorr-list? " .stack-gbl cr false then )
+    assert( tos is-regioncorr-list? if true else cr ." tos not regioncorr-list? " .stack cr false then )
 
     \ Check if the list will be deallocated for the last time.
     dup struct-get-use-count                        \ regc-lst0 uc
@@ -424,7 +424,7 @@
     \ Check args.
     assert( tos is-regioncorr-list? )
     assert( nos is-regioncorr-list? )
-    \ cr ." regioncorr-lists-eq?: start: " .stack-gbl cr
+    \ cr ." regioncorr-lists-eq?: start: " .stack cr
 
     \ Check list lengths.
     over list-get-length
@@ -520,9 +520,19 @@
     list-intersection-struct            \ list-result
 ;
 
+\ Return the set union of two regioncorr lists.
+: regioncorr-list-set-union ( regc-lst1 regc-lst0 -- regc-lst )
+    \ Check args.
+    assert( tos is-regioncorr-list? )
+    assert( nos is-regioncorr-list? )
+
+    [ ' = ] literal -rot                \ xt list1 list0
+    list-union-struct                   \ list-result
+;
+
 : regioncorr-list-supersets-of ( regc1 regc-lst0 -- regc-lst )
     \ Check args.
-    \ cr ." regioncorr-list-in: start: " .stack-gbl cr
+    \ cr ." regioncorr-list-in: start: " .stack cr
     assert( tos is-regioncorr-list? )
     assert( nos is-regioncorr? )
 
@@ -572,8 +582,12 @@
         dup list-get-length                     \ regc-comp-lst1 regc-int-lst regci-lst regc-int-lnk regc-intx sups-lst len
         1 >
         if
-            swap regioncorrint-new-xt execute   \ regc-comp-lst1 regc-int-lst regci-lst regc-int-lnk regci
-            \ cr ." regioncorrint: " dup .regioncorrint cr
+            swap regioncorrint-new-xt execute   \ regc-comp-lst1 regc-int-lst regci-lst regc-int-lnk, regci t | f
+            ifnot
+                cr ." regioncorrint-new failed?"
+                abort
+            then
+            \ cr ." regioncorrint-list-map-routes: " dup .regioncorrint cr
             #2 pick list-push-end-struct
         else
             regioncorr-list-deallocate
@@ -603,12 +617,31 @@
                 list-deallocate
             else
                 #2 pick link-get-data               \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst' regci1
-                #2 pick link-get-data               \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst' regci1 regci2
-                cr ." regc: " .regioncorrint-xt execute
-                cr ." and   " .regioncorrint-xt execute
-                cr ." at:   " dup .regioncorr-list    \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst'
-                cr
-                regioncorr-list-deallocate          \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2
+                regioncorrint-get-length-xt execute \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst' len1
+                #2 pick link-get-data               \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst' len1 regci2
+                regioncorrint-get-length-xt execute \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst' len1 len2
+                min                                 \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst' min
+                over list-get-length                \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst' min len
+                =
+                if
+                    \ Skip if all regioncorrs of one regioncorrint intersect.
+                    regioncorr-list-deallocate      \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2
+                else
+                    #2 pick link-get-data               \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst' regci1
+                    #2 pick link-get-data               \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst' regci1 regci2
+                    cr ." regc: " .regioncorrint-xt execute
+                    cr ." and   " .regioncorrint-xt execute
+                    cr ." at:   " dup .regioncorr-list  \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst'
+                    #2 pick link-get-data               \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst' regc1
+                    regioncorrint-get-list-xt execute   \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst' lst1
+                    #2 pick link-get-data               \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst' lst1 regc2
+                    regioncorrint-get-list-xt execute   \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst' lst1 lst2
+                    regioncorr-list-set-union           \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst' regc-lst2'
+                    cr ." agg:  " dup .regioncorr-list space dup list-get-length dec.
+                    cr
+                    regioncorr-list-deallocate          \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst'
+                    regioncorr-list-deallocate          \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2
+                then
             then
         next
     next

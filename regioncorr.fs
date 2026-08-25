@@ -497,8 +497,8 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
     \ cr ." regioncorr-from-list: end: " .stack-gbl cr
 ;
 \ Return a regioncorr from a string.
-\ Like (1 -2 (rxxxx r1010))
-\ Like (0 0 (rxxxx r1010))
+\ Like ( regc 1 -2 (rxxxx r1010))
+\ Like ( regc 0 0 (rxxxx r1010))
 : regioncorr-from-string ( str-addr str-n -- regc t | f )
     \ cr ." regioncorr-from-string: start: " 2dup type cr
 
@@ -510,12 +510,13 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
     then
 
     dup regioncorr-from-list                \ lst, regc t | f
-    ifnot
-        struct-list-deallocate
-    else
+    if
         swap
         struct-list-deallocate
         true
+    else
+        struct-list-deallocate
+        false
     then
 ;
 

@@ -147,10 +147,14 @@
 
 \ Go through a list, adding elements to the return list,
 \ converting selected lists to complex structs.
-\ Note: A single list, describing a complex struct, coul`   d return a struct instead of a list.
+\ Complex struts will be defined by a list that starts with a unique token, like "regc".
+\ If a complex struct contains other complex structs, the lowest level complex structs
+\ will be converted with each pass through list-from-string2.
+\ Note: A single list, describing a complex struct, could return a struct instead of a list.
 : list-from-string2 ( lst0 -- lst t | f )
     \ Check arg.
     assert( tos is-list? )
+    \ cr ." list-from-string2: start: " .stack cr
 
     \ Check if the list is a struct definition.
     dup list-get-first-item                     \ lst0 first
@@ -158,7 +162,9 @@
     if
         dup structinfo-list-store-list-to-struct-xt execute   \ lst0, strct t | f
         if
-            nip true exit
+            nip true
+            \ cr ." list-from-string2: exit 1: " .stack cr
+            exit
         then
     then
 
@@ -184,16 +190,15 @@
                     list-push-end-struct        \ ret-lst lnk
                 then
             else
-
                 recurse                         \ ret-lst lnk, ret t | f
                 if
-
                     #2 pick                     \ ret-lst lnk ret ret-lst
                     list-push-end-struct        \ ret-lst lnk
                 else
                     drop
                     struct-list-deallocate
                     false
+                    \ cr ." list-from-string2: exit 2: " .stack cr
                     exit
                 then
             then
@@ -209,13 +214,16 @@
         then
     next
     true
+    \ cr ." list-from-string2: end: " .stack cr
 ;
 
 \ Produce a, possibly complex, list from a string.
 : list-from-string ( c-addr u -- lst t | f )
+    \ cr ." list-from-string: start: " .stack cr
     token-list-from-string                          \ tkn-lst t | f
     ifnot
         false
+        \ cr ." list-from-string: exit 1: " .stack cr
         exit
     then
 
@@ -224,27 +232,62 @@
     ifnot
         token-list-deallocate                       \
         false
+        \ cr ." list-from-string: exit 2: " .stack cr
         exit
     then
 
     swap token-list-deallocate                      \ lst
 
-    \ cr ." list 1: " dup .struct-list cr
-    dup list-from-string2                           \ lst, lst2 t | f
+    dup is-list?
     if
-        dup is-list?
-        ifnot
-            list-new tuck list-push-struct
+        dup list-number-tokens                      \ lst u
+        \ cr ." num tokens: " dup dec. cr
+
+        dup 0<>
+        if
+            0 swap                                  \ lst 0 u
+            rot                                     \ previous current lst
+            begin
+                #2 pick #2 pick <>                  \ p c lst bool
+            while
+                dup list-from-string2               \ p c lst, lst2 t | f
+                if
+                    swap struct-list-deallocate     \ p c lst2
+                    -rot                            \ lst2 p c
+                    nip                             \ lst2 c
+                    over                            \ lst2 c lst2
+                    is-list?                        \ lst2 c bool
+                    if
+                        over                        \ lst2 p lst2
+                        list-number-tokens          \ lst2 p c
+                        \ cr ." num tokens: " dup dec. cr
+                        rot                         \ p c lst
+                    else
+                        dup                         \ lst2 p p
+                        rot                         \ p p lst2
+                    then
+                else
+                    struct-list-deallocate
+                    2drop
+                    false
+                    exit
+                then
+            repeat
+                                                    \ p c lst
+            nip nip                                 \ lst
+        else
+            drop                                    \ lst
         then
-
-        swap struct-list-deallocate
-
-        true
-     else
-        struct-list-deallocate
-        false
     then
-\    true
+
+    \ Check for list of item without outer parens.
+    dup is-list?
+    ifnot
+        list-new tuck list-push-struct
+    then
+
+    true
+    \ cr ." list-from-string: end: " .stack cr
 ;
 
 ' list-from-string to list-from-string-xt

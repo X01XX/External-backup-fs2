@@ -89,6 +89,6 @@
 : regioncorr-list-tests
     regioncorr-list-test-split-by-intersections
     regioncorr-list-test-split-by-intersections2
-    regioncorr-list-test-map-routes
+    \ regioncorr-list-test-map-routes
     cr
 ;

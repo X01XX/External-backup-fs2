@@ -355,7 +355,7 @@ action-groups-disp                          cell+   constant action-function-dis
 \ Set the corner-cluster-list of an action instance, use only in this file.
 : _action-set-corner-clusters ( crn-lol1 act0 -- )
     \ Check args.
-    \ cr ." _action-set-corner-clusters: start: " .stack-gbl cr
+    \ cr ." _action-set-corner-clusters: start: " .stack cr
     assert( tos is-action? )
     assert( nos is-corner-lol? )
 
@@ -477,7 +477,7 @@ action-groups-disp                          cell+   constant action-function-dis
 \ Return a new action, given a functian to run to get a sample,
 \ and the number of bits being used.
 : action-new ( xt3 max-region2 inst-id1 dom-id0 -- addr)
-    \ cr ." action-new: start: " .stack-gbl cr
+    \ cr ." action-new: start: " .stack cr
     assert( tos is-valid-inst-id? )
     assert( nos is-valid-inst-id? )
     assert( 3os is-region? )
@@ -579,7 +579,7 @@ action-groups-disp                          cell+   constant action-function-dis
 
 \ Print a action.
 : .action ( act0 -- )
-    \ cr ." .action: start: " .stack-gbl cr
+    \ cr ." .action: start: " .stack cr
     \ Check arg.
     assert( tos is-action? )
 
@@ -711,7 +711,7 @@ action-groups-disp                          cell+   constant action-function-dis
 : _action-delete-orphaned-groups ( act0 -- )
     \ Check arg.
     assert( tos is-action? )
-    \ cr ." _action-delete-orphaned-groups: start: " .stack-gbl cr
+    \ cr ." _action-delete-orphaned-groups: start: " .stack cr
 
     \ Init group list to delete.
     list-new                            \ act0 del-grps
@@ -732,7 +732,7 @@ action-groups-disp                          cell+   constant action-function-dis
         then
     next
 
-    \ cr ." _action-delete-orphaned-groups: middle: " .stack-gbl cr
+    \ cr ." _action-delete-orphaned-groups: middle: " .stack cr
     \ Remove the groups from the action group list.
                                         \ act0 del-grps pos-regs
     drop                                \ act0 del-grps
@@ -748,7 +748,7 @@ action-groups-disp                          cell+   constant action-function-dis
     drop                                \ act0 del-grps
     group-list-deallocate               \ act0      The groups are deallocated here.
     drop
-    \ cr ." _action-delete-orphaned-groups: end: " .stack-gbl cr
+    \ cr ." _action-delete-orphaned-groups: end: " .stack cr
 ;
 
 \ Get both action, and domain, instance ids.
@@ -926,7 +926,7 @@ action-groups-disp                          cell+   constant action-function-dis
     \ Check args.
     assert( tos is-action? )
     assert( nos is-corner? )
-    \ cr ." action-calc-corner-rate: start: " .stack-gbl cr
+    \ cr ." action-calc-corner-rate: start: " .stack cr
 
     action-get-possible-regions         \ crn1 pos-lst
     swap                                \ pos-lst crn1
@@ -1015,8 +1015,8 @@ action-groups-disp                          cell+   constant action-function-dis
 \ They both require the corner anchor state to be in only one possible region.
 : action-corner-possible? ( crn1 act0 -- bool )
     \ Check args.
-    assert( tos is-action? dup ifnot cr ." Invalid tos action: " .stack-gbl cr then )
-    assert( nos is-corner? dup ifnot cr ." Invalid nos corner: " .stack-gbl cr then )
+    assert( tos is-action? dup ifnot cr ." Invalid tos action: " .stack cr then )
+    assert( nos is-corner? dup ifnot cr ." Invalid nos corner: " .stack cr then )
 
     \ Check corner is in exactly one possible group.
     over corner-get-anchor-state        \ crn1 act0 sta1
@@ -1097,7 +1097,7 @@ action-groups-disp                          cell+   constant action-function-dis
     assert( tos is-action? )
     assert( nos is-corner-list? )
     over list-is-empty? if 2drop false exit then
-    \ cr ." action-calc-corner-cluster: start: " .stack-gbl cr
+    \ cr ." action-calc-corner-cluster: start: " .stack cr
 
     \ Get highest corner rate.
     [ ' corner-get-rate ] literal       \ crn-lst1 act0 xt
@@ -1124,7 +1124,7 @@ action-groups-disp                          cell+   constant action-function-dis
         false
     then
 
-    \ cr ." action-calc-corner-cluster: end: " .stack-gbl cr
+    \ cr ." action-calc-corner-cluster: end: " .stack cr
 ;
 
 \ Calc corner clusters.
@@ -1137,7 +1137,7 @@ action-groups-disp                          cell+   constant action-function-dis
 : action-calc-corner-clusters ( act0 -- crn-lol )
     \ Check arg.
     assert( tos is-action? )
-    \ cr ." action-calc-corner-clusters: start: " .stack-gbl cr
+    \ cr ." action-calc-corner-clusters: start: " .stack cr
 
     \ Init cluster list.
     list-new                                    \ act0 cstr-lst'
@@ -1195,7 +1195,7 @@ action-groups-disp                          cell+   constant action-function-dis
     swap                                \ cstr-lst' act0
     _action-update-corner-clusters
 
-    \ cr ." action-calc-corner-clusters: end: " .stack-gbl cr
+    \ cr ." action-calc-corner-clusters: end: " .stack cr
 ;
 
 \ Calc corners, from action-defining-regions and
@@ -1212,7 +1212,7 @@ action-groups-disp                          cell+   constant action-function-dis
 : action-calc-corners ( act0 -- )
     \ Check arg.
     assert( tos is-action? )
-    \ cr ." action-calc-corners: start: " .stack-gbl cr
+    \ cr ." action-calc-corners: start: " .stack cr
 
     \ Init corner cluster list.
     list-new over _action-update-corner-clusters
@@ -1286,7 +1286,7 @@ action-groups-disp                          cell+   constant action-function-dis
 : action-recalc-possible-regions ( act0 -- )
     \ Check arg.
     assert( tos is-action? )
-\    cr ." action-recalc-possible-regions: start: " .stack-gbl cr
+\    cr ." action-recalc-possible-regions: start: " .stack cr
 
     dup action-get-adj-regions              \ act0 adj-regs
     over action-get-nadj-regions            \ act0 adj-regs nadj-regs
@@ -1299,7 +1299,7 @@ action-groups-disp                          cell+   constant action-function-dis
     dup _action-add-possible-groups
 
     _action-evaluate-possible-regions
-\    cr ." action-recalc-possible-regions: end: " .stack-gbl cr
+\    cr ." action-recalc-possible-regions: end: " .stack cr
 ;
 
 \ Recalc possible regions, from adjacent, incmpatible pairs.
@@ -1452,7 +1452,7 @@ action-groups-disp                          cell+   constant action-function-dis
 \ Add an incompatible pair, updating incompatible pair list and possible regions list.
 \ Return true if something changed.
 : _action-add-incompatible-pair ( reg1 act0 -- bool )
-    \ cr ." _action-add-incompatible-pair: start: " .stack-gbl cr
+    \ cr ." _action-add-incompatible-pair: start: " .stack cr
     \ Check args.
     assert( tos is-action? )
     assert( nos is-region? )
@@ -1465,13 +1465,13 @@ action-groups-disp                          cell+   constant action-function-dis
     else
         swap _action-nadj-add-pair      \ bool
     then
-    \ cr ." _action-add-incompatible-pair: end: " .stack-gbl cr
+    \ cr ." _action-add-incompatible-pair: end: " .stack cr
 ;
 
 \ Check the effect on incompatible pairs of a changed square.
 \ Return a list of pairs to delete.
 : action-check-pair-list-for-changed-square ( sqr2 pr-lst1 act0 -- del-lst t | f )
-    \ cr ." action-check-incompatible-pairs-for-changed-square: start: " .stack-gbl cr
+    \ cr ." action-check-incompatible-pairs-for-changed-square: start: " .stack cr
     \ Check args.
     assert( tos is-action? )
     assert( nos is-region-list? )
@@ -1482,7 +1482,7 @@ action-groups-disp                          cell+   constant action-function-dis
         \ This change should not affect incompatible pairs.
         2drop drop
         false
-        \ cr ." action-check-pair-list-for-changed-square: exit 1: " .stack-gbl cr
+        \ cr ." action-check-pair-list-for-changed-square: exit 1: " .stack cr
         exit
     then
 
@@ -1540,7 +1540,7 @@ action-groups-disp                          cell+   constant action-function-dis
                                         \ sqr2 act0 del-lst sta2
     drop                                \ sqr2 act0 del-lst
 
-    \ cr ." action-check-pair-list-for-changed-square: process del list: " .stack-gbl cr
+    \ cr ." action-check-pair-list-for-changed-square: process del list: " .stack cr
 
     \ Process del list.
     dup list-is-empty?                  \ sqr2 act0 del-lst bool
@@ -1548,14 +1548,14 @@ action-groups-disp                          cell+   constant action-function-dis
         list-deallocate
         2drop
         false
-        \ cr ." action-check-incompatible-pairs-for-changed-square: exit 2: " .stack-gbl cr
+        \ cr ." action-check-incompatible-pairs-for-changed-square: exit 2: " .stack cr
         exit
     then
 
     nip nip
     true
 
-    \ cr ." action-check-pair-list-for-changed-square: end: " .stack-gbl cr
+    \ cr ." action-check-pair-list-for-changed-square: end: " .stack cr
 ;
 
 \ Check if a changed square affects adjacent, incompatible, pairs.
@@ -1852,7 +1852,7 @@ action-groups-disp                          cell+   constant action-function-dis
 
 \ Check an existing square, changed by a new result.
 : action-check-changed-square ( sqr1 act0 -- )
-    \ cr ." action-check-changed-square: start: " .stack-gbl cr
+    \ cr ." action-check-changed-square: start: " .stack cr
     \ Check args.
     assert( tos is-action? )
     assert( nos is-square? )
@@ -1881,7 +1881,7 @@ action-groups-disp                          cell+   constant action-function-dis
     else
         2drop
     then
-    \ cr ." action-check-changed-square: end: " .stack-gbl cr
+    \ cr ." action-check-changed-square: end: " .stack cr
 ;
 
 \ Add anew square to a list of groups the square is known to be in.
@@ -1909,7 +1909,7 @@ action-groups-disp                          cell+   constant action-function-dis
 
 \ Check a new square.
 : action-check-new-square ( sqr1 act0 -- )
-    \ cr ." action-check-new-square: start: " .stack-gbl cr
+    \ cr ." action-check-new-square: start: " .stack cr
     \ Check args.
     assert( tos is-action? )
     assert( nos is-square? )
@@ -1924,7 +1924,7 @@ action-groups-disp                          cell+   constant action-function-dis
 
     action-udpate-groups-with-new-square            \
 
-    \ cr ." action-check-new-square: end: " .stack-gbl cr
+    \ cr ." action-check-new-square: end: " .stack cr
 ;
 
 \ Add a new square to the action square list.
@@ -1932,7 +1932,7 @@ action-groups-disp                          cell+   constant action-function-dis
     \ Check args.
     assert( tos is-action? )
     assert( nos is-square? )
-    \ cr ." action-add-new-square: start: " .stack-gbl cr
+    \ cr ." action-add-new-square: start: " .stack cr
 
     over square-get-state       \ sqr1 act0 sta
     over action-find-square     \ sqr1 act0, sqr t | f
@@ -1945,7 +1945,7 @@ action-groups-disp                          cell+   constant action-function-dis
     list-push-struct            \ sqr1 act0
 
     action-check-new-square
-    \ cr ." action-add-new-square: end: " .stack-gbl cr
+    \ cr ." action-add-new-square: end: " .stack cr
 ;
 
 \ Add a sample, return true if the sample changed
@@ -1955,7 +1955,7 @@ action-groups-disp                          cell+   constant action-function-dis
     assert( tos is-action? )
     assert( nos is-sample? )
     \ cr ." Action: add sample: " over .sample cr
-    \ cr ." action-add-sample: start: " .stack-gbl cr
+    \ cr ." action-add-sample: start: " .stack cr
 
     over sample-get-initial     \ smpl1 act0 initial
     over action-find-square     \ smpl1 act0, sqr t | f
@@ -1981,7 +1981,7 @@ action-groups-disp                          cell+   constant action-function-dis
         2drop
         true
     then
-    \ cr ." action-add-sample: end: " .stack-gbl cr
+    \ cr ." action-add-sample: end: " .stack cr
 ;
 
 \ Return action needs.

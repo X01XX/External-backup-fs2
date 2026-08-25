@@ -32,6 +32,8 @@ token-header-disp cell+ constant token-string-disp
     then
 ;
 
+' is-token? to is-token?-xt
+
 \ Start accessors.
 
 \ Get token data cell.

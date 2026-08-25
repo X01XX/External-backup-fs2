@@ -278,3 +278,28 @@
                                 \ lst0
     drop
 ;
+
+\ Return the number of token instance in a list.
+: list-number-tokens ( lst0 -- u )
+    \ Check arg.
+    assert( tos is-list? )
+
+    \ init counter.
+    0 swap              \ cnt lst0
+
+    foreach             \ cnt lnk item
+        dup is-list?    \ cnt lnk item bool
+        if
+            recurse     \ cnt lnk u
+            rot +       \ lnk cnt+
+            swap
+        else
+            is-token?-xt    \ cnt lnk item xt
+            execute         \ cnt lnk bool
+            if
+                swap 1+ swap
+            then
+        then
+    next
+                        \ cnt
+;

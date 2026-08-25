@@ -83,11 +83,24 @@ regioncorrint-intersection-disp cell+   constant regioncorrint-list-disp        
 \ End accessors.
 
 \ Create a regioncorr from a region-list.
-: regioncorrint-new ( regc-lst0 regc -- regc )
+: regioncorrint-new ( regc-lst0 regc -- regc t | f )
     \ Check args.
     assert( tos is-regioncorr? )
     assert( nos is-regioncorr-list? )
-    assert( 2dup swap regioncorr-list-all-superset? )
+    \ cr ." regioncorrint-new: start: " .stack cr
+
+    over list-get-length #2 <
+    if
+        2drop
+        false
+        exit
+    then
+
+    2dup swap regioncorr-list-all-superset?
+    ifnot
+        2drop
+        false
+    then
 
     \ Allocate space.
     regioncorrint-struct-id regioncorrint-mma
@@ -98,6 +111,8 @@ regioncorrint-intersection-disp cell+   constant regioncorrint-list-disp        
 
     \ Store list.
     tuck _regioncorrint-set-list           \ regci
+    true
+    \ cr ." regioncorrint-new: end: " .stack cr
 ;
 
 ' regioncorrint-new to regioncorrint-new-xt
@@ -181,3 +196,143 @@ regioncorrint-intersection-disp cell+   constant regioncorrint-list-disp        
 
 ' regioncorrints-shared-regioncorr to regioncorrints-shared-regioncorr-xt
 
+\ Return the length of the regioncorr list.
+: regioncorrint-get-length ( regc0 -- len )
+    \ Check args.
+    assert( tos is-regioncorrint? )
+
+    regioncorrint-get-list      \ regc-lst
+    list-get-length             \ len
+;
+
+' regioncorrint-get-length to regioncorrint-get-length-xt
+
+\ Check if a list could be a regioncorrint definintion.
+: regioncorrint-list-definition? ( lst -- bool )
+    \ Check arg.
+    assert( tos is-list? )
+    \ cr ." regioncorrint-valid-definition?: start: " .stack cr
+
+    \ Check list length.
+    dup list-get-length #3 =
+    ifnot
+        drop false
+        \ cr ." regioncorrint-list-definition?: exit 1" cr
+        exit
+    then
+
+    \ Check hint token.
+    dup list-get-first-item             \ lst first
+    is-token?
+    ifnot
+        drop false
+        \ cr ." regioncorrint-list-definition?: exit 2" cr
+        exit
+    then
+
+    s" regci"                           \ lst c-addr u
+    #2 pick list-get-first-item         \ lst c-addr u first
+    token-eq-string                     \ lst bool
+    ifnot
+        drop false
+        \ cr ." regioncorrint-list-definition?: exit 3" cr
+        exit
+    then
+
+    \ Check regioncorr intersection.
+    dup list-get-second-item            \ lst second
+    is-regioncorr?                      \ lst bool
+    ifnot
+        drop false
+        \ cr ." regioncorrint-list-definition?: exit 4: " .stack cr
+        exit
+    then
+
+    dup list-get-third-item             \ lst third
+    is-regioncorr-list?                 \ lst bool
+    ifnot
+        drop false
+        \ cr ." regioncorrint-list-definition?: exit 5" cr
+        exit
+    then
+
+    dup list-get-third-item             \ lst third
+    list-get-length #2 <                 \ lst bool
+    if
+        drop false
+        \ cr ." regioncorrint-list-definition?: exit 7" cr
+        exit
+    then
+
+    drop
+    true
+    \ cr ." regioncorrint-list-definition?: end: " .stack cr
+;
+
+\ Return a regioncorr from a list.
+: regioncorrint-from-list ( lst -- regc t | f)
+    \ Check arg.
+    assert( tos is-list? )
+    \ cr ." regioncorrint-from-list: start: " .stack cr
+
+    \ cr dup .struct-list cr
+    dup regioncorrint-list-definition?     \ lst bool
+
+    ifnot
+        \ cr ." regioncorrint-from-list: exit 1" cr
+        drop false exit
+    then
+
+    dup list-get-third-item             \ lst regc-lst
+    swap list-get-second-item           \ regc-lst second
+
+    \ Allocate new regioncorrint.
+    regioncorrint-new                   \ regci t | f
+    if
+        true
+    else
+        false
+    then
+    \ cr ." regioncorrint-from-list: end: " .stack cr
+;
+
+\ Return a regioncorrint from a string.
+\ Like ( regci ( regc 0 0 (r1000 r1010)) (( regc 0 0 (r1000 r1010)) ( regc 0 0 (r1000 r1010))))
+\ ( hint-string  intersection-regioncorr  regionrorr-list )
+: regioncorrint-from-string ( str-addr str-n -- regc t | f )
+    \ cr ." regioncorrint-from-string: start: " 2dup type cr
+
+    \ Convert string to list.
+    list-from-string-xt execute             \ lst t | f
+    ifnot
+        false
+        exit
+    then
+
+    dup list-get-length 1 <>
+    if
+        struct-list-deallocate
+        false
+        exit
+    then
+
+    dup list-get-first-item                 \ lst item
+    is-regioncorrint?                       \ lst bool
+    ifnot
+        struct-list-deallocate
+        false
+        exit
+    then
+
+    dup list-pop                            \ lst, item t | f
+    invert abort" pop failed?"
+    swap list-deallocate                    \ item
+
+    true
+;
+
+\ Return a regioncorritn from a string, or abort.
+: regioncorrint-from-string-a ( str-addr str-n -- regc )
+    regioncorr-from-string    \ regc t | f
+    false? abort" regioncorrint-from-string-a failed?"
+;
