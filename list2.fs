@@ -249,7 +249,7 @@
     dup is-list?
     if
         dup list-number-tokens                      \ lst u
-        cr ." num tokens1: " dup dec. cr
+        \ cr ." num tokens1: " dup dec. cr
 
         dup 0<>
         if
@@ -268,7 +268,7 @@
                     if
                         over                        \ lst2 p lst2
                         list-number-tokens          \ lst2 p c
-                        cr ." num tokens2: " dup dec. cr
+                        \ cr ." num tokens2: " dup dec. cr
                         rot                         \ p c lst
                     else
                         dup                         \ lst2 p p
