@@ -181,13 +181,21 @@
             if
                 structinfo-list-store-list-to-struct-xt execute  \ ret-lst lnk, strct t | f
                 if
-
                     #2 pick                     \ ret-lst lnk strct ret-lst
                     list-push-end-struct        \ ret-lst lnk
                 else
                     dup link-get-data           \ ret-lst lnk item
-                    #2 pick                     \ ret-lst lnk item ret-lst
-                    list-push-end-struct        \ ret-lst lnk
+                    recurse
+                    if
+                        #2 pick                 \ ret-lst lnk item ret-lst
+                        list-push-end-struct    \ ret-lst lnk
+                    else
+                        drop
+                        struct-list-deallocate
+                        false
+                        \ cr ." list-from-string2: exit 2: " .stack cr
+                        exit
+                    then
                 then
             else
                 recurse                         \ ret-lst lnk, ret t | f
@@ -198,7 +206,7 @@
                     drop
                     struct-list-deallocate
                     false
-                    \ cr ." list-from-string2: exit 2: " .stack cr
+                    \ cr ." list-from-string2: exit 3: " .stack cr
                     exit
                 then
             then
@@ -241,7 +249,7 @@
     dup is-list?
     if
         dup list-number-tokens                      \ lst u
-        \ cr ." num tokens: " dup dec. cr
+        cr ." num tokens1: " dup dec. cr
 
         dup 0<>
         if
@@ -260,7 +268,7 @@
                     if
                         over                        \ lst2 p lst2
                         list-number-tokens          \ lst2 p c
-                        \ cr ." num tokens: " dup dec. cr
+                        cr ." num tokens2: " dup dec. cr
                         rot                         \ p c lst
                     else
                         dup                         \ lst2 p p
