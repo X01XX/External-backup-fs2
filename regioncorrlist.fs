@@ -426,6 +426,14 @@
     assert( nos is-regioncorr-list? )
     \ cr ." regioncorr-lists-eq?: start: " .stack cr
 
+    \ Check addresses.
+    2dup =
+    if
+        2drop
+        true
+        exit
+    then
+
     \ Check list lengths.
     over list-get-length
     over list-get-length                    \ regc-lst1 regc-lst0 len1 len0
@@ -508,26 +516,6 @@
     tuck                                \ comp-lst' regc-lst0 comp-lst'
     regioncorr-list-subtract            \ comp-lst' ret-lst
     swap regioncorr-list-deallocate     \ ret-lst
-;
-
-\ Return the set intersection of two regioncorr lists.
-: regioncorr-list-set-intersection ( regc-lst1 regc-lst0 -- regc-lst )
-    \ Check args.
-    assert( tos is-regioncorr-list? )
-    assert( nos is-regioncorr-list? )
-
-    [ ' = ] literal -rot                \ xt list1 list0
-    list-intersection-struct            \ list-result
-;
-
-\ Return the set union of two regioncorr lists.
-: regioncorr-list-set-union ( regc-lst1 regc-lst0 -- regc-lst )
-    \ Check args.
-    assert( tos is-regioncorr-list? )
-    assert( nos is-regioncorr-list? )
-
-    [ ' = ] literal -rot                \ xt list1 list0
-    list-union-struct                   \ list-result
 ;
 
 : regioncorr-list-supersets-of ( regc1 regc-lst0 -- regc-lst )
@@ -636,7 +624,8 @@
                     regioncorrint-get-list-xt execute   \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst' lst1
                     #2 pick link-get-data               \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst' lst1 regc2
                     regioncorrint-get-list-xt execute   \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst' lst1 lst2
-                    regioncorr-list-set-union           \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst' regc-lst2'
+                    [ ' = ] literal -rot                \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 xt regc-lst' lst1 lst2
+                    list-union-struct                   \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst' regc-lst2'
                     cr ." agg:  " dup .regioncorr-list space dup list-get-length dec.
                     cr
                     regioncorr-list-deallocate          \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst'

@@ -166,7 +166,8 @@ regioncorrint-intersection-disp cell+   constant regioncorrint-list-disp        
     swap regioncorrint-get-list         \ regc-lst1 regc-lst0
 
     \ Get intersection of lists.
-    regioncorr-list-set-intersection    \ regc-int-list
+    [ ' = ] literal -rot                \ xt regc-lst1 regc-lst0
+    list-intersection-struct            \ regc-int-list
 
     \ Return.
     dup list-is-empty?
@@ -191,7 +192,8 @@ regioncorrint-intersection-disp cell+   constant regioncorrint-list-disp        
     swap regioncorrint-get-list         \ regc-lst1 regc-lst0
 
     \ Get intersection of lists.
-    regioncorr-list-set-intersection    \ regc-int-list
+    [ ' = ] literal -rot                \ xt regc-lst1 regc-lst0
+    list-intersection-struct            \ regc-int-list
 ;
 
 ' regioncorrints-shared-regioncorr to regioncorrints-shared-regioncorr-xt

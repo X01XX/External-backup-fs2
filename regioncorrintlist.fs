@@ -171,3 +171,26 @@
     drop
     false
 ;
+
+\ Return a list of regioncorrs, in each regioncorrint, no duplicates.
+: regioncorrint-list-regioncorr-list ( regci-lst0 -- regc-lst )
+    \ Check arg.
+    assert( tos is-regioncorrint-list? )
+
+    \ Init working/return list.
+    list-new swap                   \ wrk-lst' regci-lst0
+
+    foreach                         \ wrk-lst' regci-lnk0 regci
+        \ Get union of work list and current regci.
+        [ ' regioncorrs-eq? ] literal swap  \ wrk-lst' regci-lnk0 xt regci
+        regioncorrint-get-list      \ wrk-lst' regci-lnk0 xt regc-lst
+        #3 pick                     \ wrk-lst' regci-lnk0 xt regc-lst wrk-lst'
+        list-union-struct           \ wrk-lst' regci-lnk0 wrk-lst2'
+
+        \ Deallocate old list.
+        rot                         \ regci-lnk0 wrk-lst2' wrk-lst'
+        regioncorr-list-deallocate  \ regci-lnk0 wrk-lst2'
+        swap                        \ wrk-lst2' regci-lnk0
+    next
+                                    \ ret-lst
+;

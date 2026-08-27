@@ -1365,3 +1365,25 @@ list-header-disp    cell+   constant list-links-disp
 
     list-get-length swap list-get-length =
 ;
+
+\ Return true if every item in the nos argument is in the tos argument.
+\ xt will usually be [ ' = ] or [ ' <struct>s-eq? ]
+: list-superset? ( xt lst1 lst0 -- bool )
+    \ Check args.
+    assert( tos is-list? )
+    assert( nos is-list? )
+
+    swap                        \ xt lst0 lst1
+    foreach                     \ xt lst0 lnk1 regc1
+        #3 pick swap            \ xt lst0 lnk1 xt regc1
+        #3 pick                 \ xt lst0 lnk1 xt regc1 lst0
+        list-member?            \ xt lst0  lnk1 bool
+        ifnot
+            2drop drop
+            false
+            exit
+        then
+    next
+    2drop
+    true
+;

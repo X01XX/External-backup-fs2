@@ -246,46 +246,49 @@
 
     swap token-list-deallocate                      \ lst
 
-    dup is-list?
-    if
-        dup list-number-tokens                      \ lst u
-        \ cr ." num tokens1: " dup dec. cr
+    \ Since a complex struct instance definition may contain
+    \ complex struct instance definitions:
+    \
+    \ Run list-from-string2 until there are no more lists that convert to struct
+    \ instances. That is, the number of token structs in the input list does not
+    \ change in the output list.
+    dup list-number-tokens                      \ lst u
+    \ cr ." num tokens1: " dup dec. cr
 
-        dup 0<>
-        if
-            0 swap                                  \ lst 0 u
-            rot                                     \ previous current lst
-            begin
-                #2 pick #2 pick <>                  \ p c lst bool
-            while
-                dup list-from-string2               \ p c lst, lst2 t | f
+    dup 0<>
+    if
+        0 swap                                  \ lst 0 u
+        rot                                     \ previous current lst
+        begin
+            #2 pick #2 pick <>                  \ p c lst bool
+        while
+            dup list-from-string2               \ p c lst, lst2 t | f
+            if
+                swap struct-list-deallocate     \ p c lst2
+                -rot                            \ lst2 p c
+                nip                             \ lst2 c
+                over                            \ lst2 c lst2
+                is-list?                        \ lst2 c bool
                 if
-                    swap struct-list-deallocate     \ p c lst2
-                    -rot                            \ lst2 p c
-                    nip                             \ lst2 c
-                    over                            \ lst2 c lst2
-                    is-list?                        \ lst2 c bool
-                    if
-                        over                        \ lst2 p lst2
-                        list-number-tokens          \ lst2 p c
-                        \ cr ." num tokens2: " dup dec. cr
-                        rot                         \ p c lst
-                    else
-                        dup                         \ lst2 p p
-                        rot                         \ p p lst2
-                    then
+                    over                        \ lst2 p lst2
+                    list-number-tokens          \ lst2 p c
+                    \ cr ." num tokens2: " dup dec. cr
+                    rot                         \ p c lst
                 else
-                    struct-list-deallocate
-                    2drop
-                    false
-                    exit
+                    dup                         \ lst2 p p
+                    rot                         \ p p lst2
                 then
-            repeat
-                                                    \ p c lst
-            nip nip                                 \ lst
-        else
-            drop                                    \ lst
-        then
+            else
+                struct-list-deallocate
+                2drop
+                false
+                exit
+            then
+        repeat
+                                                \ p c lst
+        nip nip                                 \ lst
+    else
+        drop                                    \ lst
     then
 
     \ Check for list of item without outer parens.
