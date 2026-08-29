@@ -154,27 +154,27 @@
 
 ' xtabort value is-struct?-xt
 
-' xtabort value is-regioncorrint?-xt
+' xtabort value is-intregcs?-xt
 
-' xtabort value regioncorrint-get-list-xt
+' xtabort value intregcs-get-list-xt
 
-' xtabort value .regioncorrint-xt
+' xtabort value .intregcs-xt
 
-' xtabort value regioncorrint-new-xt
+' xtabort value intregcs-new-xt
 
-' xtabort value .regioncorrint-list-prefix-xt
+' xtabort value .intregcs-list-prefix-xt
 
-' xtabort value regioncorrint-list-deallocate-xt
+' xtabort value intregcs-list-deallocate-xt
 
-' xtabort value regioncorrint-list-regioncorr-in-xt
+' xtabort value intregcs-list-regioncorr-in-xt
 
-' xtabort value .regioncorrint-list-xt
+' xtabort value .intregcs-list-xt
 
-' xtabort value regioncorrints-share-regioncorr?-xt
+' xtabort value intregcss-share-regioncorr?-xt
 
-' xtabort value regioncorrints-shared-regioncorr-xt
+' xtabort value intregcss-shared-regioncorr-xt
 
-' xtabort value regioncorrint-get-length-xt
+' xtabort value intregcs-get-length-xt
 
 ' xtabort value is-token?-xt
 

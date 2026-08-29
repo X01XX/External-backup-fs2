@@ -540,7 +540,7 @@
     drop
 ;
 
-\ Given a regioncorr-list find the best list of regioncorrints
+\ Given a regioncorr-list find the best list of intregcss
 \ that cover all regioncorrs.
 \ A one element result means that anywhere is reachable from anywhere.
 : regioncorr-list-map-routes ( regc-comp-lst0 -- regci-lol )
@@ -553,10 +553,10 @@
 
     cr s" Intersections: " #2 pick .regioncorr-list-prefix cr
 
-    \ Init regioncorrint list
+    \ Init intregcs list
     list-new                                    \ regc-comp-lst1 regc-int-lst regci-lst
 
-    \ Create regioncorrints.
+    \ Create intregcss.
     over                                        \ regc-comp-lst1 regc-int-lst regci-lst regc-int-lst
     foreach                                     \ regc-comp-lst1 regc-int-lst regci-lst regc-int-lnk regc-intx
         \ cr ." int: " dup .regioncorr
@@ -570,12 +570,12 @@
         dup list-get-length                     \ regc-comp-lst1 regc-int-lst regci-lst regc-int-lnk regc-intx sups-lst len
         1 >
         if
-            swap regioncorrint-new-xt execute   \ regc-comp-lst1 regc-int-lst regci-lst regc-int-lnk, regci t | f
+            swap intregcs-new-xt execute        \ regc-comp-lst1 regc-int-lst regci-lst regc-int-lnk, regci t | f
             ifnot
-                cr ." regioncorrint-new failed?"
+                cr ." intregcs-new failed?"
                 abort
             then
-            \ cr ." regioncorrint-list-map-routes: " dup .regioncorrint cr
+            \ cr ." intregcs-list-map-routes: " dup .intregcs cr
             #2 pick list-push-end-struct
         else
             regioncorr-list-deallocate
@@ -584,9 +584,9 @@
     next
                                                 \ regc-comp-lst1 regc-int-lst regci-lst
     \ Display.
-    s" regcorrints: " #2 pick .regioncorrint-list-prefix-xt execute
+    s" regcorrints: " #2 pick .intregcs-list-prefix-xt execute
 
-    \ Find links between any two regioncorrints.
+    \ Find links between any two intregcss.
     dup list-get-links                              \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1
     begin
         ?dup
@@ -598,32 +598,32 @@
             over link-get-data                      \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regci1
             over link-get-data                      \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regci1 regci2
 
-            regioncorrints-shared-regioncorr-xt     \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regci1 regci2 xt
+            intregcss-shared-regioncorr-xt          \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regci1 regci2 xt
             execute                                 \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst'
             dup list-is-empty?                      \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst' bool
             if
                 list-deallocate
             else
                 #2 pick link-get-data               \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst' regci1
-                regioncorrint-get-length-xt execute \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst' len1
+                intregcs-get-length-xt execute \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst' len1
                 #2 pick link-get-data               \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst' len1 regci2
-                regioncorrint-get-length-xt execute \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst' len1 len2
+                intregcs-get-length-xt execute \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst' len1 len2
                 min                                 \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst' min
                 over list-get-length                \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst' min len
                 =
                 if
-                    \ Skip if all regioncorrs of one regioncorrint intersect.
-                    regioncorr-list-deallocate      \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2
+                    \ Skip if all regioncorrs of one intregcs intersect.
+                    regioncorr-list-deallocate              \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2
                 else
                     #2 pick link-get-data               \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst' regci1
                     #2 pick link-get-data               \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst' regci1 regci2
-                    cr ." regc: " .regioncorrint-xt execute
-                    cr ." and   " .regioncorrint-xt execute
+                    cr ." regc: " .intregcs-xt execute
+                    cr ." and   " .intregcs-xt execute
                     cr ." at:   " dup .regioncorr-list  \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst'
                     #2 pick link-get-data               \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst' regc1
-                    regioncorrint-get-list-xt execute   \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst' lst1
+                    intregcs-get-list-xt execute        \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst' lst1
                     #2 pick link-get-data               \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst' lst1 regc2
-                    regioncorrint-get-list-xt execute   \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst' lst1 lst2
+                    intregcs-get-list-xt execute        \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst' lst1 lst2
                     [ ' = ] literal -rot                \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 xt regc-lst' lst1 lst2
                     list-union-struct                   \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst' regc-lst2'
                     cr ." agg:  " dup .regioncorr-list space dup list-get-length dec.
@@ -640,15 +640,38 @@
 \    foreach                                     \ regc-comp-lst1 regc-int-lst regci-lst regc-comp-lnk1 regc-compx
 \        cr ." Checking complement: " dup .regioncorr cr
 \        #2 pick                                 \ regc-comp-lst1 regc-int-lst regci-lst regc-comp-lnk1 regc-compx regci-ls
-\        regioncorrint-list-regioncorr-in-xt     \ regc-comp-lst1 regc-int-lst regci-lst regc-comp-lnk1 regc-compx regci-lst xt
+\        intregcs-list-regioncorr-in-xt          \ regc-comp-lst1 regc-int-lst regci-lst regc-comp-lnk1 regc-compx regci-lst xt
 \        execute                                 \ regc-comp-lst1 regc-int-lst regci-lst regc-comp-lnk1 regci-lst2
-\        cr s"    regci's: " #2 pick .regioncorrint-list-prefix-xt execute
-\        regioncorrint-list-deallocate-xt execute
+\        cr s"    regci's: " #2 pick .intregcs-list-prefix-xt execute
+\        intregcs-list-deallocate-xt execute
 \    next
 
     \ Deallocate.
-    regioncorrint-list-deallocate-xt execute
+    intregcs-list-deallocate-xt execute
     regioncorr-list-deallocate
     drop
     cr ." regioncorr-list-map-routes: end" cr
 ;
+
+\ Return the number of items in tos that are not in nos.
+: regioncorr-list-num-not-in ( regc-lst1 regc-lst0 -- num )
+    \ Check args.
+    assert( tos is-regioncorr-list? )
+    assert( nos is-regioncorr-list? )
+
+    \ Init number.
+    0 swap                      \ regc-lst1 num regc-lst0
+
+    \ Check each regioncorr in regc-lst0.
+    foreach                     \ regc-lst1 num regc-lnk0 regcx
+        [ ' = ] literal swap    \ regc-lst1 num regc-lnk0 xt regcx
+        #4 pick                 \ regc-lst1 num regc-lnk0 xt regcx regc-lst1
+        list-member?            \ regc-lst1 num regc-lnk0 bool
+        ifnot
+            swap 1+ swap        \ regc-lst1 num regc-lnk0
+        then
+    next
+                                \ regc-lst1 num
+    nip
+;
+

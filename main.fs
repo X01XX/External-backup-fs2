@@ -1,3 +1,38 @@
+\ Struct IDs.
+\
+\ Each number is prime, 5 digits, and fits within 16 bits.
+\ The digit pairs [0][1], [1][2], [2][3], and [3][4] are prime.
+\ No digit appears more than twice. (avoids 111)
+\ No digit appears consecutively.   (avoids 11)
+\
+\ Struct ids in use.
+\ Link      List    Region  Rule    Square
+\ 17137,    17971,  19317,  23131,  23197
+\
+\ Sample    Action  Session Domain  Need
+\ 23719,    29717,  31319,  31379,  19717
+\
+\ Group     RegionCorr  Mask    State
+\ 43717,    47317       61719   61717
+\
+\ RuleCorr  Corner  StructInfo
+\ 53171,    53719,  53731
+\
+\ Token     IntRegcs
+\ 59797     23173
+\
+\ Struct ids not yet used:
+\ 61979, 61379, 41719, 471737.
+\
+\ Same as fs1, possibly.
+\ 31973, future Changes?
+\ 37171, future PlanStep?
+\ 37379, future Plan?
+\ 53171, future RuleCorr?
+\ 53173, future ChangesCorr?
+\ 53197, future PathStep?
+\ 53717, future PlanCorr?
+
 \ Start a clean vocabulary.
 cr ." Starting vocabulary UES," cr
 vocabulary UES
@@ -37,15 +72,14 @@ include sample.fs
 include samplelist.fs
 include rule.fs
 include rulelist.fs
-\ include floatnum.fs
 
 include token.fs
 include tokenlist.fs
 
 include regioncorr.fs
 include regioncorrlist.fs
-include regioncorrint.fs
-include regioncorrintlist.fs
+include intregcs.fs
+include intregcslist.fs
 
 include structinfo.fs
 include structinfolist.fs
@@ -70,7 +104,6 @@ include action.fs
 
 include actionlist.fs
 
-\ include frame.fs
 include domain.fs
 include domainlist.fs
 
@@ -87,8 +120,8 @@ include sample_t.fs
 include regionlist_t.fs
 include regioncorr_t.fs
 include regioncorrlist_t.fs
-include regioncorrint_t.fs
-include regioncorrintlist_t.fs
+include intregcs_t.fs
+include intregcslist_t.fs
 include square_t.fs
 include corner_t.fs
 \ include need_t.fs
@@ -110,15 +143,13 @@ include session_t.fs
 #200 rule-mma-init
 #200 sample-mma-init
 #100 token-mma-init
-\ #100 floatnum-mma-init
 #200 square-mma-init
 #010 action-mma-init
 #110 corner-mma-init
 \ #110 need-mma-init
 #130 group-mma-init
 #200 regioncorr-mma-init
-#100 regioncorrint-mma-init
-\ #010 frame-mma-init
+#100 intregcs-mma-init
 #010 domain-mma-init
 #005 session-mma-init
 cr cr
@@ -134,18 +165,16 @@ list-new to structinfo-list-store
 ' noop  ' noop  ' masks-eq?     ' mask-from-string      ' mask-deallocate       ' .mask         s" Mask"        mask-mma        mask-struct-id          structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' states-eq?    ' state-from-string     ' state-deallocate      ' .state        s" State"       state-mma       state-struct-id         structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' regions-eq?   ' region-from-string    ' region-deallocate     ' .region       s" Region"      region-mma      region-struct-id        structinfo-new structinfo-list-store-push-end
-\ ' noop  ' noop  ' floatnums-eq? ' floatnum-from-string  ' floatnum-deallocate   ' .floatnum     s" FloatNum"    floatnum-mma    floatnum-struct-id      structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' tokens-eq?    ' noop                  ' token-deallocate      ' .token        s" Token"       token-mma       token-struct-id         structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' rules-eq?     ' rule-from-string      ' rule-deallocate       ' .rule         s" Rule"        rule-mma        rule-struct-id          structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' samples-eq?   ' sample-from-string    ' sample-deallocate     ' .sample       s" Sample"      sample-mma      sample-struct-id        structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' noop          ' noop                  ' action-deallocate     ' .action       s" Action"      action-mma      action-struct-id        structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' noop          ' corner-from-string    ' corner-deallocate     ' .corner       s" Corner"      corner-mma      corner-struct-id        structinfo-new structinfo-list-store-push-end
 ' regioncorr-from-list  ' regioncorr-list-definition?    ' regioncorrs-eq?  ' noop  ' regioncorr-deallocate ' .regioncorr   s" Regioncorr"  regioncorr-mma  regioncorr-struct-id    structinfo-new structinfo-list-store-push-end
-' regioncorrint-from-list  ' regioncorrint-list-definition?   ' noop  ' noop  ' regioncorrint-deallocate ' .regioncorrint   s" RegioncorrInt"  regioncorrint-mma  regioncorrint-struct-id    structinfo-new structinfo-list-store-push-end
+' intregcs-from-list  ' intregcs-list-definition?   ' noop  ' noop  ' intregcs-deallocate ' .intregcs   s" IntRegcs"  intregcs-mma  intregcs-struct-id    structinfo-new structinfo-list-store-push-end
 \ ' noop  ' noop  ' noop          ' noop                  ' need-deallocate       ' .need       s" Need"        need-mma        need-struct-id          structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' =             ' noop                  ' square-deallocate     ' .square       s" Square"      square-mma      square-struct-id        structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' =             ' noop                  ' group-deallocate      ' .group        s" Group"       group-mma       group-struct-id         structinfo-new structinfo-list-store-push-end
-\ ' noop  ' noop  ' noop          ' noop                  ' frame-deallocate      ' .frame        s" Frame"       frame-mma       frame-struct-id         structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' noop          ' noop                  ' domain-deallocate     ' .domain       s" Domain"      domain-mma      domain-struct-id        structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' noop          ' noop                  ' session-deallocate    ' .session      s" Session"     session-mma     session-struct-id       structinfo-new structinfo-list-store-push-end
 
@@ -217,8 +246,8 @@ list-new to structinfo-list-store
     inc-pair-tests
     regioncorr-tests
     regioncorr-list-tests
-    regioncorrint-tests
-    regioncorrint-list-tests
+    intregcs-tests
+    intregcs-list-tests
     session-tests
     cr
 ;
