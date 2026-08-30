@@ -20,7 +20,7 @@
     is-intregcs?            \ bool
 ;
 
-: intregcs-list-deallocate ( regci-lst0 -- )
+: intregcs-list-deallocate ( iregcs-lst0 -- )
     \ Check arg.
     assert( tos is-intregcs-list? )
 
@@ -41,11 +41,11 @@
 ' intregcs-list-deallocate to intregcs-list-deallocate-xt
 
 \ Print a intregcs list.
-: .intregcs-list ( regci-lst0 -- )
+: .intregcs-list ( iregcs-lst0 -- )
     \ Check arg.
     assert( tos is-intregcs-list? )
     ." ("
-    foreach                 \ regci-lnk regcix
+    foreach                 \ iregcs-lnk iregcsx
         .intregcs
         link-get-next
         dup 0> if space then
@@ -55,13 +55,13 @@
 
 ' .intregcs-list to .intregcs-list-xt
 
-: .intregcs-list-prefix ( c-addr u regci-lst0 -- )
+: .intregcs-list-prefix ( c-addr u iregcs-lst0 -- )
     \ Check arg.
     assert( tos is-intregcs-list? )
     cr
-    rot                 \ u regci-lst0 c-addr
-    #2 pick             \ u regci-lst0 c-addr u
-    type                \ u regci-lst0
+    rot                 \ u iregcs-lst0 c-addr
+    #2 pick             \ u iregcs-lst0 c-addr u
+    type                \ u iregcs-lst0
 
     dup list-is-empty?
     if
@@ -86,30 +86,30 @@
 ' .intregcs-list-prefix to .intregcs-list-prefix-xt
 
 \ Return true if a regioncorr int contains a regioncorr in its regioncorr list.
-: intregcs-contains-regioncorr? ( regc2 regci0 -- bool )
+: intregcs-contains-regioncorr? ( regc2 iregcs0 -- bool )
     \ Check args.
     assert( tos is-intregcs? )
     assert( nos is-regioncorr? )
 
-    intregcs-get-list           \ regc2 regc-lst
+    intregcs-get-regioncorrs           \ regc2 regc-lst
 
     [ ' = ] literal -rot        \ xt regc2 regc-lst
     list-member?
 ;
 
 \ Return a list or intregcss that contain a regioncorr.
-: intregcs-list-regioncorr-in ( regc2 regci-lst0 -- regci-lst )
+: intregcs-list-regioncorr-in ( regc2 iregcs-lst0 -- iregcs-lst )
     \ Check args.
     assert( tos is-intregcs-list? )
     assert( nos is-regioncorr? )
     \ Init return list.
-    list-new -rot                           \ ret-lst regc2 regci-lst0
-    foreach                                 \ ret-lst regc2 regci-lnk regcix
-        #2 pick over                        \ ret-lst regc2 regci-lnk regcix regc2 regcix
-        intregcs-contains-regioncorr?       \ ret-lst regc2 regci-lnk regcix bool
+    list-new -rot                           \ ret-lst regc2 iregcs-lst0
+    foreach                                 \ ret-lst regc2 iregcs-lnk iregcsx
+        #2 pick over                        \ ret-lst regc2 iregcs-lnk iregcsx regc2 iregcsx
+        intregcs-contains-regioncorr?       \ ret-lst regc2 iregcs-lnk iregcsx bool
         if
-            #3 pick                         \ ret-lst regc2 regci-lnk regcix ret-lst
-            list-push-struct                \ ret-lst regc2 regci-lnk
+            #3 pick                         \ ret-lst regc2 iregcs-lnk iregcsx ret-lst
+            list-push-struct                \ ret-lst regc2 iregcs-lnk
         else
             drop
         then
@@ -122,14 +122,14 @@
 
 \ Return true if any intregcs in a list shares a regioncorr
 \ with a givet regiotcorrint.
-: intregcs-list-share-regioncorr-with? ( regci1 regci-lst0 -- bool )
+: intregcs-list-share-regioncorr-with? ( iregcs1 iregcs-lst0 -- bool )
     \ Check args.
     assert( tos is-intregcs-list? )
     assert( nos is-intregcs? )
 
-    foreach                                 \ regci1 regci-lnk0 regci0
-        #2 pick                             \ regci1 regci-lnk0 regci0 regci1
-        intregcss-share-regioncorr?         \ regci1 regci-lnk0 bool
+    foreach                                 \ iregcs1 iregcs-lnk0 iregcs0
+        #2 pick                             \ iregcs1 iregcs-lnk0 iregcs0 iregcs1
+        intregcss-share-regioncorr?         \ iregcs1 iregcs-lnk0 bool
         if
             2drop
             true
@@ -141,24 +141,24 @@
 ;
 
 \ Return a list of regioncorrs, in each intregcs, no duplicates.
-: intregcs-list-regioncorr-list ( regci-lst0 -- regc-lst )
+: intregcs-list-regioncorr-list ( iregcs-lst0 -- regc-lst )
     \ Check arg.
     assert( tos is-intregcs-list? )
 
     \ Init working/return list.
-    list-new swap                   \ wrk-lst' regci-lst0
+    list-new swap                   \ wrk-lst' iregcs-lst0
 
-    foreach                         \ wrk-lst' regci-lnk0 regci
-        \ Get union of work list and current regci.
-        [ ' regioncorrs-eq? ] literal swap  \ wrk-lst' regci-lnk0 xt regci
-        intregcs-get-list      \ wrk-lst' regci-lnk0 xt regc-lst
-        #3 pick                     \ wrk-lst' regci-lnk0 xt regc-lst wrk-lst'
-        list-union-struct           \ wrk-lst' regci-lnk0 wrk-lst2'
+    foreach                         \ wrk-lst' iregcs-lnk0 iregcs
+        \ Get union of work list and current iregcs.
+        [ ' regioncorrs-eq? ] literal swap  \ wrk-lst' iregcs-lnk0 xt iregcs
+        intregcs-get-regioncorrs    \ wrk-lst' iregcs-lnk0 xt regc-lst
+        #3 pick                     \ wrk-lst' iregcs-lnk0 xt regc-lst wrk-lst'
+        list-union-struct           \ wrk-lst' iregcs-lnk0 wrk-lst2'
 
         \ Deallocate old list.
-        rot                         \ regci-lnk0 wrk-lst2' wrk-lst'
-        regioncorr-list-deallocate  \ regci-lnk0 wrk-lst2'
-        swap                        \ wrk-lst2' regci-lnk0
+        rot                         \ iregcs-lnk0 wrk-lst2' wrk-lst'
+        regioncorr-list-deallocate  \ iregcs-lnk0 wrk-lst2'
+        swap                        \ wrk-lst2' iregcs-lnk0
     next
                                     \ ret-lst
 ;
@@ -169,15 +169,15 @@
 \
 \ So adding the intregcs to the list will extend the reach of the
 \ connected intregcss.
-: intregcs-list-add-item? ( regci1 regci-lst0 -- bool )
+: intregcs-list-add-item? ( iregcs1 iregcs-lst0 -- bool )
     \ Check args.
     assert( tos is-intregcs-list? )
     assert( nos is-intregcs? )
 
     \ Check if its already in the list.
-    [ ' = ] literal                         \ regci1 regci-lst0 xt
-    #2 pick #2 pick                         \ regci1 regci-lst0 xt regci1 regci-lst0
-    list-member?                            \ regci1 regci-lst0 bool
+    [ ' = ] literal                         \ iregcs1 iregcs-lst0 xt
+    #2 pick #2 pick                         \ iregcs1 iregcs-lst0 xt iregcs1 iregcs-lst0
+    list-member?                            \ iregcs1 iregcs-lst0 bool
     if
         2drop
         false
@@ -185,8 +185,8 @@
     then
 
     \ Get intersection of regioncorr lists in both args.
-    intregcs-list-regioncorr-list           \ regci1 regc-lst0'
-    swap intregcs-get-list                  \ regc-lst0' regc-lst1
+    intregcs-list-regioncorr-list           \ iregcs1 regc-lst0'
+    swap intregcs-get-regioncorrs           \ regc-lst0' regc-lst1
     [ ' regioncorrs-eq? ] literal           \ regc-lst0' regc-lst1 xt
     #2 pick #2 pick                         \ regc-lst0' regc-lst1 xt regc-lst0' regc-lst1
     list-intersection-struct                \ regc-lst0' regc-lst1 regc-int'
@@ -202,7 +202,7 @@
     then
 
     \ Check if number of common regioncorrs are less then the number
-    \ in regci1.
+    \ in iregcs1.
     dup list-get-length                 \ regc-lst0' regc-lst1 regc-int' len
     swap regioncorr-list-deallocate     \ regc-lst0' regc-lst1 len
     swap list-get-length                \ regc-lst0' len len
@@ -212,29 +212,29 @@
 
 \ Return a list of regioncorr lists, where each list allows
 \ maximum mapping of paths from intregcs to intregcs.
-: intregcs-list-find-connections ( regci-lst0 -- list of regioncorr-lists )
+: intregcs-list-find-connections ( iregcs-lst0 -- list of regioncorr-lists )
 
     \ Init return list-of-lists.
-    list-new swap                   \ lol regci-lst0
+    list-new swap                   \ lol iregcs-lst0
 
     \ Init aggregate list of all regioncorrs included in lol.
-    list-new swap                   \ lol agg regci-lst0
+    list-new swap                   \ lol agg iregcs-lst0
 
     begin
         \ Find the max number of regioncorrs any intregcs that
         \ are not in agg.
 
         \ Init maximum counter.
-        0                               \ lol agg regci-lst0 max
-        over                            \ lol agg regci-lst0 max regci-lst0
-        foreach                         \ lol agg regci-lst0 max regci-lnk0 regci0
-            intregcs-get-list           \ lol agg regci-lst0 max regci-lnk0 regc-lst
-            #4 pick swap                \ lol agg regci-lst0 max regci-lnk0 agg regc-lst
-            regioncorr-list-num-not-in  \ lol agg regci-lst0 max regci-lnk0 num
-            rot max swap                \ lol agg regci-lst0 max regci-lnk0
+        0                               \ lol agg iregcs-lst0 max
+        over                            \ lol agg iregcs-lst0 max iregcs-lst0
+        foreach                         \ lol agg iregcs-lst0 max iregcs-lnk0 iregcs0
+            intregcs-get-regioncorrs    \ lol agg iregcs-lst0 max iregcs-lnk0 regc-lst
+            #4 pick swap                \ lol agg iregcs-lst0 max iregcs-lnk0 agg regc-lst
+            regioncorr-list-num-not-in  \ lol agg iregcs-lst0 max iregcs-lnk0 num
+            rot max swap                \ lol agg iregcs-lst0 max iregcs-lnk0
         next
 
-        \ Check max number.             \ lol agg regci-lst0 max
+        \ Check max number.             \ lol agg iregcs-lst0 max
         dup 0=
         if
             \ No more to intregcs-lists are needed for lol.
@@ -243,35 +243,35 @@
         then
 
         \ Get first regioncorr with the maximum number of regioncorrs not in agg.
-        over                            \ lol agg regci-lst0 max regci-lst0
-        list-get-links                  \ lol agg regci-lst0 max regci-lnk0
+        over                            \ lol agg iregcs-lst0 max iregcs-lst0
+        list-get-links                  \ lol agg iregcs-lst0 max iregcs-lnk0
         begin
-            #3 pick                     \ lol agg regci-lst0 max regci-lnk0 agg
-            over link-get-data          \ lol agg regci-lst0 max regci-lnk0 agg regci
-            intregcs-get-list           \ lol agg regci-lst0 max regci-lnk0 agg regc-lst
-            regioncorr-list-num-not-in  \ lol agg regci-lst0 max regci-lnk0 num
-            #2 pick =                   \ lol agg regci-lst0 max regci-lnk0 bool
+            #3 pick                     \ lol agg iregcs-lst0 max iregcs-lnk0 agg
+            over link-get-data          \ lol agg iregcs-lst0 max iregcs-lnk0 agg iregcs
+            intregcs-get-regioncorrs    \ lol agg iregcs-lst0 max iregcs-lnk0 agg regc-lst
+            regioncorr-list-num-not-in  \ lol agg iregcs-lst0 max iregcs-lnk0 num
+            #2 pick =                   \ lol agg iregcs-lst0 max iregcs-lnk0 bool
             if
-                link-get-data           \ lol agg regci-lst0 max regci
-                true                    \ lol agg regci-lst0 max regci true
+                link-get-data           \ lol agg iregcs-lst0 max iregcs
+                true                    \ lol agg iregcs-lst0 max iregcs true
             else
-                link-get-next           \ lol agg regci-lst0 max regci-lnk0
-                false                   \ lol agg regci-lst0 max regci-lnk0 false
+                link-get-next           \ lol agg iregcs-lst0 max iregcs-lnk0
+                false                   \ lol agg iregcs-lst0 max iregcs-lnk0 false
             then
         until
-                                        \ lol agg regci-lst0 max regci
-        nip                             \ lol agg regci-lst0 regci
+                                        \ lol agg iregcs-lst0 max iregcs
+        nip                             \ lol agg iregcs-lst0 iregcs
 
         \ Init cycle intregcs list.
-        list-new                        \ lol agg regci-lst0 regci cyc
-        tuck list-push-struct           \ lol agg regci-lst0 cyc
+        list-new                        \ lol agg iregcs-lst0 iregcs cyc
+        tuck list-push-struct           \ lol agg iregcs-lst0 cyc
 
         cr ." todo" cr
 
 
 
         \ Add cyc to lol.
-        #3 pick                         \ lol agg regci-lst0 cyc lol
-        list-push-end-struct            \ lol agg regci-lst0
+        #3 pick                         \ lol agg iregcs-lst0 cyc lol
+        list-push-end-struct            \ lol agg iregcs-lst0
     again
 ;

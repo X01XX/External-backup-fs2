@@ -1,4 +1,4 @@
-\ Implement a struct and functions for a regioncorr intersection.
+\ Implement a struct and functions for a regioncorr intersection and its intersectors.
 
 #23173 constant intregcs-struct-id
     #3 constant intregcs-struct-number-cells
@@ -6,7 +6,7 @@
 \ Struct fields
 0                                  constant intregcs-header-disp          \ 16-bits [0] struct id [1] use count
 intregcs-header-disp       cell+   constant intregcs-intersection-disp    \ A regioncorr.
-intregcs-intersection-disp cell+   constant intregcs-list-disp            \ A list of two, or more, regioncorrs that all intersect.
+intregcs-intersection-disp cell+   constant intregcs-regioncorrs-disp     \ A list of two, or more, regioncorrs that all intersect.
 
 0 value intregcs-mma  \ Storage for region mma instance.
 
@@ -36,7 +36,7 @@ intregcs-intersection-disp cell+   constant intregcs-list-disp            \ A li
 \ Start accessors.
 
 \ Return the intersection field from a intregcs instance.
-: intregcs-get-intersection ( regci0 -- regci-lst )
+: intregcs-get-intersection ( iregcs0 -- regc )
     \ Check arg.
     assert( tos is-intregcs? )
 
@@ -47,43 +47,43 @@ intregcs-intersection-disp cell+   constant intregcs-list-disp            \ A li
 \ ' intregcs-get-intersection to intregcs-get-intersection-xt
 
 \ Set the intersection field from a intregcs instance, use only in this file.
-: _intregcs-set-intersection ( regci regc0 -- )
+: _intregcs-set-intersection ( regc iregcs0 -- )
     \ Check args.
     assert( tos is-intregcs? )
     assert( nos is-regioncorr? )
 
     \ Store list
-    intregcs-intersection-disp +    \ Add offset.
+    intregcs-intersection-disp +   \ Add offset.
     !struct                         \ Set the field.
 ;
 
 \ Return the list field from a intregcs instance.
-: intregcs-get-list ( regci0 -- regci-lst )
+: intregcs-get-regioncorrs ( iregcs0 -- regcs-lst )
     \ Check arg.
     assert( tos is-intregcs? )
 
-    intregcs-list-disp +    \ Add offset.
-    @                       \ Fetch the field.
+    intregcs-regioncorrs-disp + \ Add offset.
+    @                           \ Fetch the field.
 ;
 
-' intregcs-get-list to intregcs-get-list-xt
+' intregcs-get-regioncorrs to intregcs-get-regioncorrs-xt
 
 \ Set the list field from a intregcs instance, use only in this file.
-: _intregcs-set-list ( regci-lst1 regc0 -- )
+: _intregcs-set-regioncorrs ( regc-lst1 iregcs0 -- )
     \ Check args.
     assert( tos is-intregcs? )
     assert( nos is-regioncorr-list? )
     assert( nos list-get-length 1 > )
 
     \ Store list
-    intregcs-list-disp +    \ Add offset.
-    !struct                 \ Set the field.
+    intregcs-regioncorrs-disp + \ Add offset.
+    !struct                     \ Set the field.
 ;
 
 \ End accessors.
 
 \ Create a regioncorr from a region-list.
-: intregcs-new ( regc-lst0 regc -- regc t | f )
+: intregcs-new ( regc-lst0 regc -- iregcs t | f )
     \ Check args.
     assert( tos is-regioncorr? )
     assert( nos is-regioncorr-list? )
@@ -104,13 +104,13 @@ intregcs-intersection-disp cell+   constant intregcs-list-disp            \ A li
 
     \ Allocate space.
     intregcs-struct-id intregcs-mma
-    struct-allocate                     \ regc-lst0 regc regci
+    struct-allocate                     \ regc-lst0 regc iregcs
 
     \ Store intersection.
-    tuck _intregcs-set-intersection     \ regc-lst0 regci
+    tuck _intregcs-set-intersection     \ regc-lst0 iregcs
 
-    \ Store list.
-    tuck _intregcs-set-list             \ regci
+    \ Store regioncorrs.
+    tuck _intregcs-set-regioncorrs      \ iregcs
     true
     \ cr ." intregcs-new: end: " .stack cr
 ;
@@ -118,21 +118,21 @@ intregcs-intersection-disp cell+   constant intregcs-list-disp            \ A li
 ' intregcs-new to intregcs-new-xt
 
 \ Print a region-list corresponding to the session domain list.
-: .intregcs ( regci0 -- )
+: .intregcs ( iregcs0 -- )
     \ Check arg.
     assert( tos is-intregcs? )
 
-    ." ( regci "
+    ." ( iregcs "
     dup intregcs-get-intersection .regioncorr
-    intregcs-get-list               \ lst
+    intregcs-get-regioncorrs               \ lst
     .regioncorr-list
     ." )"
 ;
 
 ' .intregcs to .intregcs-xt
 
-\ Deallocate the given regci, if its use count is 1 or 0.
-: intregcs-deallocate ( regci0 -- )
+\ Deallocate the given iregcs, if its use count is 1 or 0.
+: intregcs-deallocate ( iregcs0 -- )
     \ Check arg.
     assert( tos is-intregcs? )
 
@@ -146,7 +146,7 @@ intregcs-intersection-disp cell+   constant intregcs-list-disp            \ A li
         regioncorr-deallocate
 
         \ Deallocate fields.
-        dup intregcs-get-list          \ regc0 reg-lst
+        dup intregcs-get-regioncorrs   \ regc0 reg-lst
         regioncorr-list-deallocate
 
         \ Deallocate instance.
@@ -156,14 +156,14 @@ intregcs-intersection-disp cell+   constant intregcs-list-disp            \ A li
     then
 ;
 
-: intregcss-share-regioncorr? ( regci1 regci0 -- bool )
+: intregcss-share-regioncorr? ( iregcs1 iregcs0 -- bool )
     \ Check args.
     assert( tos is-intregcs? )
     assert( nos is-intregcs? )
 
     \ Get regioncorr lists.
-    swap intregcs-get-list
-    swap intregcs-get-list          \ regc-lst1 regc-lst0
+    swap intregcs-get-regioncorrs
+    swap intregcs-get-regioncorrs   \ regc-lst1 regc-lst0
 
     \ Get intersection of lists.
     [ ' = ] literal -rot            \ xt regc-lst1 regc-lst0
@@ -182,14 +182,14 @@ intregcs-intersection-disp cell+   constant intregcs-list-disp            \ A li
 
 ' intregcss-share-regioncorr? to intregcss-share-regioncorr?-xt
 
-: intregcss-shared-regioncorr ( regci1 regci0 -- bool )
+: intregcss-shared-regioncorr ( iregcs1 iregcs0 -- bool )
     \ Check args.
     assert( tos is-intregcs? )
     assert( nos is-intregcs? )
 
     \ Get regioncorr lists.
-    swap intregcs-get-list
-    swap intregcs-get-list          \ regc-lst1 regc-lst0
+    swap intregcs-get-regioncorrs
+    swap intregcs-get-regioncorrs   \ regc-lst1 regc-lst0
 
     \ Get intersection of lists.
     [ ' = ] literal -rot            \ xt regc-lst1 regc-lst0
@@ -199,18 +199,18 @@ intregcs-intersection-disp cell+   constant intregcs-list-disp            \ A li
 ' intregcss-shared-regioncorr to intregcss-shared-regioncorr-xt
 
 \ Return the length of the regioncorr list.
-: intregcs-get-length ( regc0 -- len )
+: intregcs-get-length ( iregcs0 -- len )
     \ Check args.
     assert( tos is-intregcs? )
 
-    intregcs-get-list       \ regc-lst
-    list-get-length         \ len
+    intregcs-get-regioncorrs    \ regc-lst
+    list-get-length             \ len
 ;
 
 ' intregcs-get-length to intregcs-get-length-xt
 
 \ Check if a list could be a intregcs definintion.
-: intregcs-list-definition? ( lst -- bool )
+: intregcs-list-definition? ( tos -- bool )
     \ Check arg.
     assert( tos is-list? )
     \ cr ." intregcs-valid-definition?: start: " .stack cr
@@ -232,7 +232,7 @@ intregcs-intersection-disp cell+   constant intregcs-list-disp            \ A li
         exit
     then
 
-    s" regci"                           \ lst c-addr u
+    s" iregcs"                           \ lst c-addr u
     #2 pick list-get-first-item         \ lst c-addr u first
     token-eq-string                     \ lst bool
     ifnot
@@ -250,6 +250,7 @@ intregcs-intersection-disp cell+   constant intregcs-list-disp            \ A li
         exit
     then
 
+    \ Check regioncorr list.
     dup list-get-third-item             \ lst third
     is-regioncorr-list?                 \ lst bool
     ifnot
@@ -271,14 +272,14 @@ intregcs-intersection-disp cell+   constant intregcs-list-disp            \ A li
     \ cr ." intregcs-list-definition?: end: " .stack cr
 ;
 
-\ Return a regioncorr from a list.
-: intregcs-from-list ( lst -- regc t | f)
+\ Return a intregcs from a list.
+: intregcs-from-list ( tos -- iregcs t | f)
     \ Check arg.
     assert( tos is-list? )
     \ cr ." intregcs-from-list: start: " .stack cr
 
     \ cr dup .struct-list cr
-    dup intregcs-list-definition?       \ lst bool
+    dup intregcs-list-definition?    \ lst bool
 
     ifnot
         \ cr ." intregcs-from-list: exit 1" cr
@@ -289,7 +290,7 @@ intregcs-intersection-disp cell+   constant intregcs-list-disp            \ A li
     swap list-get-second-item           \ regc-lst second
 
     \ Allocate new intregcs.
-    intregcs-new                        \ regci t | f
+    intregcs-new                        \ iregcs t | f
     if
         true
     else
@@ -299,7 +300,7 @@ intregcs-intersection-disp cell+   constant intregcs-list-disp            \ A li
 ;
 
 \ Return a intregcs from a string.
-\ Like ( regci ( regc 0 0 (r1000 r1010)) (( regc 0 0 (r1000 r1010)) ( regc 0 0 (r1000 r1010))))
+\ Like ( iregcs ( regc 0 0 (r1000 r1010)) (( regc 0 0 (r1000 r1010)) ( regc 0 0 (r1000 r1010))))
 \ ( hint-string  intersection-regioncorr  regionrorr-list )
 : intregcs-from-string ( str-addr str-n -- regc t | f )
     \ cr ." intregcs-from-string: start: " 2dup type cr
@@ -338,7 +339,7 @@ intregcs-intersection-disp cell+   constant intregcs-list-disp            \ A li
 ;
 
 \ Return a regioncorritn from a string, or abort.
-: intregcs-from-string-a ( str-addr str-n -- regc )
+: intregcs-from-string-a ( str-addr str-n -- iregcs )
     intregcs-from-string    \ regc t | f
     false? abort" intregcs-from-string-a failed?"
 ;

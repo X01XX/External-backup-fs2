@@ -501,6 +501,32 @@
     true
 ;
 
+\ Return true if all items in a regioncorr list are a
+\ subset of a given regioncorr.
+: regioncorr-list-all-subset? ( regc1 regc-lst0 -- bool )
+    \ Check args.
+    assert( tos is-regioncorr-list? )
+    assert( nos is-regioncorr? )
+
+    list-get-links                  \ regc1 regc-lnk0
+    begin
+        ?dup
+    while
+        dup link-get-data           \ regc1 regc-lnk0 regcx
+        #2 pick                     \ regc1 regc-lnk0 regcx regc1
+        swap                        \ regc1 regc-lnk0 regc1 regcx
+        regioncorr-subset?          \ regc1 regc-lnk0 regc-lnk1 bool
+        ifnot
+            2drop drop
+            false
+            exit
+        then
+    next
+                                    \ regc1
+    drop
+    true
+;
+
 \ Return the complement of a non-empty regioncorr list.
 : regioncorr-list-complement ( regc-lst0 -- regc-lst )
     \ Check arg.
@@ -575,7 +601,7 @@
                 cr ." intregcs-new failed?"
                 abort
             then
-            \ cr ." intregcs-list-map-routes: " dup .intregcs cr
+            \ cr ." intregcs-regioncorrs-map-routes: " dup .intregcs cr
             #2 pick list-push-end-struct
         else
             regioncorr-list-deallocate
@@ -621,9 +647,9 @@
                     cr ." and   " .intregcs-xt execute
                     cr ." at:   " dup .regioncorr-list  \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst'
                     #2 pick link-get-data               \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst' regc1
-                    intregcs-get-list-xt execute        \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst' lst1
+                    intregcs-get-regioncorrs-xt execute \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst' lst1
                     #2 pick link-get-data               \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst' lst1 regc2
-                    intregcs-get-list-xt execute        \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst' lst1 lst2
+                    intregcs-get-regioncorrs-xt execute \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst' lst1 lst2
                     [ ' = ] literal -rot                \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 xt regc-lst' lst1 lst2
                     list-union-struct                   \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst' regc-lst2'
                     cr ." agg:  " dup .regioncorr-list space dup list-get-length dec.

@@ -6,7 +6,7 @@
 \ A few extraneous structs, and a number, are added to exercise list-from-string a little more.
 : intregcs-test-from-string
     \     hint  intersection        list of regioncorr intersectors
-    s" ( regci ( regc 1 -2 (r0101)) (( regc 0 0 (rX101)) ( regc 0 0 (r0X01)))) rx101  #55" list-from-string
+    s" ( iregcs ( regc 1 -2 (r0101)) (( regc 0 0 (rX101)) ( regc 0 0 (r0X01)))) rx101  #55" list-from-string
     invert abort" list-from-string failed?"
 
     \ Test.
@@ -19,7 +19,7 @@
     \ Display
     cr ." intregcs test 1:  " dup .struct-list cr
 
-    s" ( regci ( regc 0 0 (r0101)) (( regc 0 0 (rX101)) ( regc 2 -1 (r0X01))))" intregcs-from-string
+    s" ( iregcs ( regc 0 0 (r0101)) (( regc 0 0 (rX101)) ( regc 2 -1 (r0X01))))" intregcs-from-string
     invert abort" intregcs-from-string failed?"
 
     \ Test.
@@ -28,7 +28,7 @@
     \ Display
     cr ." intregcs test 2:   " dup .intregcs cr
 
-    s" r1x1x s10001 ( regci ( regc 0 0 (r0101)) (( regc 0 0 (rX101)) ( regc 0 0 (r0X01))))" string-to-stack
+    s" r1x1x s10001 ( iregcs ( regc 0 0 (r0101)) (( regc 0 0 (rX101)) ( regc 0 0 (r0X01))))" string-to-stack
     invert abort" string-to-stack failed?"
 
     \ Test.

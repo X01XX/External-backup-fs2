@@ -18,11 +18,11 @@
 \ RuleCorr  Corner  StructInfo
 \ 53171,    53719,  53731
 \
-\ Token     IntRegcs
-\ 59797     23173
+\ Token     IntRegcs    RegcInts
+\ 59797     23173       61979
 \
 \ Struct ids not yet used:
-\ 61979, 61379, 41719, 471737.
+\ 61379, 41719, 471737.
 \
 \ Same as fs1, possibly.
 \ 31973, future Changes?
@@ -80,6 +80,8 @@ include regioncorr.fs
 include regioncorrlist.fs
 include intregcs.fs
 include intregcslist.fs
+include regcints.fs
+include regcintslist.fs
 
 include structinfo.fs
 include structinfolist.fs
@@ -122,6 +124,8 @@ include regioncorr_t.fs
 include regioncorrlist_t.fs
 include intregcs_t.fs
 include intregcslist_t.fs
+include regcints_t.fs
+include regcintslist_t.fs
 include square_t.fs
 include corner_t.fs
 \ include need_t.fs
@@ -150,6 +154,7 @@ include session_t.fs
 #130 group-mma-init
 #200 regioncorr-mma-init
 #100 intregcs-mma-init
+#100 regcints-mma-init
 #010 domain-mma-init
 #005 session-mma-init
 cr cr
@@ -177,7 +182,7 @@ list-new to structinfo-list-store
 ' noop  ' noop  ' =             ' noop                  ' group-deallocate      ' .group        s" Group"       group-mma       group-struct-id         structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' noop          ' noop                  ' domain-deallocate     ' .domain       s" Domain"      domain-mma      domain-struct-id        structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' noop          ' noop                  ' session-deallocate    ' .session      s" Session"     session-mma     session-struct-id       structinfo-new structinfo-list-store-push-end
-
+' regcints-from-list  ' regcints-list-definition?   ' noop  ' noop  ' regcints-deallocate ' .regcints   s" regcints"  regcints-mma  regcints-struct-id    structinfo-new structinfo-list-store-push-end
 
 : main
     session-new                     \ sess
@@ -248,6 +253,8 @@ list-new to structinfo-list-store
     regioncorr-list-tests
     intregcs-tests
     intregcs-list-tests
+    regcints-tests
+    regcints-list-tests
     session-tests
     cr
 ;

@@ -156,7 +156,7 @@
 
 ' xtabort value is-intregcs?-xt
 
-' xtabort value intregcs-get-list-xt
+' xtabort value intregcs-get-regioncorrs-xt
 
 ' xtabort value .intregcs-xt
 
@@ -177,4 +177,7 @@
 ' xtabort value intregcs-get-length-xt
 
 ' xtabort value is-token?-xt
+
+' xtabort value is-regcints?-xt
+
 
