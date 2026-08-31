@@ -93,6 +93,7 @@ intregcs-intersection-disp cell+   constant intregcs-regioncorrs-disp     \ A li
     if
         2drop
         false
+        \ cr ." intregcs-new: exit 1: " cr
         exit
     then
 
@@ -100,6 +101,7 @@ intregcs-intersection-disp cell+   constant intregcs-regioncorrs-disp     \ A li
     ifnot
         2drop
         false
+        \ cr ." intregcs-new: exit 2: " cr
     then
 
     \ Allocate space.

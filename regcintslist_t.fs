@@ -1,5 +1,5 @@
 
-: regcints-list-test-generation-from-complement-list
+: regcints-list-test-generate
     \ Calc complement list.
     s" (( regc 0  0 (r0101)) ( regc 0 0 (r1111)))" list-from-string-a   \ avd-lst
 
@@ -11,16 +11,21 @@
     dup regioncorr-list-split-by-intersections                          \ avd-lst cmp-lst, spl-lst t | f
     invert abort" split failed?"
 
-    cr s" Split by ints:  " #2 pick .regioncorr-list-prefix
+    \ cr s" Split by ints:  " #2 pick .regioncorr-list-prefix             \ avd-lst cmp-lst spl-lst
 
-    \ Init regcints list.
-    list-new                        \ avd-lst cmp-lst spl-lst regcis-lst
-    #2 pick                         \ avd-lst cmp-lst spl-lst regcis-lst cmp-l
+    \ Remove regc value 1 fragments, which do not intersect two, or more, regioncorrs.
+    dup regioncorr-list-regioncorrs-gt-pos-1                            \ avd-lst cmp-lst spl-lst spl-lst2
+    cr s" Split by ints2: " #2 pick .regioncorr-list-prefix
 
-    foreach                         \ avd-lst cmp-lst spl-lst regcis-lst cmp-lnk cmpx
-        drop
-    next
+    swap regioncorr-list-deallocate                                     \ avd-lst cmp-lst spl-lst2
 
+    \ Generate regcints list.
+
+    2dup regcints-list-generate                                         \ avd-lst cmp-lst spl-lst2 regcints-lst
+    cr s" regcints: " #2 pick .regcints-list-prefix cr
+
+    \ Test.
+    dup list-get-length #4 <> abort" list length not 4?"
 
     \ Deallocate.
     regcints-list-deallocate
@@ -31,10 +36,10 @@
     \ Check for memory leaks.
     check-project-deallocated
 
-    cr ." regcints-list-test-generation-from-complement-list - Ok"
+    cr ." regcints-list-test-generate - Ok"
 ;
 
 : regcints-list-tests
-    regcints-list-test-generation-from-complement-list
+    regcints-list-test-generate
     cr
 ;

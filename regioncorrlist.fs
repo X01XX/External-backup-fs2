@@ -551,18 +551,40 @@
     assert( nos is-regioncorr? )
 
     \ Init return list.
-    list-new -rot                   \ ret-lst sta1 reg-lst0
+    list-new -rot                   \ ret-lst regc1 reg-lst0
 
-    foreach                         \ ret-lst sta1 reg-lnk0 regx
-        #2 pick swap                \ ret-lst sta1 reg-lnk0 sta1 regx
-        regioncorr-superset?        \ ret-lst sta1 reg-lnk0 bool
+    foreach                         \ ret-lst regc1 reg-lnk0 regx
+        #2 pick swap                \ ret-lst regc1 reg-lnk0 regc1 regx
+        regioncorr-superset?        \ ret-lst regc1 reg-lnk0 bool
         if
-            dup link-get-data       \ ret-lst sta1 reg-lnk0 regx
-            #3 pick                 \ ret-lst sta1 reg-lnk0 regx ret-lst
-            list-push-struct        \ ret-lst sta1 reg-lnk0
+            dup link-get-data       \ ret-lst regc1 reg-lnk0 regx
+            #3 pick                 \ ret-lst regc1 reg-lnk0 regx ret-lst
+            list-push-struct        \ ret-lst regc1 reg-lnk0
         then
     next
-                                    \ ret-lst sta1
+                                    \ ret-lst regc1
+    drop
+;
+
+: regioncorr-list-subsets-of ( regc1 regc-lst0 -- regc-lst )
+    \ Check args.
+    \ cr ." regioncorr-list-in: start: " .stack cr
+    assert( tos is-regioncorr-list? )
+    assert( nos is-regioncorr? )
+
+    \ Init return list.
+    list-new -rot                   \ ret-lst regc1 reg-lst0
+
+    foreach                         \ ret-lst regc1 reg-lnk0 regx
+        #2 pick swap                \ ret-lst regc1 reg-lnk0 regc1 regx
+        regioncorr-subset?          \ ret-lst regc1 reg-lnk0 bool
+        if
+            dup link-get-data       \ ret-lst regc1 reg-lnk0 regx
+            #3 pick                 \ ret-lst regc1 reg-lnk0 regx ret-lst
+            list-push-struct        \ ret-lst regc1 reg-lnk0
+        then
+    next
+                                    \ ret-lst regc1
     drop
 ;
 
@@ -701,3 +723,21 @@
     nip
 ;
 
+\ Return a list with regioncorrs with a positive valu gt one.
+: regioncorr-list-regioncorrs-gt-pos-1 ( regc-lst0 -- regc-lst )
+    \ Check arg.
+    assert( tos is-regioncorr-list? )
+
+    \ Init return list.
+    list-new swap                   \ ret-lst regc-lst0
+
+    foreach                         \ ret-lst regc-lnk regcx
+        regioncorr-get-pos-value    \ ret-lst regc-lnk pos
+        1 >                         \ ret-lst regc-lnk bool
+        if
+            dup link-get-data       \ ret-lst regc-lnk regcx
+            #2 pick                 \ ret-lst regc-lnk regcx ret-lst
+            list-push-end-struct    \ ret-lst regc-lnk
+        then
+    next
+;

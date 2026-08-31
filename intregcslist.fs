@@ -275,3 +275,31 @@
         list-push-end-struct            \ lol agg iregcs-lst0
     again
 ;
+
+\ Generate a intregcs list from a complement list and an intersections list.
+: intregcs-list-generate ( cmp-lst1 int-lst0 -- intregcs-lst )
+    \ Check args.
+    assert( tos is-regioncorr-list? )
+    assert( nos is-regioncorr-list? )
+
+    \ Init list.
+    list-new                                                            \ cmp-lst1 int-lst0 iregcs-lst
+
+    \ For each intersection.
+    swap                                                                \ cmp-lst1 iregcs-lst int-lst0
+    foreach                                                             \ cmp-lst1 iregcs-lst int-lnk0 intx
+        #3 pick                                                         \ cmp-lst1 iregcs-lst int-lnk0 intx cmp-lst1
+        regioncorr-list-supersets-of                                    \ cmp-lst1 iregcs-lst int-lnk0 sup-lst
+        dup #2 pick link-get-data                                       \ cmp-lst1 iregcs-lst int-lnk0 sup-lst sup-lst intx
+        intregcs-new                                                    \ cmp-lst1 iregcs-lst int-lnk0 sup-lst, iregcs t | f
+        if
+            nip                                                         \ cmp-lst1 iregcs-lst int-lnk0 iregcs
+            #2 pick                                                     \ cmp-lst1 iregcs-lst int-lnk0 iregcs iregcs-lst
+            list-push-end-struct                                        \ cmp-lst1 iregcs-lst int-lnk0
+        else
+            regioncorr-list-deallocate                                  \ cmp-lst1 iregcs-lst int-lnk0
+        then
+    next
+                                                                        \ cmp-lst1 iregcs-lst
+    nip
+;

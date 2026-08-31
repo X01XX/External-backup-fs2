@@ -96,13 +96,13 @@ regcints-regioncorr-disp   cell+   constant regcints-intersections-disp   \ A li
 
     \ Allocate space.
     regcints-struct-id regcints-mma
-    struct-allocate                     \ regc-lst0 regc iregcs
+    struct-allocate                     \ regc-lst0 regc regcis
 
     \ Store regioncorr.
-    tuck _regcints-set-regioncorr      \ regc-lst0 iregcs
+    tuck _regcints-set-regioncorr      \ regc-lst0 regcis
 
     \ Store intersections.
-    tuck _regcints-set-intersections    \ iregcs
+    tuck _regcints-set-intersections    \ regcis
     true
     \ cr ." regcints-new: end: " .stack cr
 ;
@@ -114,7 +114,7 @@ regcints-regioncorr-disp   cell+   constant regcints-intersections-disp   \ A li
     ." ( regcis "
     dup regcints-get-regioncorr .regioncorr \ lst
     regcints-get-intersections              \ lst
-    .regioncorr-list
+    space .regioncorr-list
     ." )"
 ;
 
@@ -132,7 +132,7 @@ regcints-regioncorr-disp   cell+   constant regcints-intersections-disp   \ A li
         \ Deallocate regioncorr.
         dup regcints-get-regioncorr    \ regc0 reg-lst
         regioncorr-deallocate
-    
+
         \ Deallocate intersections.
         dup regcints-get-intersections \ regc0 reg-lst
         regioncorr-list-deallocate
