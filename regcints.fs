@@ -15,7 +15,7 @@ regcints-regioncorr-disp   cell+   constant regcints-intersections-disp   \ A li
     dup 1 <
     abort" regcints-mma-init: Invalid number of items."
 
-    cr ." Initializing regcints store."
+    cr ." Initializing RegcInts store."
     regcints-struct-number-cells swap mma-new to regcints-mma
 ;
 
@@ -53,7 +53,7 @@ regcints-regioncorr-disp   cell+   constant regcints-intersections-disp   \ A li
     assert( nos is-regioncorr? )
 
     \ Store list
-    regcints-regioncorr-disp +  \ Add offset.
+    regcints-regioncorr-disp +  \ Add offset.\ within2 to1 from0 pthstp
     !struct                     \ Set the field.
 ;
 
@@ -73,7 +73,7 @@ regcints-regioncorr-disp   cell+   constant regcints-intersections-disp   \ A li
     \ Check args.
     assert( tos is-regcints? )
     assert( nos is-regioncorr-list? )
-
+\ within2 to1 from0 pthstp
     \ Store list
     regcints-intersections-disp +   \ Add offset.
     !struct                         \ Set the field.
@@ -124,17 +124,17 @@ regcints-regioncorr-disp   cell+   constant regcints-intersections-disp   \ A li
     \ Check arg.
     assert( tos is-regcints? )
 
-    dup struct-get-use-count            \ regc0 count
+    dup struct-get-use-count            \ regcis0 count
     dup 0< abort" invalid use count"
 
     #2 <
     if
         \ Deallocate regioncorr.
-        dup regcints-get-regioncorr    \ regc0 reg-lst
+        dup regcints-get-regioncorr    \ regcis0 reg-lst
         regioncorr-deallocate
 
         \ Deallocate intersections.
-        dup regcints-get-intersections \ regc0 reg-lst
+        dup regcints-get-intersections \ regcis0 reg-lst
         regioncorr-list-deallocate
 
         \ Deallocate instance.

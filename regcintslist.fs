@@ -69,7 +69,7 @@
     dup struct-get-use-count                        \ regcis-lst0 uc
     #2 < if
         \ Deallocate region instances in the list.
-        [ ' regcints-deallocate ] literal over      \ regcis-lst0 xt regc-lst0
+        [ ' regcints-deallocate ] literal over      \ regcis-lst0 xt regcis-lst0
         list-apply                                  \ regcis-lst0
 
         \ Deallocate the list.
@@ -101,4 +101,62 @@
     next
                                     \ int-lst0 regcis-lst
     nip
+;
+
+\ Return a list of regcints with a regioncorr that is superset of a given regioncorr.
+: regcints-list-superset-of ( regc1 regcis-lst0 -- regcis-lst )
+    \ Check args.
+    assert( tos is-regcints-list? )
+    assert( nos is-regioncorr? )
+
+    \ Init return list.
+    list-new -rot               \ ret-lst regc1 regcis-lst0
+
+    foreach                     \ ret-lst regc1 regcis-lnk0 regcis
+        regcints-get-regioncorr \ ret-lst regc1 regcis-lnk0 regc0
+        #2 pick                 \ ret-lst regc1 regcis-lnk0 regc0 regc1
+        swap                    \ ret-lst regc1 regcis-lnk0 regc1 regc0
+        regioncorr-superset?    \ ret-lst regc1 regcis-lnk0 bool
+        if
+            dup link-get-data   \ ret-lst regc1 regcis-lnk0 regcis
+            #3 pick             \ ret-lst regc1 regcis-lnk0 regcis ret-lst
+            list-push-struct    \ ret-lst regc1 regcis-lnk0
+        then
+    next
+                                \ ret-lst regc1
+    drop
+;
+
+\ Return a list of regcints with a regioncorr that intersects of a given regioncorr.
+: regcints-list-intersections ( regc1 regcis-lst0 -- regcis-lst )
+    \ Check args.
+    assert( tos is-regcints-list? )
+    assert( nos is-regioncorr? )
+
+    \ Init return list.
+    list-new -rot               \ ret-lst regc1 regcis-lst0
+
+    foreach                     \ ret-lst regc1 regcis-lnk0 regcis
+        regcints-get-regioncorr \ ret-lst regc1 regcis-lnk0 regc0
+        #2 pick                 \ ret-lst regc1 regcis-lnk0 regc0 regc1
+        swap                    \ ret-lst regc1 regcis-lnk0 regc1 regc0
+        regioncorrs-intersect?  \ ret-lst regc1 regcis-lnk0 bool
+        if
+            dup link-get-data   \ ret-lst regc1 regcis-lnk0 regcis
+            #3 pick             \ ret-lst regc1 regcis-lnk0 regcis ret-lst
+            list-push-struct    \ ret-lst regc1 regcis-lnk0
+        then
+    next
+                                \ ret-lst regc1
+    drop
+;
+
+\ Return a list of regcints that are in both lists.
+: regcints-list-set-intersection ( regcis-lst1 regcis-lst0 -- regcis-lst )
+    \ Check args.
+    assert( tos is-regcints-list? )
+    assert( nos is-regcints-list? )
+
+    [ ' = ] literal         \ regcis-lst1 regcis-lst0 xt
+    -rot list-intersection-struct
 ;

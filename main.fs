@@ -15,8 +15,8 @@
 \ Group     RegionCorr  Mask    State
 \ 43717,    47317       61719   61717
 \
-\ RuleCorr  Corner  StructInfo
-\ 53171,    53719,  53731
+\ RuleCorr  Corner  StructInfo  PathStep
+\ 53171,    53719,  53731       53197
 \
 \ Token     IntRegcs    RegcInts
 \ 59797     23173       61979
@@ -30,7 +30,6 @@
 \ 37379, future Plan?
 \ 53171, future RuleCorr?
 \ 53173, future ChangesCorr?
-\ 53197, future PathStep?
 \ 53717, future PlanCorr?
 
 \ Start a clean vocabulary.
@@ -83,6 +82,9 @@ include intregcslist.fs
 include regcints.fs
 include regcintslist.fs
 
+include pathstep.fs
+include pathsteplist.fs
+
 include structinfo.fs
 include structinfolist.fs
 include stackprint.fs
@@ -126,6 +128,8 @@ include intregcs_t.fs
 include intregcslist_t.fs
 include regcints_t.fs
 include regcintslist_t.fs
+include pathstep_t.fs
+include pathsteplist_t.fs
 include square_t.fs
 include corner_t.fs
 \ include need_t.fs
@@ -155,6 +159,7 @@ include session_t.fs
 #200 regioncorr-mma-init
 #100 intregcs-mma-init
 #100 regcints-mma-init
+#100 pathstep-mma-init
 #010 domain-mma-init
 #005 session-mma-init
 cr cr
@@ -175,6 +180,7 @@ list-new to structinfo-list-store
 ' noop  ' noop  ' samples-eq?   ' sample-from-string    ' sample-deallocate     ' .sample       s" Sample"      sample-mma      sample-struct-id        structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' noop          ' noop                  ' action-deallocate     ' .action       s" Action"      action-mma      action-struct-id        structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' noop          ' corner-from-string    ' corner-deallocate     ' .corner       s" Corner"      corner-mma      corner-struct-id        structinfo-new structinfo-list-store-push-end
+' noop  ' noop  ' noop          ' noop                  ' pathstep-deallocate   ' .pathstep     s" PathStep"    pathstep-mma    pathstep-struct-id      structinfo-new structinfo-list-store-push-end
 ' regioncorr-from-list  ' regioncorr-list-definition?    ' regioncorrs-eq?  ' noop  ' regioncorr-deallocate ' .regioncorr   s" Regioncorr"  regioncorr-mma  regioncorr-struct-id    structinfo-new structinfo-list-store-push-end
 ' intregcs-from-list  ' intregcs-list-definition?   ' noop  ' noop  ' intregcs-deallocate ' .intregcs   s" IntRegcs"  intregcs-mma  intregcs-struct-id    structinfo-new structinfo-list-store-push-end
 \ ' noop  ' noop  ' noop          ' noop                  ' need-deallocate       ' .need       s" Need"        need-mma        need-struct-id          structinfo-new structinfo-list-store-push-end
@@ -182,7 +188,7 @@ list-new to structinfo-list-store
 ' noop  ' noop  ' =             ' noop                  ' group-deallocate      ' .group        s" Group"       group-mma       group-struct-id         structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' noop          ' noop                  ' domain-deallocate     ' .domain       s" Domain"      domain-mma      domain-struct-id        structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' noop          ' noop                  ' session-deallocate    ' .session      s" Session"     session-mma     session-struct-id       structinfo-new structinfo-list-store-push-end
-' regcints-from-list  ' regcints-list-definition?   ' noop  ' noop  ' regcints-deallocate ' .regcints   s" regcints"  regcints-mma  regcints-struct-id    structinfo-new structinfo-list-store-push-end
+' regcints-from-list  ' regcints-list-definition?   ' noop  ' noop  ' regcints-deallocate ' .regcints   s" RegcInts"  regcints-mma  regcints-struct-id    structinfo-new structinfo-list-store-push-end
 
 : main
     session-new                     \ sess
@@ -255,6 +261,8 @@ list-new to structinfo-list-store
     intregcs-list-tests
     regcints-tests
     regcints-list-tests
+    pathstep-tests
+    pathstep-list-tests
     session-tests
     cr
 ;

@@ -501,3 +501,73 @@ cr ." todo session-get-current-regions" cr
 
     drop
 ;
+
+\ Return a pathstep list to get from a regioncorr to another, within
+\ a set of intersecting regioncorrs.
+: session-find-path ( intregcs-lst4 regcints-lst3 to2 from1 sess0 -- pthstp-lst t | f )
+    \ Check arg.
+    assert( tos is-session? )
+    assert( nos is-regioncorr? )
+    assert( 3os is-regioncorr? )
+    assert( 4os is-regcints-list? )
+    assert( 5os is-intregcs-list? )
+
+    \ Get regcints that intersect the frm1 regioncorr.
+    over                                \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 frm1
+    #4 pick                             \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 frm1 regcis-lst3
+    regcints-list-intersections         \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-sups'
+
+    \ Get regcints that intersect the to2 regioncorr.
+    #3 pick                             \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-sups' to2
+    #5 pick                             \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-sups' to2 regcis-lst3
+    regcints-list-intersections         \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-sups' regcis-to-sups'
+
+    \ Get regcints that intersect both regioncorrs.
+    2dup regcints-list-set-intersection \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-sups' regcis-to-sups' regcis-both'
+
+    \ Check for the easiest PathStep, possibly reached after recursion.
+    dup list-is-not-empty?              \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-sups' regcis-to-sups' regcis-both' bool
+    if
+        \ Make pathstep.
+
+        \ Get an intersecting regcint.
+        dup list-get-length             \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-sups' regcis-to-sups' regcis-both' len
+        random                          \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-sups' regcis-to-sups' regcis-both' inx
+        over list-get-item              \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-sups' regcis-to-sups' regcis-both' regcis
+
+        \ Build PathStep-new arguments.
+        regcints-get-regioncorr         \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-sups' regcis-to-sups' regcis-both' regc
+        #6 pick                         \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-sups' regcis-to-sups' regcis-both' regc to2
+        over regioncorr-intersection    \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-sups' regcis-to-sups' regcis-both' regc, to2' t | f
+        invert abort" intersection failed?"
+
+        #6 pick                         \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-sups' regcis-to-sups' regcis-both' regc to2' frm1'
+        #2 pick regioncorr-intersection \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-sups' regcis-to-sups' regcis-both' regc to2', frm1' t | f
+        invert abort" intersection failed?"
+
+        \ Create new PathStep.
+        pathstep-new                    \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-sups' regcis-to-sups' regcis-both' pthstp
+
+        \ Store PathStep in list.
+        list-new tuck                   \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-sups' regcis-to-sups' regcis-both' pthstp-lst pthstp pthstp-lst
+        list-push-struct                \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-sups' regcis-to-sups' regcis-both' pthstp-lst
+
+        \ Clean up.
+        swap regcints-list-deallocate   \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-sups' regcis-to-sups' pthstp-lst
+        swap regcints-list-deallocate   \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-sups' pthstp-lst
+        swap regcints-list-deallocate   \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 pthstp-lst
+        nip nip nip nip nip             \ pthstp-lst
+
+        \ Return.
+        true
+        exit
+    then
+
+    cr ." session-find-path: todo" cr
+                                        \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-sups' regcis-to-sups' regcis-both'
+    list-deallocate                     \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-sups' regcis-to-sups'
+    regcints-list-deallocate            \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-sups'
+    regcints-list-deallocate            \ iregcs-lst4 regcis-lst3 to2 frm1 ses0
+    2drop 2drop drop
+    false
+;

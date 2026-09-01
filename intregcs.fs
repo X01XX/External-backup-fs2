@@ -15,7 +15,7 @@ intregcs-intersection-disp cell+   constant intregcs-regioncorrs-disp     \ A li
     dup 1 <
     abort" intregcs-mma-init: Invalid number of items."
 
-    cr ." Initializing intregcs store."
+    cr ." Initializing IntRegcs store."
     intregcs-struct-number-cells swap mma-new to intregcs-mma
 ;
 
@@ -138,17 +138,17 @@ intregcs-intersection-disp cell+   constant intregcs-regioncorrs-disp     \ A li
     \ Check arg.
     assert( tos is-intregcs? )
 
-    dup struct-get-use-count            \ regc0 count
+    dup struct-get-use-count            \ iregcs0 count
     dup 0< abort" invalid use count"
 
     #2 <
     if
         \ Deallocate intersection.
-        dup intregcs-get-intersection  \ regc0 reg-lst
+        dup intregcs-get-intersection  \ iregcs0 reg-lst
         regioncorr-deallocate
 
         \ Deallocate fields.
-        dup intregcs-get-regioncorrs   \ regc0 reg-lst
+        dup intregcs-get-regioncorrs   \ iregcs0 reg-lst
         regioncorr-list-deallocate
 
         \ Deallocate instance.
@@ -234,7 +234,7 @@ intregcs-intersection-disp cell+   constant intregcs-regioncorrs-disp     \ A li
         exit
     then
 
-    s" iregcs"                           \ lst c-addr u
+    s" iregcs"                          \ lst c-addr u
     #2 pick list-get-first-item         \ lst c-addr u first
     token-eq-string                     \ lst bool
     ifnot

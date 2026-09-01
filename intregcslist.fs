@@ -25,11 +25,11 @@
     assert( tos is-intregcs-list? )
 
     \ Check if the list will be deallocated for the last time.
-    dup struct-get-use-count                        \ regc-lst0 uc
+    dup struct-get-use-count                        \ iregcs-lst0 uc
     #2 < if
         \ Deallocate region instances in the list.
-        [ ' intregcs-deallocate ] literal over \ regc-lst0 xt regc-lst0
-        list-apply                                  \ regc-lst0
+        [ ' intregcs-deallocate ] literal over      \ iregcs-lst0 xt iregcs-lst0
+        list-apply                                  \ iregcs-lst0
 
         \ Deallocate the list.
         list-deallocate                             \
