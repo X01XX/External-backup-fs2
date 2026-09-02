@@ -741,3 +741,44 @@
         then
     next
 ;
+
+\ Return the set union of two regioncorr lists.
+: regioncorr-list-set-union ( regc-lst1 regc-lst0 -- regc-lst )
+    \ Check args.
+    assert( tos is-regioncorr-list? )
+    assert( nos is-regioncorr-list? )
+
+    [ ' = ] literal             \ regc-lst1 regc-lst0 xt
+    -rot list-union-struct
+;
+
+\ Return the set intersection of two regioncorr lists.
+: regioncorr-list-set-intersection ( regc-lst1 regc-lst0 -- regc-lst )
+    \ Check args.
+    assert( tos is-regioncorr-list? )
+    assert( nos is-regioncorr-list? )
+
+    [ ' = ] literal             \ regc-lst1 regc-lst0 xt
+    -rot list-intersection-struct
+;
+
+\ Return the fist intersecting reioncorr in a list.
+: regioncorr-list-first-intersection ( regc1 regc-lst0 -- regc t | f )
+    \ Check args.
+    assert( tos is-regioncorr-list? )
+    assert( nos is-regioncorr? )
+
+    foreach                     \ regc1 regc-lnk0 regc0
+        #2 pick                 \ regc1 regc-lnk0 regc0 regc1
+        regioncorrs-intersect?  \ regc1 regc-lnk0 bool
+        if
+            link-get-data       \ regc1 regc0
+            nip                 \ regc0
+            true
+            exit
+        then
+    next
+                                \ regc1
+    drop
+    false
+;

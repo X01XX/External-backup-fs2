@@ -303,3 +303,25 @@
                                                                         \ cmp-lst1 iregcs-lst
     nip
 ;
+
+\ Return a intregc instance that matches a given intregc-intersection.
+: intregcs-list-find ( regc1 intregcs-lst0 -- intregc t | f )
+    \ Check args.
+    assert( tos is-intregcs-list? )
+    assert( nos is-regioncorr? )
+
+    foreach                         \ regc1 intregcs-lnk0 intregcs
+        intregcs-get-intersection   \ regc1 intregcs-lnk0 int-regc
+        #2 pick                     \ regc1 intregcs-lnk0 int-regc regc1
+        regioncorrs-eq?             \ regc1 intregcs-lnk0 bool
+        if
+            dup link-get-data       \ regc1 intregcs-lnk0 intregcs
+            nip nip                 \ intregcs
+            true
+            exit
+        then
+
+    next
+
+    false
+;

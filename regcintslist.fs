@@ -160,3 +160,21 @@
     [ ' = ] literal         \ regcis-lst1 regcis-lst0 xt
     -rot list-intersection-struct
 ;
+
+\ Return the union of intersections of regcints in a list.
+: regcints-list-union-intersections ( regcis-lst1 -- regc-lst )
+    \ Check arg.
+    assert( tos is-regcints-list? )
+
+    \ Init working list.
+    list-new swap                       \ wrk-lst' regcis-lst1
+
+    foreach                             \ wrk-lst' regcis-lnk1 regcis
+        regcints-get-intersections      \ wrk-lst' regcis-lnk1 ints
+        #2 pick                         \ wrk-lst' regcis-lnk1 ints wrk-lst'
+        regioncorr-list-set-union       \ wrk-lst' regcis-lnk1 wrk-lst2'
+        rot regioncorr-list-deallocate  \ regcis-lnk1 wrk-lst2
+        swap                            \ wrk-lst2' regcis-lnk1
+    next
+                                        \ ret-lst
+;

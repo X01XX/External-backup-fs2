@@ -515,59 +515,139 @@ cr ." todo session-get-current-regions" cr
     \ Get regcints that intersect the frm1 regioncorr.
     over                                \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 frm1
     #4 pick                             \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 frm1 regcis-lst3
-    regcints-list-intersections         \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-sups'
+    regcints-list-intersections         \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints'
 
     \ Get regcints that intersect the to2 regioncorr.
-    #3 pick                             \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-sups' to2
-    #5 pick                             \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-sups' to2 regcis-lst3
-    regcints-list-intersections         \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-sups' regcis-to-sups'
+    #3 pick                             \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' to2
+    #5 pick                             \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' to2 regcis-lst3
+    regcints-list-intersections         \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints'
 
     \ Get regcints that intersect both regioncorrs.
-    2dup regcints-list-set-intersection \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-sups' regcis-to-sups' regcis-both'
+    2dup regcints-list-set-intersection \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' regcis-both'
 
-    \ Check for the easiest PathStep, possibly reached after recursion.
-    dup list-is-not-empty?              \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-sups' regcis-to-sups' regcis-both' bool
+
+    \ Check for the easiest PathStep, possibly reached by recursion.
+    dup list-is-not-empty?              \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' regcis-both' bool
     if
         \ Make pathstep.
 
         \ Get an intersecting regcint.
-        dup list-get-length             \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-sups' regcis-to-sups' regcis-both' len
-        random                          \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-sups' regcis-to-sups' regcis-both' inx
-        over list-get-item              \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-sups' regcis-to-sups' regcis-both' regcis
+        dup list-get-length             \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' regcis-both' len
+        random                          \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' regcis-both' inx
+        over list-get-item              \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' regcis-both' regcis
 
         \ Build PathStep-new arguments.
-        regcints-get-regioncorr         \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-sups' regcis-to-sups' regcis-both' regc
-        #6 pick                         \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-sups' regcis-to-sups' regcis-both' regc to2
-        over regioncorr-intersection    \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-sups' regcis-to-sups' regcis-both' regc, to2' t | f
+        regcints-get-regioncorr         \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' regcis-both' regc
+        #6 pick                         \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' regcis-both' regc to2
+        over regioncorr-intersection    \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' regcis-both' regc, to2' t | f
         invert abort" intersection failed?"
 
-        #6 pick                         \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-sups' regcis-to-sups' regcis-both' regc to2' frm1'
-        #2 pick regioncorr-intersection \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-sups' regcis-to-sups' regcis-both' regc to2', frm1' t | f
+        #6 pick                         \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' regcis-both' regc to2' frm1'
+        #2 pick regioncorr-intersection \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' regcis-both' regc to2', frm1' t | f
         invert abort" intersection failed?"
 
         \ Create new PathStep.
-        pathstep-new                    \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-sups' regcis-to-sups' regcis-both' pthstp
+        pathstep-new                    \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' regcis-both' pthstp
 
         \ Store PathStep in list.
-        list-new tuck                   \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-sups' regcis-to-sups' regcis-both' pthstp-lst pthstp pthstp-lst
-        list-push-struct                \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-sups' regcis-to-sups' regcis-both' pthstp-lst
+        list-new tuck                   \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' regcis-both' pthstp-lst pthstp pthstp-lst
+        list-push-struct                \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' regcis-both' pthstp-lst
 
         \ Clean up.
-        swap regcints-list-deallocate   \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-sups' regcis-to-sups' pthstp-lst
-        swap regcints-list-deallocate   \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-sups' pthstp-lst
+        swap regcints-list-deallocate   \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' pthstp-lst
+        swap regcints-list-deallocate   \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' pthstp-lst
         swap regcints-list-deallocate   \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 pthstp-lst
         nip nip nip nip nip             \ pthstp-lst
 
         \ Return.
         true
         exit
+    else
+        list-deallocate                 \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints'
     then
 
-    cr ." session-find-path: todo" cr
-                                        \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-sups' regcis-to-sups' regcis-both'
-    list-deallocate                     \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-sups' regcis-to-sups'
-    regcints-list-deallocate            \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-sups'
-    regcints-list-deallocate            \ iregcs-lst4 regcis-lst3 to2 frm1 ses0
-    2drop 2drop drop
+    \ Check for the second easiest PathStep, possibly reached by recursion.
+                                            \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints'
+
+    over regcints-list-union-intersections  \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' frm-ints'
+    over regcints-list-union-intersections  \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' frm-ints' to-ints'
+    2dup regioncorr-list-set-intersection   \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' frm-ints' to-ints' both-ints'
+    \ cr ." shared intersections: " dup .regioncorr-list cr
+    dup list-is-not-empty?
+    if
+        dup list-get-length                 \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' frm-ints' to-ints' both-ints' len
+        random                              \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' frm-ints' to-ints' both-ints' inx
+        over list-get-item                  \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' frm-ints' to-ints' both-ints' intx
+        \ cr ." int chosen: " dup .regioncorr cr
+
+        #10 pick                            \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' frm-ints' to-ints' both-ints' intx iregcs-lst4
+        intregcs-list-find                  \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' frm-ints' to-ints' both-ints', iregcs t | f
+        invert abort" intregcs-find failed?"
+
+        \ cr ." found: " dup .intregcs cr
+        swap regioncorr-list-deallocate     \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' frm-ints' to-ints' iregcs
+        swap regioncorr-list-deallocate     \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' frm-ints' iregcs
+        swap regioncorr-list-deallocate     \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' iregcs
+
+        \ Init PathStep list.
+        list-new                            \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' iregcs pthstp-lst
+
+        \ Get first path step, from1 to intersection.
+
+        \ Get regioncorr in intregcs that intersects frm1.
+        #5 pick                             \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' iregcs pthstp-lst frm1
+        #2 pick intregcs-get-regioncorrs    \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' iregcs pthstp-lst frm1 regc-lst
+        regioncorr-list-first-intersection  \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' iregcs pthstp-lst, regc-int t | f
+        invert abort" intersection not found?"
+
+        \ Get frm1 intersection with chosen intregcs regioncorr.
+        #2 pick intregcs-get-intersection   \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' iregcs pthstp-lst regc-int iregcs-int
+        #7 pick                             \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' iregcs pthstp-lst regc-int iregcs-int frm1
+        #2 pick regioncorr-intersection     \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' iregcs pthstp-lst regc-int iregcs-int, frm1' t | f
+        invert abort" intersection failed?"
+
+        \ Make and save pathstep.
+        pathstep-new                        \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' iregcs pthstp-lst pthstp
+        \ cr ." pathstep: frm1 to int: " dup .pathstep cr
+        over list-push-struct               \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' iregcs pthstp-lst
+
+        \ Get second path step, intersection to to2.
+
+        \ Get regioncorr in intregcs that intersects to2.
+        #6 pick                             \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' iregcs pthstp-lst to2
+        #2 pick intregcs-get-regioncorrs    \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' iregcs pthstp-lst to2 regc-lst
+        regioncorr-list-first-intersection  \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' iregcs pthstp-lst, regc-int t | f
+        invert abort" intersection not found?"
+
+        \ Get to2 intersection with chosen intregcs regioncorr.
+        #7 pick                             \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' iregcs pthstp-lst regc-int to2
+        over regioncorr-intersection        \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' iregcs pthstp-lst regc-int to2' t | f
+        invert abort" intersection failed?"
+        #3 pick intregcs-get-intersection   \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' iregcs pthstp-lst regc-int to2' iregcs-int
+
+        \ Make and save pathstep.
+        pathstep-new                        \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' iregcs pthstp-lst pthstp
+        \ cr ." pathstep: int to to2: " dup .pathstep cr
+        over pathstep-list-push-end         \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' iregcs pthstp-lst
+
+        \ cr ." pathStep list: " dup .pathstep-list cr
+        \ Cleanup.
+        nip                                 \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' pthstp-lst
+        swap regcints-list-deallocate       \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' pthstp-lst
+        swap regcints-list-deallocate       \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 pthstp-lst
+        nip nip nip nip nip                 \ pthstp-lst
+
+        \ Return.
+        true
+        exit
+    else
+        list-deallocate                     \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' frm-ints' to-ints'
+    then
+
+    \ Find path between closest pairs between regcis-frm-ints' and regcis-to-ints', using recursion.
+    cr ." todo" cr
+    abort
+
+
     false
 ;

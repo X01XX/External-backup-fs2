@@ -142,15 +142,15 @@ include domain_t.fs
 include session_t.fs
 
 \ Init array-stacks.
-#301 link-mma-init
+#501 link-mma-init
 #302 list-mma-init
 #030 structinfo-mma-init
 #200 mask-mma-init
-#200 state-mma-init
+#400 state-mma-init
 #200 region-mma-init
 #200 rule-mma-init
 #200 sample-mma-init
-#100 token-mma-init
+#300 token-mma-init
 #200 square-mma-init
 #010 action-mma-init
 #110 corner-mma-init

@@ -126,10 +126,12 @@ pathstep-to-disp        cell+   constant pathstep-within-disp            \ A reg
     \ Check arg.
     assert( tos is-pathstep? )
 
-    ." ( pthstp "
-          dup   pathstep-get-from   .regioncorr \ lst
-    space dup   pathstep-get-to     .regioncorr \ lst
-    space       pathstep-get-within .regioncorr \ lst
+    ." ( pthstp from: "
+    dup   pathstep-get-from   .regioncorr \ lst
+    space ." to: "
+    dup   pathstep-get-to     .regioncorr \ lst
+    space ." within: "
+    pathstep-get-within .regioncorr \ lst
     ." )"
 ;
 
