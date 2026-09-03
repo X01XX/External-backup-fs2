@@ -782,3 +782,31 @@
     drop
     false
 ;
+
+\ Return the minimum distance between any pair from two lists.
+: regioncorr-lists-min-distance ( regc-lst1 regc-lst0 -- u )
+    \ Check args.
+    assert( tos is-regioncorr-list? )
+    assert( nos is-regioncorr-list? )
+
+    \ Save minimum distance.
+    max-num >r                      \ regc-lst1 regc-lst0 R: min
+
+    foreach                         \ regc-lst1 regc-lnk0 regc0
+        #2 pick                     \ regc-lst1 regc-lnk0 regc0 regc-lst1
+        foreach                     \ regc-lst1 regc-lnk0 regc0 regc-lnk1 regc1
+            \ Get distance.
+            #2 pick                 \ regc-lst1 regc-lnk0 regc0 regc-lnk1 regc1 regc0
+            regioncorr-distance     \ regc-lst1 regc-lnk0 regc0 regc-lnk1 u
+            \ cr ." dist: " dup dec. cr
+
+            \ Update min distance.
+            r> min >r
+        next
+                                    \ regc-lst1 regc-lnk0 regc0
+        drop
+    next
+    \ Return                        \ regc-lst1
+    drop
+    r>
+;

@@ -1,3 +1,5 @@
+-1 1 rshift value max-num
+
 \ Exponential function, exponent s/b GE zero.
 \ If at the limit, 2 ^ 63, use "u." instead of "." to see the number.
 : exp ( n u -- u2 ) \ u3 = u1^u2,

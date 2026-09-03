@@ -645,9 +645,119 @@ cr ." todo session-get-current-regions" cr
     then
 
     \ Find path between closest pairs between regcis-frm-ints' and regcis-to-ints', using recursion.
-    cr ." todo" cr
-    abort
+                                            \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' frm-ints' to-ints'
+    rot regcints-list-deallocate            \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' frm-ints' to-ints'
+    rot regcints-list-deallocate            \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 frm-ints' to-ints'
 
+    \ Convert regcis-to-ints to intregcs-to-list.
+    list-new                                \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 frm-ints' to-ints' intregcs-to-lst'
+    over                                    \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 frm-ints' to-ints' intregcs-to-lst' to-ints'
+    foreach                                 \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 frm-ints' to-ints' intregcs-to-lst' to-ints-lnk intx
+        #9 pick                             \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 frm-ints' to-ints' intregcs-to-lst' to-ints-lnk intx iregcs-lst4
+        intregcs-list-find                  \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 frm-ints' to-ints' intregcs-to-lst' to-ints-lnk, iregcsx t | f
+        invert abort" intregcs not found?"
+        #2 pick                             \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 frm-ints' to-ints' intregcs-to-lst' to-ints-lnk iregcsx intregcs-to-lst'
+        list-push-struct                    \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 frm-ints' to-ints' intregcs-to-lst' to-ints-lnk
+    next
+                                            \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 frm-ints' to-ints' intregcs-to-lst'
+    swap regioncorr-list-deallocate         \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 frm-ints' intregcs-to-lst'
+
+    cr ." intregs-to-lst: " dup .intregcs-list cr
+
+    \ Convert regcis-frm-ints to intregcs-frm-list.
+    swap                                    \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 intregcs-to-lst' frm-ints'
+    list-new                                \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 intregcs-to-lst' frm-ints' iregcs-frm-lst'
+    over                                    \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 intregcs-to-lst' frm-ints' iregcs-frm-lst' frm-ints'
+    foreach                                 \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 intregcs-to-lst' frm-ints' iregcs-frm-lst' frm-ints-lnk intx
+        #9 pick                             \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 intregcs-to-lst' frm-ints' iregcs-frm-lst' frm-ints-lnk intx iregcs-lst4
+        intregcs-list-find                  \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 intregcs-to-lst' frm-ints' iregcs-frm-lst' frm-ints-lnk, iregcsx t | f
+        invert abort" intregcs not found?"
+        #2 pick                             \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 intregcs-to-lst' frm-ints' iregcs-frm-lst' frm-ints-lnk iregcsx iregcs-frm-lst'
+        list-push-struct                    \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 intregcs-to-lst' frm-ints' iregcs-frm-lst' frm-ints-lnk
+    next
+                                            \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 intregcs-to-lst' frm-ints' iregcs-frm-lst'
+    swap regioncorr-list-deallocate         \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 intregcs-to-lst' iregcs-frm-lst'
+
+    cr ." intregs-frm-lst: " dup .intregcs-list cr
+
+    \ Compare each possible from/to pair to get the minimum distance.
+    over                                    \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 intregcs-to-lst' iregcs-frm-lst' intregcs-to-lst'
+
+    \ Init min count.
+    max-num >r
+    foreach                                 \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 intregcs-to-lst' iregcs-frm-lst' intregcs-to-lnk iregcs-t
+        #2 pick                             \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 intregcs-to-lst' iregcs-frm-lst' intregcs-to-lnk iregcs-t iregcs-frm-lst'
+        foreach                             \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 intregcs-to-lst' iregcs-frm-lst' intregcs-to-lnk iregcs-t iregcs-frm-lnk iregcs-f
+            #2 pick                         \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 intregcs-to-lst' iregcs-frm-lst' intregcs-to-lnk iregcs-t iregcs-frm-lnk iregcs-f iregcs-t
+            cr ." comparing " over .intregcs space ." and " dup .intregcs
+            intregcs-min-distance           \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 intregcs-to-lst' iregcs-frm-lst' intregcs-to-lnk iregcs-t iregcs-frm-lnk dist
+            space ." min dist " dup dec. cr
+            \ Update min.
+            r> min >r
+        next
+        drop                                \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 intregcs-to-lst' iregcs-frm-lst' intregcs-to-lnk
+    next
+                                            \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 intregcs-to-lst' iregcs-frm-lst'
+    \ Get min distance.
+    r> cr ." min dist: " dup dec. cr
+
+    \ Get list of min dist intregc pairs.
+    list-new                                \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 intregcs-to-lst' iregcs-frm-lst' min min-iregcs-lst'
+    #3 pick                                 \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 intregcs-to-lst' iregcs-frm-lst' min min-iregcs-lst' intregcs-to-lst'
+    foreach                                 \ ... intregcs-to-lst' iregcs-frm-lst' min min-iregcs-lst' intregcs-to-lnk iregcs-t
+        #4 pick                             \ ... intregcs-to-lst' iregcs-frm-lst' min min-iregcs-lst' intregcs-to-lnk iregcs-t iregcs-frm-lst'
+        foreach                             \ ... intregcs-to-lst' iregcs-frm-lst' min min-iregcs-lst' intregcs-to-lnk iregcs-t iregcs-frm-lnk iregcs-f
+            #2 pick                         \ ... intregcs-to-lst' iregcs-frm-lst' min min-iregcs-lst' intregcs-to-lnk iregcs-t iregcs-frm-lnk iregcs-f iregcs-t
+            intregcs-min-distance           \ ... intregcs-to-lst' iregcs-frm-lst' min min-iregcs-lst' intregcs-to-lnk iregcs-t iregcs-frm-lnk dist
+            #5 pick =                       \ ... intregcs-to-lst' iregcs-frm-lst' min min-iregcs-lst' intregcs-to-lnk iregcs-t iregcs-frm-lnk bool
+            if
+                \ Make and store intregs pair ( iregcs-from iregn-to ).
+                list-new                    \ ... intregcs-to-lst' iregcs-frm-lst' min min-iregcs-lst' intregcs-to-lnk iregcs-t iregcs-frm-lnk pair
+                #2 pick over                \ ... intregcs-to-lst' iregcs-frm-lst' min min-iregcs-lst' intregcs-to-lnk iregcs-t iregcs-frm-lnk pair iregcs-t pair
+                list-push-struct            \ ... intregcs-to-lst' iregcs-frm-lst' min min-iregcs-lst' intregcs-to-lnk iregcs-t iregcs-frm-lnk pair
+                over link-get-data over     \ ... intregcs-to-lst' iregcs-frm-lst' min min-iregcs-lst' intregcs-to-lnk iregcs-t iregcs-frm-lnk pair iregcs-f pair
+                list-push-struct            \ ... intregcs-to-lst' iregcs-frm-lst' min min-iregcs-lst' intregcs-to-lnk iregcs-t iregcs-frm-lnk pair
+                #4 pick                     \ ... intregcs-to-lst' iregcs-frm-lst' min min-iregcs-lst' intregcs-to-lnk iregcs-t iregcs-frm-lnk pair min-iregcs-lst'
+                list-push-struct            \ ... intregcs-to-lst' iregcs-frm-lst' min min-iregcs-lst' intregcs-to-lnk iregcs-t iregcs-frm-lnk
+            then
+        next
+        drop                                \ ... intregcs-to-lst' iregcs-frm-lst' min min-iregcs-lst' intregcs-to-lnk
+    next
+                                            \ ... intregcs-to-lst' iregcs-frm-lst' min min-iregcs-lst'
+    nip                                     \ ... intregcs-to-lst' iregcs-frm-lst' min-iregcs-lst'
+    cr ." list len = " dup list-get-length dec. cr
+
+    \ Pick a pair.
+    dup list-get-length                     \ ... intregcs-to-lst' iregcs-frm-lst' min-iregcs-lst' les
+    random                                  \ ... intregcs-to-lst' iregcs-frm-lst' min-iregcs-lst' inx
+    over list-get-item                      \ ... intregcs-to-lst' iregcs-frm-lst' min-iregcs-lst' min-iregcs
+    cr ." iregcs chosen: " dup .intregcs-list cr
+
+    \ Recurse from intersection in irecs-f -> intersection of irecs-t.
+                                            \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 intregcs-to-lst' iregcs-frm-lst' min-iregcs-lst' min-iregcs
+    #8 pick #8 pick                         \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 intregcs-to-lst' iregcs-frm-lst' min-iregcs-lst' min-iregcs lst4 lst3
+    #2 pick list-get-second-item
+    intregcs-get-intersection               \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 intregcs-to-lst' iregcs-frm-lst' min-iregcs-lst' min-iregcs lst4 lst3 to
+    #3 pick list-get-first-item
+    intregcs-get-intersection               \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 intregcs-to-lst' iregcs-frm-lst' min-iregcs-lst' min-iregcs lst4 lst3 to frm
+    #8 pick                                 \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 intregcs-to-lst' iregcs-frm-lst' min-iregcs-lst' min-iregcs lst4 lst3 to frm sess0
+    recurse                                 \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 intregcs-to-lst' iregcs-frm-lst' min-iregcs-lst' min-iregcs, pthstp-lst t | f
+    if
+        cr ." recursion path: " dup .pathstep-list cr
+        pathstep-list-deallocate
+    else
+        cr ." recursion path not found" cr
+    then
+
+    \ Final path is: frm1 -> intersection in irecs-f ( within some regc in irecs-f ) -> recursion path -> intersection of irecs-t ( within some regc in irecs-t ) -> to2
+
+    \ Clean up.
+                                            \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 intregcs-to-lst' iregcs-frm-lst' min-iregcs-lst' min-iregcs
+    drop                                    \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 intregcs-to-lst' iregcs-frm-lst' min-iregcs-lst'
+    struct-list-deallocate                  \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 intregcs-to-lst' iregcs-frm-lst'
+    intregcs-list-deallocate                \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 intregcs-to-lst'
+    intregcs-list-deallocate                \ iregcs-lst4 regcis-lst3 to2 frm1 ses0
+    2drop 2drop drop
 
     false
 ;

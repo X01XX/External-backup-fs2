@@ -325,3 +325,25 @@
 
     false
 ;
+
+\ Return a list of intregcs than intersect a given regioncorr.
+: ?intregcs-intresection-regioncorr ( regc1 iregcs-lst0 -- iregcs-lst )
+    \ Check args.
+    assert( tos is-intregcs-list? )
+    assert( nos is-regioncorr? )
+
+    \ Init return list.
+    list-new -rot                           \ ret-lst regc1 iregcs-lst0
+
+    foreach                                 \ ret-lst regc1 iregcs-lnk0 iregcs
+        intregcs-get-regioncorrs            \ ret-lst regc1 iregcs-lnk0 regc-lst
+        #2 pick swap                        \ ret-lst regc1 iregcs-lnk0 regc1 regc-lst
+        \ regioncorr-list-any-intersection?   \ ret-lst regc1 iregcs-lnk0 bool
+        if
+            ." todo" abort
+        then
+    next
+                                            \ ret-lst regc1
+    drop
+;
+ 

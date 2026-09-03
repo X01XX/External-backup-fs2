@@ -52,7 +52,31 @@
     cr ." intregcs-test-from-string - Ok"
 ;
 
+: intregcs-test-min-distance
+    s" ( iregcs ( regc 0 0 (r1010)) (( regc 0 0 (r101X)) ( regc 0 0 (rX010))))" string-to-stack-a
+    s" ( iregcs ( regc 0 0 (r0100)) (( regc 0 0 (r010X)) ( regc 0 0 (rX100))))" string-to-stack-a
+
+    2dup
+    intregcs-min-distance           \ intregcs1 intregcs0 u
+
+    \ Diplay.
+    cr ." distance: " dup dec. cr
+
+    \ Test.
+    #2 <> abort" distance not 2?"
+
+    \ Deallocate.
+    intregcs-deallocate
+    intregcs-deallocate
+
+    \ Check for memory leaks.
+    check-project-deallocated
+
+    cr ." intregcs-test-min-distance - Ok"
+;
+
 : intregcs-tests
     intregcs-test-from-string
+    intregcs-test-min-distance
     cr
 ;

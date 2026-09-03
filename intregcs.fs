@@ -49,6 +49,7 @@ intregcs-intersection-disp cell+   constant intregcs-regioncorrs-disp     \ A li
 \ Set the intersection field from a intregcs instance, use only in this file.
 : _intregcs-set-intersection ( regc iregcs0 -- )
     \ Check args.
+    \ cr ." _intregcs-set-intersection: " .stack cr
     assert( tos is-intregcs? )
     assert( nos is-regioncorr? )
 
@@ -202,7 +203,7 @@ intregcs-intersection-disp cell+   constant intregcs-regioncorrs-disp     \ A li
 
 \ Return the length of the regioncorr list.
 : intregcs-get-length ( iregcs0 -- len )
-    \ Check args.
+    \ Check arg.
     assert( tos is-intregcs? )
 
     intregcs-get-regioncorrs    \ regc-lst
@@ -239,7 +240,7 @@ intregcs-intersection-disp cell+   constant intregcs-regioncorrs-disp     \ A li
     token-eq-string                     \ lst bool
     ifnot
         drop false
-        \ cr ." intregcs-list-definition?: exit 3" cr
+        cr ." intregcs-list-definition?: exit 3" cr
         exit
     then
 
@@ -344,4 +345,16 @@ intregcs-intersection-disp cell+   constant intregcs-regioncorrs-disp     \ A li
 : intregcs-from-string-a ( str-addr str-n -- iregcs )
     intregcs-from-string    \ regc t | f
     false? abort" intregcs-from-string-a failed?"
+;
+
+: intregcs-min-distance ( iregcs1 iregcs0 -- u )
+    \ Check args.
+    assert( tos is-intregcs? )
+    assert( nos is-intregcs? )
+
+    intregcs-get-regioncorrs
+    swap
+    intregcs-get-regioncorrs
+
+    regioncorr-lists-min-distance
 ;
