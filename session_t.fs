@@ -6,7 +6,7 @@
     \ Display results.
     cr dup .session cr
 
-    #4 over session-add-domain  \ sess dom
+    #5 over session-add-domain  \ sess dom
     drop
 
     \ Display results.
@@ -138,10 +138,7 @@
         cr s" path: " #2 pick .pathstep-list-prefix cr
 
         \ Test results.
-        dup list-get-length #2 <> abort" PathStep list len ne 1?"
-
-        dup pathstep-list-get-from cr ." from: " .regioncorr
-        dup pathstep-list-get-to space ." to: " .regioncorr cr
+        dup list-get-length #2 <> abort" PathStep list len ne 2?"
 
         \ Check pathstep start.
         s" ( regc 1  0 (r0100))" string-to-stack-a
@@ -232,20 +229,22 @@
         \ Display results.
         cr s" path: " #2 pick .pathstep-list-prefix cr
 
-        \ Test results.
-        dup list-get-length #2 <> abort" PathStep list len ne 1?"
+        \ Set rate pathstep.
+        #6 pick                                                         \ sess avd-lst cmp-lst spl-lst2 intregcs-lst regcints-lst to from pthstp-lst cmp-lst
+        over                                                            \ sess avd-lst cmp-lst spl-lst2 intregcs-lst regcints-lst to from pthstp-lst cmp-lst pthstp-lst
+        pathstep-list-rate                                              \ sess avd-lst cmp-lst spl-lst2 intregcs-lst regcints-lst to from pthstp-lst
 
-        dup pathstep-list-get-from cr ." from: " .regioncorr
-        dup pathstep-list-get-to space ." to: " .regioncorr cr
+        \ Test results.
+        \ dup list-get-length #3 <> abort" PathStep list len ne 3?"
 
         \ Check pathstep start.
-        s" ( regc 1  0 (r0100))" string-to-stack-a
+        s" ( regc 1  0 (r0111))" string-to-stack-a
         over pathstep-list-get-from
         over regioncorrs-eq-regions? invert abort" from not matched?"
         regioncorr-deallocate
 
         \ Check pathstep end.
-        s" ( regc 1  0 (r1011))" string-to-stack-a
+        s" ( regc 1  0 (r1101))" string-to-stack-a
         over pathstep-list-get-to
         over regioncorrs-eq-regions? invert abort" from not matched?"
         regioncorr-deallocate
@@ -253,7 +252,7 @@
         \ Clean up.
         pathstep-list-deallocate
     else
-        cr ." path not found" cr    \ abort
+        cr ." path not found" cr abort
     then
 
     \ Clean up.

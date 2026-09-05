@@ -731,3 +731,35 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
     drop
     true
 ;
+
+\ Rate a regioncorr, given a regioncorr list.
+: regioncorr-rate ( regc-lst1 regc0 -- )
+    \ Check args.
+    assert( tos is-regioncorr? )
+    assert( nos is-regioncorr-list?-xt execute )
+
+    dup regioncorr-init-values              \ regc-lst1 regc0
+    swap                                    \ regc0 regc-lst1
+
+    \ cr ." regioncorr-rate: regc start: " over .regioncorr cr
+    foreach                                 \ regc0 regc-lnk1 regcx
+        #2 pick swap                        \ regc0 regc-lnk1 regc0 regcx
+        regioncorr-superset?                \ regc0 regc-lnk1 bool
+        if
+            dup link-get-data               \ regc0 regc-lnk1 regcx
+
+            \ Update positive value.
+            dup regioncorr-get-pos-value    \ regc0 regc-lnk1 regcx pos
+            #3 pick                         \ regc0 regc-lnk1 regcx pos regc0
+            regioncorr-add-pos-value        \ regc0 regc-lnk1 regcx
+
+            \ Update negative value.
+            regioncorr-get-neg-value        \ regc0 regc-lnk1 neg
+            #2 pick                         \ regc0 regc-lnk1 neg regc0
+            regioncorr-add-neg-value        \ regc0 regc-lnk1
+        then
+    next
+                                            \ regc0
+    \ cr ." regioncorr-rate: regc end: " dup .regioncorr cr
+    drop
+;

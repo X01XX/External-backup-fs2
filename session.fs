@@ -511,6 +511,7 @@ cr ." todo session-get-current-regions" cr
     assert( 3os is-regioncorr? )
     assert( 4os is-regcints-list? )
     assert( 5os is-intregcs-list? )
+    cr ." session-find-path: from " over .regioncorr space ." to " #2 pick .regioncorr cr
 
     \ Get regcints that intersect the frm1 regioncorr.
     over                                \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 frm1
@@ -561,6 +562,7 @@ cr ." todo session-get-current-regions" cr
 
         \ Return.
         true
+        cr ." session-find-path: exit 1" cr
         exit
     else
         list-deallocate                 \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints'
@@ -639,6 +641,7 @@ cr ." todo session-get-current-regions" cr
 
         \ Return.
         true
+        cr ." session-find-path: exit 2" cr
         exit
     else
         list-deallocate                     \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' frm-ints' to-ints'
@@ -662,7 +665,7 @@ cr ." todo session-get-current-regions" cr
                                             \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 frm-ints' to-ints' intregcs-to-lst'
     swap regioncorr-list-deallocate         \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 frm-ints' intregcs-to-lst'
 
-    cr ." intregs-to-lst: " dup .intregcs-list cr
+    cr s" intregs-to-lst: " #2 pick .intregcs-list-prefix cr
 
     \ Convert regcis-frm-ints to intregcs-frm-list.
     swap                                    \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 intregcs-to-lst' frm-ints'
@@ -678,7 +681,7 @@ cr ." todo session-get-current-regions" cr
                                             \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 intregcs-to-lst' frm-ints' iregcs-frm-lst'
     swap regioncorr-list-deallocate         \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 intregcs-to-lst' iregcs-frm-lst'
 
-    cr ." intregs-frm-lst: " dup .intregcs-list cr
+    cr s" intregs-frm-lst: " #2 pick .intregcs-list-prefix cr
 
     \ Compare each possible from/to pair to get the minimum distance.
     over                                    \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 intregcs-to-lst' iregcs-frm-lst' intregcs-to-lst'
@@ -689,9 +692,9 @@ cr ." todo session-get-current-regions" cr
         #2 pick                             \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 intregcs-to-lst' iregcs-frm-lst' intregcs-to-lnk iregcs-t iregcs-frm-lst'
         foreach                             \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 intregcs-to-lst' iregcs-frm-lst' intregcs-to-lnk iregcs-t iregcs-frm-lnk iregcs-f
             #2 pick                         \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 intregcs-to-lst' iregcs-frm-lst' intregcs-to-lnk iregcs-t iregcs-frm-lnk iregcs-f iregcs-t
-            cr ." comparing " over .intregcs space ." and " dup .intregcs
+            \ cr ." comparing " over .intregcs space ." and " dup .intregcs
             intregcs-min-distance           \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 intregcs-to-lst' iregcs-frm-lst' intregcs-to-lnk iregcs-t iregcs-frm-lnk dist
-            space ." min dist " dup dec. cr
+            \ space ." min dist " dup dec. cr
             \ Update min.
             r> min >r
         next
@@ -731,7 +734,7 @@ cr ." todo session-get-current-regions" cr
     dup list-get-length                     \ ... intregcs-to-lst' iregcs-frm-lst' min-iregcs-lst' les
     random                                  \ ... intregcs-to-lst' iregcs-frm-lst' min-iregcs-lst' inx
     over list-get-item                      \ ... intregcs-to-lst' iregcs-frm-lst' min-iregcs-lst' min-iregcs
-    cr ." iregcs chosen: " dup .intregcs-list cr
+    cr s" iregcs chosen: " #2 pick .intregcs-list-prefix cr
 
     \ Recurse from intersection in irecs-f -> intersection of irecs-t.
                                             \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 intregcs-to-lst' iregcs-frm-lst' min-iregcs-lst' min-iregcs
@@ -743,21 +746,35 @@ cr ." todo session-get-current-regions" cr
     #8 pick                                 \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 intregcs-to-lst' iregcs-frm-lst' min-iregcs-lst' min-iregcs lst4 lst3 to frm sess0
     recurse                                 \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 intregcs-to-lst' iregcs-frm-lst' min-iregcs-lst' min-iregcs, pthstp-lst t | f
     if
-        cr ." recursion path: " dup .pathstep-list cr
-        pathstep-list-deallocate
+        cr s" recursion path: " #2 pick .pathstep-list-prefix cr
+        \ pathstep-list-deallocate
     else
         cr ." recursion path not found" cr
     then
 
     \ Final path is: frm1 -> intersection in irecs-f ( within some regc in irecs-f ) -> recursion path -> intersection of irecs-t ( within some regc in irecs-t ) -> to2
+                                            \ ... min-iregcs-lst' min-iregcs pthstp-lst
+    #6 pick                                 \ ... min-iregcs-lst' min-iregcs pthstp-lst frm
+    #2 pick list-get-first-item             \ ... min-iregcs-lst' min-iregcs pthstp-lst frm iregcs-frm
+    intregcs-pathstep-from                  \ ... min-iregcs-lst' min-iregcs pthstp-lst pthstp-frm
+    over pathstep-list-push                 \ ... min-iregcs-lst' min-iregcs pthstp-lst
+    cr s" from + recursion path: " #2 pick .pathstep-list-prefix cr
+
+    #7 pick                                 \ ... min-iregcs-lst' min-iregcs pthstp-lst to
+    #2 pick list-get-second-item            \ ... min-iregcs-lst' min-iregcs pthstp-lst to iregcs-to
+    intregcs-pathstep-to                    \ ... min-iregcs-lst' min-iregcs pthstp-lst pthstp-to
+    over pathstep-list-push-end             \ ... min-iregcs-lst' min-iregcs pthstp-lst
+    cr s" from + recursion path + to: " #2 pick .pathstep-list-prefix cr
 
     \ Clean up.
-                                            \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 intregcs-to-lst' iregcs-frm-lst' min-iregcs-lst' min-iregcs
-    drop                                    \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 intregcs-to-lst' iregcs-frm-lst' min-iregcs-lst'
-    struct-list-deallocate                  \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 intregcs-to-lst' iregcs-frm-lst'
-    intregcs-list-deallocate                \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 intregcs-to-lst'
-    intregcs-list-deallocate                \ iregcs-lst4 regcis-lst3 to2 frm1 ses0
-    2drop 2drop drop
+                                            \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 intregcs-to-lst' iregcs-frm-lst' min-iregcs-lst' min-iregcs pthstp
+    nip                                     \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 intregcs-to-lst' iregcs-frm-lst' min-iregcs-lst' pthstp
+    swap struct-list-deallocate             \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 intregcs-to-lst' iregcs-frm-lst' pthstp
+    swap intregcs-list-deallocate           \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 intregcs-to-lst' pthstp
+    swap intregcs-list-deallocate           \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 pthstp
+    nip nip nip nip nip                     \ pthstp
 
-    false
+    \ Return.
+    true
+    cr ." session-find-path: exit 3" cr
 ;

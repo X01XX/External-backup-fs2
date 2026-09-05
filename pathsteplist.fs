@@ -71,6 +71,32 @@
     then
 ;
 
+\ Push a pathstep to the beginning of a pathstep list.
+\ If the list is not empty, the next step from field
+\ should equal the new step to field.
+: pathstep-list-push ( pthstp1 pthstp-lst0 -- )
+    \ Check args.
+    assert( tos is-pathstep-list? )
+    assert( nos is-pathstep? )
+
+    dup list-get-length         \ pthstp1 pthstp-lst0 len
+    0>                          \ pthstp1 pthstp-lst0 bool
+    if
+        dup list-get-first-item \ pthstp1 pthstp-lst0 first
+        pathstep-get-from       \ pthstp1 pthstp-lst0 from
+        #2 pick                 \ pthstp1 pthstp-lst0 from pthstp1
+        pathstep-get-to         \ pthstp1 pthstp-lst0 from to
+        \ cr ." from " over .regioncorr space ." to: " dup .regioncorr cr
+        regioncorrs-eq-regions? \ pthstp1 pthstp-lst0 bool
+        ifnot
+            cr ." from-to intra pathstep error?" cr
+            abort
+        then
+    then
+
+    list-push-struct
+;
+
 \ Push a pathstep to the end of a pathstep list.
 \ If there is a previous step, the previous step to field
 \ should equal the new step from field.
@@ -86,7 +112,7 @@
         pathstep-get-to         \ pthstp1 pthstp-lst0 to
         #2 pick                 \ pthstp1 pthstp-lst0 to pthstp1
         pathstep-get-from       \ pthstp1 pthstp-lst0 to from
-        regioncorrs-eq?         \ pthstp1 pthstp-lst0 bool
+        regioncorrs-eq-regions? \ pthstp1 pthstp-lst0 bool
         ifnot
             cr ." to-from intra pathstep error?" cr
             abort
@@ -112,4 +138,18 @@
 
     list-get-last-item      \ pthstp
     pathstep-get-to         \ regc
+;
+
+\ Rate regioncorrs within a pathsteps, given a regioncorr list.
+: pathstep-list-rate ( regc-lst1 pthstp-lst0 -- )
+    \ Check args.
+    assert( tos is-pathstep-list? )
+    assert( nos is-regioncorr-list? )
+
+    foreach                     \ regc-lst1 pthstp-lnk0 pthstp0
+        #2 pick swap            \ regc-lst1 pthstp-lnk0 regc-lst1 pthstp0
+        pathstep-rate           \ regc-lst1 pthstp-lnk0
+    next
+                                \ regc-lst1
+    drop
 ;

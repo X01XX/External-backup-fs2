@@ -19,6 +19,8 @@
     is-regioncorr?          \ bool
 ;
 
+' is-regioncorr-list? to is-regioncorr-list?-xt
+
 \ Deallocate a regioncorr list.
 : regioncorr-list-deallocate ( regc-lst0 -- )
     \ Check arg.
@@ -809,4 +811,18 @@
     \ Return                        \ regc-lst1
     drop
     r>
+;
+
+\ Rate regioncorrs in a list, given a regioncorr list.
+: regioncorr-list-rate ( regc-lst1 regc-lst0 -- )
+    \ Check args.
+    assert( tos is-regioncorr-list? )
+    assert( nos is-regioncorr-list? )
+
+    foreach             \ regc-lst1 regc-lnk0 regc0
+        #2 pick swap    \ regc-lst1 regc-lnk0 regc-lst1 regc0
+        regioncorr-rate \ regc-lst1 regc-lnk0
+    next
+                        \ regc-lst1
+    drop
 ;

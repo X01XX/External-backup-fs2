@@ -77,13 +77,14 @@ include tokenlist.fs
 
 include regioncorr.fs
 include regioncorrlist.fs
+
+include pathstep.fs
+include pathsteplist.fs
+
 include intregcs.fs
 include intregcslist.fs
 include regcints.fs
 include regcintslist.fs
-
-include pathstep.fs
-include pathsteplist.fs
 
 include structinfo.fs
 include structinfolist.fs
@@ -142,26 +143,26 @@ include domain_t.fs
 include session_t.fs
 
 \ Init array-stacks.
-#501 link-mma-init
-#302 list-mma-init
-#030 structinfo-mma-init
-#200 mask-mma-init
-#400 state-mma-init
-#200 region-mma-init
-#200 rule-mma-init
-#200 sample-mma-init
-#300 token-mma-init
-#200 square-mma-init
-#010 action-mma-init
-#110 corner-mma-init
-\ #110 need-mma-init
-#130 group-mma-init
-#200 regioncorr-mma-init
-#100 intregcs-mma-init
-#100 regcints-mma-init
-#100 pathstep-mma-init
-#010 domain-mma-init
-#005 session-mma-init
+#1000 link-mma-init
+#0302 list-mma-init
+#0030 structinfo-mma-init
+#0200 mask-mma-init
+#0400 state-mma-init
+#0200 region-mma-init
+#0200 rule-mma-init
+#0200 sample-mma-init
+#0300 token-mma-init
+#0200 square-mma-init
+#0010 action-mma-init
+#0110 corner-mma-init
+\ #0110 need-mma-init
+#0130 group-mma-init
+#0200 regioncorr-mma-init
+#0100 intregcs-mma-init
+#0100 regcints-mma-init
+#0100 pathstep-mma-init
+#0010 domain-mma-init
+#0005 session-mma-init
 cr cr
 
 \ Init structinfo list.

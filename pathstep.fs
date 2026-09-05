@@ -161,3 +161,18 @@ pathstep-to-disp        cell+   constant pathstep-within-disp            \ A reg
     then
 ;
 
+\ Rate regioncorrs within a pathstep, given a regioncorr list.
+: pathstep-rate ( regc-lst1 pthstp0 -- )
+    \ Check args.
+    assert( tos is-pathstep? )
+    assert( nos is-regioncorr-list? )
+
+    \ cr ." pathstep-rate: start: " dup .pathstep over space .regioncorr-list cr
+
+    over                            \ regc-lst1 pthstp0 regc-lst1
+    over pathstep-get-from          \ regc-lst1 pthstp0 regc-lst1 frm
+    regioncorr-rate                 \ regc-lst1 pthstp0
+
+    pathstep-get-to                 \ regc-lst1 to
+    regioncorr-rate
+;

@@ -358,3 +358,44 @@ intregcs-intersection-disp cell+   constant intregcs-regioncorrs-disp     \ A li
 
     regioncorr-lists-min-distance
 ;
+
+\ Return a pathstep from a given regioncorr to the intregcs intersection.
+: intregcs-pathstep-from ( regc1 iregcs0 -- pthstp )
+    \ Check args.
+    assert( tos is-intregcs? )
+    assert( nos is-regioncorr? )
+    \ cr ." intregcs-pathstep-from: " over .regioncorr space dup .intregcs cr
+
+    over                                \ regc1 iregcs0 regc1
+    over intregcs-get-regioncorrs       \ regc1 iregcs0 regc1 regc-lst
+    regioncorr-list-first-intersection  \ regc1 iregcs0, regc-wi t | f
+    invert abort" intersection not found?"
+
+    rot                                 \ iregc0 regc-wi regc1
+    over regioncorr-intersection        \ iregc0 regc-wi, regc1' t | f
+    invert abort" intersection not found?"
+
+    rot intregcs-get-intersection       \ regc-wi regc1 int
+    swap                                \ regc-wi int regc1
+    pathstep-new                        \ pthstp
+;
+
+\ Return a pathstep to a given regioncorr from the intregcs intersection.
+: intregcs-pathstep-to ( regc1 iregcs0 -- pthstp )
+    \ Check args.
+    assert( tos is-intregcs? )
+    assert( nos is-regioncorr? )
+    \ cr ." intregcs-pathstep-to: " over .regioncorr space dup .intregcs cr
+
+    over                                \ regc1 iregcs0 regc1
+    over intregcs-get-regioncorrs       \ regc1 iregcs0 regc1 regc-lst
+    regioncorr-list-first-intersection  \ regc1 iregcs0, regc-wi t | f
+    invert abort" intersection not found?"
+
+    rot                                 \ iregc0 regc-wi regc1
+    over regioncorr-intersection        \ iregc0 regc-wi, regc1' t | f
+    invert abort" intersection not found?"
+
+    rot intregcs-get-intersection       \ regc-wi regc1 int
+    pathstep-new                        \ pthstp
+;
