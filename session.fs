@@ -572,23 +572,33 @@ cr ." todo session-get-current-regions" cr
                                             \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints'
 
     over regcints-list-union-intersections  \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' frm-ints'
-    over regcints-list-union-intersections  \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' frm-ints' to-ints'
-    2dup regioncorr-list-set-intersection   \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' frm-ints' to-ints' both-ints'
+    #4 pick                                 \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' frm-ints' frm1
+    over                                    \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' frm-ints' frm1 frm-ints'
+    regioncorr-list-non-intersections       \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' frm-ints' frm-ints2'
+    swap regioncorr-list-deallocate         \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' frm-ints2'
+
+    over regcints-list-union-intersections  \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' frm-ints2' to-ints'
+    #6 pick                                 \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' frm-ints2' to-ints' to2
+    over                                    \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' frm-ints2' to-ints' to2 to-ints'
+    regioncorr-list-non-intersections       \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' frm-ints2' to-ints' to-ints2'
+    swap regioncorr-list-deallocate         \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' frm-ints2' to-ints2'
+
+    2dup regioncorr-list-set-intersection   \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' frm-ints2' to-ints2' both-ints'
     \ cr ." shared intersections: " dup .regioncorr-list cr
     dup list-is-not-empty?
     if
-        dup list-get-length                 \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' frm-ints' to-ints' both-ints' len
-        random                              \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' frm-ints' to-ints' both-ints' inx
-        over list-get-item                  \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' frm-ints' to-ints' both-ints' intx
+        dup list-get-length                 \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' frm-ints2' to-ints2' both-ints' len
+        random                              \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' frm-ints2' to-ints2' both-ints' inx
+        over list-get-item                  \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' frm-ints2' to-ints2' both-ints' intx
         \ cr ." int chosen: " dup .regioncorr cr
 
-        #10 pick                            \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' frm-ints' to-ints' both-ints' intx iregcs-lst4
-        intregcs-list-find                  \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' frm-ints' to-ints' both-ints', iregcs t | f
+        #10 pick                            \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' frm-ints2' to-ints2' both-ints' intx iregcs-lst4
+        intregcs-list-find                  \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' frm-ints2' to-ints2' both-ints', iregcs t | f
         invert abort" intregcs-find failed?"
 
         \ cr ." found: " dup .intregcs cr
-        swap regioncorr-list-deallocate     \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' frm-ints' to-ints' iregcs
-        swap regioncorr-list-deallocate     \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' frm-ints' iregcs
+        swap regioncorr-list-deallocate     \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' frm-ints2' to-ints2' iregcs
+        swap regioncorr-list-deallocate     \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' frm-ints2' iregcs
         swap regioncorr-list-deallocate     \ iregcs-lst4 regcis-lst3 to2 frm1 ses0 regcis-frm-ints' regcis-to-ints' iregcs
 
         \ Init PathStep list.

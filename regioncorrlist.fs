@@ -826,3 +826,27 @@
                         \ regc-lst1
     drop
 ;
+
+\ Return list items that do not intersect a given regioncorr.
+: regioncorr-list-non-intersections ( regc2 regcslst0 -- regc-lst )
+    \ Check args.
+    assert( tos is-regioncorr-list? )
+    assert( nos is-regioncorr? )
+    \ cr ." regioncorr-list-non-intersections: in: " dup list-get-length dec. cr
+
+    \ Init return list.
+    list-new -rot               \ ret-lst regc2 regcslst0
+
+    foreach                     \ ret-lst regc2 regcslnt0 regcs0x
+        #2 pick                 \ ret-lst regc2 regcslnt0 regcs0x regc2
+        regioncorrs-intersect?  \ ret-lst regc2 regcslnt0 bool
+        ifnot
+            dup link-get-data   \ ret-lst regc2 regcslnt0 regcs0x
+            #3 pick             \ ret-lst regc2 regcslnt0 regcs0x ret-lst
+            list-push-struct    \ ret-lst regc2 regcslnt0
+        then
+    next
+                                \ ret-lst regc2
+    drop
+    \ cr ." regioncorr-list-non-intersections: out: " dup list-get-length dec. cr
+;
