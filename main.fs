@@ -18,11 +18,11 @@
 \ RuleCorr  Corner  StructInfo  PathStep
 \ 53171,    53719,  53731       53197
 \
-\ Token     IntRegcs    RegcInts
-\ 59797     23173       61979
+\ Token     IntRegcs    RegcInts PathData
+\ 59797     23173       61979       61379
 \
 \ Struct ids not yet used:
-\ 61379, 41719, 471737.
+\ 41719, 471737.
 \
 \ Same as fs1, possibly.
 \ 31973, future Changes?
@@ -86,6 +86,8 @@ include intregcslist.fs
 include regcints.fs
 include regcintslist.fs
 
+include pathdata.fs
+
 include structinfo.fs
 include structinfolist.fs
 include stackprint.fs
@@ -141,6 +143,7 @@ include group_t.fs
 include incpairs_t.fs
 include domain_t.fs
 include session_t.fs
+include pathdata_t.fs
 
 \ Init array-stacks.
 #1000 link-mma-init
@@ -161,6 +164,7 @@ include session_t.fs
 #0100 intregcs-mma-init
 #0100 regcints-mma-init
 #0100 pathstep-mma-init
+#0020 pathdata-mma-init
 #0010 domain-mma-init
 #0005 session-mma-init
 cr cr
@@ -188,6 +192,7 @@ list-new to structinfo-list-store
 ' noop  ' noop  ' =             ' noop                  ' square-deallocate     ' .square       s" Square"      square-mma      square-struct-id        structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' =             ' noop                  ' group-deallocate      ' .group        s" Group"       group-mma       group-struct-id         structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' noop          ' noop                  ' domain-deallocate     ' .domain       s" Domain"      domain-mma      domain-struct-id        structinfo-new structinfo-list-store-push-end
+' noop  ' noop  ' noop          ' noop                  ' pathdata-deallocate   ' .pathdata     s" PathData"    pathdata-mma    pathdata-struct-id      structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' noop          ' noop                  ' session-deallocate    ' .session      s" Session"     session-mma     session-struct-id       structinfo-new structinfo-list-store-push-end
 ' regcints-from-list  ' regcints-list-definition?   ' noop  ' noop  ' regcints-deallocate ' .regcints   s" RegcInts"  regcints-mma  regcints-struct-id    structinfo-new structinfo-list-store-push-end
 
@@ -264,6 +269,7 @@ list-new to structinfo-list-store
     regcints-list-tests
     pathstep-tests
     pathstep-list-tests
+    pathdata-tests
     session-tests
     cr
 ;

@@ -72,7 +72,7 @@
     region-deallocate                   \
 
     \ Check for memory leaks.
-     check-project-deallocated
+    check-project-deallocated
 
     cr ." region-test-intersection - Ok"
 ;
@@ -80,4 +80,5 @@
 : region-tests
     region-test-basic
     region-test-intersection
+    cr
 ;
