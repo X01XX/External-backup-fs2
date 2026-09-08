@@ -87,6 +87,7 @@ include regcints.fs
 include regcintslist.fs
 
 include pathdata.fs
+include pathdatalist.fs
 
 include structinfo.fs
 include structinfolist.fs

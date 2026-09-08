@@ -56,7 +56,7 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
     \ Check args.
     assert( tos is-regioncorr? )
     assert( nos is-region-list? )
-    assert( nos list-is-empty? invert )
+    \ assert( nos list-is-empty? invert )
 
     \ Store list
     regioncorr-list-disp +    \ Add offset.

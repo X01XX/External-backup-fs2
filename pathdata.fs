@@ -271,32 +271,40 @@ pathdata-intregcs-list-disp     cell+   constant pathdata-regcints-list-disp    
     \ Check for the second easiest PathStep, possibly reached by recursion.
                                             \ to2 frm1 pd0 regcis-frm-ints' regcis-to-ints'
 
+    \ Get intersections of the regcints list, where frm1 intersects the regioncorr.
+    \ Collect the intersctions that frm1 does not intersect.
     over regcints-list-union-intersections  \ to2 frm1 pd0 regcis-frm-ints' regcis-to-ints' frm-ints'
     #4 pick                                 \ to2 frm1 pd0 regcis-frm-ints' regcis-to-ints' frm-ints' frm1
     over                                    \ to2 frm1 pd0 regcis-frm-ints' regcis-to-ints' frm-ints' frm1 frm-ints'
     regioncorr-list-non-intersections       \ to2 frm1 pd0 regcis-frm-ints' regcis-to-ints' frm-ints' frm-ints2'
     swap regioncorr-list-deallocate         \ to2 frm1 pd0 regcis-frm-ints' regcis-to-ints' frm-ints2'
 
+    \ Get intersections of the regcints list, where to2 intersects the regioncorr.
+    \ Collect the intersctions that to2 does not intersect.
     over regcints-list-union-intersections  \ to2 frm1 pd0 regcis-frm-ints' regcis-to-ints' frm-ints2' to-ints'
     #6 pick                                 \ to2 frm1 pd0 regcis-frm-ints' regcis-to-ints' frm-ints2' to-ints' to2
     over                                    \ to2 frm1 pd0 regcis-frm-ints' regcis-to-ints' frm-ints2' to-ints' to2 to-ints'
     regioncorr-list-non-intersections       \ to2 frm1 pd0 regcis-frm-ints' regcis-to-ints' frm-ints2' to-ints' to-ints2'
     swap regioncorr-list-deallocate         \ to2 frm1 pd0 regcis-frm-ints' regcis-to-ints' frm-ints2' to-ints2'
 
+    \ Check for an intersection connecting an frm1 regioncoor intersection to a to2 regioncorr intersection.
     2dup regioncorr-list-set-intersection   \ to2 frm1 pd0 regcis-frm-ints' regcis-to-ints' frm-ints2' to-ints2' both-ints'
     \ cr ." shared intersections: " dup .regioncorr-list cr
     dup list-is-not-empty?
     if
+        \ Select an intersection, if there is more than one.
         dup list-get-length                 \ to2 frm1 pd0 regcis-frm-ints' regcis-to-ints' frm-ints2' to-ints2' both-ints' len
         random                              \ to2 frm1 pd0 regcis-frm-ints' regcis-to-ints' frm-ints2' to-ints2' both-ints' inx
         over list-get-item                  \ to2 frm1 pd0 regcis-frm-ints' regcis-to-ints' frm-ints2' to-ints2' both-ints' intx
         \ cr ." int chosen: " dup .regioncorr cr
 
+        \ Find the intregcs instance for tha selected intersection.
         #6 pick pathdata-get-intregcs-list  \ to2 frm1 pd0 regcis-frm-ints' regcis-to-ints' frm-ints2' to-ints2' both-ints' intx iregcs-lst
         intregcs-list-find                  \ to2 frm1 pd0 regcis-frm-ints' regcis-to-ints' frm-ints2' to-ints2' both-ints', iregcs t | f
         invert abort" intregcs-find failed?"
 
         \ cr ." found: " dup .intregcs cr
+        \ Cleat up.
         swap regioncorr-list-deallocate     \ to2 frm1 pd0 regcis-frm-ints' regcis-to-ints' frm-ints2' to-ints2' iregcs
         swap regioncorr-list-deallocate     \ to2 frm1 pd0 regcis-frm-ints' regcis-to-ints' frm-ints2' iregcs
         swap regioncorr-list-deallocate     \ to2 frm1 pd0 regcis-frm-ints' regcis-to-ints' iregcs
@@ -318,7 +326,7 @@ pathdata-intregcs-list-disp     cell+   constant pathdata-regcints-list-disp    
         #2 pick regioncorr-intersection     \ to2 frm1 pd0 regcis-frm-ints' regcis-to-ints' iregcs pthstp-lst regc-int iregcs-int, frm1' t | f
         invert abort" intersection failed?"
 
-        \ Make and save pathstep.
+        \ Make and save first pathstep.
         pathstep-new                        \ to2 frm1 pd0 regcis-frm-ints' regcis-to-ints' iregcs pthstp-lst pthstp
         \ cr ." pathstep: frm1 to int: " dup .pathstep cr
         over list-push-struct               \ to2 frm1 pd0 regcis-frm-ints' regcis-to-ints' iregcs pthstp-lst
@@ -337,7 +345,7 @@ pathdata-intregcs-list-disp     cell+   constant pathdata-regcints-list-disp    
         invert abort" intersection failed?"
         #3 pick intregcs-get-intersection   \ to2 frm1 pd0 regcis-frm-ints' regcis-to-ints' iregcs pthstp-lst regc-int to2' iregcs-int
 
-        \ Make and save pathstep.
+        \ Make and save second pathstep.
         pathstep-new                        \ to2 frm1 pd0 regcis-frm-ints' regcis-to-ints' iregcs pthstp-lst pthstp
         \ cr ." pathstep: int to to2: " dup .pathstep cr
         over pathstep-list-push-end         \ to2 frm1 pd0 regcis-frm-ints' regcis-to-ints' iregcs pthstp-lst
@@ -353,14 +361,15 @@ pathdata-intregcs-list-disp     cell+   constant pathdata-regcints-list-disp    
         true
         \ cr ." pathdata-find-path2: exit 2" cr
         exit
-    else
-        list-deallocate                     \ to2 frm1 pd0 regcis-frm-ints' regcis-to-ints' frm-ints' to-ints'
     then
 
-    \ Find path between closest pairs between regcis-frm-ints' and regcis-to-ints', using recursion.
-                                            \ to2 frm1 pd0 regcis-frm-ints' regcis-to-ints' frm-ints' to-ints'
+                                            \ to2 frm1 pd0 regcis-frm-ints' regcis-to-ints' frm-ints' to-ints' both-ints' ( empty at this point )
+    \ Clean up.
+    list-deallocate                         \ to2 frm1 pd0 regcis-frm-ints' regcis-to-ints' frm-ints' to-ints'
     rot regcints-list-deallocate            \ to2 frm1 pd0 regcis-frm-ints' frm-ints' to-ints'
     rot regcints-list-deallocate            \ to2 frm1 pd0 frm-ints' to-ints'
+
+    \ Find path between closest pairs between regcis-frm-ints' and regcis-to-ints', using recursion.
 
     \ Convert regcis-to-ints to intregcs-to-list.
     list-new                                \ to2 frm1 pd0 frm-ints' to-ints' intregcs-to-lst'
@@ -440,7 +449,7 @@ pathdata-intregcs-list-disp     cell+   constant pathdata-regcints-list-disp    
     nip                                     \ ... intregcs-to-lst' iregcs-frm-lst' min-iregcs-lst'
     \ cr ." list len = " dup list-get-length dec. cr
 
-    \ Pick a pair.
+    \ Pick a pair, if there is more than one.
     dup list-get-length                     \ ... intregcs-to-lst' iregcs-frm-lst' min-iregcs-lst' les
     random                                  \ ... intregcs-to-lst' iregcs-frm-lst' min-iregcs-lst' inx
     over list-get-item                      \ ... intregcs-to-lst' iregcs-frm-lst' min-iregcs-lst' min-iregcs
@@ -460,7 +469,7 @@ pathdata-intregcs-list-disp     cell+   constant pathdata-regcints-list-disp    
         struct-list-deallocate              \ to2 frm1 pd0 intregcs-to-lst' iregcs-frm-lst'
         intregcs-list-deallocate            \ to2 frm1 pd0 intregcs-to-lst'
         intregcs-list-deallocate            \ to2 frm1 pd0
-        nip nip nip
+        2drop drop
         false
         exit
     then
