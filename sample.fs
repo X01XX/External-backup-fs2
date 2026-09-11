@@ -86,7 +86,7 @@ sample-initial-disp cell+   constant sample-result-disp     \ Result state.
     assert( nos is-state? )
     assert( 2dup states-same-num-bits? )
 
-    \ Allocate space.
+    \ Allocate instance.
     sample-struct-id sample-mma
     struct-allocate             \ u1 u2 smpl
 

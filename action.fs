@@ -93,7 +93,7 @@ action-groups-disp                          cell+   constant action-function-dis
 ' action-get-inst-id to action-get-inst-id-xt
 
 \ Set the action id.
-: _action-set-inst-id ( id act0 -- )
+: action-set-inst-id ( id act0 -- )
     5c!
 ;
 
@@ -474,48 +474,47 @@ action-groups-disp                          cell+   constant action-function-dis
     region-get-num-bits
 ;
 
-\ Return a new action, given a functian to run to get a sample,
+\ Return a new action, given a function to run to get a sample,
 \ and the number of bits being used.
-: action-new ( xt3 max-region2 inst-id1 dom-id0 -- addr)
+: action-new ( xt2 max-region1 dom-id0 -- addr)
     \ cr ." action-new: start: " .stack cr
     assert( tos is-valid-inst-id? )
-    assert( nos is-valid-inst-id? )
-    assert( 3os is-region? )
-    assert( 3os region-all-x? )
+    assert( nos is-region? )
+    assert( nos region-all-x? )
 
-    \ Allocate space.
-    action-struct-id action-mma         \ xt3 mr2 inst-id1 dom-id0 struct-id mma
-    struct-allocate                     \ xt3 mr2 inst-id1 dom-id0 act
+    \ Allocate instance.
+    action-struct-id action-mma         \ xt2 mr1 dom-id0 struct-id mma
+    struct-allocate                     \ xt2 mr1 dom-id0 act
 
     \ Set parent domain intance id.
-    tuck _action-set-dom-inst-id        \ xt3 mr2 inst-id1 act
+    tuck _action-set-dom-inst-id        \ xt2 mr1 act
 
     \ Set action instance id.
-    tuck _action-set-inst-id            \ xt3 mr2 act
+    0 over action-set-inst-id           \ xt2 mr1 act
 
     \ Init adj regions list.
-    list-new                            \ xt3 mr2 act lst
-    #2 pick                             \ xt3 mr2 act lst mr2
-    over list-push-struct               \ xt3 mr2 act lst
-    over                                \ xt3 mr2 act lst act
-    _action-set-adj-regions             \ xt3 mr2 act
+    list-new                            \ xt2 mr1 act lst
+    #2 pick                             \ xt2 mr1 act lst mr1
+    over list-push-struct               \ xt2 mr1 act lst
+    over                                \ xt2 mr1 act lst act
+    _action-set-adj-regions             \ xt2 mr1 act
 
     \ Init non-adj regions list.
-    list-new                            \ xt3 mr2 act lst
-    #2 pick                             \ xt3 mr2 act lst mr2
-    over list-push-struct               \ xt3 mr2 act lst
-    over                                \ xt3 mr2 act lst act
-    _action-set-nadj-regions            \ xt3 mr2 act
+    list-new                            \ xt2 mr1 act lst
+    #2 pick                             \ xt2 mr1 act lst mr1
+    over list-push-struct               \ xt2 mr1 act lst
+    over                                \ xt2 mr1 act lst act
+    _action-set-nadj-regions            \ xt2 mr1 act
 
     \ Init possible-regions list.
-    list-new                            \ xt3 mr2 act lst
-    #2 pick                             \ xt3 mr2 act lst mr2
-    over list-push-struct               \ xt3 mr2 act lst
-    over                                \ xt3 mr2 act lst act
-    _action-set-possible-regions        \ xt3 mr2 act
+    list-new                            \ xt2 mr1 act lst
+    #2 pick                             \ xt2 mr1 act lst mr1
+    over list-push-struct               \ xt2 mr1 act lst
+    over                                \ xt2 mr1 act lst act
+    _action-set-possible-regions        \ xt2 mr1 act
 
     \ Set maximum region.
-    tuck _action-set-max-region         \ xt3 act
+    tuck _action-set-max-region         \ xt2 act
 
     \ Set function.
     tuck _action-set-function           \ act

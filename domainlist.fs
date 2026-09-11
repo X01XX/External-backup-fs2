@@ -40,12 +40,19 @@
     then
 ;
 
+\ Push a domain, set the domain instance id to its position in the list.
+\ So only push to the end of the list.
 : domain-list-push-end ( domx dom-lst -- )
     \ Check args.
     assert( tos is-domain-list? )
     assert( nos is-domain? )
 
-    list-push-end-struct        \
+    \ Set domain instance, list position, id.
+    dup list-get-length         \ domx dom-lst len
+    #2 pick                     \ domx dom-lst len domx
+    domain-set-inst-id          \ domx dom-lst
+
+    list-push-end-struct
 ;
 
 : domain-id-eq? ( id1 dom0 -- bool )

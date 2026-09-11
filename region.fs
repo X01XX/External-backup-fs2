@@ -98,7 +98,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     assert( nos is-state? )
     assert( 2dup states-same-num-bits? )
 
-    \ Allocate space.
+    \ Allocate instance.
     region-struct-id region-mma \ sta1 sta0 id mma
     struct-allocate             \ sta1 sta0 reg
 

@@ -3,7 +3,7 @@
 : action-test-new
     \ Run function..
     [ ' calc-result-x ] literal
-    s" rXXXX #2 1" string-to-stack-a
+    s" rXXXX 1" string-to-stack-a
     action-new              \ act
 
     \ Display results.
@@ -11,7 +11,7 @@
 
     \ Test results.
     dup action-get-num-bits #4 <> abort" num bits s/b 4?"
-    dup action-get-inst-id #2 <> abort" inst-id s/b 1?"
+    dup action-get-inst-id 0<> abort" inst-id s/b 0?"
     dup action-get-dom-inst-id 1 <> abort" parent s/b 2?"
 
     \ Deallocate
@@ -26,7 +26,7 @@
 : action-test-add-sample
     \ Init action.
     [ ' calc-result-x ] literal
-    s" rXXXX 0 0" string-to-stack-a
+    s" rXXXX 0" string-to-stack-a
     action-new                              \ act
 
     cr dup .action cr
@@ -102,7 +102,7 @@
 : action-test-check-incompatible-pairs-for-changed-square
     \ Init action.
     [ ' calc-result-x ] literal
-    s" rXXXX 0 0" string-to-stack-a
+    s" rXXXX 0" string-to-stack-a
     action-new                              \ act
 
     cr dup .action cr
@@ -168,7 +168,7 @@
 : action-test-corners
     \ Init action.
     [ ' calc-result-x ] literal
-    s" rXXXX 0 0" string-to-stack-a
+    s" rXXXX 0" string-to-stack-a
     action-new                              \ act
 
     cr dup .action cr
@@ -208,7 +208,7 @@
 : action-test-corners2
     \ Init action.
     [ ' calc-result-x ] literal
-    s" rXXXX 0 0" string-to-stack-a
+    s" rXXXX 0" string-to-stack-a
     action-new                              \ act
 
     cr dup .action cr

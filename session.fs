@@ -10,8 +10,20 @@ session-domains-disp            cell+   constant session-step-num-disp          
 session-step-num-disp           cell+   constant session-max-regions-disp           \ A regioncorr list of maximum regions, corresponding in order to the domain list.
 
 session-max-regions-disp        cell+   constant session-valued-regioncorrs-disp    \ A valued regioncorr list, added during session definition.
-session-valued-regioncorrs-disp cell+   constant session-pathdata-list-disp         \ A list of pathdata instances, in decsending value.
 
+session-valued-regioncorrs-disp cell+   constant session-avoid-lol-disp             \ A list-of-lists of negative valued regioncorrs to avoid, calculated from the
+                                                                                    \ session-valued-regioncorrs.
+                                                                                    \
+                                                                                    \ Lists of increasingly fewer, more negative, regioncorrs, to avoid.
+                                                                                    \ Like ( (-1 -2 ) ( -2 ) ()).
+                                                                                    \
+                                                                                    \ If your start, and goal, are not in any negative regioncorr, you want to avoid
+                                                                                    \ -1, -2 regioncorrs.
+                                                                                    \
+                                                                                    \ If your start, or goal, are in a -1 regioncorr, you want to avoid
+                                                                                    \ -2 regions, but not -1 regioncorrs.
+                                                                                    \
+                                                                                    \ If your start, or goal, are in a -2 regioncorr, proceed without avoiding any regioncorr.
 0 value session-mma     \ Storage for session mma instance.
 
 \ Init session mma, return the addr of allocated memory.
@@ -88,7 +100,7 @@ session-valued-regioncorrs-disp cell+   constant session-pathdata-list-disp     
     !struct                     \ Set the field.
 ;
 
-: session-get-valued-regioncorrs ( sess0 -- regc-lst )  \ Return the max regions list.
+: session-get-valued-regioncorrs ( sess0 -- regc-lst )  \ Return the valued regioncorr list.
     \ Check arg.
     assert( tos is-session? )
 
@@ -96,40 +108,30 @@ session-valued-regioncorrs-disp cell+   constant session-pathdata-list-disp     
     @                                   \ Fetch the field.
 ;
 
-: _session-set-valued-regioncorrs ( regc-lst sess0 -- ) \ Set the max regions list.
+: _session-set-valued-regioncorrs ( regc-lst sess0 -- ) \ Set the valued regioncorr list.
     \ Check arg.
     assert( tos is-session? )
-    assert( nos is-region-list? )
+    assert( nos is-regioncorr-list? )
 
     session-valued-regioncorrs-disp +   \ Add offset.
     !struct                             \ Set the field.
 ;
 
-: session-get-pathdata-list ( sess0 -- pd-lst )  \ Return the max regions list.
+: session-get-avoid-lol ( sess0 -- avd-lst )  \ Return the avoid list-of-lists.
     \ Check arg.
     assert( tos is-session? )
 
-    session-pathdata-list-disp +    \ Add offset.
-    @                               \ Fetch the field.
+    session-avoid-lol-disp +    \ Add offset.
+    @                           \ Fetch the field.
 ;
 
-: _session-set-pathdata-list ( pd-lst1 sess0 -- ) \ Set pathdata inlist.
+: _session-set-avoid-lol ( avd-lst1 sess0 -- ) \ Set the avoid lists-of-lists field.
     \ Check arg.
     assert( tos is-session? )
     assert( nos is-region-list? )
 
-    session-pathdata-list-disp +    \ Add offset.
-    !struct                         \ Set the field.
-;
-
-: _session-update-max-regions ( regc1 sess0 -- ) \ Set the max regions list.
-    \ Check arg.
-    assert( tos is-session? )
-    assert( nos is-regioncorr? )
-
-    dup session-get-max-regions -rot
-    _session-set-max-regions
-    regioncorr-deallocate
+    session-avoid-lol-disp +    \ Add offset.
+    !struct                     \ Set the field.
 ;
 
 : session-inc-step-num ( sess0 -- )
@@ -162,7 +164,9 @@ session-valued-regioncorrs-disp cell+   constant session-pathdata-list-disp     
 
 ' session-calc-max-regions to session-calc-max-regions-xt
 
-: _session-add-valued-regioncorr ( regc1 sess0 -- )
+\ Check a valued regioncorr has the the correct length, and has regions
+\ with the correct number of bits in each region list position.
+: _session-check-valued-regioncorr ( regc1 sess0 -- )
     \ Check arg.
     assert( tos is-session? )
     assert( nos is-regioncorr? )
@@ -193,37 +197,138 @@ session-valued-regioncorrs-disp cell+   constant session-pathdata-list-disp     
         link-get-next swap
     repeat
                                     \ regc1 sess0 reg-lnk
-    drop                            \ regc1 sess0
-    session-get-valued-regioncorrs  \ regc1 regc-lst
-    list-push-struct
+    2drop drop                      \ regc1 sess0
 ;
 
-: _session-add-pathdata ( pd1 sess0 -- )
+\ Check that valued regioncorrs are the correct length, and have regions
+\ with the correct number of bits in each region list position.
+: _session-check-valued-regioncorrs ( sess0 -- )
     \ Check arg.
     assert( tos is-session? )
-    assert( nos is-pathdata? )
 
-    session-get-pathdata-list  \ pd1 pd-lst
-    list-push-struct
+    dup session-get-valued-regioncorrs      \ sess0 regc-lst
+    foreach                                 \ sess0 regc-lnx regcx
+        #2 pick                             \ sess0 regc-lnx regcx sess0
+        _session-check-valued-regioncorr    \ sess0 regc-lnx
+    next
+                                            \ sess0
+    drop
 ;
 
 \ End accessors.
 
-\ Create a session instance.
-: session-new ( -- sess ) \ new session pushed onto session stack.
+\ Process the valued-regioncorr list.
+: _session-process-valued-regioncorrs ( sess0 -- )
+    \ Check arg.
+    assert( tos is-session? )
+\ test with no regioncorrs.
+
+    \ Check if no valued regioncorrs.
+    dup session-get-valued-regioncorrs      \ sess0 regc-lst
+    list-get-length                         \ sess0 num
+    0= if
+        \ Push avoid-nothing list.
+        list-new swap                       \ lst sess0
+        session-get-avoid-lol               \ lst avoid-lst
+        list-push-struct
+        exit
+    then
+\ Test with one regc.
+\ Test with all pos regcs.
+    \ Calc valued regioncorrs fragments.
+    dup session-get-valued-regioncorrs      \ sess0 regc-lst
+    regioncorr-list-split-by-intersections  \ sess0, spl-lst' t | f
+    invert abort" split failed?"
+
+    cr s" fragments: " #2 pick .regioncorr-list-prefix cr
+\ Save fragments?
+
+    \ Check if no negative regioncorrs.
+    over session-get-valued-regioncorrs     \ sess0 spl-lst' regc-lst
+    regioncorr-list-number-negative         \ sess0 spl-lst' num
+    0= if
+        \ Clean up.
+        list-deallocate                     \ sess0
+
+        \ Push avoid-nothing list.
+        list-new swap                       \ lst sess0
+        session-get-avoid-lol               \ lst avoid-lst
+        list-push-struct
+        exit
+    then
+
+    \ Make sorted list of fragment negative values.
+    list-new                                \ sess0 spl-lst' val-lst'
+    over                                    \ sess0 spl-lst' val-lst' spl-lst'
+    foreach                                 \ sess0 spl-lst' val-lst' spl-lnk regcx
+        regioncorr-get-neg-value            \ sess0 spl-lst' val-lst' spl-lnk neg
+        [ ' = ] literal swap                \ sess0 spl-lst' val-lst' spl-lnk xt neg
+        #3 pick                             \ sess0 spl-lst' val-lst' spl-lnk xt neg val-lst'
+        list-member?                        \ sess0 spl-lst' val-lst' spl-lnk bool
+        ifnot
+            dup link-get-data               \ sess0 spl-lst' val-lst' spl-lnk regcx
+            regioncorr-get-neg-value        \ sess0 spl-lst' val-lst' spl-lnk neg
+            #2 pick                         \ sess0 spl-lst' val-lst' spl-lnk neg val-lst'
+            list-push-end                   \ sess0 spl-lst' val-lst' spl-lnk
+        then
+    next
+
+                                            \ sess0 spl-lst' val-lst'
+    \ Sort value list, descending.
+    [ ' > ] literal over list-sort          \ sess0 spl-lst' val-lst'
+    cr ." vals: " [ ' . ] literal over .list cr
+
+    \ Make sets of negative valued regioncorrs.
+    list-new                                \ sess0 spl-lst' val-lst' avoid-lol'
+
+    over                                    \ sess0 spl-lst' val-lst' avoid-lol' val-lst'
+    foreach                                 \ sess0 spl-lst' val-lst' avoid-lol' val-lnk valx
+        #4 pick                             \ sess0 spl-lst' val-lst' avoid-lol' val-lnk valx spl-lst'
+        regioncorr-list-negative-valued     \ sess0 spl-lst' val-lst' avoid-lol' val-lnk neg-lst'
+        dup                                 \ sess0 spl-lst' val-lst' avoid-lol' val-lnk neg-lst' neg-lst'
+        #3 pick                             \ sess0 spl-lst' val-lst' avoid-lol' val-lnk neg-lst' neg-lst' avoid-lol'
+        regioncorr-list-append-nodups       \ sess0 spl-lst' val-lst' avoid-lol' val-lnk neg-lst'
+        regioncorr-list-deallocate          \ sess0 spl-lst' val-lst' avoid-lol' val-lnk
+        \ cr ." avoid list: " over .regioncorr-list cr
+        over list-copy-struct               \ sess0 spl-lst' val-lst' avoid-lol' val-lnk avoid-lst2'
+        #5 pick                             \ sess0 spl-lst' val-lst' avoid-lol' val-lnk avoid-lst2' sess0
+        session-get-avoid-lol               \ sess0 spl-lst' val-lst' avoid-lol' val-lnk avoid-lst2' lol
+        list-push-struct                    \ sess0 spl-lst' val-lst' avoid-lol' val-lnk
+    next
+
+    \ Clean up.                             \ sess0 spl-lst' val-lst' avoid-lol'
+    regioncorr-list-deallocate              \ sess0 spl-lst' val-lst'
+    list-deallocate                         \ sess0 spl-lst'
+    regioncorr-list-deallocate              \ sess0
+
+    \ Push avoid-nothing list.
+    list-new swap                           \ lst sess0
+    session-get-avoid-lol                   \ lst avoid-lst
+    list-push-end-struct
+;
+
+\ Create a session instance, given a valued-regioncorr list, and a domain-list.
+: session-new ( vregc-lst1 dom-lst0 -- sess ) \ new session pushed onto session stack.
     \ cr ." session-new: start " .s cr
-    \ Allocate space.
+    \ Allocate instance.
     session-struct-id session-mma
-    struct-allocate                 \ ses
+    struct-allocate                         \ vregc-lst1 dom-lst0 ses
 
-    \ Set domains list.
-    list-new                        \ ses lst
-    over _session-set-domains       \ ses
+    \ Set given fields.
+    tuck _session-set-domains               \ vregc-lst1 ses
+    tuck _session-set-valued-regioncorrs    \ sess
 
+    dup _session-check-valued-regioncorrs   \ sess
+
+    \ Init other fields.
     0 over _session-set-step-num
-    list-new regioncorr-new over _session-set-max-regions
-    list-new over _session-set-valued-regioncorrs
-    list-new over _session-set-pathdata-list
+    dup session-calc-max-regions            \ sess max-regs
+    over _session-set-max-regions           \ sess
+
+    \ Process valued regioncorr list.
+    list-new over _session-set-avoid-lol
+
+    dup _session-process-valued-regioncorrs
 
     dup to session-store
 ;
@@ -252,6 +357,25 @@ session-valued-regioncorrs-disp cell+   constant session-pathdata-list-disp     
     #2 pick session-get-valued-regioncorrs
     .regioncorr-list-prefix
 
+    dup session-get-avoid-lol
+    dup list-get-length
+    0=
+    if
+        cr ." Avoid list-of-lists: None"
+        drop
+    else
+        cr ." Avoid list-of-lists: ("
+        foreach
+            .regioncorr-list
+            link-get-next
+            dup 0<>
+            if
+                cr #22 spaces
+            then
+        repeat
+        ." )"
+    then
+
     dup session-get-domains
                                                 \ sess0 dom-lst
     foreach                                     \ sess0 dom-lnk dom
@@ -270,7 +394,7 @@ session-valued-regioncorrs-disp cell+   constant session-pathdata-list-disp     
     dup session-get-domains domain-list-deallocate
     dup session-get-max-regions regioncorr-deallocate
     dup session-get-valued-regioncorrs regioncorr-list-deallocate
-    dup session-get-pathdata-list pathdata-list-deallocate
+    dup session-get-avoid-lol struct-list-deallocate
 
     \ Deallocate session.
     session-mma mma-deallocate
@@ -296,7 +420,7 @@ session-valued-regioncorrs-disp cell+   constant session-pathdata-list-disp     
     nip nip                         \ sta-lst
 ;
 
-: session-get-current-regions ( sess0 -- regcorr )  \ Return a list of regions, one for each domain state, in domain list order.
+: session-get-current-regions ( sess0 -- regc )  \ Return a list of regions, one for each domain state, in domain list order.
     \ Check args.
     assert( tos is-session? )
 
@@ -313,8 +437,8 @@ session-valued-regioncorrs-disp cell+   constant session-pathdata-list-disp     
     next
                                     \ cur-dom sess0 reg-lst
     nip nip                         \ reg-lst
-cr ." todo session-get-current-regions" cr
-    \ regioncorr-new
+
+    regioncorr-new
 ;
 
 : .session-current-states ( sess0 -- )  \ Print a list of current states.
@@ -362,23 +486,6 @@ cr ." todo session-get-current-regions" cr
     list-get-item               \ sess0 dom
     nip                         \ dom
     true
-;
-
-\ Create, and add, a domain, with a given number of bits.
-: session-add-domain ( num-bits1 sess0 -- dom )
-    \ Check args.
-    assert( tos is-session? )
-    \ cr ." session-add-domain: start " .stack-gbl cr
-
-    \ Create a domain.
-    tuck session-get-domains            \ sess0 nb1 dom-lst
-    list-get-length                     \ sess0 nb1 len
-    domain-new                          \ sess0 dom
-
-    \ Add domain
-    tuck swap                           \ dom dom sess0
-    session-get-domains                 \ dom dom dom-lst
-    list-push-end-struct                \ dom
 ;
 
 \ Return the numebr of domains.
@@ -557,56 +664,4 @@ cr ." todo session-get-current-regions" cr
     then
 ;
 
-\ Do initialization tasks after all domains have been added.
-: session-init-after-domains ( sess -- )
-    \ Check arg.
-    assert( tos is-session? )
 
-    \ Calc and store the domain list maximum regions list.
-    dup session-calc-max-regions        \ sess max-regs
-    over _session-update-max-regions    \ sess
-
-    \ Set up working list.
-    dup session-get-max-regions         \ sess max-regs
-    list-new tuck list-push-struct      \ sess wrk-lst
-
-    over session-get-valued-regioncorrs list-get-length
-    0=
-    if
-        \ No valued regioncorrs.
-    else
-        \ Calc valued regioncorrs fragments.
-        over session-get-valued-regioncorrs
-        regioncorr-list-split-by-intersections  \ sess wrk-lst, spl-lst' t | f
-        invert abort" split failed?"
-
-        cr s" fragments: " #2 pick .regioncorr-list-prefix cr
-
-        \ Make sorted list of fragment negative values.
-        list-new                                \ sess wrk-lst spl-lst' val-lst'
-        over                                    \ sess wrk-lst spl-lst' val-lst' spl-lst'
-        foreach                                 \ sess wrk-lst spl-lst' val-lst' spl-lnk regcx
-            regioncorr-get-neg-value            \ sess wrk-lst spl-lst' val-lst' spl-lnk neg
-            [ ' = ] literal swap                \ sess wrk-lst spl-lst' val-lst' spl-lnk xt neg
-            #3 pick                             \ sess wrk-lst spl-lst' val-lst' spl-lnk xt neg val-lst'
-            list-member?                        \ sess wrk-lst spl-lst' val-lst' spl-lnk bool
-            ifnot
-                dup link-get-data               \ sess wrk-lst spl-lst' val-lst' spl-lnk regcx
-                regioncorr-get-neg-value        \ sess wrk-lst spl-lst' val-lst' spl-lnk neg
-                #2 pick                         \ sess wrk-lst spl-lst' val-lst' spl-lnk neg val-lst'
-                list-push-end                       \ sess wrk-lst spl-lst' val-lst' spl-lnk
-            then
-        next
-                                                \ sess wrk-lst spl-lst' val-lst'
-        \ Sort value list, descending.
-        [ ' < ] literal over list-sort          \ sess wrk-lst spl-lst' val-lst'
-        cr ." vals: " [ ' . ] literal over .list cr
-
-        list-deallocate
-        regioncorr-list-deallocate
-    then
-
-    \ Clean up.
-    regioncorr-list-deallocate
-    drop
-;

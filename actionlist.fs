@@ -47,14 +47,6 @@
     then
 ;
 
-: action-list-push-end ( actx act-lst -- )
-    \ Check args.
-    assert( tos is-action-list? )
-    assert( nos is-action? )
-
-    list-push-end-struct
-;
-
 : action-id-eq? ( id1 act0 -- bool )
     \ Check args.
     assert( tos is-action? )
@@ -71,3 +63,17 @@
     [ ' action-id-eq? ] literal -rot list-find
 ;
 
+\ Push a action, set the action instance id to its position in the list.
+\ So only push to the end of the list.
+: action-list-push-end ( domx dom-lst -- )
+    \ Check args.
+    assert( tos is-action-list? )
+    assert( nos is-action? )
+
+    \ Set action instance, list position, id.
+    dup list-get-length         \ domx dom-lst len
+    #2 pick                     \ domx dom-lst len domx
+    action-set-inst-id          \ domx dom-lst
+
+    list-push-end-struct
+;

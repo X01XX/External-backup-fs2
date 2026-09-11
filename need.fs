@@ -191,7 +191,7 @@ need-target-disp    cell+   constant need-info-disp     \ Zero, a region, or oth
         cr ." Unrecognized need type value" cr abort
     endcase
 
-    \ Allocate space.
+    \ Allocate instance.
     need-struct-id need-mma
     struct-allocate                 \  tkn5 targ4 typ3 act-id1 dom-id0 ned
 

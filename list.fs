@@ -111,7 +111,7 @@ list-header-disp    cell+   constant list-links-disp
 
 \ Return an new list struct instance address.
 : list-new ( -- addr )
-    \ Allocate space.
+    \ Allocate instance.
     list-struct-id list-mma     \ id mma
     struct-allocate             \ list
 

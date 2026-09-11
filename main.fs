@@ -15,14 +15,14 @@
 \ Group     RegionCorr  Mask    State
 \ 43717,    47317       61719   61717
 \
-\ RuleCorr  Corner  StructInfo  PathStep
-\ 53171,    53719,  53731       53197
+\ RuleCorr  Corner  StructInfo
+\ 53171,    53719,  53731
 \
-\ Token     IntRegcs    RegcInts PathData
-\ 59797     23173       61979       61379
+\ Token
+\ 59797
 \
 \ Struct ids not yet used:
-\ 41719, 471737.
+\ 41719, 61379, 61979, 23173, 53197.
 \
 \ Same as fs1, possibly.
 \ 31973, future Changes?
@@ -78,17 +78,6 @@ include tokenlist.fs
 include regioncorr.fs
 include regioncorrlist.fs
 
-include pathstep.fs
-include pathsteplist.fs
-
-include intregcs.fs
-include intregcslist.fs
-include regcints.fs
-include regcintslist.fs
-
-include pathdata.fs
-include pathdatalist.fs
-
 include structinfo.fs
 include structinfolist.fs
 include stackprint.fs
@@ -128,12 +117,6 @@ include sample_t.fs
 include regionlist_t.fs
 include regioncorr_t.fs
 include regioncorrlist_t.fs
-include intregcs_t.fs
-include intregcslist_t.fs
-include regcints_t.fs
-include regcintslist_t.fs
-include pathstep_t.fs
-include pathsteplist_t.fs
 include square_t.fs
 include corner_t.fs
 \ include need_t.fs
@@ -144,29 +127,24 @@ include group_t.fs
 include incpairs_t.fs
 include domain_t.fs
 include session_t.fs
-include pathdata_t.fs
 
 \ Init array-stacks.
-#1000 link-mma-init
-#0302 list-mma-init
-#0030 structinfo-mma-init
-#0200 mask-mma-init
-#0400 state-mma-init
-#0200 region-mma-init
-#0200 rule-mma-init
-#0200 sample-mma-init
-#0300 token-mma-init
-#0200 square-mma-init
-#0010 action-mma-init
-#0110 corner-mma-init
-\ #0110 need-mma-init
-#0130 group-mma-init
-#0200 regioncorr-mma-init
-#0100 intregcs-mma-init
-#0100 regcints-mma-init
-#0100 pathstep-mma-init
-#0020 pathdata-mma-init
-#0010 domain-mma-init
+#2000 link-mma-init
+#1302 list-mma-init
+#1030 structinfo-mma-init
+#1200 mask-mma-init
+#2000 state-mma-init
+#1400 region-mma-init
+#1200 rule-mma-init
+#1200 sample-mma-init
+#1300 token-mma-init
+#1200 square-mma-init
+#1010 action-mma-init
+#1110 corner-mma-init
+\ #1110 need-mma-init
+#1130 group-mma-init
+#1600 regioncorr-mma-init
+#1010 domain-mma-init
 #0005 session-mma-init
 cr cr
 
@@ -186,27 +164,25 @@ list-new to structinfo-list-store
 ' noop  ' noop  ' samples-eq?   ' sample-from-string    ' sample-deallocate     ' .sample       s" Sample"      sample-mma      sample-struct-id        structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' noop          ' noop                  ' action-deallocate     ' .action       s" Action"      action-mma      action-struct-id        structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' noop          ' corner-from-string    ' corner-deallocate     ' .corner       s" Corner"      corner-mma      corner-struct-id        structinfo-new structinfo-list-store-push-end
-' noop  ' noop  ' noop          ' noop                  ' pathstep-deallocate   ' .pathstep     s" PathStep"    pathstep-mma    pathstep-struct-id      structinfo-new structinfo-list-store-push-end
 ' regioncorr-from-list  ' regioncorr-list-definition?    ' regioncorrs-eq?  ' noop  ' regioncorr-deallocate ' .regioncorr   s" Regioncorr"  regioncorr-mma  regioncorr-struct-id    structinfo-new structinfo-list-store-push-end
-' intregcs-from-list  ' intregcs-list-definition?   ' noop  ' noop  ' intregcs-deallocate ' .intregcs   s" IntRegcs"  intregcs-mma  intregcs-struct-id    structinfo-new structinfo-list-store-push-end
 \ ' noop  ' noop  ' noop          ' noop                  ' need-deallocate       ' .need       s" Need"        need-mma        need-struct-id          structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' =             ' noop                  ' square-deallocate     ' .square       s" Square"      square-mma      square-struct-id        structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' =             ' noop                  ' group-deallocate      ' .group        s" Group"       group-mma       group-struct-id         structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' noop          ' noop                  ' domain-deallocate     ' .domain       s" Domain"      domain-mma      domain-struct-id        structinfo-new structinfo-list-store-push-end
-' noop  ' noop  ' noop          ' noop                  ' pathdata-deallocate   ' .pathdata     s" PathData"    pathdata-mma    pathdata-struct-id      structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' noop          ' noop                  ' session-deallocate    ' .session      s" Session"     session-mma     session-struct-id       structinfo-new structinfo-list-store-push-end
-' regcints-from-list  ' regcints-list-definition?   ' noop  ' noop  ' regcints-deallocate ' .regcints   s" RegcInts"  regcints-mma  regcints-struct-id    structinfo-new structinfo-list-store-push-end
 
 : main
+    \ Make valued-regioncorrs list.
+    list-new                        \ regc-lst
+
+    \ Make domain-list.
+    list-new                        \ regc-lst dom-lst
+    #4 domain-new                   \ regc-lst dom-lst dom
+    over domain-list-push-end       \ regc-lst dom-lst
+    #6 domain-new                   \ regc-lst dom-lst dom
+    over domain-list-push-end       \ regc-lst dom-lst
+
     session-new                     \ sess
-
-    #4 over session-add-domain      \ sess dom
-    drop
-
-    #6 over session-add-domain      \ sess dom
-    drop
-
-    dup session-init-after-domains  \ sess
 
     cr dup .session cr
 
@@ -264,14 +240,8 @@ list-new to structinfo-list-store
     inc-pair-tests
     regioncorr-tests
     regioncorr-list-tests
-    intregcs-tests
-    intregcs-list-tests
-    regcints-tests
-    regcints-list-tests
-    pathstep-tests
-    pathstep-list-tests
-    pathdata-tests
     session-tests
     cr
+    .memory-use
 ;
 

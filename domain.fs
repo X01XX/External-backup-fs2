@@ -70,10 +70,10 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
 ' domain-get-inst-id to domain-get-inst-id-xt
 
 \ Set the instance ID of an domain instance.
-: _domain-set-inst-id ( u1 dom0 -- )
+: domain-set-inst-id ( u1 dom0 -- )
     \ Check args.
     assert( tos is-domain? )
-    \ cr ." _domain-set-inst-id:" .stack-gbl cr
+    \ cr ." domain-set-inst-id:" .stack-gbl cr
 
     over 0<
     abort" Invalid instance id"
@@ -198,64 +198,61 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
 \ Create a domain, given the number of bits to be used.
 \
 \ The domain instance ID defaults to zero.
-\ The instance ID will likely be reset to match its position in a list,
-\ using domain-set-inst-id, which avoids duplicates and may be useful as an index into the list.
+\ The instance ID will likely be reset to match its position in a domain-list.
 \
 \ The current state defaults to zero, but can be set with domain-set-current-state.
-: domain-new ( num-bits inst-id -- dom )
+: domain-new ( num-bits0 -- dom )
     \ Check args.
     \ cr ." domain-new: start: " .stack-gbl cr
-    assert( tos is-valid-inst-id? )
-    assert( nos is-valid-num-bits? )
+    assert( tos is-valid-num-bits? )
 
-    \ Allocate space.
-    domain-struct-id domain-mma     \ nb1 id0 id mma
-    struct-allocate                 \ nb1 id0 dom
+    \ Allocate instance.
+    domain-struct-id domain-mma     \ nb0 mma
+    struct-allocate                 \ nb0 dom
 
-    \ Set instance ID.
-    tuck                            \ nb1 dom id0 dom
-    _domain-set-inst-id             \ nb1 dom
+    \ Set instance ID to zero.
+    0 over                          \ nb0 dom id0 dom
+    domain-set-inst-id              \ nb0 dom
 
     \ Set num bits.
-    2dup                            \ nb1 dom nb1 dom
-    _domain-set-num-bits            \ nb1 dom
+    2dup                            \ nb0 dom nb0 dom
+    _domain-set-num-bits            \ nb0 dom
 
     \ Set actions list.
-    list-new                        \ nb1 dom act-lst
-    2dup swap                       \ nb1 dom act-lst act-lst dom
-    _domain-set-actions             \ nb1 dom act-lst
+    list-new                        \ nb0 dom act-lst
+    2dup swap                       \ nb0 dom act-lst act-lst dom
+    _domain-set-actions             \ nb0 dom act-lst
 
     \ Add action 0.
     \ When making multi-step plans of all regions, a no-op for one domain preserves
     \ knowledge of all result states for subsequent steps.
-    [ ' act-0-get-result ] literal  \ nb1 dom act-lst xt
-    #3 pick region-max-x            \ nb1 dom act-lst xt max-reg
-    0                               \ nb1 dom act-lst xt max-reg act-id
-    #4 pick                         \ nb1 dom act-lst xt max-reg act-id dom
-    domain-get-inst-id              \ nb1 dom act-lst xt max-reg act-id dom-id
-    action-new                      \ nb1 dom act-lst act
-    swap                            \ nb1 dom act act-lst
-    action-list-push-end            \ nb1 dom
+    [ ' act-0-get-result ] literal  \ nb0 dom act-lst xt
+    #3 pick region-max-x            \ nb0 dom act-lst xt max-reg
+    #3 pick                         \ nb0 dom act-lst xt max-reg dom
+    domain-get-inst-id              \ nb0 dom act-lst xt max-reg dom-id
+    action-new                      \ nb0 dom act-lst act
+    swap                            \ nb0 dom act act-lst
+    action-list-push-end            \ nb0 dom
 
     \ Set all bits mask.
-    over                            \ nb1 dom nb1
-    dup all-bits                    \ nb1 dom nb1 all-bts
-    swap mask-new                   \ nb1 dom msk
-    over _domain-set-all-bits-mask  \ nb1 dom
+    over                            \ nb0 dom nb0
+    dup all-bits                    \ nb0 dom nb0 all-bts
+    swap mask-new                   \ nb0 dom msk
+    over _domain-set-all-bits-mask  \ nb0 dom
 
     \ Set max region.
-    over region-max-x               \ nb1 dom max-reg
-    over _domain-set-max-region     \ nb1 dom
+    over region-max-x               \ nb0 dom max-reg
+    over _domain-set-max-region     \ nb0 dom
 
     \ Set the most significant bit mask.
-    over                            \ nb1 dom nb1
-    ms-bit                          \ nb1 dom msb
-    #2 pick mask-new                \ nb1 dom mask
-    over _domain-set-ms-bit-mask    \ nb1 dom
+    over                            \ nb0 dom nb0
+    ms-bit                          \ nb0 dom msb
+    #2 pick mask-new                \ nb0 dom mask
+    over _domain-set-ms-bit-mask    \ nb0 dom
 
     \ Set mostly random current state.
     \ Don't use 2^n in case number bits is at maximum.
-    over all-bits random            \ nb1 dom rnd
+    over all-bits random            \ nb0 dom rnd
     rot state-new                   \ dom sta
     over                            \ dom sta dom
     _domain-set-current-state       \ dom
@@ -318,13 +315,11 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
     assert( tos is-domain? )
 
     \ Save domain ref.
-    tuck                            \ dom0 xt dom0
+    tuck                            \ dom0 xt1 dom0
 
     \ Make action.
     dup domain-get-max-region swap  \ dom0 xt1 max-reg dom0
-    dup domain-get-actions          \ dom0 xt1 max-reg dom0 act-lst
-    list-get-length swap            \ dom0 xt1 max-reg id dom0
-    domain-get-inst-id              \ dom0 xt1 max-reg id dom-id
+    domain-get-inst-id              \ dom0 xt1 max-reg dom-id
     action-new                      \ dom0 actx
 
     \ Add action to domain action list.

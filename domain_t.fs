@@ -3,7 +3,7 @@
 : domain-test-new
 
     \ Run function.
-    #4 1 domain-new           \ dom
+    #4 domain-new               \ dom
 
     \ Display results.
     cr dup .domain cr
@@ -14,7 +14,7 @@
 
     dup domain-get-num-bits #4 <> abort" num bits s\b 4?"
 
-    dup domain-get-inst-id 1 <> abort" id s/b 1?"
+    dup domain-get-inst-id 0<> abort" id s/b 0?"
 
     \ Clean up.
     domain-deallocate
@@ -27,7 +27,7 @@
 
 : domain-test-add-action
     \ Run function.
-    #4 0  domain-new                    \ dom
+    #4 domain-new                       \ dom
 
     [ ' dom-0-act2-get-result ] literal \ dom xt
     over                                \ dom xt dom

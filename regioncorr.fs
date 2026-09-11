@@ -108,7 +108,7 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
     \ Check arg.
     assert( tos is-region-list? )
 
-    \ Allocate space.
+    \ Allocate instance.
     regioncorr-struct-id regioncorr-mma
     struct-allocate                     \ reg-lst0 regc
 

@@ -167,7 +167,7 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
     list-new tuck                   \ rul-lst smpl-lst smpl smpl-lst
     list-push-struct                \ rul-lst smpl-lst
 
-    \ Allocate space.
+    \ Allocate instance.
     square-struct-id square-mma
     struct-allocate                 \ rul-lst smpl-lst sqr
 

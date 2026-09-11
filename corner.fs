@@ -162,7 +162,7 @@ corner-region-disp          cell+   constant corner-adjacent-states-disp    \ Al
     next
     mask-list-deallocate                \ sta1 reg0 sta-lst
 
-    \ Allocate space.
+    \ Allocate instance.
     corner-struct-id corner-mma         \ sta1 reg0 sta-lst id mma
     struct-allocate                     \ sta1 reg0 sta-lst crn
 

@@ -1,21 +1,20 @@
 
 : session-test-new
+    \ Make valued-regioncorr list.
+    list-new                        \ regc-lst
+\    s" ( regc 0  -1 (r01XX r01X))" string-to-stack-a over list-push-struct
+\    s" ( regc 0  -1 (r0X1X r0X0))" string-to-stack-a over list-push-struct
+   s" ( regc 0  -1 (r01XX))" string-to-stack-a over list-push-struct
+   s" ( regc 0  -1 (r0X1X))" string-to-stack-a over list-push-struct
+
+    \ Make domain-list.
+    list-new                        \ regc-lst dom-lst
+    #4 domain-new                   \ regc-lst dom-lst dom
+    over domain-list-push-end       \ regc-lst dom-lst
+\    #3 domain-new                   \ regc-lst dom-lst dom
+\    over domain-list-push-end       \ regc-lst dom-lst
+
     session-new                     \ sess
-
-    #4 over session-add-domain      \ sess dom
-    drop
-
-    #6 over session-add-domain      \ sess dom
-    drop
-
-    \ Add valued regioncorrs.
-    s" ( regc 0  -1 (r01XX r0000XX))" string-to-stack-a
-    over _session-add-valued-regioncorr
-
-    s" ( regc 0  -1 (r0X1X r000X1X))" string-to-stack-a
-    over _session-add-valued-regioncorr
-
-    dup session-init-after-domains  \ sess
 
     cr dup .session cr
 
