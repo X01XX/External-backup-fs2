@@ -1,6 +1,0 @@
-
-
-: pathstep-list-tests
-    cr
-;
-
