@@ -77,7 +77,7 @@
             \ Dec paren counter.
             swap 1- swap
         then
-    next
+    next-item
                                     \ max cnt
     drop
 ;
@@ -302,7 +302,7 @@
 
             swap                    \ ret-lst cnt- link
         then
-    next
+    next-item
 
     \ Check paren counter eq zero.  \ ret-lst cnt
     0= if
@@ -338,6 +338,6 @@
                 swap 1+ swap
             then
         then
-    next
+    next-item
                                     \ cnt
 ;

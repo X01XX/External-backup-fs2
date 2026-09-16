@@ -172,7 +172,7 @@
     invert abort" group-new failed?"
 
     cr ." initial group: " dup .group cr
-    \ cr .stack-gbl cr
+    \ cr .stack cr
 
     \ Add a compatible square.
     s" s1001->s1001" square-from-string-a                               \ grp sqr9

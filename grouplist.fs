@@ -47,7 +47,7 @@
 
     foreach                 \ grp-lnk grpx
         cr #8 spaces .group
-    next
+    next-item
 ;
 
 : .group-list-prefix ( c-addr u list0 -- )
@@ -97,7 +97,7 @@
             #2 pick                 \ sta1 ret-lst grp-lnk grpx ret-lst
             list-push-struct        \ sta1 ret-lst grp-lnk
         then
-    next
+    next-item
                                     \ sta1 ret-lst
     \ Clean up.
     nip                             \ ret-lst
@@ -162,7 +162,7 @@
         group-get-region    \ ret-lst grp-lnk grp-reg
         #2 pick             \ ret-lst grp-lnk grp-reg ret-lst
         list-push-struct    \ ret-lst grp-lnk
-    next
+    next-item
 ;
 
 \ Find a group in a list, by state, if any.

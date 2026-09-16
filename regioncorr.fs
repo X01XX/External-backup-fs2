@@ -409,65 +409,72 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
 : regioncorr-list-definition? ( lst -- bool )
     \ Check arg.
     assert( tos is-list? )
-    \ cr ." regioncorr-valid-list?: start: " dup .struct-list cr
+    \ cr ." regioncorr-list-definition?: start: " dup .struct-list cr
 
     \ Check list length.
     dup list-get-length #4 =
     ifnot
-        \ cr ." regioncorr-valid-list?: exit 1: " cr
-        drop false exit
+        drop false
+        \ cr ." regioncorr-list-definition?: exit 1: false" cr
+        exit
     then
 
     \ Check hint token.
     dup list-get-first-item             \ lst first
     is-token?
     ifnot
-        \ cr ." regioncorr-valid-list?: exit 2: " cr
-        drop false exit
+        drop false
+        \ cr ." regioncorr-list-definition?: exit 2: false" cr
+        exit
     then
 
     s" regc"                            \ lst c-addr u
     #2 pick list-get-first-item         \ lst c-addr u first
     token-eq-string                     \ lst bool
     ifnot
-        \ cr ." regioncorr-valid-list?: exit 3: " cr
-        drop false exit
+        drop false
+        \ cr ." regioncorr-list-definition?: exit 3: false" cr
+        exit
     then
 
     \ Check positive value.
     dup list-get-second-item            \ lst second
     is-valid-pos-value?
     ifnot
-        \ cr ." regioncorr-valid-list?: exit 4: " cr
-        drop false exit
+        drop false
+        \ cr ." regioncorr-list-definition?: exit 4: false" cr
+        exit
     then
 
     \ Check-negative value.
     dup list-get-third-item             \ lst third
     is-valid-neg-value?
     ifnot
-        \ cr ." regioncorr-valid-list?: exit 5: "( regc 1  -4 (rx1x1 r0x111))
-        drop false exit
+        drop false
+        \ cr ." regioncorr-list-definition?: exit 5: false"
+        exit
     then
 
     \ Check region list.
     dup list-get-fourth-item            \ lst fourth
     is-region-list?
     ifnot
-        \ cr ." regioncorr-valid-list?: exit 6: " cr
-        drop false exit
+        drop false
+        \ cr ." regioncorr-list-definition?: exit 6: false" cr
+        exit
     then
 
     dup list-get-fourth-item            \ lst fourth
     list-is-empty?
     if
-        \ cr ." regioncorr-valid-list?: exit 7: " cr
-        drop false exit
+        drop false
+        \ cr ." regioncorr-list-definition?: exit 7: false" cr
+        exit
     then
 
     drop
     true
-    \ cr ." regioncorr-valid-list?: end: " dup .bool cr
+    \ cr ." regioncorr-list-definition?: end: true" cr
 ;
 
 \ Return a regioncorr from a list.
@@ -494,7 +501,7 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
     over _regioncorr-set-neg-value      \ regc
 
     true
-    \ cr ." regioncorr-from-list: end: " .stack-gbl cr
+    \ cr ." regioncorr-from-list: end: " .stack cr
 ;
 \ Return a regioncorr from a string.
 \ Like ( regc 1 -2 (rxxxx r1010))
@@ -509,22 +516,35 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
         exit
     then
 
-    dup regioncorr-from-list                \ lst, regc t | f
+    dup list-get-length 1 <>
     if
-        swap
         struct-list-deallocate
+        false
+        \ cr ." regioncorr-from-string: exit 2: false" cr
+        exit
+    then
+                                            \ lst
+    dup list-get-first-item                 \ lst itm
+    is-regioncorr?                           \ lst bool
+    if
+        dup list-pop-struct                 \ lst itm
+        invert abort" pop faled?"
+        swap list-deallocate                \ itm
         true
+        \ cr ." regioncorr-from-string: end: true"  .stack cr
+        exit
     else
         struct-list-deallocate
         false
+        \ cr ." regioncorr-from-string: exit 3: false" cr
+        exit
     then
 ;
-
 
 \ Return a regioncorr from a string, or abort.( regc 1  -4 (rx1x1 r0x111))
 : regioncorr-from-string-a ( str-addr str-n -- regc )
     regioncorr-from-string    \ regc t | f
-    false? abort" regioncorr-from-string-a failed?"
+    false? abort" regioncorr-from-string failed?"
 ;
 
 \ Return the number of bits different between two regioncorr.
@@ -697,7 +717,7 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
         region-max-x            \ max-lst regc-lnk reg-max
         #2 pick                 \ max-lst regc-lnk  reg-max max-lst
         list-push-end-struct    \ max-lst regc-lnk
-    next
+    next-item
                                 \ max-lst
     regioncorr-new              \ regc
     1 over _regioncorr-set-pos-value
@@ -758,8 +778,38 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
             #2 pick                         \ regc0 regc-lnk1 neg regc0
             regioncorr-add-neg-value        \ regc0 regc-lnk1
         then
-    next
+    next-item
                                             \ regc0
     \ cr ." regioncorr-rate: regc end: " dup .regioncorr cr
     drop
+;
+
+\ Return true if a statecorr is in a regioncorr.
+: regioncorr-superset-of-statecorr? ( stac1 regc0 -- bool )
+    \ Check args.
+    assert( tos is-regioncorr? )
+    assert( nos is-statecorr?-xt execute )
+
+    \ Get list links for loop.
+    regioncorr-get-list list-get-links swap             \ regc-lnk stac1
+    statecorr-get-list-xt execute list-get-links swap   \ stac-lnk regc-lnk
+
+    begin
+        ?dup
+    while
+        over link-get-data                  \ stac-lnk regc-lnk stax
+        over link-get-data                  \ stac-lnk regc-lnk stax regx
+        region-superset-of-state?           \ stac-lnk regc-lnk bool
+        ifnot
+            2drop
+            false
+            exit
+        then
+
+        link-get-next swap
+        link-get-next swap
+    repeat
+                                            \ stac-lnk
+    drop
+    true
 ;

@@ -93,7 +93,7 @@
                 then
             then
         then
-    next
+    next-item
 
     \ Get highest level list.               \ xt stk
     dup stack-pop                           \ xt stk int-lst
@@ -220,7 +220,7 @@
                 list-push-end                   \ ret-lst lnk
             then
         then
-    next
+    next-item
     true
     \ cr ." list-from-string2: end: " .stack cr
 ;
@@ -384,7 +384,7 @@
         else
             2drop false exit
         then
-    next
+    next-item
                                 \ lst0
     drop
     true

@@ -78,7 +78,7 @@
         \ Replace old return list.
         rot region-list-deallocate          \ anc lnk ret-lst-new'
         swap                                \ anc ret-lst-new' lnk
-    next
+    next-item
                                             \ anc ret-lst
     nip
 ;
@@ -105,6 +105,6 @@
         \ Replace old return list.
         rot region-list-deallocate          \ lnk ret-lst-new
         swap                                \ ret-lst-new lnk
-    next
+    next-item
                                             \ ret-lst
 ;

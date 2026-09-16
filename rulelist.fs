@@ -121,7 +121,7 @@
     assert( over list-get-length over list-get-length = )
     assert( dup list-get-length #3 < )
     assert( dup list-get-length 0> )
-    \ cr ." rule-list-union: start: " .stack-gbl cr
+    \ cr ." rule-list-union: start: " .stack cr
 
     \ Check order one.
     list-new -rot                   \ ret-lst1 rul-lst1 rul-lst0
@@ -138,7 +138,7 @@
             list-push-struct        \ ret-lst1 rul-lst1 rul-lst0
             2drop                   \ ret-lst
             true
-            \ cr ." rule-list-union: exit 0: " .stack-gbl cr
+            \ cr ." rule-list-union: exit 0: " .stack cr
             exit
         then
 
@@ -206,6 +206,6 @@
     foreach                     \ lst-n link rule
         #2 pick                 \ lst-n link rule lst-n
         list-push-end-struct    \ lst-n link
-    next
+    next-item
                                 \ lst-n
 ;

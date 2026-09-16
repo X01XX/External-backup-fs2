@@ -1,29 +1,39 @@
 \ Test regioncorr functions.
 
-: regioncorr-test-new
-    s" regc 3 -1 (r100 r0x0x)"
+: regioncorr-test-from-string
+    s" regc 3 -1 (r100 r0x0x)" list-from-string       \ lst t | f
+    invert abort" regioncorr-test-new: list-from-string: string not parsed"
 
-    list-from-string        \ lst t | f
-    if
-        \ Display.
-        cr ." list from string: " dup .struct-list cr
+    \ Test.
+    dup list-get-first-item is-regioncorr? invert abort" list-from-string failed?"
+    dup list-get-length 1 <> abort" list len not one?"
+    dup list-get-first-item
+    dup is-regioncorr? invert abort" list first element not a regioncorr?"
+    dup regioncorr-get-pos-value #3 <> abort" pos value not 3?"
+    regioncorr-get-neg-value -1 <> abort" neg value not -1?"
 
-        \ Test.
-        dup list-get-length 1 <> abort" list len not one?"
-        dup list-get-first-item
-        dup is-regioncorr? invert abort" list first element not a regioncorr?"
-        dup regioncorr-get-pos-value #3 <> abort" pos value not 3?"
-        regioncorr-get-neg-value -1 <> abort" neg value not -1?"
+    struct-list-deallocate
 
-        struct-list-deallocate
-    else
-        cr ." list not parsed" cr abort
-    then
+    s" regc 3 -1 (r100 r0x0x)" string-to-stack        \ x* t | f
+    invert abort" regioncorr-test-new: string-to-stack: string not parsed"
+
+    \ Test (uses list-from-string).
+    dup is-regioncorr? invert abort" string-to-stack failed?"
+
+    regioncorr-deallocate
+
+    s" regc 3 -1 (r100 r0x0x)" regioncorr-from-string        \ regc t | f
+    invert abort" regioncorr-test-new: regioncorr-from-string: regioncorr not parsed"
+
+    \ Test (uses list-from-string).
+    dup is-regioncorr? invert abort" regioncorr-from-string failed?"
+
+    regioncorr-deallocate
 
     \ Check for memory leaks.
     check-project-deallocated
 
-    cr ." regioncorr-test-new - Ok"
+    cr ." regioncorr-test-from-string - Ok"
 ;
 
 : regioncorrs-test-intersect?
@@ -165,7 +175,7 @@
 ;
 
 : regioncorr-tests
-    regioncorr-test-new
+    regioncorr-test-from-string
     regioncorrs-test-intersect?
     regioncorr-test-subtract
     regioncorr-test-intersection

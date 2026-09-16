@@ -98,7 +98,7 @@
             true
             exit
         then
-    next
+    next-item
                             \ sqr2 sqr1
     2drop
     false
@@ -127,7 +127,7 @@
             #2 pick             \ sqr2 btw1 ret-lst lnk sqrx ret-lst
             list-push-struct    \ sqr2 btw1 ret-lst lnk
         then
-    next
+    next-item
                             \ sqr2 sqr1 ret-lst
     nip nip
 ;
@@ -147,7 +147,7 @@
             true
             exit
         then
-    next
+    next-item
                             \ pn1
     drop
     false
@@ -254,10 +254,10 @@
                     then
                 then
             then
-        next
+        next-item
                                             \ pn inc-lst sqr-lnk bool1
         drop                                \ pn inc-lst sqr-lnk
-    next
+    next-item
                                             \ pn inc-lst
     nip                                     \ inc-lst
 
@@ -360,7 +360,7 @@
         repeat
                                                 \ pn inc-lst sqr-lnk bool1
         drop                                    \ pn inc-lst sqr-lnk
-    next
+    next-item
                                                 \ pn inc-lst
     nip                                         \ inc-lst
 
@@ -433,7 +433,7 @@
         else
             drop
         then
-    next
+    next-item
                                 \ pn reg
     nip                         \ reg
     true
@@ -453,7 +453,7 @@
             true
             exit
         then
-    next
+    next-item
                             \ pn
     drop
     false
@@ -518,7 +518,7 @@
         repeat
                                         \ bpn sqr-lnx bool1
         drop                            \ bpn sqr-lnx
-    next
+    next-item
                                         \ bpn
     drop
     true
@@ -600,7 +600,7 @@
                 exit
             then
         then
-    next
+    next-item
                                         \ rul-lst max-pn
     drop                                \ rul-lst
     true
@@ -650,7 +650,7 @@
                 exit
             then
         then
-    next
+    next-item
                                 \ bpn sqr1
     2drop
     true
@@ -679,7 +679,7 @@
             #2 pick                 \ ret-lst link sqr ret-lst
             list-push-struct        \ ret-lst link
         then
-    next
+    next-item
                                     \ ret-lst
     dup list-is-empty?
     if
@@ -722,7 +722,7 @@
             #3 pick             \ ret-lst sqr-lst0 sta-lnk sta ret-lst
             list-push-struct    \ ret-lst sqr-lst0 sta-lnk
         then
-    next
+    next-item
                                 \ ret-lst sqr-lst0
     drop
 ;
@@ -748,7 +748,7 @@
             \ Inc counter.
             swap 1+ swap
         then
-    next
+    next-item
                                         \ sqr-lst0 cnt
     nip
 ;
@@ -773,5 +773,5 @@
             list-push-struct        \ sta-lst sqr-lnk sqrx
         then
         drop
-    next
+    next-item
 ;

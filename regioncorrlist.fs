@@ -162,7 +162,7 @@
                     #5 pick                     \ ret-lst regc1 regc-lnk0 rem-lst rem-lnk rem-reg ret-lst
                     regioncorr-list-push-nosubs \ ret-lst regc1 regc-lnk0 rem-lst rem-lnk flag
                     drop                        \ ret-lst regc1 regc-lnk0 rem-lst rem-lnk
-                next
+                next-item
                                                 \ ret-lst regc1 regc-lnk0 rem-lst
                 regioncorr-list-deallocate      \ ret-lst regc1 regc-lnk0
             else
@@ -173,7 +173,7 @@
                 drop                            \ ret-lst regc1 regc-lnk0
             then
         then
-    next
+    next-item
                                                 \ ret-lst regc1
     drop                                        \ ret-lst
     \ cr ." regioncorr-list-subtract-regioncorr: end: " dup .regioncorr-list cr
@@ -190,7 +190,7 @@
     foreach                     \ ret-lst regc-lnk0 regc
         #2 pick                 \ ret-lst regc-lnk0 regc ret-lst
         list-push-end-struct    \ ret-lst regc-lnk0
-    next
+    next-item
                                 \ ret-lst
 ;
 
@@ -214,7 +214,7 @@
         regioncorr-list-subtract-regioncorr \ regc-lnk1 retc-lst retc-lst-new
         -rot                                \ ret-lst-new regc-lnk1 ret-lst
         regioncorr-list-deallocate          \ ret-lst-new regc-lnk1
-    next
+    next-item
                                             \ ret-lst
     \ cr ." regioncorr-list-subtract: end : " dup .regioncorr-list cr
 ;
@@ -249,8 +249,8 @@
                     regioncorr-deallocate   \ ret-lst regc-lnk1 regc-lnk2
                 then
             then
-        next
-    next
+        next-item
+    next-item
                                             \ ret-lst
     dup list-is-empty?
     if
@@ -336,7 +336,7 @@
             #2 pick                         \ regc1 regc-lnk0 pos regc1
             regioncorr-add-pos-value        \ regc1 regc-lnk0
         then
-    next
+    next-item
     drop
 ;
 
@@ -350,7 +350,7 @@
     foreach                             \ regc-lst1 regc-lnk0 regc0
         #2 pick                         \ regc-lst1 regc-lnk0 regc0 regc-lst1
         regioncorr-list-rate-regioncorr \ regc-lst1 regc-lnk0
-    next
+    next-item
     drop
 ;
 
@@ -473,7 +473,7 @@
             \ cr ." regioncorr-lists-eq?: exit 2" .s cr
             exit
         then
-    next
+    next-item
                                             \ regc-lst1
     drop
     true
@@ -486,7 +486,7 @@
 
     foreach             \ regc-lnk regc
         regioncorr-init-pos-value-to-1
-    next
+    next-item
 ;
 
 \ Return true if all items in a regioncorr list are a
@@ -509,7 +509,7 @@
             false
             exit
         then
-    next
+    next-item
                                     \ regc1
     drop
     true
@@ -535,7 +535,7 @@
             false
             exit
         then
-    next
+    next-item
                                     \ regc1
     drop
     true
@@ -575,7 +575,7 @@
             #3 pick                 \ ret-lst regc1 reg-lnk0 regx ret-lst
             list-push-struct        \ ret-lst regc1 reg-lnk0
         then
-    next
+    next-item
                                     \ ret-lst regc1
     drop
 ;
@@ -597,7 +597,7 @@
             #3 pick                 \ ret-lst regc1 reg-lnk0 regx ret-lst
             list-push-struct        \ ret-lst regc1 reg-lnk0
         then
-    next
+    next-item
                                     \ ret-lst regc1
     drop
 ;
@@ -643,7 +643,7 @@
             regioncorr-list-deallocate
             drop
         then
-    next
+    next-item
                                                 \ regc-comp-lst1 regc-int-lst regci-lst
     \ Display.
     s" regcorrints: " #2 pick .intregcs-list-prefix-xt execute
@@ -694,8 +694,8 @@
                     regioncorr-list-deallocate          \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2
                 then
             then
-        next
-    next
+        next-item
+    next-item
 
     \ Find intersections for each complement regioncorr.
 \    #2 pick                                     \ regc-comp-lst1 regc-int-lst regci-lst regc-comp-lst1
@@ -706,7 +706,7 @@
 \        execute                                 \ regc-comp-lst1 regc-int-lst regci-lst regc-comp-lnk1 regci-lst2
 \        cr s"    regci's: " #2 pick .intregcs-list-prefix-xt execute
 \        intregcs-list-deallocate-xt execute
-\    next
+\    next-item
 
     \ Deallocate.
     intregcs-list-deallocate-xt execute
@@ -732,7 +732,7 @@
         ifnot
             swap 1+ swap        \ regc-lst1 num regc-lnk0
         then
-    next
+    next-item
                                 \ regc-lst1 num
     nip
 ;
@@ -753,7 +753,7 @@
             #2 pick                 \ ret-lst regc-lnk regcx ret-lst
             list-push-end-struct    \ ret-lst regc-lnk
         then
-    next
+    next-item
 ;
 
 \ Return the set union of two regioncorr lists.
@@ -791,7 +791,7 @@
             true
             exit
         then
-    next
+    next-item
                                 \ regc1
     drop
     false
@@ -816,10 +816,10 @@
 
             \ Update min distance.
             r> min >r
-        next
+        next-item
                                     \ regc-lst1 regc-lnk0 regc0
         drop
-    next
+    next-item
     \ Return                        \ regc-lst1
     drop
     r>
@@ -834,7 +834,7 @@
     foreach             \ regc-lst1 regc-lnk0 regc0
         #2 pick swap    \ regc-lst1 regc-lnk0 regc-lst1 regc0
         regioncorr-rate \ regc-lst1 regc-lnk0
-    next
+    next-item
                         \ regc-lst1
     drop
 ;
@@ -857,7 +857,7 @@
             #3 pick             \ ret-lst regc2 regcslnt0 regcs0x ret-lst
             list-push-struct    \ ret-lst regc2 regcslnt0
         then
-    next
+    next-item
                                 \ ret-lst regc2
     drop
     \ cr ." regioncorr-list-non-intersections: out: " dup list-get-length dec. cr
@@ -878,7 +878,7 @@
         if
             swap 1+ swap
         then
-    next
+    next-item
 ;
 
 \ Return a list of regioncorrs that have a given negative value.
@@ -898,6 +898,41 @@
             #2 pick                 \ val1 ret-lst regc-lnk regcx ret-lst
             list-push-struct        \ val1 ret-lst regc-lnk
         then
-    next
+    next-item
     nip
+;
+
+\ Return true if a statecorr is in a regioncorr-list.
+: regioncorr-list-stac-in? ( stac1 regc-lst0 -- bool )
+    \ Check args.
+    assert( tos is-regioncorr-list? )
+    assert( nos is-statecorr?-xt execute )
+
+    foreach                                 \ stac1 regc-lnk regcx
+        #2 pick swap                        \ stac1 regc-lnk stac1 regcx
+        regioncorr-superset-of-statecorr?   \ stac1 regc-lnk bool
+        if
+            2drop true exit
+        then
+    next-item
+                                            \ stac1
+    drop
+    false
+;
+
+\ Return true if neither given statecorr is in the regioncorr list.
+: regioncorrlist-neither-stac-in? ( stac2 stac1 regc-lst0 -- bool )
+    \ Check args.
+    assert( tos is-regioncorr-list? )
+    assert( nos is-statecorr?-xt execute )
+    assert( 3os is-statecorr?-xt execute )
+
+    2dup regioncorr-list-stac-in?   \ stac2 stac1 regc-lst0 bool
+    if
+        2drop drop false exit
+    then
+
+    nip                             \ stac2 regc-lst0
+    regioncorr-list-stac-in?        \ bool
+    invert
 ;

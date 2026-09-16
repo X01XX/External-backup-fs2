@@ -53,7 +53,7 @@
         rot                                 \ nadj-prs adj-prs nadj-stas' nadj-stas-lnk num-in max
         max                                 \ nadj-prs adj-prs nadj-stas' nadj-stas-lnk max
         swap                                \ nadj-prs adj-prs nadj-stas' max nadj-stas-lnk
-    next
+    next-item
                                             \ nadj-prs adj-prs nadj-stas' max
 
     \ cr ." max connections rate of any state: " dup . cr
@@ -89,7 +89,7 @@
             #2 pick                         \ nadj-prs adj-prs nadj-stas' max pri-stas' nadj-stas-lnk stax pri-stas'
             list-push-struct                \ nadj-prs adj-prs nadj-stas' max pri-stas' nadj-stas-lnk
         then
-    next
+    next-item
                                             \ nadj-prs adj-prs nadj-stas' max pri-stas'
     nip                                     \ nadj-prs adj-prs nadj-stas' pri-stas'
 

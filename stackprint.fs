@@ -38,7 +38,7 @@
                     ." -u"
                     exit
                 then
-            next
+            next-item
                                                         \ addr
             \ Default
             dup abs 0 <# #S rot sign #> type            \

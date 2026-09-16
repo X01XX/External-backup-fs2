@@ -184,7 +184,7 @@
         region-list-supersets-of                    \ reg-lst' reg-ints' int-lnk regs-in'
         space ." in " dup .region-list
         region-list-deallocate                      \ reg-lst' reg-ints' int-lnk
-    next
+    next-item
     cr
 
     \ Test.
@@ -228,7 +228,7 @@
         region-list-supersets-of                    \ reg-lst' reg-ints' int-lnk regs-in'
         space ." in " dup .region-list
         region-list-deallocate                      \ reg-lst' reg-ints' int-lnk
-    next
+    next-item
     cr
 
     \ Test.
@@ -268,7 +268,7 @@
         region-list-supersets-of                        \ reg-lst' def-regs' def-lnk sup-lst'
         space ." in " dup .region-list cr               \ reg-lst' def-regs' def-lnk sup-lst'
         region-list-deallocate                          \ reg-lst' def-regs' def-lnk
-    next
+    next-item
 
     \ Clean up.                                         \ reg-lst' def-regs'
     region-list-deallocate                              \ reg-lst'

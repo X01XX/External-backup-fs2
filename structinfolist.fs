@@ -75,7 +75,7 @@
         rot                     \ si-link u cnt
         max                     \ si-link cnt
         swap                    \ cnt si-link
-    next
+    next-item
 ;
 
 \ Print memory use of structs.
@@ -101,7 +101,7 @@
         \ Print memory use.
         structinfo-get-mma              \ si-lst max si-link mmax
         .mma-usage                      \ si-lst max si-link
-    next
+    next-item
                                         \ si-lst max
     \ Print Summary line.
     cr
@@ -116,7 +116,7 @@
         mma-in-use                  \ si-lst cnt si-link totx
         rot                         \ si-lst si-link totx cnt
         + swap                      \ si-lst cnt+ si-link
-    next
+    next-item
 
     \ Print array instances in use.
     #6 dec.r
@@ -129,7 +129,7 @@
         mma-get-array-memory-use    \ si-lst cnt si-link totx
         rot                         \ si-lst si-link totx cnt
         + swap                      \ si-lst cnt+ si-link
-    next
+    next-item
 
     \ Print array memory use.
     #30 spaces
@@ -143,7 +143,7 @@
         mma-get-overhead-memory-use \ si-lst cnt si-link totx
         rot                         \ si-lst si-link totx cnt
         + swap                      \ si-lst cnt+ si-link
-    next
+    next-item
 
     \ Print overhead memory use.
     #11 spaces #7 dec.r
@@ -156,7 +156,7 @@
         mma-get-total-memory-use    \ si-lst cnt si-link totx
         rot                         \ si-lst si-link totx cnt
         + swap                      \ si-lst cnt+ si-link
-    next
+    next-item
 
     \ Print total memory use.
     #8 spaces
@@ -171,7 +171,7 @@
         _mma-get-num-allocations    \ si-lst cnt si-link allocx
         rot                         \ si-lst si-link allocx cnt
         + swap                      \ si-lst cnt+ si-link
-    next
+    next-item
 
     \ Print number allocations.
     #7 spaces #12 dec.r
@@ -231,7 +231,7 @@
             true
             exit
         then
-    next
+    next-item
                                     \ addr
     drop
     false
@@ -336,7 +336,7 @@
                 drop
             then
         endcase
-    next
+    next-item
                                     \ snf-lst flg
    if
         cr ." Memory leaks found!" abort
@@ -368,7 +368,7 @@
     foreach                                 \ cnt snf-link snfx
         structinfo-get-mma                  \ cnt snf-link snf-mma
         -rot                                \ snf-mma cnt snf-link
-    next
+    next-item
 
     \ Free each mm array.
                                             \ mma ... mma cnt
@@ -568,7 +568,7 @@
                 exit
             then
         then
-    next
+    next-item
                                         \ c-addr u
     2drop
     false
@@ -662,7 +662,7 @@
             true
             exit
         then
-    next
+    next-item
 
     \ Cleanup, return.              \ item
     drop
@@ -715,7 +715,7 @@
                 drop                                 \ lst1 snf-lnk
             then
         then
-    next
+    next-item
                     \ lst1
     drop
     false

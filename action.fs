@@ -552,7 +552,7 @@ action-groups-disp                          cell+   constant action-function-dis
             #3 pick                     \ act0 ret-lst pos-lst sqr-lnk sqrx ret-lst
             list-push-struct            \ act0 ret-lst pos-lst sqr-lnk
         then
-    next
+    next-item
                                 \ act0 ret-lst pos-lst
     drop nip                    \ ret-lst
 ;
@@ -699,7 +699,7 @@ action-groups-disp                          cell+   constant action-function-dis
     \ Check args.
     assert( tos is-action? )
     assert( nos is-group? )
-    cr ." Action " space ." Adding group: " over .group cr
+    cr ." Action  " dup action-get-inst-id dec. ." : Adding group: " over .group cr
 
     action-get-groups        \ grp1 grp-lst
     list-push-struct
@@ -729,7 +729,7 @@ action-groups-disp                          cell+   constant action-function-dis
             #3 pick                     \ act0 del-grps pos-regs grp-lnk grpx del-grps
             list-push-struct            \ act0 del-grps pos-regs grp-lnk
         then
-    next
+    next-item
 
     \ cr ." _action-delete-orphaned-groups: middle: " .stack cr
     \ Remove the groups from the action group list.
@@ -742,7 +742,7 @@ action-groups-disp                          cell+   constant action-function-dis
         cr ." Orphan group deleted: " dup group-get-region .region cr
         #2 pick                         \ act0 del-grps grp-lst del-lnk grpx grp-lst
         group-list-remove               \ act0 del-grps grp-lst del-lnk
-    next
+    next-item
                                         \ act0 del-grps grp-lst
     drop                                \ act0 del-grps
     group-list-deallocate               \ act0      The groups are deallocated here.
@@ -798,7 +798,7 @@ action-groups-disp                          cell+   constant action-function-dis
                 then
             then
         then
-    next
+    next-item
                                         \ sqr1 act0 grp-lst
     2drop drop
 ;
@@ -842,7 +842,7 @@ action-groups-disp                          cell+   constant action-function-dis
                 then
             then
         then
-    next
+    next-item
                                         \ act0 pos-regs
     2drop
 ;
@@ -882,7 +882,7 @@ action-groups-disp                          cell+   constant action-function-dis
             list-push-struct                \ act0 rslt-lst pos-lst sta-lnk regs-in'
         then
         region-list-deallocate              \ act0 rslt-lst pos-lst sta-lnk
-    next
+    next-item
                                             \ act0 rslt-lst pos-lst
     drop nip
 ;
@@ -913,7 +913,7 @@ action-groups-disp                          cell+   constant action-function-dis
             #4 pick                     \ act0 rslt-lst def-regs sta-lst' sta-lnk stax rslt-lst
             list-push-struct            \ act0 rslt-lst def-regs sta-lst' sta-lnk
         then
-    next
+    next-item
                                         \ act0 rslt-lst def-regs sta-lst'
     state-list-deallocate               \ act0 rslt-lst def-regs
     drop                                \ act0 rslt-lst
@@ -1002,7 +1002,7 @@ action-groups-disp                          cell+   constant action-function-dis
             false
             exit
         then
-    next
+    next-item
 
     2drop 2drop
     true
@@ -1070,7 +1070,7 @@ action-groups-disp                          cell+   constant action-function-dis
                 drop
             then
         then
-    next
+    next-item
 
     2drop 2drop
     true
@@ -1170,7 +1170,7 @@ action-groups-disp                          cell+   constant action-function-dis
                 \ Remove corners from corner list.
                 #2 pick                         \ act0 cstr-lst' crn-lst' crn-lnk regx crn-lst'
                 corner-list-remove-by-region    \ act0 cstr-lst' crn-lst' crn-lnk
-            next
+            next-item
                                                 \ act0 cstr-lst' crn-lst'
             false                               \ Do not end the loop.
         else                                    \ act0 cstr-lst' crn-lst'
@@ -1243,10 +1243,10 @@ action-groups-disp                          cell+   constant action-function-dis
             else
                 corner-deallocate       \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk
             then
-        next
+        next-item
 
         state-list-deallocate
-    next
+    next-item
                                         \ pre-lst act0 stas-in1
     drop                                \ pre-lst act0
 
@@ -1321,7 +1321,7 @@ action-groups-disp                          cell+   constant action-function-dis
         swap region-list-deallocate         \ act0 pos-new pr-lnk pos-new2
         rot region-list-deallocate          \ act0 pr-lnk pos-new2
         swap                                \ act0 pos-new2 pr-lnk
-    next
+    next-item
                                             \ act0 pos-new
     swap                                    \ pos-new act0
     _action-update-adj-regions              \
@@ -1369,7 +1369,7 @@ action-groups-disp                          cell+   constant action-function-dis
         swap region-list-deallocate         \ act0 pos-new pr-lnk pos-new2
         rot region-list-deallocate          \ act0 pr-lnk pos-new2
         swap                                \ act0 pos-new2 pr-lnk
-    next
+    next-item
                                             \ act0 pos-new
     swap                                    \ pos-new act0
     _action-update-nadj-regions              \
@@ -1423,7 +1423,7 @@ action-groups-disp                          cell+   constant action-function-dis
             #2 pick                     \ act0 adj-lst del-lst' nadj-lnk regx del-lst
             list-push-struct            \ act0 adj-lst del-lst' nadj-lnk
         then
-    next
+    next-item
                                     \ act0 adj-lst del-lst'
     \ Check if none found.
     dup list-is-empty?
@@ -1442,7 +1442,7 @@ action-groups-disp                          cell+   constant action-function-dis
     foreach                     \ act0 nadj-lst del-lst' del-lnk reg
         #3 pick                 \ act0 nadj-lst del-lst' del-lnk reg nadj-lst
         region-list-remove      \ act0 nadj-lst del-lst' del-lnk, reg t | f
-    next
+    next-item
                                 \ act0 nadj-lst del-lst'
     region-list-deallocate      \ act0 nadj-lst
     2drop
@@ -1535,7 +1535,7 @@ action-groups-disp                          cell+   constant action-function-dis
                 cr ." square not found?" abort
             then
         then
-    next
+    next-item
                                         \ sqr2 act0 del-lst sta2
     drop                                \ sqr2 act0 del-lst
 
@@ -1581,7 +1581,7 @@ action-groups-disp                          cell+   constant action-function-dis
     foreach                                             \ sqr1 act0 del-lst' adj-lst del-lnk regx
         #2 pick                                         \ sqr1 act0 del-lst' adj-lst del-lnk regx adj-lst
         region-list-remove                              \ sqr1 act0 del-lst' adj-lst del-lnk
-    next
+    next-item
                                                         \ sqr1 act0 del-lst' nadj-lst
     drop region-list-deallocate                         \ sqr1 act0
 
@@ -1617,7 +1617,7 @@ action-groups-disp                          cell+   constant action-function-dis
     foreach                                             \ sqr1 act0 del-lst' nadj-lst del-lnk regx
         #2 pick                                         \ sqr1 act0 del-lst' nadj-lst del-lnk regx nadj-lst
         region-list-remove                              \ sqr1 act0 del-lst' nadj-lst del-lnk
-    next
+    next-item
                                                         \ sqr1 act0 del-lst' nadj-lst
     drop region-list-deallocate                         \ sqr1 act0
 
@@ -1688,14 +1688,14 @@ action-groups-disp                          cell+   constant action-function-dis
                             region-list-push-nosups         \ pr-lst sta1 act0 sqr-lst pos-lnk reg-lst' reg-lnk bool
                             drop
                         then
-                    next
+                    next-item
                     region-list-deallocate                  \ pr-lst sta1 act0 sqr-lst pos-lnk
                 else
                     square-list-deallocate                  \ pr-lst sta1 act0 sqr-lst pos-lnk
                 then
             then
         then
-    next
+    next-item
                                                             \ pr-lst sta1 act0 sqr-lst
     drop                                                    \ pr-lst sta1 act0
     nip                                                     \ pr-lst act0
@@ -1716,7 +1716,7 @@ action-groups-disp                          cell+   constant action-function-dis
             #2 pick                                         \ pr-lst act0 nadj-pairs pr-lnk prx nadj-pairs
             region-list-push-nosups                         \ pr-lst act0 nadj-pairs pr-lnk bool
             drop
-        next
+        next-item
                                                             \ pr-lst act0 nadj-pairs
         drop                                                \ pr-lst act0
         swap region-list-deallocate                         \ act0
@@ -1748,7 +1748,7 @@ action-groups-disp                          cell+   constant action-function-dis
             #4 pick                     \ del-lst act0 adj-regs nadj-lnk prx del-lst
             region-list-push            \ del-lst act0 adj-regs nadj-lnk
         then
-    next
+    next-item
                                         \ del-lst act0 adj-regs
     drop                                \ del-lst act0
 
@@ -1758,7 +1758,7 @@ action-groups-disp                          cell+   constant action-function-dis
     foreach                             \ del-lst act0 nadj-prs del-lnk prx
         #2 pick                         \ del-lst act0 nadj-prs del-lnk prx nadj-prs
         region-list-remove              \ del-lst act0 nadj-prs del-lnk
-    next
+    next-item
                                         \ del-lst act0 nadj-prs
     drop                                \ del-lst act0
 
@@ -1805,14 +1805,14 @@ action-groups-disp                          cell+   constant action-function-dis
                         #7 pick                         \ pr-lst sta1 act0 sqr-lst pos-lnk reg-lst' reg-lnk regx pr-lst
                         region-list-push-nosups         \ pr-lst sta1 act0 sqr-lst pos-lnk reg-lst' reg-lnk bool
                         drop
-                    next
+                    next-item
                     region-list-deallocate              \ pr-lst sta1 act0 sqr-lst pos-lnk
                 else
                     square-list-deallocate              \ pr-lst sta1 act0 sqr-lst pos-lnk
                 then
             then
         then
-    next
+    next-item
                                                         \ pr-lst sta1 act0 sqr-lst
     drop                                                \ pr-lst sta1 act0
 
@@ -1900,7 +1900,7 @@ action-groups-disp                          cell+   constant action-function-dis
             over link-get-data      \ sqr2 grp-lst act0 grp-lnk sqr2 grpx
             group-add-new-square    \ sqr2 grp-lst act0 grp-lnk
         then
-    next
+    next-item
 
     \ cr ." action-add-new-square-to-groups: end" cr
     2drop drop
@@ -1953,7 +1953,7 @@ action-groups-disp                          cell+   constant action-function-dis
     \ Check args.
     assert( tos is-action? )
     assert( nos is-sample? )
-    \ cr ." Action: add sample: " over .sample cr
+    cr ." Action "  dup action-get-inst-id dec. ." : Add sample: " over .sample cr
     \ cr ." action-add-sample: start: " .stack cr
 
     over sample-get-initial     \ smpl1 act0 initial
@@ -1961,7 +1961,7 @@ action-groups-disp                          cell+   constant action-function-dis
     if
         rot                     \ act0 sqr smpl1
         over                    \ act0 sqr smpl1 sqr
-        cr ." Action: Updating square: " dup .square cr
+        cr ." Action " #3 pick action-get-inst-id dec. ." : Updating square: " dup .square cr
         square-add-sample       \ act0 sqr bool
         if
             swap                        \ sqr act0
@@ -1974,7 +1974,7 @@ action-groups-disp                          cell+   constant action-function-dis
     else
         over                    \ smpl1 act0 smpl1
         square-new              \ smpl1 act0 sqr1
-        cr ." Action: Adding new square: " dup .square cr
+        cr ." Action " over action-get-inst-id dec. ." : Adding new square: " dup .square cr
         over                    \ smpl1 act0 sqr1 act0
         action-add-new-square   \ smpl1 act0
         2drop

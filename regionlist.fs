@@ -118,7 +118,7 @@
             false
             exit
         then
-    next
+    next-item
                                         \ reg-lst1
     drop
     true
@@ -225,10 +225,10 @@
                     region-deallocate
                 then
             then
-        next                            \ ret-lst reg-lst1 link0 reg0 reg-lnk1
+        next-item                       \ ret-lst reg-lst1 link0 reg0 reg-lnk1
                                         \ ret-lst reg-lst1 link0 reg0
         drop                            \ ret-lst reg-lst1 link0
-    next
+    next-item
                                         \ ret-lst reg-lst1
     drop                                \ ret-lst
 ;
@@ -246,7 +246,7 @@
         #2 pick                 \ reg-lst1 ret-lst reg-lnk0 reg0 ret-lst
         region-list-push-nosubs \ reg-lst1 ret-lst reg-lnk0 bool
         drop
-    next
+    next-item
                                 \ reg-lst1 ret-lst
     \ Prep for loop 2.
     swap                        \ ret-lst reg-lst1
@@ -255,7 +255,7 @@
         #2 pick                 \ ret-lst reg-lnk1 reg1 ret-lst
         region-list-push-nosubs \ ret-lst reg-lnk1 bool
         drop
-    next
+    next-item
                                 \ ret-lst
 ;
 
@@ -280,7 +280,7 @@
             #2 pick                 \ reg1 reg-lst0 ret-lst reg-lnk0 regx ret-lst
             region-list-push-end    \ reg1 reg-lst0 ret-lst reg-lnk0
         then
-    next
+    next-item
                                     \ reg1 reg-lst0 ret-lst
     over list-get-length            \ reg1 reg-lst0 ret-lst len1
     over list-get-length            \ reg1 reg-lst0 ret-lst len1 len2
@@ -321,7 +321,7 @@
                     #5 pick                 \ ret-lst reg1 reg-lnk0 rem-lst rem-lnk rem-reg ret-lst
                     region-list-push-nosubs \ ret-lst reg1 reg-lnk0 rem-lst rem-lnk flag
                     drop                    \ ret-lst reg1 reg-lnk0 rem-lst rem-lnk
-                next
+                next-item
                                             \ ret-lst reg1 reg-lnk0 rem-lst
                 region-list-deallocate      \ ret-lst reg1 reg-lnk0
             else
@@ -332,7 +332,7 @@
                 drop                        \ ret-lst reg1 reg-lnk0
             then
         then
-    next
+    next-item
                                             \ ret-lst reg1
     drop                                    \ ret-lst
 ;
@@ -348,7 +348,7 @@
     foreach                     \ ret-lst reg-lnk0 regx
         #2 pick                 \ ret-lst reg-lnk0 regx lst-n
         region-list-push-end    \ ret-lst reg-lnk0
-    next
+    next-item
                                 \ ret-lst
 ;
 
@@ -371,7 +371,7 @@
         region-list-subtract-region \ reg-lnk1 ret-lst ret-lst-new
         -rot                        \ ret-lst-new reg-lnk1 ret-lst
         region-list-deallocate      \ ret-lst-new reg-lnk1
-    next
+    next-item
                                     \ ret-lst
 ;
 
@@ -418,7 +418,7 @@
             #3 pick                 \ ret-lst reg-lst0 reg-lnk0 lstx' ret-lst
             list-push-struct        \ ret-lst reg-lst0 reg-lnk0
         then
-    next
+    next-item
                                     \ ret-lst reg-lst0
     drop                            \ ret-lst
 ;
@@ -460,7 +460,7 @@
             #3 pick                 \ ret-lst reg-lst0 reg-lnk0 regx ret-lst
             list-push-struct        \ ret-lst reg-lst0 reg-lnk0
         then
-    next
+    next-item
                                     \ ret-lst reg-lst0
     drop                            \ ret-lst
 ;
@@ -485,7 +485,7 @@
             #3 pick                     \ ret-lst sta1 reg-lnk0 reg0 ret-lst
             list-push-struct            \ ret-lst sta1 reg-lnk0
         then
-    next
+    next-item
 
     drop                                \ ret-lst
 ;
@@ -512,7 +512,7 @@
         \ Add sub-list to return list.
         #3 pick                         \ ret-lst reg-lst1 sta-lnk0 sub-lst ret-lst
         list-push-struct                \ ret-lst reg-lst1 sta-lnk0
-    next
+    next-item
                                         \ ret-lst reg-lst1
     drop
 ;
@@ -546,7 +546,7 @@
             \ Inc count.
             swap 1+ swap
         then
-    next
+    next-item
                                     \ sta1 cnt
     nip
 ;
@@ -572,7 +572,7 @@
             #3 pick                     \ ret-lst reg-lst0 sta-lnk1 stax ret-lst
             list-push-struct            \ ret-lst reg-lst0 sta-lnk1
         then
-    next
+    next-item
                                         \ ret-lst reg-lst0
     drop
 ;
@@ -582,7 +582,7 @@
     \ Check args.
     assert( tos is-region-list? )
     assert( nos is-state-list? )
-    \ cr ." region-list-states-in: start: " .stack-gbl cr
+    \ cr ." region-list-states-in: start: " .stack cr
 
     \ Init return list.
     list-new -rot                       \ ret-lst sta-lst1 reg-lst0
@@ -598,18 +598,18 @@
             #5 pick                     \ ret-lst reg-lst0 sta-lnk1 sta-reg-lst' sta-reg-lnk regx ret-lst
             region-list-push-nosubs     \ ret-lst reg-lst0 sta-lnk1 sta-reg-lst' sta-reg-lnk bool
             drop
-        next
+        next-item
                                         \ ret-lst reg-lst0 sta-lnk1 sta-reg-lst'
         region-list-deallocate          \ ret-lst reg-lst0 sta-lnk1
-    next
+    next-item
                                         \ ret-lst reg-lst0
     drop
-    \ cr ." region-list-states-in: end: " .stack-gbl cr
+    \ cr ." region-list-states-in: end: " .stack cr
 ;
 
 : region-list-state-in ( sta1 reg-lst0 -- reg-lst )
     \ Check args.
-    \ cr ." region-list-state-in: start: " .stack-gbl cr
+    \ cr ." region-list-state-in: start: " .stack cr
     assert( tos is-region-list? )
     assert( nos is-state? )
 
@@ -624,14 +624,14 @@
             #3 pick                 \ ret-lst sta1 reg-lnk0 regx ret-lst
             region-list-push        \ ret-lst sta1 reg-lnk0
         then
-    next
+    next-item
                                     \ ret-lst sta1
     drop
 ;
 
 : region-list-states-not-in ( sta-lst1 reg-lst0 -- sta-lst )
     \ Check args.
-    \ cr ." region-list-states-not-in: start: " .stack-gbl cr
+    \ cr ." region-list-states-not-in: start: " .stack cr
     assert( tos is-region-list? )
     assert( nos is-state-list? )
 
@@ -650,7 +650,7 @@
             #3 pick                     \ ret-lst reg-lst0 sta-lnk1 sta1 ret-lst
             list-push-struct            \ ret-lst reg-lst0 sta-lnk1
         then
-    next
+    next-item
                                         \ ret-lst reg-lst0
     drop
 ;
@@ -688,13 +688,13 @@
     #2 pick                                     \ sta-lst1 reg-lst0 stas-in-one def-regs stas-not-in stas-reg def-regs
     foreach                                     \ sta-lst1 reg-lst0 stas-in-one def-regs stas-not-in stas-reg def-lnk def-regx
         cr ." def reg: " .region cr
-    next
+    next-item
 
     \ Check for new anchors.
     dup                                         \ sta-lst1 reg-lst0 stas-in-one def-regs stas-not-in stas-reg stas-reg
     foreach                                     \ sta-lst1 reg-lst0 stas-in-one def-regs stas-not-in stas-reg stas-reg-lnk sta-regx
         cr ." sta-regs: " .struct-list cr
-    next
+    next-item
                                                 \ sta-lst1 reg-lst0 stas-in-one def-regs stas-not-in stas-reg
     struct-list-deallocate                      \ sta-lst1 reg-lst0 stas-in-one def-regs stas-not-in
     state-list-deallocate                       \ sta-lst1 reg-lst0 stas-in-one def-regs
@@ -797,7 +797,7 @@
             exit
         then
 
-    next
+    next-item
                                         \ sta1
     drop
     false
@@ -849,7 +849,7 @@
             drop                    \ sta-lst reg-lnk
         then
 
-    next
+    next-item
 ;
 
 \ Return true if a region-list contains a subset, or equal, region.
@@ -993,8 +993,8 @@
                     region-deallocate   \ ret-lst reg-lnk1 reg-lnk2
                 then
             then
-        next
-    next
+        next-item
+    next-item
                                         \ ret-lst
     dup list-is-empty?
     if
@@ -1035,8 +1035,8 @@
                     region-deallocate   \ ret-lst reg-lnk1 reg-lnk2
                 then
             then
-        next
-    next
+        next-item
+    next-item
                                         \ ret-lst
     dup list-is-empty?
     if
@@ -1129,7 +1129,7 @@
             true
             exit
         then
-    next
+    next-item
     drop
     false
 ;
@@ -1174,14 +1174,14 @@
                     swap                        \ ret-lst reg-lst0 reg-lnk regx rslt-lst' reg-lnk
                 then
             then
-        next
+        next-item
                                                 \ ret-lst reg-lst0 reg-lnk regx tmp-lst'
         dup                                     \ ret-lst reg-lst0 reg-lnk regx tmp-lst' tmp-lst'
         #5 pick                                 \ ret-lst reg-lst0 reg-lnk regx tmp-lst' tmp-lst' ret-lst
         region-list-append-nosubs               \ ret-lst reg-lst0 reg-lnk regx tmp-lst'
         region-list-deallocate                  \ ret-lst reg-lst0 reg-lnk regx
         drop                                    \ ret-lst reg-lst0 reg-ln
-    next
+    next-item
     drop
 ;
 

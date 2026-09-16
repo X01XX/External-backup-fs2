@@ -184,3 +184,12 @@
 
 ' xtabort value is-regioncorr-list?-xt
 
+' xtabort value is-statecorr?-xt
+
+' xtabort value statecorr-get-list-xt
+
+' xtabort value .statecorr-xt
+
+
+
+

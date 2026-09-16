@@ -294,7 +294,7 @@ list-header-disp    cell+   constant list-links-disp
             true
             exit
         then
-    next
+    next-item
 
     \ Cleanup, return.      \ xt item
     2drop
@@ -328,7 +328,7 @@ list-header-disp    cell+   constant list-links-disp
                 exit
             then
         then
-    next
+    next-item
 
     \ Cleanup, return.      \ xt item
     2drop
@@ -365,7 +365,7 @@ list-header-disp    cell+   constant list-links-disp
             true
             exit
         then
-    next
+    next-item
 
     \ Cleanup, return false.    \ xt item
     2drop
@@ -412,7 +412,7 @@ list-header-disp    cell+   constant list-links-disp
                 exit
             then
         then
-    next
+    next-item
 
     \ Cleanup, return false.    \ xt item
     2drop
@@ -431,7 +431,7 @@ list-header-disp    cell+   constant list-links-disp
     foreach                 \ lst0 link data
         #2 pick             \ lst0 link data lst0
         list-push           \ lst0 link
-    next
+    next-item
                             \ lst0
     drop
 ;
@@ -783,7 +783,7 @@ list-header-disp    cell+   constant list-links-disp
                 list-push           \ ret xt item link
             then
         then
-    next
+    next-item
 
     \ Cleanup.
     drop 2drop              \ ret-list
@@ -816,7 +816,7 @@ list-header-disp    cell+   constant list-links-disp
             #2 pick             \ xt list0 list-ret link1 data1 list-ret
             list-push           \ xt list0 list-ret link1
         then
-    next
+    next-item
 
                                 \ xt list0 list-ret
     nip nip                     \ list-ret
@@ -848,7 +848,7 @@ list-header-disp    cell+   constant list-links-disp
             #2 pick             \ xt list1 list-ret link0 data0 list-ret
             list-push           \ xt list1 list-ret link0
         then
-    next
+    next-item
                                 \ xt list1 list-ret
 
     \ Get list1 items
@@ -864,7 +864,7 @@ list-header-disp    cell+   constant list-links-disp
             #2 pick             \ xt list-ret link1 data1 list-ret
             list-push           \ xt list-ret link1
         then
-    next
+    next-item
                                 \ xt list-ret
     nip                         \ list-ret
 ;
@@ -878,7 +878,7 @@ list-header-disp    cell+   constant list-links-disp
     foreach                     \ xt links0 data0
         #2 pick                 \ xt link0 data0 xt
         execute                 \ xt link0
-    next
+    next-item
                                 \ xt
     drop
 ;
@@ -913,7 +913,7 @@ list-header-disp    cell+   constant list-links-disp
         rot                     \ xt lnk val2 val
         max                     \ xt lnk val
         swap                    \ xt val lnk
-    next
+    next-item
                                 \ xt val
     nip                         \ val
 ;
@@ -948,7 +948,7 @@ list-header-disp    cell+   constant list-links-disp
         rot                     \ xt lnk val2 val
         min                     \ xt lnk val
         swap                    \ xt val lnk
-    next
+    next-item
                                 \ xt val
     nip                         \ val
 ;
@@ -969,7 +969,7 @@ list-header-disp    cell+   constant list-links-disp
             false
             exit
         then
-    next
+    next-item
                                 \ xt
     drop
     true
@@ -990,7 +990,7 @@ list-header-disp    cell+   constant list-links-disp
             true
             exit
         then
-    next
+    next-item
                                 \ xt
     drop
     false
@@ -1013,7 +1013,7 @@ list-header-disp    cell+   constant list-links-disp
             #2 pick             \ xt link0 data0 xt
             execute             \ xt link0
         then
-    next
+    next-item
                                 \ xt
     drop
 ;
@@ -1053,7 +1053,7 @@ list-header-disp    cell+   constant list-links-disp
               list-push         \ xt list0 list-ret link1
             then
         then
-    next
+    next-item
                                 \ xt list0 list-ret
     nip nip
 ;
@@ -1172,7 +1172,7 @@ list-header-disp    cell+   constant list-links-disp
                     drop                \ xt list bool link
                 then
             then
-        next
+        next-item
                                         \ xt list bool
         0=
     until
@@ -1208,7 +1208,7 @@ list-header-disp    cell+   constant list-links-disp
 
         \ Dec index.
         swap 1- swap
-    next
+    next-item
                                     \ new-item2 ret-lst index1
     drop nip
 ;
@@ -1229,7 +1229,7 @@ list-header-disp    cell+   constant list-links-disp
         then
         #2 pick                 \ ret-lst lst-link lst-dat ret-lst
         list-push-end           \ ret-lst lst-link
-    next
+    next-item
                                 \ ret-lst
 ;
 
@@ -1274,17 +1274,17 @@ list-header-disp    cell+   constant list-links-disp
                 dup struct-inc-use-count
                 #4 pick             \ tmp-lst link lst-next sub-link cur-itm tmp-link new-lst lst-next
                 list-push-end       \ tmp-lst link lst-next sub-link cur-itm tmp-link
-            next
+            next-item
                                     \ tmp-lst link lst-next sub-link cur-itm
             drop                    \ tmp-lst link lst-next sub-link
-        next
+        next-item
                                     \ tmp-lst link lst-next
 
         \ Swap tmp-old-lst with tmp-new-lst
         rot                         \ link lst-next tmp-lst
         list-deallocate-recursive   \ link lst-next
         swap                        \ lst-next link
-    next
+    next-item
                                     \ tmp-lst
 ;
 
@@ -1314,7 +1314,7 @@ list-header-disp    cell+   constant list-links-disp
         rot                 \ link lenx prd
         *                   \ link prd-next
         swap                \ prd link
-    next
+    next-item
                             \ prd
 ;
 
@@ -1354,7 +1354,7 @@ list-header-disp    cell+   constant list-links-disp
     foreach                     \ ret-lst lst-link elemx
         #2 pick                 \ ret-lst lst-link elemx ret-lst
         list-push               \ ret-lst lst-link
-    next
+    next-item
                                 \ ret-lst
 ;
 
@@ -1383,7 +1383,7 @@ list-header-disp    cell+   constant list-links-disp
             false
             exit
         then
-    next
+    next-item
     2drop
     true
 ;

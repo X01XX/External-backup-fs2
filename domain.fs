@@ -73,7 +73,7 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
 : domain-set-inst-id ( u1 dom0 -- )
     \ Check args.
     assert( tos is-domain? )
-    \ cr ." domain-set-inst-id:" .stack-gbl cr
+    \ cr ." domain-set-inst-id:" .stack cr
 
     over 0<
     abort" Invalid instance id"
@@ -203,7 +203,7 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
 \ The current state defaults to zero, but can be set with domain-set-current-state.
 : domain-new ( num-bits0 -- dom )
     \ Check args.
-    \ cr ." domain-new: start: " .stack-gbl cr
+    \ cr ." domain-new: start: " .stack cr
     assert( tos is-valid-num-bits? )
 
     \ Allocate instance.
@@ -231,6 +231,21 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
     #3 pick                         \ nb0 dom act-lst xt max-reg dom
     domain-get-inst-id              \ nb0 dom act-lst xt max-reg dom-id
     action-new                      \ nb0 dom act-lst act
+
+    \ Load action 0->0.
+    0                               \ nb0 dom act-lst act 0s
+    #4 pick state-new               \ nb0 dom act-lst act sta0s
+    dup sample-new                  \ nb0 dom act-lst act smp0s
+    over action-add-sample          \ nb0 dom act-lst act bool
+    drop
+
+    \ Load action all 1 -> all 1.
+    #3 pick all-bits                \ nb0 dom act-lst act ones
+    #4 pick state-new               \ nb0 dom act-lst act sta1s
+    dup sample-new                  \ nb0 dom act-lst act smp1s
+    over action-add-sample          \ nb0 dom act-lst act bool
+    drop
+
     swap                            \ nb0 dom act act-lst
     action-list-push-end            \ nb0 dom
 

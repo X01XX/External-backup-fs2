@@ -342,7 +342,7 @@ need-target-disp    cell+   constant need-info-disp     \ Zero, a region, or oth
             states-eq?
             exit
         else
-            cr ." need-satisfied-by?: argument mismatch?" .stack-gbl cr abort
+            cr ." need-satisfied-by?: argument mismatch?" .stack cr abort
         then
     then
 
@@ -360,7 +360,7 @@ need-target-disp    cell+   constant need-info-disp     \ Zero, a region, or oth
             region-superset?
             exit
         then
-        cr ." need-satisfied-by?: argument mismatch?" .stack-gbl cr abort
+        cr ." need-satisfied-by?: argument mismatch?" .stack cr abort
     then
 
     \ Check if target is a region-list.
@@ -380,5 +380,5 @@ need-target-disp    cell+   constant need-info-disp     \ Zero, a region, or oth
     else
         cr ." need-satisfied-by? invalid target?" cr abort
     then
-    cr ." need-satisfied-by? invalid nos?" .stack-gbl cr abort
+    cr ." need-satisfied-by? invalid nos?" .stack cr abort
 ;

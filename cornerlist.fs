@@ -2,7 +2,7 @@
 
 \ Check TOS for corner-list.
 : is-corner-list? ( tos -- bool )
-    \ cr ." is-corner-list?: start: " .stack-gbl cr
+    \ cr ." is-corner-list?: start: " .stack cr
 
     tos is-list?        \ tos bool
     ifnot
@@ -25,7 +25,7 @@
 
 \ Return true if tos is a corner list of lists.
 : is-corner-lol? ( tos --  bool )
-    \ cr ." is-corner-lol?: start: " .stack-gbl cr
+    \ cr ." is-corner-lol?: start: " .stack cr
     dup is-list?
     if
         dup list-is-empty?
@@ -145,7 +145,7 @@
     \ Check args.
     assert( tos is-corner-list? )
     assert( nos is-region? )
-    \ cr ." corner-list-remove-all-region-match: start: " .stack-gbl cr
+    \ cr ." corner-list-remove-all-region-match: start: " .stack cr
 
     begin
         [ ' corner-region-eq? ] literal     \ reg1 crn-lst0 xt
@@ -166,7 +166,7 @@
     until
 
     2drop
-    \ cr ." corner-list-remove-all-region-match: end: " .stack-gbl cr
+    \ cr ." corner-list-remove-all-region-match: end: " .stack cr
 ;
 
 \ Find a corner in a list, by state, if any.
@@ -224,7 +224,7 @@
             true
             exit
         then
-    next
+    next-item
 
     drop
     false
@@ -256,7 +256,7 @@
             false
             exit
         then
-    next
+    next-item
                                         \ crn-lst0
     drop
     true
@@ -288,7 +288,7 @@
             true
             exit
         then
-    next
+    next-item
                                         \ crn-lst0
     drop
     false
@@ -334,14 +334,14 @@
             #2 pick             \ reg1 crn-lst0 del-lst' crn-lnk0 crnx del-lst'
             list-push-struct    \ reg1 crn-lst0 del-lst' crn-lnk0
         then
-    next
+    next-item
 
     \ Delete corners.
     dup                         \ reg1 crn-lst0 del-lst' del-lst'
     foreach                     \ reg1 crn-lst0 del-lst' del-lnk crnx
         #3 pick                 \ reg1 crn-lst0 del-lst' del-lnk crnx crn-lst0
         corner-list-remove      \ reg1 crn-lst0 del-lst' del-lnk
-    next
+    next-item
 
     corner-list-deallocate      \ reg1 crn-lst0
     2drop
@@ -356,7 +356,7 @@
     foreach                     \ pos-lst1 crn-lnk crnx
         #2 pick swap            \ pos-lst1 crn-lnk pos-lst1 crnx
         corner-calc-set-rate    \ pos-lst1 crn-lnk
-    next
+    next-item
     drop
 ;
 
@@ -366,5 +366,5 @@
 
     foreach
         space .corner-list
-    next
+    next-item
 ;

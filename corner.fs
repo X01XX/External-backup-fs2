@@ -159,7 +159,7 @@ corner-region-disp          cell+   constant corner-adjacent-states-disp    \ Al
         \ Store the state.
         #3 pick                         \ sta1 reg0 sta-lst msk-lst' msk-lnk sta' sta-lst
         list-push-struct                \ sta1 reg0 sta-lst msk-lst' msk-lnk
-    next
+    next-item
     mask-list-deallocate                \ sta1 reg0 sta-lst
 
     \ Allocate instance.
@@ -355,8 +355,8 @@ corner-region-disp          cell+   constant corner-adjacent-states-disp    \ Al
                     region-list-deallocate  \ pos-regs1 ret-lst ret-lnk adj-lnk
                 then
             then
-        next
-    next
+        next-item
+    next-item
                                             \ pos-regs1 ret-lst
     swap drop                               \ ret-lst
     dup list-get-length 1 =                 \ ret-lst bool
@@ -390,7 +390,7 @@ corner-region-disp          cell+   constant corner-adjacent-states-disp    \ Al
             \ Inc counter.
             swap 1+ swap                \ crn0 pos-lst cnt adj-lnk
         then
-    next
+    next-item
                                         \ crn0 pos-lst cnt
     nip swap                            \ cnt crn0
     corner-set-rate

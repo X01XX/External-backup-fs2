@@ -111,7 +111,7 @@
 
         \ Dec index.
         swap 1- swap
-    next
+    next-item
                                     \ new-item2 ret-lst index1
     drop nip
 ;
@@ -207,7 +207,7 @@
             false
             exit
         then
-    next
+    next-item
                                     \ xt sct-lst1
     2drop
     true
@@ -237,7 +237,7 @@
                     drop
                 then
             then
-        next
+        next-item
         list-deallocate             \ xt1 lst0
         drop
     else
@@ -274,7 +274,7 @@
     foreach                     \ lst0 link data
         #2 pick                 \ lst0 link data lst0
         list-push-end-struct    \ lst0 link
-    next
+    next-item
                                 \ lst0
     drop
 ;
@@ -300,6 +300,6 @@
                 swap 1+ swap
             then
         then
-    next
+    next-item
                         \ cnt
 ;

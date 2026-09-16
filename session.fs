@@ -155,7 +155,7 @@ session-valued-regioncorrs-disp cell+   constant session-avoid-lol-disp         
         domain-get-max-region       \ sess0 reg-lst d-link max-reg
         #2 pick                     \ sess0 reg-lst d-link max-reg reg-lst
         region-list-push-end        \ sess0 reg-lst d-link
-    next
+    next-item
                                     \ sess0 reg-lst
 
     nip
@@ -210,7 +210,7 @@ session-valued-regioncorrs-disp cell+   constant session-avoid-lol-disp         
     foreach                                 \ sess0 regc-lnx regcx
         #2 pick                             \ sess0 regc-lnx regcx sess0
         _session-check-valued-regioncorr    \ sess0 regc-lnx
-    next
+    next-item
                                             \ sess0
     drop
 ;
@@ -271,7 +271,7 @@ session-valued-regioncorrs-disp cell+   constant session-avoid-lol-disp         
             #2 pick                         \ sess0 spl-lst' val-lst' spl-lnk neg val-lst'
             list-push-end                   \ sess0 spl-lst' val-lst' spl-lnk
         then
-    next
+    next-item
 
                                             \ sess0 spl-lst' val-lst'
     \ Sort value list, descending.
@@ -294,7 +294,7 @@ session-valued-regioncorrs-disp cell+   constant session-avoid-lol-disp         
         #5 pick                             \ sess0 spl-lst' val-lst' avoid-lol' val-lnk avoid-lst2' sess0
         session-get-avoid-lol               \ sess0 spl-lst' val-lst' avoid-lol' val-lnk avoid-lst2' lol
         list-push-struct                    \ sess0 spl-lst' val-lst' avoid-lol' val-lnk
-    next
+    next-item
 
     \ Clean up.                             \ sess0 spl-lst' val-lst' avoid-lol'
     regioncorr-list-deallocate              \ sess0 spl-lst' val-lst'
@@ -381,7 +381,7 @@ session-valued-regioncorrs-disp cell+   constant session-avoid-lol-disp         
     foreach                                     \ sess0 dom-lnk dom
         \ Print domain
         .domain
-    next
+    next-item
 
     drop
 ;
@@ -414,7 +414,7 @@ session-valued-regioncorrs-disp cell+   constant session-avoid-lol-disp         
         domain-get-current-state    \ cur-dom sess0 sta-lst link stax
         #2 pick                     \ cur-dom sess0 sta-lst link stax sta-lst
         list-push-end               \ cur-dom sess0 sta-lst link
-    next
+    next-item
                                     \ cur-dom sess0 sta-lst
 
     nip nip                         \ sta-lst
@@ -434,7 +434,7 @@ session-valued-regioncorrs-disp cell+   constant session-avoid-lol-disp         
         dup region-new              \ cur-dom sess0 reg-lst link regx
         #2 pick                     \ cur-dom sess0 reg-lst link regx reg-lst
         list-push-end               \ cur-dom sess0 reg-lst link
-    next
+    next-item
                                     \ cur-dom sess0 reg-lst
     nip nip                         \ reg-lst
 
@@ -664,4 +664,42 @@ session-valued-regioncorrs-disp cell+   constant session-avoid-lol-disp         
     then
 ;
 
+\ Return regioncorr list to avoid, may be empty.
+: session-find-avoidance-list ( stac2 stac1 sess0 -- regc-lst )
+    \ Check args.
+    assert( tos is-session? )
+    assert( nos is-statecorr? )
+    assert( 3os is-statecorr? )
 
+    \ Find regioncorr list to avoid.
+    session-get-avoid-lol               \ stac2 stac1 avd-lol
+    foreach                             \ stac2 stac1 avd-lnk regc-lstx
+        #3 pick #3 pick                 \ stac2 fstac1 avd-lnk regc-lstx gstac2 fstac1
+        rot                             \ stac2 fstac1 avd-lnk gstac2 fstac1 regc-lstx
+        regioncorrlist-neither-stac-in? \ stac2 fstac1 avd-lnk bool
+        if
+            link-get-data               \ stac2 fstac1 regc-lstx
+            nip nip                     \ regc-lst
+            exit
+        then
+    next-item
+    cr ." drop through?" cr abort
+;
+
+: session-make-plan ( goal-stac2 from-stac1 sess0 -- pln t | f )
+    \ Check args.
+    assert( tos is-session? )
+    assert( nos is-statecorr? )
+    assert( 3os is-statecorr? )
+
+    \ Test if goal and from are eq.
+    #2 pick #2 pick statecorrs-eq? abort" session-make-plan: from and goal are equal?"
+
+    \ Get regioncorr-list to avoid.
+    #2 pick #2 pick #2 pick session-find-avoidance-list \ goal-stac2 from-stac1 sess0 avd-lst
+    cr ." avoid: " dup .regioncorr-list cr
+
+    2drop 2drop
+    false
+    cr ." session-make-plan: todo" cr
+;

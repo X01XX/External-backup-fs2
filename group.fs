@@ -370,7 +370,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     \ Check args.
     assert( tos is-group? )
     assert( nos is-square? )
-    \ cr ." group-check-changed-square: start: " .stack-gbl cr
+    \ cr ." group-check-changed-square: start: " .stack cr
 
     \ Check square in group.
     over square-get-state           \ sqr1 grp0 sta
@@ -429,7 +429,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
         2drop
     then
 
-    \ cr ." group-check-changed-square: exit 2: " .stack-gbl cr
+    \ cr ." group-check-changed-square: exit 2: " .stack cr
 ;
 
 \ Attempt to add a square to a group.
@@ -438,7 +438,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     \ Check args.
     assert( tos is-group? )
     assert( nos is-square? )
-    \ cr ." group-add-new-square: start: " over square-get-state .state cr \ .stack-gbl cr
+    \ cr ." group-add-new-square: start: " over square-get-state .state cr \ .stack cr
 
     \ Check that square is new.
     over square-get-num-samples 1 <> abort" New square gt 1 samples?"

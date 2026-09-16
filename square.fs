@@ -257,7 +257,7 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
         if
         else
             drop                                    \ sqr0
-            0 swap _square-update-pn
+            #3 swap _square-update-pn
             exit
         then
     then
@@ -272,7 +272,7 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
         if
         else
             drop                                    \ sqr0
-            0 swap _square-update-pn
+            #3 swap _square-update-pn
             exit
         then
     then
@@ -315,7 +315,7 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
 
     dup square-get-pn       \ sqr0 pn
     case
-        0 of
+        #3 of
             list-new                    \ sqr0 rul-lst
             swap _square-update-rules
         endof
@@ -537,13 +537,14 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
     \ Check args.
     assert( tos is-square? )
     assert( nos is-square? )
+    \ cr ." squares-compare: start: " .stack cr
 
     over square-get-pn      \ sqr1 sqr0 pn1
     over square-get-pn      \ sqr1 sqr0 pn1 pn0
     case
-        0 of
+        #3 of
             case
-                0 of
+                #3 of
                     2drop
                     [char] C
                 endof
@@ -557,7 +558,7 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
         endof
         1 of
             case
-                0 of
+                #3 of
                     swap squares-compare-pnx-pn0
                 endof
                 1 of
@@ -570,7 +571,7 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
         endof
         #2 of
             case
-                0 of
+                #3 of
                     swap squares-compare-pnx-pn0
                 endof
                 1 of
@@ -581,7 +582,9 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
                 endof
             endcase
         endof
+        true abort" unknown pn?"
     endcase
+    \ cr ." squares-compare: end: " .stack cr
 ;
 
 \ Return the number of bits used in square states.

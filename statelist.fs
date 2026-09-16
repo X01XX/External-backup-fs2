@@ -180,7 +180,7 @@
             false
             exit
         then
-    next
+    next-item
                                         \ sta-lst1
     drop
     true

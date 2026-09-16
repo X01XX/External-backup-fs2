@@ -18,19 +18,19 @@
 \ RuleCorr  Corner  StructInfo
 \ 53171,    53719,  53731
 \
-\ Token
-\ 59797
+\ Token StateCorr
+\ 59797 41719
+\
+\ Plan  PlanStep    PlanStepCorr
+\ 37379 37171       61379
 \
 \ Struct ids not yet used:
-\ 41719, 61379, 61979, 23173, 53197.
+\ 61979, 23173, 53197, 53717.
 \
 \ Same as fs1, possibly.
 \ 31973, future Changes?
-\ 37171, future PlanStep?
-\ 37379, future Plan?
 \ 53171, future RuleCorr?
 \ 53173, future ChangesCorr?
-\ 53717, future PlanCorr?
 
 \ Start a clean vocabulary.
 cr ." Starting vocabulary UES," cr
@@ -44,7 +44,6 @@ UES definitions
 decimal
 \ #2 base !  \ Test all numbers GT 1, LT -1, have a base prefix.
 
-\ include /usr/share/gforth/0.7.3/objects.fs
 include xtindirect.fs
 include globals.fs
 include bool.fs
@@ -92,6 +91,8 @@ include grouplist.fs
 include corner.fs
 include cornerlist.fs
 
+include statecorr.fs
+
 \ include need.fs
 \ include needlist.fs
 
@@ -111,6 +112,7 @@ cr
 include mask_t.fs
 include state_t.fs
 include statelist_t.fs
+include statecorr_t.fs
 include region_t.fs
 include rule_t.fs
 include sample_t.fs
@@ -134,6 +136,7 @@ include session_t.fs
 #1030 structinfo-mma-init
 #1200 mask-mma-init
 #2000 state-mma-init
+#0200 statecorr-mma-init
 #1400 region-mma-init
 #1200 rule-mma-init
 #1200 sample-mma-init
@@ -168,6 +171,7 @@ list-new to structinfo-list-store
 \ ' noop  ' noop  ' noop          ' noop                  ' need-deallocate       ' .need       s" Need"        need-mma        need-struct-id          structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' =             ' noop                  ' square-deallocate     ' .square       s" Square"      square-mma      square-struct-id        structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' =             ' noop                  ' group-deallocate      ' .group        s" Group"       group-mma       group-struct-id         structinfo-new structinfo-list-store-push-end
+' statecorr-from-list  ' statecorr-list-definition?    ' statecorrs-eq?  ' noop  ' statecorr-deallocate ' .statecorr   s" StateCorr"  statecorr-mma  statecorr-struct-id    structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' noop          ' noop                  ' domain-deallocate     ' .domain       s" Domain"      domain-mma      domain-struct-id        structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' noop          ' noop                  ' session-deallocate    ' .session      s" Session"     session-mma     session-struct-id       structinfo-new structinfo-list-store-push-end
 
@@ -229,6 +233,7 @@ list-new to structinfo-list-store
     rule-tests
     sample-tests
     state-list-tests
+    statecorr-tests
     region-list-tests
     square-list-tests
     action-tests
