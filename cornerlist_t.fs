@@ -52,7 +52,7 @@
     corner-list-deallocate
     region-list-deallocate
 
-     \ Check for memory leaks.
+    \ Check for memory leaks.
     check-project-deallocated
 
     cr ." corner-list-test-x - Ok"

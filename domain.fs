@@ -405,3 +405,24 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
 
 ' domain-get-number-actions to domain-get-number-actions-xt
 
+\ Return a list of possible PlanSteps.
+: domain-get-forward-options ( f-sta1 dom0 -- plnstp-lst )
+    \ Check args.
+    assert( tos is-domain? )
+    assert( nos is-state? )
+
+    \ Init return list.
+    list-new -rot                   \ ret f-sta1 dom0
+
+    domain-get-actions              \ ret f-sta1 act-lst
+    foreach                         \ ret f-sta1 act-lnk actx
+        #2 pick swap                \ ret f-sta1 act-lnk f-sta1 actx
+        action-get-forward-steps    \ ret f-sta1 act-lnk pln-stps
+        dup                         \ ret f-sta1 act-lnk pln-stps' pln-stps'
+        #4 pick                     \ ret f-sta1 act-lnk pln-stps' pln-stps' ret
+        list-append-struct          \ ret f-sta1 act-lnk pln-stps'
+        planstep-list-deallocate    \ ret f-sta1 act-lnk
+    next-item
+                                    \ ret f-sta1
+    drop
+;

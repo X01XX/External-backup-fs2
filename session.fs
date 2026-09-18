@@ -691,14 +691,39 @@ session-valued-regioncorrs-disp cell+   constant session-avoid-lol-disp         
     assert( tos is-session? )
     assert( nos is-statecorr? )
     assert( 3os is-statecorr? )
+    cr ." session-make-plan: from: " over .statecorr space ." to: " #2 pick .statecorr cr
 
     \ Test if goal and from are eq.
     #2 pick #2 pick statecorrs-eq? abort" session-make-plan: from and goal are equal?"
 
     \ Get regioncorr-list to avoid.
-    #2 pick #2 pick #2 pick session-find-avoidance-list \ goal-stac2 from-stac1 sess0 avd-lst
+    #2 pick #2 pick #2 pick session-find-avoidance-list \ gstac2 fstac1 sess0 avd-lst
     cr ." avoid: " dup .regioncorr-list cr
 
+    \ Init options list.
+    list-new                                            \ gstac2 fstac1 sess0 avd-lst opt-lst
+
+    \ Prep for loop.
+    #3 pick statecorr-get-list list-get-links           \ gstac2 fstac1 sess0 avd-lst opt-lst f-lnk
+    #3 pick session-get-domains list-get-links          \ gstac2 fstac1 sess0 avd-lst opt-lst f-lnk d-lnk
+
+    begin
+        ?dup
+    while
+        over link-get-data                              \ gstac2 fstac1 sess0 avd-lst opt-lst f-lnk d-lnk f-stax
+        over link-get-data                              \ gstac2 fstac1 sess0 avd-lst opt-lst f-lnk d-lnk f-stax domx
+
+        \ Get/Store options
+        domain-get-forward-options                      \ gstac2 fstac1 sess0 avd-lst opt-lst f-lnk d-lnk opt-lst
+        #3 pick list-push-struct                        \ gstac2 fstac1 sess0 avd-lst opt-lst f-lnk d-lnk
+
+        link-get-next swap
+        link-get-next swap
+    repeat
+                                                        \ gstac2 fstac1 sess0 avd-lst opt-lst f-lnk
+    drop                                                \ gstac2 fstac1 sess0 avd-lst opt-lst
+
+    struct-list-deallocate                              \ gstac2 fstac1 sess0 avd-lst
     2drop 2drop
     false
     cr ." session-make-plan: todo" cr

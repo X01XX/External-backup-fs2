@@ -77,7 +77,7 @@
     cr dup .session cr
 
     s" ( stac (s0001))" statecorr-from-string-a \ sess goal
-    s" ( stac (s1111))" statecorr-from-string-a \ sess goal from
+    s" ( stac (s1110))" statecorr-from-string-a \ sess goal from
 
     2dup                                        \ sess goal from goal from
     #4 pick                                     \ sess goal from goal from sess

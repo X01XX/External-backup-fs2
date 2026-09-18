@@ -15,7 +15,7 @@
     mask-deallocate
 
     \ Check for memory leaks.
-     check-project-deallocated
+    check-project-deallocated
 
     cr ." mask-test-basic - Ok"
 ;

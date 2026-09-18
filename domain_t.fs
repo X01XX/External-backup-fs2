@@ -20,7 +20,7 @@
     domain-deallocate
 
     \ Check for memory leaks.
-     check-project-deallocated
+    check-project-deallocated
 
     cr ." domain-test-new - Ok"
 ;
@@ -44,7 +44,7 @@
     domain-deallocate
 
     \ Check for memory leaks.
-     check-project-deallocated
+    check-project-deallocated
 
     cr ." domain-test-add-action - Ok"
 ;

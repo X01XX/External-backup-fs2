@@ -557,24 +557,23 @@ action-groups-disp                          cell+   constant action-function-dis
     drop nip                    \ ret-lst
 ;
 
-\ Print parent domain id, if any.
-\ Action parent domain ref may be zero.
-: .action-parent ( act0 -- )
+\ Print parent domain id.
+: .action-parent-inst-id ( act0 -- )
    \ Check arg.
     assert( tos is-action? )
 
-\    action-get-parent       \ dom
-\    dup                     \ dom dom
-\    if
-\        domain-get-id       \ dom-id
-\        ." Dom: " dec.
-\    else
-\        ." Dom: None"
-\    then
-    drop
+    action-get-dom-inst-id
+    ." Dom: " dec.
 ;
 
-' .action-parent to .action-parent-xt
+\ Print id.
+: .action-inst-id ( act0 -- )
+   \ Check arg.
+    assert( tos is-action? )
+
+    action-get-inst-id
+    ." Act: " dec.
+;
 
 \ Print a action.
 : .action ( act0 -- )
@@ -582,7 +581,7 @@ action-groups-disp                          cell+   constant action-function-dis
     \ Check arg.
     assert( tos is-action? )
 
-    cr dup .action-parent space ." Act: " dup action-get-inst-id dec.
+    cr dup .action-parent-inst-id space dup .action-inst-id
     cr
     s"     Squares:              " #2 pick action-get-squares .square-list-prefix
     cr
@@ -699,7 +698,7 @@ action-groups-disp                          cell+   constant action-function-dis
     \ Check args.
     assert( tos is-action? )
     assert( nos is-group? )
-    cr ." Action  " dup action-get-inst-id dec. ." : Adding group: " over .group cr
+    cr dup .action-parent-inst-id dup .action-inst-id ." : Adding group: " over .group cr
 
     action-get-groups        \ grp1 grp-lst
     list-push-struct
@@ -1953,7 +1952,7 @@ action-groups-disp                          cell+   constant action-function-dis
     \ Check args.
     assert( tos is-action? )
     assert( nos is-sample? )
-    cr ." Action "  dup action-get-inst-id dec. ." : Add sample: " over .sample cr
+    cr dup .action-parent-inst-id  dup .action-inst-id ." : Add sample: " over .sample cr
     \ cr ." action-add-sample: start: " .stack cr
 
     over sample-get-initial     \ smpl1 act0 initial
@@ -1961,7 +1960,7 @@ action-groups-disp                          cell+   constant action-function-dis
     if
         rot                     \ act0 sqr smpl1
         over                    \ act0 sqr smpl1 sqr
-        cr ." Action " #3 pick action-get-inst-id dec. ." : Updating square: " dup .square cr
+        cr #3 pick .action-parent-inst-id #3 pick .action-inst-id ." : Updating square: " dup .square cr
         square-add-sample       \ act0 sqr bool
         if
             swap                        \ sqr act0
@@ -1974,7 +1973,7 @@ action-groups-disp                          cell+   constant action-function-dis
     else
         over                    \ smpl1 act0 smpl1
         square-new              \ smpl1 act0 sqr1
-        cr ." Action " over action-get-inst-id dec. ." : Adding new square: " dup .square cr
+        cr over .action-parent-inst-id over .action-inst-id ." : Adding new square: " dup .square cr
         over                    \ smpl1 act0 sqr1 act0
         action-add-new-square   \ smpl1 act0
         2drop
@@ -1992,7 +1991,7 @@ action-groups-disp                          cell+   constant action-function-dis
 
     \ pnc for selected corner anchors.
 
-    \ pnc for selected corner ae squares.
+    \ pnc for selected corner adjacent squares.
 
     \ Confirm defining groups.
 
@@ -2017,11 +2016,11 @@ action-groups-disp                          cell+   constant action-function-dis
     tuck                    \ smpl act0 smpl
     swap                    \ smpl smpl act0
 
-    cr
-    ." Dom: " dup action-get-dom-inst-id #3 dec.r
-    space ." Act: " dup action-get-inst-id #3 dec.r
-    space ." adding sample: " over .sample
-    cr
-
     action-add-sample       \ smpl
+;
+
+: action-get-forward-steps ( f-sta1 act0 -- plnstp-lst )
+    2drop
+    cr ." action-get-forward-steps: todo" cr
+    list-new
 ;

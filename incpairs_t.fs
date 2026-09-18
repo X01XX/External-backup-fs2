@@ -21,7 +21,7 @@
     region-list-deallocate
 
     \ Check for memory leaks.
-     check-project-deallocated
+    check-project-deallocated
 
     cr ." inc-pairs-test-priority-non-adjacent-pairs - Ok"
 ;

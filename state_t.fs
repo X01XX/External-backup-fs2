@@ -37,7 +37,7 @@
     state-deallocate
 
     \ Check for memory leaks.
-     check-project-deallocated
+    check-project-deallocated
 
     cr ." states-test-eq? - Ok"
 ;
@@ -53,7 +53,7 @@
     state-deallocate
 
     \ Check for memory leaks.
-     check-project-deallocated
+    check-project-deallocated
 
     cr ." state-test-bit - Ok"
 ;
@@ -75,7 +75,7 @@
     state-deallocate
 
     \ Check for memory leaks.
-     check-project-deallocated
+    check-project-deallocated
 
     cr ." state-test-and - Ok"
 ;
@@ -97,7 +97,7 @@
     mask-deallocate
 
     \ Check for memory leaks.
-     check-project-deallocated
+    check-project-deallocated
 
     cr ." state-test-and-mask - Ok"
 ;
@@ -117,7 +117,7 @@
     state-deallocate
 
     \ Check for memory leaks.
-     check-project-deallocated
+    check-project-deallocated
 
     cr ." state-test-invert - Ok"
 ;
@@ -140,7 +140,7 @@
     state-deallocate
 
     \ Check for memory leaks.
-     check-project-deallocated
+    check-project-deallocated
 
     cr ." state-test-same-num-bits? - Ok"
 ;
@@ -164,7 +164,7 @@
     state-deallocate
 
     \ Check for memory leaks.
-     check-project-deallocated
+    check-project-deallocated
 
     cr ." state-test-complement - Ok"
 ;
@@ -221,7 +221,7 @@
     state-deallocate
 
     \ Check for memory leaks.
-     check-project-deallocated
+    check-project-deallocated
 
     cr ." state-test-~a+~b - Ok"
 ;
@@ -237,7 +237,7 @@
     struct-list-deallocate
 
     \ Check for memory leaks.
-     check-project-deallocated
+    check-project-deallocated
 
     cr ." state-region-from-corner - Ok"
 ;
@@ -253,7 +253,7 @@
     struct-list-deallocate
 
     \ Check for memory leaks.
-     check-project-deallocated
+    check-project-deallocated
 
     cr ." state-region-from-corners - Ok"
 ;

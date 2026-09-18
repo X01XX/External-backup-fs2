@@ -53,7 +53,7 @@
     region-list-deallocate
 
     \ Check for memory leaks.
-     check-project-deallocated
+    check-project-deallocated
 
     cr ." region-list-test-defining-regions - Ok"
 ;

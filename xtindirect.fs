@@ -190,6 +190,18 @@
 
 ' xtabort value .statecorr-xt
 
+' xtabort value is-maskcorr?-xt
+
+' xtabort value maskcorr-get-list-xt
+
+' xtabort value .maskcorr-xt
+
+' xtabort value is-changescorr?-xt
+
+' xtabort value changescorr-get-list-xt
+
+' xtabort value .changescorr-xt
+
 
 
 

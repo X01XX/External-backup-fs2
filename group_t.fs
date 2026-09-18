@@ -64,7 +64,7 @@
     group-deallocate
 
     \ Check for memory leaks.
-     check-project-deallocated
+    check-project-deallocated
 
     cr ." group-test-new - Ok"
 ;
@@ -157,7 +157,7 @@
     2drop
 
     \ Check for memory leaks.
-     check-project-deallocated
+    check-project-deallocated
 
     cr ." group-test-check-changed-square - Ok"
 ;
@@ -192,7 +192,7 @@
     group-deallocate
 
     \ Check for memory leaks.
-     check-project-deallocated
+    check-project-deallocated
 
     cr ." group-test-add-new-square - Ok"
 ;

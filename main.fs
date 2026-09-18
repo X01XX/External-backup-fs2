@@ -21,16 +21,17 @@
 \ Token StateCorr
 \ 59797 41719
 \
-\ Plan  PlanStep    PlanStepCorr
-\ 37379 37171       61379
+\ Plan  PlanStep
+\ 37379 37171
+\
+\ Changes   ChangesCorr Integer
+\ 31973     53173       23173
 \
 \ Struct ids not yet used:
-\ 61979, 23173, 53197, 53717.
+\ 53197, 53717, 61379, 61979.
 \
 \ Same as fs1, possibly.
-\ 31973, future Changes?
 \ 53171, future RuleCorr?
-\ 53173, future ChangesCorr?
 
 \ Start a clean vocabulary.
 cr ." Starting vocabulary UES," cr
@@ -55,6 +56,7 @@ include list.fs
 include structlist.fs
 include mask.fs
 include masklist.fs
+include integer.fs
 
 include state.fs
 
@@ -66,10 +68,15 @@ include region2.fs
 include state2.fs
 include regionlist2.fs
 
+include changes.fs
+
 include sample.fs
 include samplelist.fs
 include rule.fs
 include rulelist.fs
+
+include planstep.fs
+include plansteplist.fs
 
 include token.fs
 include tokenlist.fs
@@ -106,8 +113,9 @@ include domain.fs
 include domainlist.fs
 
 include session.fs
+include randompick.fs
 
-cr
+
 
 include mask_t.fs
 include state_t.fs
@@ -115,6 +123,7 @@ include statelist_t.fs
 include statecorr_t.fs
 include region_t.fs
 include rule_t.fs
+include changes_t.fs
 include sample_t.fs
 include regionlist_t.fs
 include regioncorr_t.fs
@@ -129,6 +138,7 @@ include group_t.fs
 include incpairs_t.fs
 include domain_t.fs
 include session_t.fs
+include randompick_t.fs
 
 \ Init array-stacks.
 #2000 link-mma-init
@@ -136,12 +146,15 @@ include session_t.fs
 #1030 structinfo-mma-init
 #1200 mask-mma-init
 #2000 state-mma-init
+#0020 integer-mma-init
 #0200 statecorr-mma-init
 #1400 region-mma-init
+#0400 changes-mma-init
 #1200 rule-mma-init
 #1200 sample-mma-init
 #1300 token-mma-init
 #1200 square-mma-init
+#0200 planstep-mma-init
 #1010 action-mma-init
 #1110 corner-mma-init
 \ #1110 need-mma-init
@@ -160,18 +173,21 @@ list-new to structinfo-list-store
 \ The list, link, and StructInfo structs allow for the creation of the structinfo-list-store,
 
 ' noop  ' noop  ' masks-eq?     ' mask-from-string      ' mask-deallocate       ' .mask         s" Mask"        mask-mma        mask-struct-id          structinfo-new structinfo-list-store-push-end
+' noop  ' noop  ' noop   ' noop      ' integer-deallocate       ' .integer         s" Integer"        integer-mma        integer-struct-id          structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' states-eq?    ' state-from-string     ' state-deallocate      ' .state        s" State"       state-mma       state-struct-id         structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' regions-eq?   ' region-from-string    ' region-deallocate     ' .region       s" Region"      region-mma      region-struct-id        structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' tokens-eq?    ' noop                  ' token-deallocate      ' .token        s" Token"       token-mma       token-struct-id         structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' rules-eq?     ' rule-from-string      ' rule-deallocate       ' .rule         s" Rule"        rule-mma        rule-struct-id          structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' samples-eq?   ' sample-from-string    ' sample-deallocate     ' .sample       s" Sample"      sample-mma      sample-struct-id        structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' noop          ' noop                  ' action-deallocate     ' .action       s" Action"      action-mma      action-struct-id        structinfo-new structinfo-list-store-push-end
+' noop  ' noop  ' noop          ' noop                  ' changes-deallocate    ' .changes      s" Changes"     changes-mma     changes-struct-id       structinfo-new structinfo-list-store-push-end
+' noop  ' noop  ' noop          ' noop                  ' planstep-deallocate    ' .planstep  s" PlanStep" planstep-mma planstep-struct-id   structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' noop          ' corner-from-string    ' corner-deallocate     ' .corner       s" Corner"      corner-mma      corner-struct-id        structinfo-new structinfo-list-store-push-end
 ' regioncorr-from-list  ' regioncorr-list-definition?    ' regioncorrs-eq?  ' noop  ' regioncorr-deallocate ' .regioncorr   s" Regioncorr"  regioncorr-mma  regioncorr-struct-id    structinfo-new structinfo-list-store-push-end
 \ ' noop  ' noop  ' noop          ' noop                  ' need-deallocate       ' .need       s" Need"        need-mma        need-struct-id          structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' =             ' noop                  ' square-deallocate     ' .square       s" Square"      square-mma      square-struct-id        structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' =             ' noop                  ' group-deallocate      ' .group        s" Group"       group-mma       group-struct-id         structinfo-new structinfo-list-store-push-end
-' statecorr-from-list  ' statecorr-list-definition?    ' statecorrs-eq?  ' noop  ' statecorr-deallocate ' .statecorr   s" StateCorr"  statecorr-mma  statecorr-struct-id    structinfo-new structinfo-list-store-push-end
+' statecorr-from-list  ' statecorr-list-definition?    ' statecorrs-eq? ' noop  ' statecorr-deallocate ' .statecorr   s" StateCorr"  statecorr-mma  statecorr-struct-id structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' noop          ' noop                  ' domain-deallocate     ' .domain       s" Domain"      domain-mma      domain-struct-id        structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' noop          ' noop                  ' session-deallocate    ' .session      s" Session"     session-mma     session-struct-id       structinfo-new structinfo-list-store-push-end
 
@@ -231,6 +247,7 @@ list-new to structinfo-list-store
     state-tests
     region-tests
     rule-tests
+    changes-tests
     sample-tests
     state-list-tests
     statecorr-tests

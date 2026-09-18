@@ -156,6 +156,13 @@
     assert( tos is-list? )
     \ cr ." list-from-string2: start: " .stack cr
 
+    \ Check for empty list.
+    dup list-is-empty?                          \ lst0 bool
+    if
+        true
+        exit
+    then
+
     \ Check if the list is a struct definition.
     dup list-get-first-item                     \ lst0 first
     is-token?
@@ -176,38 +183,44 @@
     foreach                                     \ ret-lst lnk item
         dup is-list?                            \ ret-lst lnk item bool
         if
-            dup list-get-first-item             \ ret-lst lnk item first
-            is-token?                           \ ret-lst lnk item bool
+            dup list-is-empty?                  \ ret-lst lnk item bool
             if
-                structinfo-list-store-list-to-struct-xt execute  \ ret-lst lnk, strct t | f
+                #2 pick                         \ ret-lst lnk item ret-lst
+                list-push-end-struct            \ ret-lst lnk
+            else
+                dup list-get-first-item             \ ret-lst lnk item first
+                is-token?                           \ ret-lst lnk item bool
                 if
-                    #2 pick                     \ ret-lst lnk strct ret-lst
-                    list-push-end-struct        \ ret-lst lnk
-                else
-                    dup link-get-data           \ ret-lst lnk item
-                    recurse
+                    structinfo-list-store-list-to-struct-xt execute  \ ret-lst lnk, strct t | f
                     if
-                        #2 pick                 \ ret-lst lnk item ret-lst
-                        list-push-end-struct    \ ret-lst lnk
+                        #2 pick                     \ ret-lst lnk strct ret-lst
+                        list-push-end-struct        \ ret-lst lnk
+                    else
+                        dup link-get-data           \ ret-lst lnk item
+                        recurse
+                        if
+                            #2 pick                 \ ret-lst lnk item ret-lst
+                            list-push-end-struct    \ ret-lst lnk
+                        else
+                            drop
+                            struct-list-deallocate
+                            false
+                            \ cr ." list-from-string2: exit 2: " .stack cr
+                            exit
+                        then
+                    then
+                else
+                    recurse                         \ ret-lst lnk, ret t | f
+                    if
+                        #2 pick                     \ ret-lst lnk ret ret-lst
+                        list-push-end-struct        \ ret-lst lnk
                     else
                         drop
                         struct-list-deallocate
                         false
-                        \ cr ." list-from-string2: exit 2: " .stack cr
+                        \ cr ." list-from-string2: exit 3: " .stack cr
                         exit
                     then
-                then
-            else
-                recurse                         \ ret-lst lnk, ret t | f
-                if
-                    #2 pick                     \ ret-lst lnk ret ret-lst
-                    list-push-end-struct        \ ret-lst lnk
-                else
-                    drop
-                    struct-list-deallocate
-                    false
-                    \ cr ." list-from-string2: exit 3: " .stack cr
-                    exit
                 then
             then
         else

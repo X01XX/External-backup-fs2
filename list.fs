@@ -746,25 +746,26 @@ list-header-disp    cell+   constant list-links-disp
     \ Check arg.
     assert( tos is-list? )
 
-                        \ xt item list
-    rot                 \ item list xt
-    list-new            \ item list xt ret
-    swap                \ item list ret xt
-    2swap               \ ret xt item list
-
     \ Check for an empty list.
-    dup list-get-length
-    ifnot
+    dup list-is-empty?
+    if
         \ Return false.
         2drop drop
+        list-new
         exit
     then
 
-    foreach                 \ ret xt item link link-data
-        #2 pick swap        \ ret xt item link item link-data
+                                \ xt item list
+    rot                         \ item list xt
+    list-new                    \ item list xt ret
+    swap                        \ item list ret xt
+    2swap                       \ ret xt item list
+
+    foreach                     \ ret xt item link link-data
+        #2 pick swap            \ ret xt item link item link-data
 
         \ Check for sub-list.
-        dup is-list?        \ ret xt item link item link-data bool
+        dup is-list?            \ ret xt item link item link-data bool
         if
             #4 pick             \ ret xt item link item link-data xt
             -rot                \ ret xt item link xt item link-data
@@ -786,7 +787,7 @@ list-header-disp    cell+   constant list-links-disp
     next-item
 
     \ Cleanup.
-    drop 2drop              \ ret-list
+    2drop                       \ ret
 ;
 
 \ Return the difference of two lists, same order as in subtracting numbers in forth, list1 - list0

@@ -172,55 +172,55 @@ stack-header-disp   cell+   constant stack-items-disp   \ Item on the stack.
     stack-get-capacity      \ stack-addr capacity
     .                       \ stack-addr (emit capacity)
     #44 emit                \ stack-addr (emit comma)
-   stack-get-num-on-stack   \ num-on-stack
-   .                        \
-   #62 emit                 \ (emit >)
-   #32 emit                 \ (emit space)
+    stack-get-num-on-stack  \ num-on-stack
+    .                       \
+    #62 emit                \ (emit >)
+    #32 emit                \ (emit space)
 ;
 
 \ Run like: "<stack-addr> .struct-stack"
 : .struct-stack ( stack-addr -- )
-   dup .stack-stats         \ stack-addr
-   dup stack-items-disp +   \ stack-addr stack-items
-   swap                     \ stack-items stack-addr
-   stack-get-num-on-stack   \ stack-items num-on-stack
+    dup .stack-stats        \ stack-addr
+    dup stack-items-disp +  \ stack-addr stack-items
+    swap                    \ stack-items stack-addr
+    stack-get-num-on-stack  \ stack-items num-on-stack
 
-   dup 0>                   \ stack-items num-on-stack flag
-   if
-     0 do                   \ stack-items
-       dup                  \ stack-items stack-start
-       I cells + @ u.       \ stack-items
-     loop
-   else
-     drop                   \ stack-items
+    dup 0>                  \ stack-items num-on-stack flag
+    if
+        0 do                \ stack-items
+            dup             \ stack-items stack-start
+            I cells + @ u.  \ stack-items
+        loop
+    else
+        drop                \ stack-items
    endif
    drop                     \
 ;
 
 \ Return true if an address is in the stack.
 : stack-in ( addr stack-addr -- flag )
-   dup stack-items-disp +   \ addr stack stack-start
-   swap                     \ addr stack-start stack
-   stack-get-num-on-stack   \ addr stack-start num-on-stack
+    dup stack-items-disp +  \ addr stack stack-start
+    swap                    \ addr stack-start stack
+    stack-get-num-on-stack  \ addr stack-start num-on-stack
 
-   dup 0>                   \ addr stack-start num-on-stack flag
-   if
-     0 do                   \ addr stack-start
-       dup                  \ addr stack-start stack-start
-       I cells + @          \ addr stack-start stack-cell[I]
-       #2 pick              \ addr stack-start stack-cell[I] addr
-       =                    \ addr stack-start
-       if
-            2drop true
-            unloop
-            exit
-       then
-     loop
-   else
-     drop               \ addr stack-start
-   endif
-   2drop                \
-   false
+    dup 0>                  \ addr stack-start num-on-stack flag
+    if
+        0 do                \ addr stack-start
+            dup             \ addr stack-start stack-start
+            I cells + @     \ addr stack-start stack-cell[I]
+            #2 pick         \ addr stack-start stack-cell[I] addr
+            =               \ addr stack-start
+            if
+                2drop true
+                unloop
+                exit
+            then
+        loop
+    else
+        drop               \ addr stack-start
+    endif
+    2drop                   \
+    false
 ;
 
 : stack-tests
