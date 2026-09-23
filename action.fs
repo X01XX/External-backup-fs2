@@ -2019,8 +2019,35 @@ action-groups-disp                          cell+   constant action-function-dis
     action-add-sample       \ smpl
 ;
 
-: action-get-forward-steps ( f-sta1 act0 -- plnstp-lst )
-    2drop
-    cr ." action-get-forward-steps: todo" cr
-    list-new
+: action-get-forward-steps ( from-sta1 act0 -- plnstp-lst t | f )
+    \ Check args.
+    assert( tos is-action? )
+    assert( nos is-state? )
+
+    \ cr ." action-get-forward-steps: start: " .stack cr
+
+    \ Init return list.
+    list-new swap                       \ f-sta1 ret act0
+
+    action-get-groups                   \ f-sta1 ret grp-lst
+    foreach                             \ f-sta1 ret grp-lnk grpx
+        #3 pick swap                    \ f-sta1 ret grp-lnk f-sta1 grpx
+        group-get-forward-step          \ f-sta1 ret grp-lnk, plnstp t | f
+        if
+            #2 pick                     \ f-sta1 ret grp-lnk plnstp ret
+            list-push-struct            \ f-sta1 ret grp-lnk
+        then
+    next-item
+                                        \ f-sta1 ret
+    nip                                 \ ret
+
+    \ Return.
+    dup list-is-empty?
+    if
+        list-deallocate
+        false
+    else
+        true
+    then
+    \ cr ." action-get-forward-steps: end: " .stack cr
 ;

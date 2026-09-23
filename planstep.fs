@@ -1,11 +1,11 @@
 #37171 constant planstep-struct-id
-    #3 constant planstep-struct-number-cells
+    #4 constant planstep-struct-number-cells
 
 \ Struct fields
 0                               constant planstep-header-disp   \ 16-bits [0] struct id [1] use count [2] Action instance ID ( 8 bits ) Domain instance ID ( 8 bits ).
 planstep-header-disp    cell+   constant planstep-from-disp     \ From state.
 planstep-from-disp      cell+   constant planstep-to-disp       \ To state.
-planstep-to-disp        cell+   constant planstep-rule-disp     \ Rule used.
+planstep-to-disp        cell+   constant planstep-alt-to-disp   \ Possible alternate result, may be zero.
 
 0 value planstep-mma \ Storage for planstep mma instance.
 
@@ -54,13 +54,13 @@ planstep-to-disp        cell+   constant planstep-rule-disp     \ Rule used.
 ;
 
 \ Set the planstep id.
-: planstep-set-act-inst-id ( id plnstp0 -- )
+: _planstep-set-act-inst-id ( id plnstp0 -- )
     4c!
 ;
 
 : planstep-get-from ( plnstp0 -- sta )
     \ Check arg.
-    assert( is-planstep? )
+    assert( tos is-planstep? )
 
     planstep-from-disp +
     @
@@ -68,8 +68,8 @@ planstep-to-disp        cell+   constant planstep-rule-disp     \ Rule used.
 
 : _planstep-set-from ( sta1 plnstp0 -- )
     \ Check args.
-    assert( is-planstep? )
-    assert( is-state? )
+    assert( tos is-planstep? )
+    assert( nos is-state? )
 
     planstep-from-disp +
     !struct
@@ -77,7 +77,7 @@ planstep-to-disp        cell+   constant planstep-rule-disp     \ Rule used.
 
 : planstep-get-to ( plnstp0 -- sta )
     \ Check arg.
-    assert( is-planstep? )
+    assert( tos is-planstep? )
 
     planstep-to-disp +
     @
@@ -85,47 +85,54 @@ planstep-to-disp        cell+   constant planstep-rule-disp     \ Rule used.
 
 : _planstep-set-to ( sta1 plnstp0 -- )
     \ Check args.
-    assert( is-planstep? )
-    assert( is-state? )
+    assert( tos is-planstep? )
+    assert( nos is-state? )
 
     planstep-to-disp +
     !struct
 ;
 
-: planstep-get-rule ( plnstp0 -- rul )
+: planstep-get-alt-to ( plnstp0 -- sta | 0 )
     \ Check arg.
-    assert( is-planstep? )
+    assert( tos is-planstep? )
 
-    planstep-rule-disp +
+    planstep-alt-to-disp +
     @
 ;
 
-: _planstep-set-rule ( rul1 plnstp0 -- )
+: _planstep-set-alt-to ( rul1 plnstp0 -- )
     \ Check args.
-    assert( is-planstep? )
-    assert( is-rule? )
+    assert( tos is-planstep? )
+    assert( nos ?dup if is-state? else true then )
 
-    planstep-rule-disp +
-    !struct
+    planstep-alt-to-disp +
+    over 0=
+    if
+        !
+    else
+        !struct
+    then
 ;
 
 \ End accessors.
 
-: planstep-new ( rul2 to-sta1 from-sta0 -- plnstp )
+: planstep-new ( alt-sta4 to-sta3 from-sta2 act-id1 dom-id0 -- plnstp )
     \ Check args.
-    assert( tos is-state? )
-    assert( nos is-state? )
-    assert( 3os is-rule? )
-    cr ." planstep-new: more arg checks todo" cr
+    assert( 3os is-state? )
+    assert( 4os is-state? )
+    assert( 5os ?dup if is-state? else true then )
+    \ cr ." planstep-new: more arg checks todo " .stack cr
 
     \ Allocate instance.
-    planstep-struct-id planstep-mma \ rul2 to-sta1 from-sta0 id mma
-    struct-allocate                 \ rul2 to-sta1 from-sta0 plnstp
+    planstep-struct-id planstep-mma \ alt-sta4 to-sta3 from-sta2 act-id1 dom-id0 id mma
+    struct-allocate                 \ alt-sta4 to-sta3 from-sta2 act-id1 dom-id0 plnstp
 
     \ Store fields.
-    tuck _planstep-set-from         \ rul2 to-sta1 plnstp
-    tuck _planstep-set-to           \ rul2 plnstp
-    tuck _planstep-set-rule         \ plnstp
+    tuck _planstep-set-dom-inst-id  \ alt-sta4 to-sta3 from-sta2 act-id1 plnstp
+    tuck _planstep-set-act-inst-id  \ alt-sta4 to-sta3 from-sta2 plnstp
+    tuck _planstep-set-from         \ alt-sta4 to-sta3 plnstp
+    tuck _planstep-set-to           \ alt-sta4 plnstp
+    tuck _planstep-set-alt-to       \ plnstp
 ;
 
 \ Deallocate a planstep.
@@ -141,7 +148,11 @@ planstep-to-disp        cell+   constant planstep-rule-disp     \ Rule used.
         \ Deallocate states.
         dup planstep-get-from state-deallocate
         dup planstep-get-to state-deallocate
-        dup planstep-get-rule rule-deallocate
+        dup planstep-get-alt-to
+        ?dup
+        if
+            state-deallocate
+        then
 
         \ Deallocate instance.
         planstep-mma mma-deallocate
@@ -152,11 +163,15 @@ planstep-to-disp        cell+   constant planstep-rule-disp     \ Rule used.
 
 : .planstep ( plnstp -- )
     \ Check arg.
-    assert( is-planstep? )
+    assert( tos is-planstep? )
 
     ." ( plnstp from: "
     dup planstep-get-from .state
     space ." to: " dup planstep-get-to .state
-    space ." rule: " planstep-get-rule .rule
+    planstep-get-alt-to
+    ?dup
+    if
+        space ." alt-to: " .state
+    then
     ." )"
 ;

@@ -691,7 +691,7 @@ session-valued-regioncorrs-disp cell+   constant session-avoid-lol-disp         
     assert( tos is-session? )
     assert( nos is-statecorr? )
     assert( 3os is-statecorr? )
-    cr ." session-make-plan: from: " over .statecorr space ." to: " #2 pick .statecorr cr
+    \ cr ." session-make-plan: from: " over .statecorr space ." to: " #2 pick .statecorr cr
 
     \ Test if goal and from are eq.
     #2 pick #2 pick statecorrs-eq? abort" session-make-plan: from and goal are equal?"
@@ -703,7 +703,7 @@ session-valued-regioncorrs-disp cell+   constant session-avoid-lol-disp         
     \ Init options list.
     list-new                                            \ gstac2 fstac1 sess0 avd-lst opt-lst
 
-    \ Prep for loop.
+    \ Prep for loop
     #3 pick statecorr-get-list list-get-links           \ gstac2 fstac1 sess0 avd-lst opt-lst f-lnk
     #3 pick session-get-domains list-get-links          \ gstac2 fstac1 sess0 avd-lst opt-lst f-lnk d-lnk
 
@@ -714,8 +714,12 @@ session-valued-regioncorrs-disp cell+   constant session-avoid-lol-disp         
         over link-get-data                              \ gstac2 fstac1 sess0 avd-lst opt-lst f-lnk d-lnk f-stax domx
 
         \ Get/Store options
-        domain-get-forward-options                      \ gstac2 fstac1 sess0 avd-lst opt-lst f-lnk d-lnk opt-lst
-        #3 pick list-push-struct                        \ gstac2 fstac1 sess0 avd-lst opt-lst f-lnk d-lnk
+        domain-get-forward-steps                        \ gstac2 fstac1 sess0 avd-lst opt-lst f-lnk d-lnk, plnstp-lst' t | f
+        if
+            dup                                         \ gstac2 fstac1 sess0 avd-lst opt-lst f-lnk d-lnk plnstp-lst' plnstp-lst'
+            #4 pick list-append-struct                  \ gstac2 fstac1 sess0 avd-lst opt-lst f-lnk d-lnk plnstp-lst'
+            planstep-list-deallocate                    \ gstac2 fstac1 sess0 avd-lst opt-lst f-lnk d-lnk
+        then
 
         link-get-next swap
         link-get-next swap
@@ -723,8 +727,11 @@ session-valued-regioncorrs-disp cell+   constant session-avoid-lol-disp         
                                                         \ gstac2 fstac1 sess0 avd-lst opt-lst f-lnk
     drop                                                \ gstac2 fstac1 sess0 avd-lst opt-lst
 
+    cr ." options: " dup .planstep-list cr
+
+    cr ." session-make-plan: todo" cr
+
     struct-list-deallocate                              \ gstac2 fstac1 sess0 avd-lst
     2drop 2drop
     false
-    cr ." session-make-plan: todo" cr
 ;

@@ -500,3 +500,80 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     group-get-region    \ reg1 g-reg
     regions-eq?
 ;
+
+\ Return planstep list if a group's rules can be used on a state.
+: group-get-forward-step ( from-sta1 grp0 -- plnstp t | f )
+    \ Check args.
+    assert( tos is-group? )
+    assert( nos is-state? )
+    cr ." group-get-forward-step: " over .state space dup .group cr
+
+    \ Check pn value.
+    dup group-get-pn                \ f-sta1 grp0 pn
+    0= if
+        2drop
+        false
+        exit
+    then
+
+    \ Check if state can be acted on by the rules.
+    over                            \ f-sta1 grp0 f-sta
+    over group-get-s-region         \ f-sta1 grp0 f-sta s-reg
+    region-superset-of-state?       \ f-sta1 grp0 bool
+    ifnot
+        2drop
+        false
+        exit
+    then
+
+    dup group-get-rules             \ f-sta1 grp0 rul-lst
+
+    \ Get alternate result state, if any.
+    over group-get-pn #2 =          \ f-sta1 grp0 rul-lst
+    if
+        #2 pick                     \ f-sta1 grp0 rul-lst f-sta1
+        over list-get-second-item   \ f-sta1 grp0 rul-lst f-sta1 rul1
+        rule-apply-to-state         \ f-sta1 grp0 rul-lst, alt-rslt t | f
+        invert abort" rule apply failed?"
+    else
+        0                           \ f-sta1 grp0 rul-lst alt-rslt
+    then
+
+    \ Get result state.
+    #3 pick                         \ f-sta1 grp0 rul-lst alt-rslt f-sta1
+    #2 pick list-get-first-item     \ f-sta1 grp0 rul-lst alt-rslt f-sta1 rul0
+    rule-apply-to-state             \ f-sta1 grp0 rul-lst alt-rslt, rslt t | f
+    invert abort" rule apply failed?"
+
+    \ Check that at least one result is different from the given state.
+    over 0=                         \ f-sta1 grp0 rul-lst alt-rslt rslt bool
+    if
+        false                        \ f-sta1 grp0 rul-lst alt-rslt rslt bool
+    else
+        over #5 pick                \ f-sta1 grp0 rul-lst alt-rslt rslt alt-rslt f-sta1
+        states-neq?                 \ f-sta1 grp0 rul-lst alt-rslt rslt bool
+    then
+
+    over #6 pick                    \ f-sta1 grp0 rul-lst alt-rslt rslt bool rslt f-sta1
+    states-neq?                     \ f-sta1 grp0 rul-lst alt-rslt rslt bool bool
+    or                              \ f-sta1 grp0 rul-lst alt-rslt rslt bool
+
+    ifnot
+        state-deallocate            \ f-sta1 grp0 rul-lst alt-rslt
+        ?dup
+        if state-deallocate then    \ f-sta1 grp0 rul-lst
+        drop 2drop
+        false
+        exit
+    then
+
+    \ Make planstep.
+    #4 pick                         \ f-sta1 grp0 rul-lst alt-rslt rslt f-sta1
+    #4 pick group-get-act-inst-id   \ f-sta1 grp0 rul-lst alt-rslt rslt f-sta1 act-id
+    #5 pick group-get-dom-inst-id   \ f-sta1 grp0 rul-lst alt-rslt rslt f-sta1 act-id dom-id
+    planstep-new                    \ f-sta1 grp0 rul-lst plnstp
+
+    \ Return.
+    nip nip nip                     \ plnstp
+    true
+;

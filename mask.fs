@@ -537,3 +537,13 @@ mask-header-disp cell+  constant mask-number-disp
     mask-get-number     \ u
     num-bits-set        \ u
 ;
+
+\ Convert a mask into a state.
+: mask-to-state ( msk0 - sta )
+    \ Check arg.
+    assert( tos is-mask? )
+
+    dup mask-get-number     \ msk0 num
+    swap mask-get-num-bits  \ num nb
+    state-new-xt execute
+;

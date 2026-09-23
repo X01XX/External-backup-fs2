@@ -714,3 +714,74 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
     \ Check m10
     rule-get-m10 swap rule-get-m10 masks-eq?   \ bool
 ;
+
+\ Return a rule's initial region.
+: rule-get-initial-region ( rul0 -- reg )
+    \ Check arg.
+    assert( tos is-rule? )
+
+    \ Get zeros.
+    dup rule-get-m01 mask-invert    \ rul0 ~m01'
+    over rule-get-m00 mask-invert   \ rul0 ~m01' ~m00'
+    2dup mask-or                    \ rul0 ~m01' ~m00' m0x'
+    swap mask-deallocate            \ rul0 ~m01' m0x'
+    swap mask-deallocate            \ rul0 m0x'
+    dup mask-invert                 \ rul0 m0x' ~m0x'
+    swap mask-deallocate            \ rul0 ~m0x'
+    dup mask-to-state               \ rul0 ~m0x' sta0s
+    swap mask-deallocate            \ rul0 sta0s
+
+    \ Get ones.
+    over rule-get-m10               \ rul0 sta0s m10
+    rot rule-get-m11                \ sta0s m10 m11
+    mask-or                         \ sta0s m1x'
+    dup mask-to-state               \ sta0s m1x' sta1s
+    swap mask-deallocate            \ sta0s sta1s
+
+    \ Return.
+    region-new                      \ reg
+;
+
+\ Return the result of applying a rule to a state.
+: rule-apply-to-state ( sta1 rul0 -- sta t | f )
+    \ Check args.
+    assert( tos is-rule? )
+    assert( nos is-state? )
+    cr ." rule-apply-to-state: " over .state space dup .rule cr
+
+    \ Check rule can apply.
+    over                            \ sta1 rul0 sta1
+    over rule-get-initial-region    \ sta1 rul0 sta1 reg'
+    cr ." rule initial region: " dup .region cr
+    tuck region-superset-of-state?  \ sta1 rul0 reg' bool
+    swap region-deallocate          \ sta1 rul0 bool
+    ifnot
+        2drop
+        false
+        cr ." rule-apply-to-state: exit 1" cr
+        exit
+    then
+
+    \ Get mask of bits to change from 0 to 1.
+    dup rule-get-m01        \ sta1 rul0 m01
+    #2 pick                 \ sta1 rul0 m01 sta1
+    state-invert-to-mask    \ sta1 rul0 m01 ~sta1'
+    tuck mask-and           \ sta1 rel0 ~sta1' m01'
+    swap mask-deallocate    \ sta1 rul0 m01'
+
+    \ Get mask of bits to change from 1 to zero.
+    swap rule-get-m10       \ sta1 m01' m10
+    #2 pick                 \ sta1 m01' m10 sta1
+    state-and-mask-to-mask  \ sta1 m01' m10'
+
+    \ Combine the two change masks.
+    2dup mask-or            \ sta1 m01' m10' mcng'
+    swap mask-deallocate    \ sta1 m01' mcng'
+    swap mask-deallocate    \ sta1 mcng'
+
+    \ Get changed state.
+    tuck                    \ mcng' sta1 mcng'
+    swap state-xor-mask     \ mcng' sta
+    swap mask-deallocate    \ sta
+    true
+;

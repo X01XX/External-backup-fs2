@@ -83,6 +83,8 @@ state-header-disp cell+   constant state-number-disp
     _state-set-number           \ sta
 ;
 
+' state-new to state-new-xt
+
 \ Print a state struct instance.
 : .state (  sta0 -- )
     \ Check arg.
@@ -429,6 +431,27 @@ state-header-disp cell+   constant state-number-disp
     state-get-number        \ sta1 num0
     swap state-get-number   \ num0 num1
     =
+;
+
+\ Return true if two states are not equal.
+: states-neq? ( sta1 sta0 -- bool )
+    \ Check args.
+    assert( tos is-state? )
+    assert( nos is-state? )
+    assert( 2dup states-same-num-bits? )
+
+    \ Check addrs.
+    2dup =
+    if
+        2drop
+        false
+        exit
+    then
+
+    \ Check numbers.
+    state-get-number        \ sta1 num0
+    swap state-get-number   \ num0 num1
+    <>
 ;
 
 \ Return true if two states are adjacent.

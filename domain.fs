@@ -405,24 +405,48 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
 
 ' domain-get-number-actions to domain-get-number-actions-xt
 
+\ Return an act0 planstep.
+: domain-calc-act0-planstep ( from-sta1 dom0 -- plnstp )
+    \ Check args.
+    assert( tos is-domain? )
+    assert( nos is-state? )
+
+    0 -rot                      \ alt-to f-sta1 dom0
+    over swap                   \ alt-to t-sta f-sta1 dom0
+    0 swap                      \ alt-to t-sta f-sta1 act-id dom0
+    domain-get-inst-id          \ alt-to t-sta f-sta1 act-id dom-id
+    planstep-new                \ plnstp
+;
+
 \ Return a list of possible PlanSteps.
-: domain-get-forward-options ( f-sta1 dom0 -- plnstp-lst )
+: domain-get-forward-steps ( from-sta1 dom0 -- plnstp-lst t | f )
     \ Check args.
     assert( tos is-domain? )
     assert( nos is-state? )
 
     \ Init return list.
-    list-new -rot                   \ ret f-sta1 dom0
-
-    domain-get-actions              \ ret f-sta1 act-lst
-    foreach                         \ ret f-sta1 act-lnk actx
-        #2 pick swap                \ ret f-sta1 act-lnk f-sta1 actx
-        action-get-forward-steps    \ ret f-sta1 act-lnk pln-stps
-        dup                         \ ret f-sta1 act-lnk pln-stps' pln-stps'
-        #4 pick                     \ ret f-sta1 act-lnk pln-stps' pln-stps' ret
-        list-append-struct          \ ret f-sta1 act-lnk pln-stps'
-        planstep-list-deallocate    \ ret f-sta1 act-lnk
+    list-new swap                       \ f-sta1 ret dom0
+    domain-get-actions                  \ f-sta1 ret act-lst
+    foreach                             \ f-sta1 ret act-lnk actx
+        #3 pick swap                    \ f-sta1 ret act-lnk f-sta1 actx
+        action-get-forward-steps        \ f-sta1 ret act-lnk, pln-stps' t | f
+        if
+            dup                         \ f-sta1 ret act-lnk pln-stps' pln-stps'
+            #3 pick                     \ f-sta1 ret act-lnk pln-stps' pln-stps' ret
+            list-append-struct          \ f-sta1 ret act-lnk pln-stps'
+            planstep-list-deallocate    \ f-sta1 ret act-lnk
+        then
     next-item
-                                    \ ret f-sta1
-    drop
+                                        \ f-sta1 ret
+    nip                                 \ ret
+
+    \ Return.
+    dup list-is-empty?
+    if
+        list-deallocate
+        false
+    else
+        true
+    then
+    \ cr ." domain-get-forward-steps: end: " .stack cr
 ;
