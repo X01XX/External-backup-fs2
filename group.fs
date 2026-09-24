@@ -501,8 +501,8 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     regions-eq?
 ;
 
-\ Return planstep list if a group's rules can be used on a state.
-: group-get-forward-step ( from-sta1 grp0 -- plnstp t | f )
+\ Return actionstep list if a group's rules can be used on a state.
+: group-get-forward-step ( from-sta1 grp0 -- actstp t | f )
     \ Check args.
     assert( tos is-group? )
     assert( nos is-state? )
@@ -567,13 +567,13 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
         exit
     then
 
-    \ Make planstep.
+    \ Make actionstep.
     #4 pick                         \ f-sta1 grp0 rul-lst alt-rslt rslt f-sta1
     #4 pick group-get-act-inst-id   \ f-sta1 grp0 rul-lst alt-rslt rslt f-sta1 act-id
     #5 pick group-get-dom-inst-id   \ f-sta1 grp0 rul-lst alt-rslt rslt f-sta1 act-id dom-id
-    planstep-new                    \ f-sta1 grp0 rul-lst plnstp
+    actionstep-new                    \ f-sta1 grp0 rul-lst actstp
 
     \ Return.
-    nip nip nip                     \ plnstp
+    nip nip nip                     \ actstp
     true
 ;

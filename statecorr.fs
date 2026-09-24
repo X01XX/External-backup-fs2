@@ -285,3 +285,45 @@ statecorr-header-disp    cell+      constant statecorr-list-disp   \ State list 
     drop
     true
 ;
+
+\ Ruturn a regioncorr from the union of two statecorrs.
+: statecorr-union ( stac1 stac0 -- regc )
+    \ Check args.
+    assert( tos is-statecorr? )
+    assert( nos is-statecorr? )
+
+    \ Init region list.
+    list-new -rot               \ reg-lst stac1 stac0
+
+    \ Prep for loop.
+    statecorr-get-list
+    list-get-links swap         \ reg-lst stac-lnk stac1
+
+    statecorr-get-list
+    list-get-links              \ reg-lst stac-lnk stac-lnk
+
+    begin
+        ?dup
+    while
+        \ Get two states.
+        over link-get-data      \ reg-lst stac-lnk stac-lnk stacx
+        over link-get-data      \ reg-lst stac-lnk stac-lnk stacx stacy
+
+        \ Make region.
+        region-new              \ reg-lst stac-lnk stac-lnk reg
+
+        \ Store region, same order.
+        #3 pick                 \ reg-lst stac-lnk stac-lnk reg reg-lst
+        list-push-end-struct    \ reg-lst stac-lnk stac-lnk
+
+        \ Prep for next loop cycle.
+        link-get-next swap
+        link-get-next
+    repeat
+                                \ reg-lst stac-lnk
+    \ Clean up.
+    drop                        \ reg-lst
+
+    \ Return.
+    regioncorr-new              \ regc
+;

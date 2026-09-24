@@ -65,8 +65,8 @@
 
     \ Pre-load action 4.
     #4 over domain-find-action invert abort" act not found?" \ regc-lst dom-lst dom act4
-    s" s0000->s1001" sample-from-string-a over action-add-sample invert abort" sample not added?"
-    s" s1111->s0110" sample-from-string-a over action-add-sample invert abort" sample not added?"
+    s" s0000->s1000" sample-from-string-a over action-add-sample invert abort" sample not added?"
+    s" s1111->s0111" sample-from-string-a over action-add-sample invert abort" sample not added?"
     drop
 
     \ Store domain.
@@ -77,7 +77,7 @@
     cr dup .session cr
 
     s" ( stac (s0001))" statecorr-from-string-a \ sess goal
-    s" ( stac (s1110))" statecorr-from-string-a \ sess goal from
+    s" ( stac (s1111))" statecorr-from-string-a \ sess goal from
 
     2dup                                        \ sess goal from goal from
     #4 pick                                     \ sess goal from goal from sess

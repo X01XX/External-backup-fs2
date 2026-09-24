@@ -2019,7 +2019,7 @@ action-groups-disp                          cell+   constant action-function-dis
     action-add-sample       \ smpl
 ;
 
-: action-get-forward-steps ( from-sta1 act0 -- plnstp-lst t | f )
+: action-get-forward-steps ( from-sta1 act0 -- actstp-lst t | f )
     \ Check args.
     assert( tos is-action? )
     assert( nos is-state? )
@@ -2032,9 +2032,9 @@ action-groups-disp                          cell+   constant action-function-dis
     action-get-groups                   \ f-sta1 ret grp-lst
     foreach                             \ f-sta1 ret grp-lnk grpx
         #3 pick swap                    \ f-sta1 ret grp-lnk f-sta1 grpx
-        group-get-forward-step          \ f-sta1 ret grp-lnk, plnstp t | f
+        group-get-forward-step          \ f-sta1 ret grp-lnk, actstp t | f
         if
-            #2 pick                     \ f-sta1 ret grp-lnk plnstp ret
+            #2 pick                     \ f-sta1 ret grp-lnk actstp ret
             list-push-struct            \ f-sta1 ret grp-lnk
         then
     next-item

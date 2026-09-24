@@ -405,8 +405,8 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
 
 ' domain-get-number-actions to domain-get-number-actions-xt
 
-\ Return an act0 planstep.
-: domain-calc-act0-planstep ( from-sta1 dom0 -- plnstp )
+\ Return an act0 actionstep.
+: domain-calc-act0-actionstep ( from-sta1 dom0 -- actstp )
     \ Check args.
     assert( tos is-domain? )
     assert( nos is-state? )
@@ -415,11 +415,11 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
     over swap                   \ alt-to t-sta f-sta1 dom0
     0 swap                      \ alt-to t-sta f-sta1 act-id dom0
     domain-get-inst-id          \ alt-to t-sta f-sta1 act-id dom-id
-    planstep-new                \ plnstp
+    actionstep-new                \ actstp
 ;
 
-\ Return a list of possible PlanSteps.
-: domain-get-forward-steps ( from-sta1 dom0 -- plnstp-lst t | f )
+\ Return a list of possible ActionSteps.
+: domain-get-forward-steps ( from-sta1 dom0 -- actstp-lst t | f )
     \ Check args.
     assert( tos is-domain? )
     assert( nos is-state? )
@@ -434,7 +434,7 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
             dup                         \ f-sta1 ret act-lnk pln-stps' pln-stps'
             #3 pick                     \ f-sta1 ret act-lnk pln-stps' pln-stps' ret
             list-append-struct          \ f-sta1 ret act-lnk pln-stps'
-            planstep-list-deallocate    \ f-sta1 ret act-lnk
+            actionstep-list-deallocate    \ f-sta1 ret act-lnk
         then
     next-item
                                         \ f-sta1 ret

@@ -21,7 +21,7 @@
 \ Token StateCorr
 \ 59797 41719
 \
-\ Plan  PlanStep
+\ Plan  ActionStep
 \ 37379 37171
 \
 \ Changes   ChangesCorr Integer
@@ -75,14 +75,16 @@ include samplelist.fs
 include rule.fs
 include rulelist.fs
 
-include planstep.fs
-include plansteplist.fs
-
 include token.fs
 include tokenlist.fs
 
 include regioncorr.fs
 include regioncorrlist.fs
+
+include statecorr.fs
+
+include actionstep.fs
+include actionsteplist.fs
 
 include structinfo.fs
 include structinfolist.fs
@@ -97,11 +99,6 @@ include grouplist.fs
 
 include corner.fs
 include cornerlist.fs
-
-include statecorr.fs
-
-\ include need.fs
-\ include needlist.fs
 
 include actionxts.fs
 
@@ -154,7 +151,7 @@ include randompick_t.fs
 #1200 sample-mma-init
 #1300 token-mma-init
 #1200 square-mma-init
-#0200 planstep-mma-init
+#0200 actionstep-mma-init
 #1010 action-mma-init
 #1110 corner-mma-init
 \ #1110 need-mma-init
@@ -181,7 +178,7 @@ list-new to structinfo-list-store
 ' noop  ' noop  ' samples-eq?   ' sample-from-string    ' sample-deallocate     ' .sample       s" Sample"      sample-mma      sample-struct-id        structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' noop          ' noop                  ' action-deallocate     ' .action       s" Action"      action-mma      action-struct-id        structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' noop          ' noop                  ' changes-deallocate    ' .changes      s" Changes"     changes-mma     changes-struct-id       structinfo-new structinfo-list-store-push-end
-' noop  ' noop  ' noop          ' noop                  ' planstep-deallocate    ' .planstep  s" PlanStep" planstep-mma planstep-struct-id   structinfo-new structinfo-list-store-push-end
+' noop  ' noop  ' noop          ' noop                  ' actionstep-deallocate    ' .actionstep  s" ActionStep" actionstep-mma actionstep-struct-id   structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' noop          ' corner-from-string    ' corner-deallocate     ' .corner       s" Corner"      corner-mma      corner-struct-id        structinfo-new structinfo-list-store-push-end
 ' regioncorr-from-list  ' regioncorr-list-definition?    ' regioncorrs-eq?  ' noop  ' regioncorr-deallocate ' .regioncorr   s" Regioncorr"  regioncorr-mma  regioncorr-struct-id    structinfo-new structinfo-list-store-push-end
 \ ' noop  ' noop  ' noop          ' noop                  ' need-deallocate       ' .need       s" Need"        need-mma        need-struct-id          structinfo-new structinfo-list-store-push-end

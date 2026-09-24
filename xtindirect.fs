@@ -82,15 +82,15 @@
 ' xtabort value .action-xt
 
 
-' xtabort value planstep-list-push-xt
+' xtabort value actionstep-list-push-xt
 
-' xtabort value planstep-new-xt
+' xtabort value actionstep-new-xt
 
-' xtabort value planstep-set-forward-xt
+' xtabort value actionstep-set-forward-xt
 
-' xtabort value planstep-set-number-unwanted-changes-xt
+' xtabort value actionstep-set-number-unwanted-changes-xt
 
-' xtabort value .planstep-xt
+' xtabort value .actionstep-xt
 
 ' xtabort value region-list-push-xt
 
