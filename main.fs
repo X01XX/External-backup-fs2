@@ -12,26 +12,32 @@
 \ Sample    Action  Session Domain  Need
 \ 23719,    29717,  31319,  31379,  19717
 \
-\ Group     RegionCorr  Mask    State
+\ Group     RegionCorr  Mask*   State*
 \ 43717,    47317       61719   61717
 \
-\ RuleCorr  Corner  StructInfo
-\ 53171,    53719,  53731
+\ Corner  StructInfo
+\ 53719,  53731
 \
-\ Token StateCorr
-\ 59797 41719
+\ Token StateCorr*
+\ 59797 61979
 \
-\ Plan  ActionStep
-\ 37379 37171
+\ Plan  ActionStep* PlanStep
+\ 37379 61379       37171
 \
-\ Changes   ChangesCorr Integer
-\ 31973     53173       23173
+\ Integer ( Rate in fs1 )
+\ 41719
+\
+\ * Not used in fs1.
 \
 \ Struct ids not yet used:
-\ 53197, 53717, 61379, 61979.
 \
-\ Same as fs1, possibly.
-\ 53171, future RuleCorr?
+\ ID     In fs1
+\ 23173, RuleStore
+\ 31973, Changes.
+\ 53171, RuleCorr
+\ 53173, ChangesCorr
+\ 53197, PathStep
+\ 53717, PlanCorr
 
 \ Start a clean vocabulary.
 cr ." Starting vocabulary UES," cr
@@ -68,8 +74,6 @@ include region2.fs
 include state2.fs
 include regionlist2.fs
 
-include changes.fs
-
 include sample.fs
 include samplelist.fs
 include rule.fs
@@ -100,6 +104,9 @@ include grouplist.fs
 include corner.fs
 include cornerlist.fs
 
+include planstep.fs
+include plansteplist.fs
+
 include actionxts.fs
 
 include action.fs
@@ -112,15 +119,12 @@ include domainlist.fs
 include session.fs
 include randompick.fs
 
-
-
 include mask_t.fs
 include state_t.fs
 include statelist_t.fs
 include statecorr_t.fs
 include region_t.fs
 include rule_t.fs
-include changes_t.fs
 include sample_t.fs
 include regionlist_t.fs
 include regioncorr_t.fs
@@ -146,7 +150,6 @@ include randompick_t.fs
 #0020 integer-mma-init
 #0200 statecorr-mma-init
 #1400 region-mma-init
-#0400 changes-mma-init
 #1200 rule-mma-init
 #1200 sample-mma-init
 #1300 token-mma-init
@@ -157,6 +160,7 @@ include randompick_t.fs
 \ #1110 need-mma-init
 #1130 group-mma-init
 #1600 regioncorr-mma-init
+#0100 planstep-mma-init
 #1010 domain-mma-init
 #0005 session-mma-init
 cr cr
@@ -177,8 +181,8 @@ list-new to structinfo-list-store
 ' noop  ' noop  ' rules-eq?     ' rule-from-string      ' rule-deallocate       ' .rule         s" Rule"        rule-mma        rule-struct-id          structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' samples-eq?   ' sample-from-string    ' sample-deallocate     ' .sample       s" Sample"      sample-mma      sample-struct-id        structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' noop          ' noop                  ' action-deallocate     ' .action       s" Action"      action-mma      action-struct-id        structinfo-new structinfo-list-store-push-end
-' noop  ' noop  ' noop          ' noop                  ' changes-deallocate    ' .changes      s" Changes"     changes-mma     changes-struct-id       structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' noop          ' noop                  ' actionstep-deallocate    ' .actionstep  s" ActionStep" actionstep-mma actionstep-struct-id   structinfo-new structinfo-list-store-push-end
+' noop  ' noop  ' noop          ' noop                  ' planstep-deallocate   ' .planstep  s" PlanStep"  planstep-mma   planstep-struct-id      structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' noop          ' corner-from-string    ' corner-deallocate     ' .corner       s" Corner"      corner-mma      corner-struct-id        structinfo-new structinfo-list-store-push-end
 ' regioncorr-from-list  ' regioncorr-list-definition?    ' regioncorrs-eq?  ' noop  ' regioncorr-deallocate ' .regioncorr   s" Regioncorr"  regioncorr-mma  regioncorr-struct-id    structinfo-new structinfo-list-store-push-end
 \ ' noop  ' noop  ' noop          ' noop                  ' need-deallocate       ' .need       s" Need"        need-mma        need-struct-id          structinfo-new structinfo-list-store-push-end
@@ -244,7 +248,6 @@ list-new to structinfo-list-store
     state-tests
     region-tests
     rule-tests
-    changes-tests
     sample-tests
     state-list-tests
     statecorr-tests

@@ -1,4 +1,4 @@
-#37171 constant actionstep-struct-id
+#61379 constant actionstep-struct-id
     #4 constant actionstep-struct-number-cells
 
 \ Struct fields

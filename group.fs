@@ -506,7 +506,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     \ Check args.
     assert( tos is-group? )
     assert( nos is-state? )
-    cr ." group-get-forward-step: " over .state space dup .group cr
+    \ cr ." group-get-forward-step: " over .state space dup .group cr
 
     \ Check pn value.
     dup group-get-pn                \ f-sta1 grp0 pn

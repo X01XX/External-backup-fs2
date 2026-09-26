@@ -81,7 +81,11 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
     over #255 >
     abort" Invalid instance id"
 
-    \ Set inst id.
+    \ Set action 0 dom intstance id.
+    2dup domain-get-actions list-get-first-item
+    _action-set-dom-inst-id
+
+    \ Set domain instance id.
     4c!
 ;
 
@@ -210,10 +214,6 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
     domain-struct-id domain-mma     \ nb0 mma
     struct-allocate                 \ nb0 dom
 
-    \ Set instance ID to zero.
-    0 over                          \ nb0 dom id0 dom
-    domain-set-inst-id              \ nb0 dom
-
     \ Set num bits.
     2dup                            \ nb0 dom nb0 dom
     _domain-set-num-bits            \ nb0 dom
@@ -248,6 +248,10 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
 
     swap                            \ nb0 dom act act-lst
     action-list-push-end            \ nb0 dom
+
+    \ Set instance ID to zero.
+    0 over                          \ nb0 dom id0 dom
+    domain-set-inst-id              \ nb0 dom
 
     \ Set all bits mask.
     over                            \ nb0 dom nb0

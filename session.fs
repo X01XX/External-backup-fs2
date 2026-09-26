@@ -689,7 +689,7 @@ session-valued-regioncorrs-disp cell+   constant session-avoid-lol-disp         
 \ Plan a step in a path from a statecorr to another statecorr,
 \ use recursion to get more steps.
 \ The excursion-limit allows non-incremental steps, if needed, a given number of times.
-: session-make-plan2 ( goal-stac2 from-stac1 avoid-list excursion-limit sess0 -- pln t | f )
+: session-make-plan-next-step ( goal-stac2 from-stac1 avoid-list excursion-limit sess0 -- plnstp t | f )
     \ Check args.
     assert( tos is-session? )
     assert( 3os is-regioncorr-list? )
@@ -737,7 +737,7 @@ session-valued-regioncorrs-disp cell+   constant session-avoid-lol-disp         
                                                         \ gstac2 fstac1 avd-lst ex-lm sess0 opt-lst' f-lnk
     drop                                                \ gstac2 fstac1 avd-lst ex-lm sess0 opt-lst'
 
-    cr ." options: " dup .actionstep-list cr
+    cr s" options: " #2 pick .actionstep-list-prefix cr
 
     \ Filter out options that do not go toward the goal, or enter regioncorrs to avoid.
 
@@ -756,7 +756,7 @@ session-valued-regioncorrs-disp cell+   constant session-avoid-lol-disp         
 
         \ Calc actionstep-to result.
         #9 pick                                         \ gstac2 fstac1 avd-lst ex-lm sess0 opt-lst' opt-lst2' regc' opt-lnk actstpx bool fstac1
-        #2 pick actionstep-insert-to-state                \ gstac2 fstac1 avd-lst ex-lm sess0 opt-lst' opt-lst2' regc' opt-lnk actstpx bool stac-nxt'
+        #2 pick actionstep-insert-to-state              \ gstac2 fstac1 avd-lst ex-lm sess0 opt-lst' opt-lst2' regc' opt-lnk actstpx bool stac-nxt'
 
         \ Check if step result is outside of the expected region.
         dup                                             \ gstac2 fstac1 avd-lst ex-lm sess0 opt-lst' opt-lst2' regc' opt-lnk actstpx bool stac-nxt' stac-nxt'
@@ -769,31 +769,49 @@ session-valued-regioncorrs-disp cell+   constant session-avoid-lol-disp         
         dup                                             \ gstac2 fstac1 avd-lst ex-lm sess0 opt-lst' opt-lst2' regc' opt-lnk actstpx bool stac-nxt' stac-nxt'
         #10 pick                                        \ gstac2 fstac1 avd-lst ex-lm sess0 opt-lst' opt-lst2' regc' opt-lnk actstpx bool stac-nxt' stac-nxt' avd-lst
         regioncorr-list-stac-in?                        \ gstac2 fstac1 avd-lst ex-lm sess0 opt-lst' opt-lst2' regc' opt-lnk actstpx bool stac-nxt' bool
-        swap statecorr-deallocate                       \ gstac2 fstac1 avd-lst ex-lm sess0 opt-lst' opt-lst2' regc' opt-lnk actstpx bool bool
-        or                                              \ gstac2 fstac1 avd-lst ex-lm sess0 opt-lst' opt-lst2' regc' opt-lnk actstpx bool
+        rot                                             \ gstac2 fstac1 avd-lst ex-lm sess0 opt-lst' opt-lst2' regc' opt-lnk actstpx stac-nxt' bool bool
+        or                                              \ gstac2 fstac1 avd-lst ex-lm sess0 opt-lst' opt-lst2' regc' opt-lnk actstpx stac-nxt' bool
 
         \ Check actionstep alt-to result.
-        over actionstep-get-alt-to 0<>
+        #2 pick actionstep-get-alt-to 0<>
         if
             cr ." session-make-plan2: todo check actionstep alt-to" cr
         then
 
         \ Check bool, any true leads to exclusion.
-        if
+        if                                              \ gstac2 fstac1 avd-lst ex-lm sess0 opt-lst' opt-lst2' regc' opt-lnk actstpx stac-nxt'
+            statecorr-deallocate                        \ gstac2 fstac1 avd-lst ex-lm sess0 opt-lst' opt-lst2' regc' opt-lnk actstpx
             drop                                        \ gstac2 fstac1 avd-lst ex-lm sess0 opt-lst' opt-lst2' regc' opt-lnk
-        else
-            #3 pick                                     \ gstac2 fstac1 avd-lst ex-lm sess0 opt-lst' opt-lst2' regc' opt-lnk actstpx opt-lst2'
+        else                                            \ gstac2 fstac1 avd-lst ex-lm sess0 opt-lst' opt-lst2' regc' opt-lnk actstpx stac-nxt'
+            \ Make a PlanStep.
+            swap                                        \ gstac2 fstac1 avd-lst ex-lm sess0 opt-lst' opt-lst2' regc' opt-lnk stac-nxt' actstpx
+            #9 pick statecorr-copy swap                 \ gstac2 fstac1 avd-lst ex-lm sess0 opt-lst' opt-lst2' regc' opt-lnk stac-nxt' fstac1 actstpx
+            planstep-new                                \ gstac2 fstac1 avd-lst ex-lm sess0 opt-lst' opt-lst2' regc' opt-lnk plnstp
+            #3 pick                                     \ gstac2 fstac1 avd-lst ex-lm sess0 opt-lst' opt-lst2' regc' opt-lnk plnstp opt-lst2'
             list-push-struct                            \ gstac2 fstac1 avd-lst ex-lm sess0 opt-lst' opt-lst2' regc' opt-lnk
         then
 
     next-item
                                                         \ gstac2 fstac1 avd-lst ex-lm sess0 opt-lst' opt-lst2' regc'
-
-    cr ." session-make-plan2: todo" cr
     regioncorr-deallocate                               \ gstac2 fstac1 avd-lst ex-lm sess0 opt-lst' opt-lst2'
 
-    cr ." options2: " dup .actionstep-list cr
-    actionstep-list-deallocate                            \ gstac2 fstac1 avd-lst ex-lm sess0 opt-lst'
+    cr s" direct planstep list: " #2 pick .planstep-list-prefix cr
+
+    dup list-is-empty?
+    ifnot
+        dup list-get-length                             \ gstac2 fstac1 avd-lst ex-lm sess0 opt-lst' opt-lst2' len
+        random                                          \ gstac2 fstac1 avd-lst ex-lm sess0 opt-lst' opt-lst2' inx
+        over list-remove-item-struct                    \ gstac2 fstac1 avd-lst ex-lm sess0 opt-lst' opt-lst2' plnstp
+        swap planstep-list-deallocate                   \ gstac2 fstac1 avd-lst ex-lm sess0 opt-lst' plnstp
+        swap actionstep-list-deallocate                 \ gstac2 fstac1 avd-lst ex-lm sess0 plnstp
+        2nip 2nip nip                                   \ plnstp
+        true
+        exit
+    then
+
+    cr ." session-make-plan2: todo" cr
+
+    planstep-list-deallocate                              \ gstac2 fstac1 avd-lst ex-lm sess0 opt-lst'
     actionstep-list-deallocate                            \ gstac2 fstac1 avd-lst ex-lm sess0
     2drop 2drop drop
     false
@@ -817,5 +835,13 @@ session-valued-regioncorrs-disp cell+   constant session-avoid-lol-disp         
     swap                                                \ gstac2 fstac1 avd-lst sess0
     #3 swap                                             \ gstac2 fstac1 avd-lst exc-lim sess0
 
-    session-make-plan2                                  \ pln t | f
+    session-make-plan-next-step                         \ pln t | f
+    if
+        cr ." plan next step: " dup .planstep cr
+        planstep-deallocate
+    else
+        cr ." No next step found" cr
+    then
+
+    false
 ;

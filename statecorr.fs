@@ -4,7 +4,7 @@
 \ So the states may be of different number of bits, and operations
 \ on statecorr list pairs are by corresponding items.
 
-#41719 constant statecorr-struct-id
+#61979 constant statecorr-struct-id
     #2 constant statecorr-struct-number-cells
 
 \ Struct fields
@@ -326,4 +326,13 @@ statecorr-header-disp    cell+      constant statecorr-list-disp   \ State list 
 
     \ Return.
     regioncorr-new              \ regc
+;
+
+\ Return a copy of a statecorr.
+: statecorr-copy ( stac0 -- stac )
+    \ Check arg.
+    assert( tos is-statecorr? )
+
+    statecorr-get-list                 \ sta-lst
+    statecorr-new                      \ neg stac
 ;

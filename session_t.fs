@@ -30,8 +30,8 @@
 : session-test-make-plan
     \ Make valued-regioncorr list.
     list-new                        \ regc-lst
-    s" ( regc 0  -1 (r01XX))" string-to-stack-a over list-push-struct
-    s" ( regc 0  -1 (r0X1X))" string-to-stack-a over list-push-struct
+    s" ( regc 0  -1 (r01XX r00000))" string-to-stack-a over list-push-struct
+    s" ( regc 0  -1 (r0X1X r00000))" string-to-stack-a over list-push-struct
 
     \ Make domain-list.
     list-new                        \ regc-lst dom-lst
@@ -72,12 +72,16 @@
     \ Store domain.
     over domain-list-push-end       \ regc-lst dom-lst
 
+    \ Make second domain.
+    #5 domain-new                   \ regc-lst dom-lst dom
+    over domain-list-push-end       \ regc-lst dom-lst
+
     session-new                     \ sess
 
     cr dup .session cr
 
-    s" ( stac (s0001))" statecorr-from-string-a \ sess goal
-    s" ( stac (s1111))" statecorr-from-string-a \ sess goal from
+    s" ( stac (s0001 s00001))" statecorr-from-string-a \ sess goal
+    s" ( stac (s1111 s00001))" statecorr-from-string-a \ sess goal from
 
     2dup                                        \ sess goal from goal from
     #4 pick                                     \ sess goal from goal from sess
@@ -90,7 +94,11 @@
         cr ." plan not found" cr
     then
 
+    \ Check memory use.
+    .memory-use
+
     \ Deallocate.
+    cr ." Deallocating ..." cr
     statecorr-deallocate
     statecorr-deallocate
     session-deallocate

@@ -5,7 +5,7 @@
 \
 \ Hopefully, this makes r-to and r-from operations unneeded.
 
-#23173 constant integer-struct-id
+#41719 constant integer-struct-id
     #2 constant integer-struct-number-cells
 
 \ Struct fields

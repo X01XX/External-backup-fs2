@@ -1,8 +1,8 @@
-\ Functions for actionstep lists.
+\ Functions for planstep lists.
 
-\ Check TOS for actionstep-list.
-: is-actionstep-list? ( tos -- bool )
-    dup is-list?            \ tos bool
+\ Check TOS for planstep-list.
+: is-planstep-list? ( tos -- bool )
+    tos is-list?            \ tos bool
     ifnot
         drop
         false
@@ -18,20 +18,20 @@
 
     list-get-links          \ link
     link-get-data           \ data
-    is-actionstep?            \ bool
+    is-planstep?            \ bool
 ;
 
-\ Deallocate a actionstep list.
-: actionstep-list-deallocate ( actstp-lst0 -- )
+\ Deallocate a planstep list.
+: planstep-list-deallocate ( plnstp-lst0 -- )
     \ Check arg.
-    assert( tos is-actionstep-list? )
+    assert( tos is-planstep-list? )
 
     \ Check if the list will be deallocated for the last time.
-    dup struct-get-use-count                        \ actstp-lst0 uc
+    dup struct-get-use-count                        \ lst0 uc
     #2 < if
-        \ Deallocate actionstep instances in the list.
-        [ ' actionstep-deallocate ] literal over      \ actstp-lst0 xt actstp-lst0
-        list-apply                                  \ actstp-lst0
+        \ Deallocate square instances in the list.
+        [ ' planstep-deallocate ] literal over      \ lst0 xt lst0
+        list-apply                                  \ lst0
 
         \ Deallocate the list.
         list-deallocate                             \
@@ -40,17 +40,17 @@
     then
 ;
 
-\ Print a actionstep-list
-: .actionstep-list ( actstp-lst0 -- )
+\ Print a planstep-list
+: .planstep-list ( plnstp-lst0 -- )
     \ Check arg.
-    assert( tos is-actionstep-list? )
+    assert( tos is-planstep-list? )
 
-    [ ' .actionstep ] literal swap .list
+    [ ' .planstep ] literal swap .list
 ;
 
-: .actionstep-list-prefix ( c-addr u list0 -- )
+: .planstep-list-prefix ( c-addr u list0 -- )
     \ Check arg.
-    assert( tos is-actionstep-list? )
+    assert( tos is-planstep-list? )
     cr
     rot                 \ u list0 c-addr
     #2 pick             \ u list0 c-addr u
@@ -64,7 +64,7 @@
     then
 
     foreach             \ u lnk grpx
-        .actionstep
+        .planstep
 
         link-get-next
         dup 0<> if

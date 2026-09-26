@@ -747,18 +747,18 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
     \ Check args.
     assert( tos is-rule? )
     assert( nos is-state? )
-    cr ." rule-apply-to-state: " over .state space dup .rule cr
+    \ cr ." rule-apply-to-state: " over .state space dup .rule cr
 
     \ Check rule can apply.
     over                            \ sta1 rul0 sta1
     over rule-get-initial-region    \ sta1 rul0 sta1 reg'
-    cr ." rule initial region: " dup .region cr
+    \ cr ." rule initial region: " dup .region cr
     tuck region-superset-of-state?  \ sta1 rul0 reg' bool
     swap region-deallocate          \ sta1 rul0 bool
     ifnot
         2drop
         false
-        cr ." rule-apply-to-state: exit 1" cr
+        \ cr ." rule-apply-to-state: exit 1" cr
         exit
     then
 
