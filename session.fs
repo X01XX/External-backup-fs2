@@ -775,7 +775,7 @@ session-valued-regioncorrs-disp cell+   constant session-avoid-lol-disp         
         \ Check actionstep alt-to result.
         #2 pick actionstep-get-alt-to 0<>
         if
-            cr ." session-make-plan2: todo check actionstep alt-to" cr
+            cr ." session-make-plan-next-step: todo check actionstep alt-to" cr
         then
 
         \ Check bool, any true leads to exclusion.
@@ -809,12 +809,55 @@ session-valued-regioncorrs-disp cell+   constant session-avoid-lol-disp         
         exit
     then
 
-    cr ." session-make-plan2: todo" cr
-
     planstep-list-deallocate                              \ gstac2 fstac1 avd-lst ex-lm sess0 opt-lst'
     actionstep-list-deallocate                            \ gstac2 fstac1 avd-lst ex-lm sess0
     2drop 2drop drop
     false
+;
+
+: session-make-plan2 ( goal-stac2 from-stac1 avd-lst exc-lim sess0 -- pln t | f )
+    \ Check args.
+    assert( tos is-session? )
+    assert( 3os is-regioncorr-list? )
+    assert( 4os is-statecorr? )
+    assert( 5os is-statecorr? )
+
+    \ Init plantsep list.
+    list-new                                                \ gstac2 fstac1 avd-lst exc-lim sess0 lst
+
+    \ Set first from statecorr.
+    #4 pick                                                 \ gstac2 fstac1 avd-lst exc-lim sess0 lst from
+
+    \ Get next step until goal is reached, or failure.
+    begin
+        \ Get next step.
+        #6 pick swap                                        \ gstac2 fstac1 avd-lst exc-lim sess0 lst gstac2 from
+        #5 pick #5 pick #5 pick                             \ gstac2 fstac1 avd-lst exc-lim sess0 lst gstac2 from avd-lst exc-lim sess0
+        session-make-plan-next-step                         \ gstac2 fstac1 avd-lst exc-lim sess0 lst, plnstp t | f
+        ifnot
+            planstep-list-deallocate                        \ gstac2 fstac1 avd-lst exc-lim sess0
+            2drop 2drop drop
+            false
+            exit
+        then
+
+        \ Check if new step gets to the goal.
+        dup planstep-get-to                                 \ gstac2 fstac1 avd-lst exc-lim sess0 lst plnstp to-stac
+        #7 pick                                             \ gstac2 fstac1 avd-lst exc-lim sess0 lst plnstp to-stac gstac2
+        statecorrs-eq?                                      \ gstac2 fstac1 avd-lst exc-lim sess0 lst plnstp bool
+        if
+            \ Goal found.
+            over list-push-end-struct                       \ gstac2 fstac1 avd-lst exc-lim sess0 lst
+            2nip 2nip nip                                   \ lst
+            plan-new
+            true
+            exit
+        then
+
+        \ Save step, set up for getting next step.
+        dup planstep-get-to swap                            \ gstac2 fstac1 avd-lst exc-lim sess0 lst from-next plnstp
+        #2 pick list-push-end-struct                        \ gstac2 fstac1 avd-lst exc-lim sess0 lst from-next
+    again
 ;
 
 \ Return a plan to change from a statecorr to a different statecorr.
@@ -825,52 +868,24 @@ session-valued-regioncorrs-disp cell+   constant session-avoid-lol-disp         
     assert( 3os is-statecorr? )
     \ cr ." session-make-plan: from: " over .statecorr space ." to: " #2 pick .statecorr cr
 
-    \ Init plantsep list.
-    list-new swap                                           \ gstac2 fstac1 lst sess0
-    2swap                                                   \ lst sess0 gstac2 fstac1
-    rot                                                     \ lst gstac2 fstac1 sess0
-
     \ Test if goal and from are eq.
     #2 pick #2 pick statecorrs-eq? abort" session-make-plan: from and goal are equal?"
 
     \ Get regioncorr-list to avoid.
-    #2 pick #2 pick #2 pick session-find-avoidance-list     \ lst gstac2 fstac1 sess0 avd-lst
+    #2 pick #2 pick #2 pick session-find-avoidance-list     \ gstac2 fstac1 sess0 avd-lst
     cr ." avoid: " dup .regioncorr-list cr
 
-    swap                                                    \ lst gstac2 fstac1 avd-lst sess0
-    #3 swap                                                 \ lst gstac2 fstac1 avd-lst exc-lim sess0
+    swap                                                    \ gstac2 fstac1 avd-lst sess0
 
-    \ Set first from statecorr.
-    #3 pick                                                 \ lst gstac2 fstac1 avd-lst exc-lim sess0 from
-
-    \ Get next step until goal is reached, or failure.
-    begin
-        \ Get next step.
-        #5 pick swap                                        \ lst gstac2 fstac1 avd-lst exc-lim sess0 gstac2 from
-        #4 pick #4 pick #4 pick                             \ lst gstac2 fstac1 avd-lst exc-lim sess0 gstac2 from avd-lst exc-lim sess0
-        session-make-plan-next-step                         \ lst gstac2 fstac1 avd-lst exc-lim sess0, plnstp t | f
-        ifnot
-            2drop 2drop drop                                \ lst
-            planstep-list-deallocate
-            false
-            exit
-        then
-
-        \ Check if new step gets to the goal.
-        dup planstep-get-to                                 \ lst gstac2 fstac1 avd-lst exc-lim sess0 plnstp to-stac
-        #6 pick                                             \ lst gstac2 fstac1 avd-lst exc-lim sess0 plnstp to-stac gstac2
-        statecorrs-eq?                                      \ lst gstac2 fstac1 avd-lst exc-lim sess0 plnstp bool
-        if
-            \ Goal found.
-            #6 pick list-push-end-struct                    \ lst gstac2 fstac1 avd-lst exc-lim sess0
-            2drop 2drop drop                                \ lst
-            plan-new
-            true
-            exit
-        then
-
-        \ Save step, set up for getting next step.
-        dup planstep-get-to swap                            \ lst gstac2 fstac1 avd-lst exc-lim sess0 from-next plnstp
-        #7 pick list-push-end-struct                        \ lst gstac2 fstac1 avd-lst exc-lim sess0 from-next
-    again
+    #3 pick #3 pick #3 pick                                 \ gstac2 fstac1 avd-lst sess0 gstac2 fstac1 avd-lst
+    #3                                                      \ gstac2 fstac1 avd-lst sess0 gstac2 fstac1 avd-lst exc-lim
+    #4 pick                                                 \ gstac2 fstac1 avd-lst sess0 gstac2 fstac1 avd-lst exc-lim sess0
+    session-make-plan2                                      \ gstac2 fstac1 avd-lst sess0, pln t | f
+    if
+        2nip nip nip                                        \ pln
+        true
+    else
+        2drop 2drop
+        false
+    then
 ;
