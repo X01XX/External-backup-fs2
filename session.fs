@@ -864,9 +864,8 @@ session-valued-regioncorrs-disp cell+   constant session-avoid-lol-disp         
             \ Goal found.
             #6 pick list-push-end-struct                    \ lst gstac2 fstac1 avd-lst exc-lim sess0
             2drop 2drop drop                                \ lst
-            cr s" plan found: " #2 pick .planstep-list-prefix cr
-            planstep-list-deallocate
-            false
+            plan-new
+            true
             exit
         then
 

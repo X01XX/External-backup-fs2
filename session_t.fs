@@ -89,9 +89,9 @@
     #4 pick                                     \ sess goal from goal from sess
     session-make-plan                           \ sess goal from, pln t | f
     if
-        cr ." plan found" cr
-\        dup .plan
-\        plan-deallocate
+        cr ." plan found:" cr
+        dup .plan
+        plan-deallocate
     else
         cr ." plan not found" cr
     then
