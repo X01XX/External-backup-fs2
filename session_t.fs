@@ -73,15 +73,17 @@
     over domain-list-push-end       \ regc-lst dom-lst
 
     \ Make second domain.
-    #5 domain-new                   \ regc-lst dom-lst dom
-    over domain-list-push-end       \ regc-lst dom-lst
+    #5 domain-new                       \ regc-lst dom-lst dom
+    s" s00000" state-from-string-a      \ regc-lst dom-lst dom sta
+    over domain-update-current-state    \ regc-lst dom-lst dom
+    over domain-list-push-end           \ regc-lst dom-lst
 
     session-new                     \ sess
 
     cr dup .session cr
 
-    s" ( stac (s0001 s00001))" statecorr-from-string-a \ sess goal
-    s" ( stac (s1111 s00001))" statecorr-from-string-a \ sess goal from
+    s" ( stac (s0001 s00000))" statecorr-from-string-a \ sess goal
+    s" ( stac (s1111 s00000))" statecorr-from-string-a \ sess goal from
 
     2dup                                        \ sess goal from goal from
     #4 pick                                     \ sess goal from goal from sess

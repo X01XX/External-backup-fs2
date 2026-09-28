@@ -137,6 +137,18 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
     !
 ;
 
+\ Update the current state.
+: domain-update-current-state ( sta1 dom0 -- )
+    \ Check args.
+    assert( tos is-domain? )
+    assert( nos is-state? )
+
+    dup domain-get-current-state    \ sta1 dom cur
+    -rot                            \ cur sta1 dom
+    _domain-set-current-state       \ cur
+    state-deallocate
+;
+
 \ Return the max-region of the domain.
 : domain-get-max-region ( dom0 -- reg )
     \ Check arg.
