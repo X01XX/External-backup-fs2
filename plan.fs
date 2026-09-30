@@ -33,7 +33,7 @@ plan-header-disp  cell+ constant plan-list-disp     \ A list of plansteps that a
 \ Start accessors.
 
 \ Return the planstep list field from a plan instance.
-: plan-get-list ( pln0 -- plnstp-lst )
+: plan-get-steps ( pln0 -- plnstp-lst )
     \ Check arg.
     assert( tos is-plan? )
 
@@ -42,7 +42,7 @@ plan-header-disp  cell+ constant plan-list-disp     \ A list of plansteps that a
 ;
 
 \ Set the planstep list field from a plan instance, use only in this file.
-: _plan-set-list ( plnstp-lst1 pln0 -- )
+: _plan-set-steps ( plnstp-lst1 pln0 -- )
     \ Check arg.
     assert( tos is-plan? )
     assert( nos is-planstep-list? )
@@ -123,7 +123,7 @@ plan-header-disp  cell+ constant plan-list-disp     \ A list of plansteps that a
     \ Store fields.
     0 over plan-set-value       \ plnstp-lst0 pln
     0 over plan-set-cost        \ plnstp-lst0 pln
-    tuck _plan-set-list         \ pln
+    tuck _plan-set-steps        \ pln
 
     \ cr ." plan-new: " dup hex. cr
 ;
@@ -138,7 +138,7 @@ plan-header-disp  cell+ constant plan-list-disp     \ A list of plansteps that a
     ." Cost: "
     dup plan-get-cost dec.
     s"   "
-    rot plan-get-list .planstep-list-prefix
+    rot plan-get-steps .planstep-list-prefix
     ." )"
 ;
 
@@ -153,7 +153,7 @@ plan-header-disp  cell+ constant plan-list-disp     \ A list of plansteps that a
     #2 <
     if
         \ Deallocate steps.
-        dup plan-get-list planstep-list-deallocate
+        dup plan-get-steps planstep-list-deallocate
 
         \ Deallocate instance.
         plan-mma mma-deallocate
@@ -164,15 +164,15 @@ plan-header-disp  cell+ constant plan-list-disp     \ A list of plansteps that a
 
 \ Add a planstep to a plan.
 : plan-add-step ( plnstp1 pln0 -- )
-    \ Check arg.
+    \ Check args.
     assert( tos is-plan? )
     assert( nos is-planstep? )
 
     \ Check that the new step links to the last step.
-    dup plan-get-list           \ plnstp1 pln0 plnstp-lst
+    dup plan-get-steps          \ plnstp1 pln0 plnstp-lst
     list-is-not-empty?
     if
-        dup plan-get-list       \ plnstp1 pln0 plnstp-lst
+        dup plan-get-steps      \ plnstp1 pln0 plnstp-lst
         list-get-last-item      \ plnstp1 pln0 last-stp
         planstep-get-to         \ plnstp1 pln0 to-stac
         #2 pick                 \ plnstp1 pln0 to-stac plnstp1
@@ -182,6 +182,22 @@ plan-header-disp  cell+ constant plan-list-disp     \ A list of plansteps that a
     then
 
     \ Add planstep.
-    plan-get-list               \ plnstp1 plnstp-lst
+    plan-get-steps              \ plnstp1 plnstp-lst
     list-push-end-struct
+;
+
+\ Append the steps of the nos plan onto the end of the tos plan.
+: plan-append-steps ( plnstp-lst1 pln0 -- )
+    \ Check args.
+    assert( tos is-plan? )
+    assert( nos is-planstep-list? )
+
+    swap                \ pln0 stp-lst1
+
+    foreach             \ pln0 stp-lnk stpx
+        #2 pick         \ pln0 stp-lnk stpx pln0
+        plan-add-step   \ pln0 stp-lnk
+    next-item
+                        \ pln0
+    drop
 ;
