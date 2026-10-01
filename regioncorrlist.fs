@@ -284,6 +284,7 @@
     drop
 ;
 
+\ Print a regioncorr list one line at a time, aligned with a given prefix.
 : .regioncorr-list-prefix ( c-addr u regc-lst0 -- )
     \ Check arg.
     assert( tos is-regioncorr-list? )

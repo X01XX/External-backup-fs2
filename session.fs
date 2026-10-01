@@ -860,6 +860,51 @@ session-valued-regioncorrs-disp cell+   constant session-avoid-lol-disp         
     again
 ;
 
+\ Return a plan, from statecorr to statecorr, of a given list
+\ af two, or more statecorrs.
+: session-make-plan3 ( stac-lst3 avd-lst2 exc-lim1 sess0 -- pln t | f )
+    \ Check args.
+    assert( tos is-session? )
+    assert( 3os is-regioncorr-list? )
+    assert( 4os is-statecorr-list? )
+
+    \ Init return plan.
+    list-new plan-new                                       \ stac-lst3 avd-lst2 exc-lim1 sess0 ret-pln
+
+    #4 pick                                                 \ stac-lst3 avd-lst2 exc-lim1 sess0 ret-pln stac-lst3
+    foreach                                                 \ stac-lst3 avd-lst2 exc-lim1 sess0 ret-pln stac-lnk stacx
+        over link-get-next                                  \ stac-lst3 avd-lst2 exc-lim1 sess0 ret-pln stac-lnk stacx lnk-nxt
+        ?dup if
+            link-get-data                                   \ stac-lst3 avd-lst2 exc-lim1 sess0 ret-pln stac-lnk stacx sta-nxt
+            \ cr ." from: " dup .statecorr space ." to: " over .statecorr cr
+            swap                                            \ stac-lst3 avd-lst2 exc-lim1 sess0 ret-pln stac-lnk stac-nxt stacx
+            #6 pick #3                                      \ stac-lst3 avd-lst2 exc-lim1 sess0 ret-pln stac-lnk | to from avd-lst2 exc-lim
+            #6 pick                                         \ stac-lst3 avd-lst2 exc-lim1 sess0 ret-pln stac-lnk | to from avd-lst2 exc-lim sess0
+            session-make-plan2                              \ stac-lst3 avd-lst2 exc-lim1 sess0 ret-pln stac-lnk, pln t | f
+            ifnot
+                drop                                        \ stac-lst3 avd-lst2 exc-lim1 sess0 ret-pln
+                plan-deallocate                             \ stac-lst3 avd-lst2 exc-lim1 sess0
+                2drop 2drop
+                false
+                exit
+            then
+
+            \ Process partial step plan.                    \ stac-lst3 avd-lst2 exc-lim1 sess0 ret-pln stac-lnk pln'
+            \ cr ." partial plan: " dup .plan cr
+            dup plan-get-steps                              \ stac-lst3 avd-lst2 exc-lim1 sess0 ret-pln stac-lnk pln' pln-stps
+            #3 pick                                         \ stac-lst3 avd-lst2 exc-lim1 sess0 ret-pln stac-lnk pln' pln-stps ret-pln
+            plan-append-steps                               \ stac-lst3 avd-lst2 exc-lim1 sess0 ret-pln stac-lnk pln'
+            plan-deallocate                                 \ stac-lst3 avd-lst2 exc-lim1 sess0 ret-pln stac-lnk
+        else
+            drop                                            \ stac-lst3 avd-lst2 exc-lim1 sess0 ret-pln stac-lnk
+        then
+    next-item
+                                                            \ stac-lst3 avd-lst2 exc-lim1 sess0 ret-pln
+    \ cr ." Final plan: " dup .plan cr
+    2nip nip nip                                            \ ret-pln
+    true
+;
+
 \ Return a plan to change from a statecorr to a different statecorr.
 : session-make-plan ( goal-stac2 from-stac1 sess0 -- pln t | f )
     \ Check args.
@@ -888,7 +933,7 @@ session-valued-regioncorrs-disp cell+   constant session-avoid-lol-disp         
 \        exit
 \    then
 
-    \ Try the backward direction.                               \ gstac2 fstac1 avd-lst sess0
+    \ Try the backward direction.                           \ gstac2 fstac1 avd-lst sess0
     \ Literal backward-chaining may need to get through X->0 and X->1 bit changes.
     \ That could be done, but we would have to deal with regioncorrs instead of statecorrs,
     \ linking partial plans that may have intersecting, but not equal, joints would involve rippling the change
@@ -905,46 +950,25 @@ session-valued-regioncorrs-disp cell+   constant session-avoid-lol-disp         
         exit
     then
 
-    \ Try tracing backward steps forward.                   \ gstac2 fstac1 avd-lst sess0 bpln
-    \ cr ." backward plan: " dup .plan cr
+    \ Get plan as a statecorr-to-statecorr list, reversed.
+    dup plan-statecorr-path                                 \ gstac2 fstac1 avd-lst sess0 bpln stac-lst
+    swap plan-deallocate                                    \ gstac2 fstac1 avd-lst sess0 stac-lst
+    dup list-reverse-struct                                 \ gstac2 fstac1 avd-lst sess0 stac-lst stac-rev'
+    swap statecorr-list-deallocate                          \ gstac2 fstac1 avd-lst sess0 stac-rev'
 
-    dup plan-get-steps                                      \ gstac2 fstac1 avd-lst sess0 bpln plnstps
-    list-reverse-struct                                     \ gstac2 fstac1 avd-lst sess0 bpln plnstps-rev'
-    swap plan-deallocate                                    \ gstac2 fstac1 avd-lst sess0 plnstps-rev'
-    \ cr s" rev list: " #2 pick .planstep-list-prefix cr
+    \ Get forward plan from statecorr list.
+    dup                                                     \ gstac2 fstac1 avd-lst sess0 stac-rev' | stac-rev'
+    #3 pick #3                                              \ gstac2 fstac1 avd-lst sess0 stac-rev' | stac-rev' avd-lst exc-lim
+    #4 pick                                                 \ gstac2 fstac1 avd-lst sess0 stac-rev' | stac-rev' avd-lst exc-lim sess0
+    session-make-plan3                                      \ gstac2 fstac1 avd-lst sess0 stac-rev', pln t | f
+    if
+        swap statecorr-list-deallocate                      \ gstac2 fstac1 avd-lst sess0 pln
+        2nip nip nip                                        \ pln
+        true
+        exit
+    then
 
-    \ Init return plan.
-    list-new plan-new                                       \ gstac2 fstac1 avd-lst sess0 plnstps-rev' ret-pln
-
-    over
-    foreach                                                 \ gstac2 fstac1 avd-lst sess0 plnstps-rev' ret-pln rev-lnk plnstp
-        \ cr ." process planstep: " dup .planstep cr
-        \ cr ." to: " dup planstep-get-from .statecorr space ." from: " dup planstep-get-to .statecorr cr
-
-        dup planstep-get-from
-        swap planstep-get-to                                \ gstac2 fstac1 avd-lst sess0 plnstps-rev' ret-pln rev-lnk | to from
-        #6 pick #3                                          \ gstac2 fstac1 avd-lst sess0 plnstps-rev' ret-pln rev-lnk | to from avd-lst exc-lim
-        #7 pick                                             \ gstac2 fstac1 avd-lst sess0 plnstps-rev' ret-pln rev-lnk | to from avd-lst exc-lim sess0
-        session-make-plan2                                  \ gstac2 fstac1 avd-lst sess0 plnstps-rev' ret-pln rev-lnk, pln t | f
-        ifnot
-            drop                                            \ gstac2 fstac1 avd-lst sess0 plnstps-rev' ret-pln
-            plan-deallocate                                 \ gstac2 fstac1 avd-lst sess0 plnstps-rev'
-            planstep-list-deallocate                        \ gstac2 fstac1 avd-lst sess0
-            2drop 2drop
-            false
-            exit
-        then
-
-        \ Process partial step plan.                        \ gstac2 fstac1 avd-lst sess0 plnstps-rev' ret-pln rev-lnk pln'
-        \ cr ." partial plan: " dup .plan cr
-        dup plan-get-steps                                  \ gstac2 fstac1 avd-lst sess0 plnstps-rev' ret-pln rev-lnk pln' pln-stps
-        #3 pick                                             \ gstac2 fstac1 avd-lst sess0 plnstps-rev' ret-pln rev-lnk pln' pln-stps ret-pln
-        plan-append-steps                                   \ gstac2 fstac1 avd-lst sess0 plnstps-rev' ret-pln rev-lnk pln'
-        plan-deallocate                                     \ gstac2 fstac1 avd-lst sess0 plnstps-rev' ret-pln rev-lnk
-    next-item
-                                                            \ gstac2 fstac1 avd-lst sess0 plnstps-rev' ret-pln
-    \ cr ." Final plan: " dup .plan cr
-    swap planstep-list-deallocate                           \ gstac2 fstac1 avd-lst sess0 ret-pln
-    2nip nip nip                                            \ ret-pln
-    true
+    statecorr-list-deallocate                               \ gstac2 fstac1 avd-lst sess0
+    2drop 2drop
+    false
 ;

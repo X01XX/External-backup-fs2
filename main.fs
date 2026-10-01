@@ -86,6 +86,7 @@ include regioncorr.fs
 include regioncorrlist.fs
 
 include statecorr.fs
+include statecorrlist.fs
 
 include actionstep.fs
 include actionsteplist.fs

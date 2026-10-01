@@ -201,3 +201,34 @@ plan-header-disp  cell+ constant plan-list-disp     \ A list of plansteps that a
                         \ pln0
     drop
 ;
+
+\ Return the first state of a non-empty plan.
+: plan-get-first-state ( pln0 -- stac )
+    \ Check arg.
+    assert( tos is-plan? )
+
+    plan-get-steps          \ stp-lst
+    list-get-first-item     \ stp
+    planstep-get-from       \ stac
+;
+
+\ Return a statecorr path from a plan.
+: plan-statecorr-path ( pln0 -- stac-lst )
+    \ Check arg.
+    assert( tos is-plan? )
+
+    \ Init return list.
+    list-new swap               \ ret-lst pln0
+
+    \ Init return list.
+    dup plan-get-first-state    \ ret-lst pln0 stacx
+    #2 pick list-push-struct    \ ret-lst pln0
+
+    plan-get-steps              \ ret-lst stp-lst
+
+    foreach                     \ ret-lst stp-lnk stpx
+        planstep-get-to         \ ret-lst stp-lnk stac
+        #2 pick                 \ ret-lst stp-lnk stac ret-lst
+        list-push-end-struct    \ ret-lst stp-lnk
+    next-item
+;
