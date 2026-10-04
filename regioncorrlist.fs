@@ -909,3 +909,56 @@
     regioncorr-list-stac-in?        \ bool
     invert
 ;
+
+: regioncorr-list-supersets-of-statecorr ( stac1 regc-lst0 -- regc-lst )
+    \ Check args.
+    \ cr ." regioncorr-list-in: start: " .stack cr
+    assert( tos is-regioncorr-list? )
+    assert( nos is-statecorr? )
+
+    \ Init return list.
+    list-new -rot                           \ ret-lst stac1 reg-lst0
+
+    foreach                                 \ ret-lst stac1 reg-lnk0 regx
+        #2 pick swap                        \ ret-lst stac1 reg-lnk0 stac1 regx
+        regioncorr-superset-of-statecorr?   \ ret-lst stac1 reg-lnk0 bool
+        if
+            dup link-get-data               \ ret-lst stac1 reg-lnk0 regx
+            #3 pick                         \ ret-lst stac1 reg-lnk0 regx ret-lst
+            list-push-struct                \ ret-lst stac1 reg-lnk0
+        then
+    next-item
+                                            \ ret-lst stac1
+    drop
+;
+
+\ Return list items in nos that intersect with items in tos.
+: regioncorr-list-intersections ( regc-lst1 regc-lst0 -- regc-lst )
+    \ Check args.
+    assert( tos is-regioncorr-list? )
+    assert( nos is-regioncorr-list? )
+    \ cr ." regioncorr-list-intersections: start: " over .regioncorr-list space dup .regioncorr-list cr
+
+    \ Init return list.
+    list-new -rot                           \ ret-lst regc-lst1 regc-lst0
+
+    foreach                                 \ ret-lst regc-lst1 regcs-lnt0 regc0
+        #2 pick                             \ ret-lst regc-lst1 regcs-lnt0 regc0 regc-lst1
+        foreach                             \ ret-lst regc-lst1 regcs-lnt0 regc0 regc-lnt1 regc1
+            \ Check if regioncorrs intersect.
+            #2 pick                         \ ret-lst regc-lst1 regcs-lnt0 regc0 regc-lnt1 regc1 regc0
+            regioncorrs-intersect?          \ ret-lst regc-lst1 regcs-lnt0 regc0 regc-lnt1 bool
+            if
+                \ Store regioncorr to return.
+                dup link-get-data           \ ret-lst regc-lst1 regcs-lnt0 regc0 regc-lnt1 regc1
+                #5 pick                     \ ret-lst regc-lst1 regcs-lnt0 regc0 regc-lnt1 regc1 ret-lst
+                regioncorr-list-push-nodups \ ret-lst regc-lst1 regcs-lnt0 regc0 regc-lnt1 bool
+                drop                        \ ret-lst regc-lst1 regcs-lnt0 regc0 regc-lnt1
+            then
+        next-item
+        drop
+    next-item
+                                            \ ret-lst regc-lst1
+    drop
+    \ cr ." regioncorr-list-intersections: end: " dup .regioncorr-list cr
+;

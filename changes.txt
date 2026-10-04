@@ -27,3 +27,5 @@ Groups are not directly invalidated by a new, or changed, square.  Changes to po
 
 Added two xts to the structinfo struct, to allow defining a complex struct, regioncorr, with a list.
 
+Plans are statecorr-to-statecorr, instead of regioncorr-to-regioncorr.
+

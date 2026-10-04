@@ -702,6 +702,36 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     swap mask-deallocate        \ bool
 ;
 
+\ Return the number of bits distance between a region and a state.
+: region-dist-state ( sta1 reg0 -- flag )
+    \ Check args.
+    assert( tos is-region? )
+    assert( nos is-state? )
+    assert( over state-get-num-bits over region-get-num-bits = )
+
+    \ cr ." region-superset-of-state?: " over .state space dup .region cr
+    region-get-states           \ sta1 reg-sta1 reg-sta0
+
+    \ Get sta1 dif reg-sta0
+    rot                         \ reg-sta1 reg-sta0 sta1
+    tuck                        \ reg-sta1 sta1 reg-sta0 sta1
+    state-xor-to-mask           \ reg-sta1 sta1 dif0'
+    -rot                        \ dif0' reg-sta1 sta1
+
+    \ Get dif sta1 reg-sta1
+    state-xor-to-mask           \ dif0' dif1'
+
+    \ Get sta1 dif both region states.
+    2dup                        \ dif0' dif1' dif0' dif1'
+    mask-and                    \ dif0' dif1' both-dif'
+    swap mask-deallocate        \ dif0' both-dif'
+    swap mask-deallocate        \ both-dif'
+
+    \ Check if dif is zero.
+    dup mask-num-bits-set       \ both-dif' dist
+    swap mask-deallocate        \ dist
+;
+
 \ Return true if a TOS region is a subset of the NOS region.
 : region-subset? ( reg1 reg-sub -- flag )
     \ Check args.

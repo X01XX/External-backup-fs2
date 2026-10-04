@@ -861,7 +861,7 @@ session-valued-regioncorrs-disp cell+   constant session-avoid-lol-disp         
 ;
 
 \ Return a plan, from statecorr to statecorr, of a given list
-\ af two, or more statecorrs.
+\ of two, or more statecorrs.
 : session-make-plan3 ( stac-lst3 avd-lst2 exc-lim1 sess0 -- pln t | f )
     \ Check args.
     assert( tos is-session? )

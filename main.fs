@@ -82,11 +82,11 @@ include rulelist.fs
 include token.fs
 include tokenlist.fs
 
-include regioncorr.fs
-include regioncorrlist.fs
-
 include statecorr.fs
 include statecorrlist.fs
+
+include regioncorr.fs
+include regioncorrlist.fs
 
 include actionstep.fs
 include actionsteplist.fs

@@ -120,6 +120,8 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
     0 over _regioncorr-set-neg-value    \ regc
 ;
 
+' regioncorr-new to regioncorr-new-xt
+
 \ Add a value to a regioncorr's positive value.
 \ Skip if the addition results in an invalid value.
 : regioncorr-add-pos-value ( val regc0 -- )
@@ -541,7 +543,7 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
     then
 ;
 
-\ Return a regioncorr from a string, or abort.( regc 1  -4 (rx1x1 r0x111))
+\ Return a regioncorr from a string, or abort.
 : regioncorr-from-string-a ( str-addr str-n -- regc )
     regioncorr-from-string    \ regc t | f
     false? abort" regioncorr-from-string failed?"
@@ -563,7 +565,7 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
     begin
         ?dup
     while
-        \ Add one region pair distance.( regc 1  -4 (rx1x1 r0x111))
+        \ Add one region pair distance.
         rot                     \ link1 link0 cnt
         #2 pick link-get-data   \ link1 link0 cnt reg1
         #2 pick link-get-data   \ link1 link0 cnt reg1 reg0
@@ -576,6 +578,38 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
         swap link-get-next
     repeat
                                 \ cnt link1
+    drop                        \ cnt
+;
+
+\ Return the number of bits different between a regioncorr and a statecorr.
+: regioncorr-dist-statecorr ( stac1 regc0 -- nb )
+    \ Check args.
+    assert( tos is-regioncorr? )
+    assert( nos is-statecorr? )
+
+    \ Init counter.
+    0 -rot                  \ cnt stac1 regc0
+
+    \ Prep for loop.
+    regioncorr-get-list list-get-links swap   \ cnt regc-lnk stac1
+    statecorr-get-list  list-get-links swap   \ cnt stac-lnk regc-lnk
+
+    begin
+        ?dup
+    while
+        \ Add one pair distance.
+        rot                     \ stac-lnk regc-lnk cnt
+        #2 pick link-get-data   \ stac-lnk regc-lnk cnt sta1
+        #2 pick link-get-data   \ stac-lnk regc-lnk cnt sta1 reg0
+        region-dist-state       \ stac-lnk regc-lnk cnt dist
+        +                       \ stac-lnk regc-lnk cnt
+        -rot                    \ cnt stac-lnk regc-lnk
+
+        \ Point to next pair.
+        swap link-get-next
+        swap link-get-next
+    repeat
+                                \ cnt stac-lnk
     drop                        \ cnt
 ;
 
@@ -738,7 +772,7 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
     begin
         ?dup
     while
-        \ Add one region pair distance.( regc 1  -4 (rx1x1 r0x111))
+        \ Add one region pair distance.
         over link-get-data      \ lnk1 lnk0 reg1
         over link-get-data      \ lnk1 lnk0 reg1 reg0
         regions-eq?             \ lnk1 lnk0 bool

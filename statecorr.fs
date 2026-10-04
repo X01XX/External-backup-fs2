@@ -226,25 +226,25 @@ statecorr-header-disp    cell+      constant statecorr-list-disp   \ State list 
 ;
 
 \ Return the number of bits different between two statecorr.
-: statecorr-distance ( regc1 regc0 -- nb )
+: statecorr-distance ( stac1 stac0 -- nb )
     \ Check args.
     assert( tos is-statecorr? )
     assert( nos is-statecorr? )
 
     \ Init counter.
-    0 -rot                  \ cnt regc1 regc0
+    0 -rot                  \ cnt stac1 stac0
 
     \ Prep for loop.
-    statecorr-get-list list-get-links swap   \ cnt link0 regc1
+    statecorr-get-list list-get-links swap   \ cnt link0 stac1
     statecorr-get-list list-get-links swap   \ cnt link1 link0
 
     begin
         ?dup
     while
-        \ Add one state pair distance.( regc 1  -4 (rx1x1 r0x111))
+        \ Add one state pair distance.( stac 1  -4 (rx1x1 r0x111))
         rot                     \ link1 link0 cnt
-        #2 pick link-get-data   \ link1 link0 cnt reg1
-        #2 pick link-get-data   \ link1 link0 cnt reg1 reg0
+        #2 pick link-get-data   \ link1 link0 cnt sta1
+        #2 pick link-get-data   \ link1 link0 cnt sta1 sta0
         states-distance         \ link1 link0 cnt dist
         +                       \ link1 link0 cnt
         -rot                    \ cnt link1 link0
@@ -325,7 +325,7 @@ statecorr-header-disp    cell+      constant statecorr-list-disp   \ State list 
     drop                        \ reg-lst
 
     \ Return.
-    regioncorr-new              \ regc
+    regioncorr-new-xt execute   \ regc
 ;
 
 \ Return a copy of a statecorr.
