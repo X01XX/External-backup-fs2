@@ -582,7 +582,7 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
 ;
 
 \ Return the number of bits different between a regioncorr and a statecorr.
-: regioncorr-dist-statecorr ( stac1 regc0 -- nb )
+: regioncorr-distance-statecorr ( stac1 regc0 -- nb )
     \ Check args.
     assert( tos is-regioncorr? )
     assert( nos is-statecorr? )
@@ -846,4 +846,39 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
                                             \ stac-lnk
     drop
     true
+;
+
+\ Return a mask of differences between a regioncorr and a statecorr.
+: regioncorr-dif-mask-statecorr ( stac1 regc0 -- mskc )
+    \ Check args.
+    assert( tos is-regioncorr? )
+    assert( nos is-statecorr?-xt execute )
+
+    \ Init return list.
+    list-new -rot               \ msk-lst' stac1 regc0
+
+    \ Prep for loop.
+    regioncorr-get-list swap    \ msk-lst' regc-lst stac1
+    statecorr-get-list          \ msk-lst' regc-lst stac-lst
+    list-get-links swap         \ msk-lst' stac-lnk regc-lst
+    list-get-links              \ msk-lst' stac-lnk regc-lnk
+
+    begin
+        ?dup
+    while
+        \ Get region dif state mask.
+        over link-get-data          \ msk-lst' stac-lnk regc-lnk stax
+        over link-get-data          \ msk-lst' stac-lnk regc-lnk stax regcx
+        region-xor-state-to-mask    \ msk-lst' stac-lnk regc-lnk mskx
+
+        \ Add dif to maskcorr.
+        #3 pick                 \ msk-lst' stac-lnk regc-lnk mskx msk-lst'
+        list-push-end-struct    \ msk-lst' stac-lnk regc-lnk
+
+        link-get-next swap
+        link-get-next swap
+    repeat
+                                \ msk-lst' stac-lnk
+    drop                        \ msk-lst'
+    maskcorr-new                \ mskc
 ;

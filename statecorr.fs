@@ -336,3 +336,39 @@ statecorr-header-disp    cell+      constant statecorr-list-disp   \ State list 
     statecorr-get-list                 \ sta-lst
     statecorr-new                      \ neg stac
 ;
+
+\ Return a statecorr after XORing a statecorr with a maskcorr.
+: statecorr-xor-maskcorr ( mskc1 stac0 -- stac )
+        \ Check arg.
+    assert( tos is-statecorr? )
+    assert( nos is-maskcorr? )
+
+    \ Init return list.
+    list-new  -rot              \ sta-lst' mskc1 stac0
+
+    statecorr-get-list swap     \ sta-lst' stac-lst mskc1
+    maskcorr-get-list           \ sta-lst' stac-lst mskc-lst
+
+    list-get-links swap         \ sta-lst' mskc-lnk stac-lst
+    list-get-links              \ sta-lst' mskc-lnk stac-lnk
+
+    begin
+        ?dup
+    while
+        \ Calc new state.
+        over link-get-data      \ sta-lst' mskc-lnk stac-lnk mskx
+        over link-get-data      \ sta-lst' mskc-lnk stac-lnk mskx stax
+        state-xor-mask          \ sta-lst' mskc-lnk stac-lnk stay'
+
+        \ Save new state.
+        #3 pick                 \ sta-lst' mskc-lnk stac-lnk stay' sta-lst'
+        list-push-end-struct    \ sta-lst' mskc-lnk stac-lnk
+
+        \ Prep for next loop.
+        link-get-next swap
+        link-get-next swap
+    repeat
+                                \ sta-lst' mskc-lnk
+    drop
+    statecorr-new               \ stac
+;

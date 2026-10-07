@@ -448,7 +448,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     swap mask-deallocate    \ msk-edg
 ;
 
-: region-diff-mask ( reg1 reg0 -- msk )
+: region-xor ( reg1 reg0 -- msk )
     \ Check args.
     assert( tos is-region? )
     assert( nos is-region? )
@@ -470,6 +470,30 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     2dup mask-and                   \ e-msk' sta0-dif-msk' dif-msk
     swap mask-deallocate            \ e-msk' dif-msk
     swap mask-deallocate            \ dif-msk
+;
+
+: region-xor-state-to-mask ( sta1 reg0 -- msk )
+    \ Check args.
+    assert( tos is-region? )
+    assert( nos is-state? )
+
+    \ Get region state-0 dif-mask.
+    dup region-get-state-0          \ sta1 reg0 sta-0
+    #2 pick state-xor-to-mask       \ sta1 reg0 sta-0-msk'
+
+    \ Get region state-1 dif-mask.
+    swap region-get-state-1         \ sta1 sta-0-msk' sta-1
+    #2 pick state-xor-to-mask       \ sta1 sta-0-msk' sta-1-msk'
+
+    \ Get mask of sta-0 and sta-1 diferences.
+    2dup mask-and                   \ sta1 sta-0-msk' sta-1-msk' sta-both-msk
+
+    \ Clean up.
+    swap mask-deallocate            \ sta1 sta-0-msk' sta-both-msk
+    swap mask-deallocate            \ sta1 sta-both-msk
+
+    \ Clean up.
+    nip                             \ sta-both-msk
 ;
 
 \ Return true if two regions have a different number of bits.
@@ -787,7 +811,6 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     -rot                            \ low2 sta-h' sta1
     over state-or                   \ low2 sta-h' high2
     swap state-deallocate           \ low2 high2
-
     region-new
 ;
 
@@ -892,7 +915,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     assert( tos is-region? )
     assert( nos is-region? )
 
-    region-diff-mask        \ msk
+    region-xor              \ msk
     dup mask-num-bits-set   \ msk nb
     swap mask-deallocate    \ nb
 ;

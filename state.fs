@@ -204,7 +204,7 @@ state-header-disp cell+   constant state-number-disp
     swap state-get-number   \ sta1 num1 num0
     xor                     \ sta1 num
     swap                    \ num sta1
-    state-get-num-bits   \ num nb
+    state-get-num-bits      \ num nb
     mask-new                \ msk
 ;
 
@@ -540,4 +540,18 @@ state-header-disp cell+   constant state-number-disp
 
     state-get-number    \ u
     num-bits-set        \ u
+;
+
+: state-xor-mask-to-mask ( msk1 sta0 -- msk )
+    \ Check args.
+    assert( tos is-state? )
+    assert( nos is-mask? )
+    assert( over mask-get-num-bits over state-get-num-bits = )
+
+    over mask-get-number    \ msk1 sta0 num1
+    swap state-get-number   \ msk1 num1 num0
+    xor                     \ msk1 num
+    swap                    \ num msk1
+    mask-get-num-bits       \ num nb
+    mask-new                \ msk
 ;

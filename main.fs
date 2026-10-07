@@ -18,8 +18,8 @@
 \ Corner  StructInfo
 \ 53719,  53731
 \
-\ Token StateCorr*
-\ 59797 61979
+\ Token StateCorr*  MaskcCorr ( PlanCorr in fs1 )
+\ 59797 61979       53717
 \
 \ Plan  ActionStep* PlanStep
 \ 37379 61379       37171
@@ -37,7 +37,6 @@
 \ 53171, RuleCorr
 \ 53173, ChangesCorr
 \ 53197, PathStep
-\ 53717, PlanCorr
 
 \ Start a clean vocabulary.
 cr ." Starting vocabulary UES," cr
@@ -66,8 +65,17 @@ include integer.fs
 
 include state.fs
 
+include token.fs
+include tokenlist.fs
+
+include maskcorr.fs
+
 include region.fs
 include statelist.fs
+
+include statecorr.fs
+include statecorrlist.fs
+
 include regionlist.fs
 include incpairs.fs
 include region2.fs
@@ -78,12 +86,6 @@ include sample.fs
 include samplelist.fs
 include rule.fs
 include rulelist.fs
-
-include token.fs
-include tokenlist.fs
-
-include statecorr.fs
-include statecorrlist.fs
 
 include regioncorr.fs
 include regioncorrlist.fs
@@ -133,6 +135,7 @@ include regioncorr_t.fs
 include regioncorrlist_t.fs
 include square_t.fs
 include corner_t.fs
+include maskcorr_t.fs
 \ include need_t.fs
 include cornerlist_t.fs
 include squarelist_t.fs
@@ -159,6 +162,7 @@ include randompick_t.fs
 #0200 actionstep-mma-init
 #1010 action-mma-init
 #1110 corner-mma-init
+#0100 maskcorr-mma-init
 \ #1110 need-mma-init
 #1130 group-mma-init
 #1600 regioncorr-mma-init
@@ -193,6 +197,7 @@ list-new to structinfo-list-store
 ' noop  ' noop  ' =             ' noop                  ' square-deallocate     ' .square       s" Square"      square-mma      square-struct-id        structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' =             ' noop                  ' group-deallocate      ' .group        s" Group"       group-mma       group-struct-id         structinfo-new structinfo-list-store-push-end
 ' statecorr-from-list  ' statecorr-list-definition?    ' statecorrs-eq? ' noop  ' statecorr-deallocate ' .statecorr   s" StateCorr"  statecorr-mma  statecorr-struct-id structinfo-new structinfo-list-store-push-end
+' maskcorr-from-list  ' maskcorr-list-definition?    ' maskcorrs-eq? ' noop  ' maskcorr-deallocate ' .maskcorr   s" MaskCorr"  maskcorr-mma  maskcorr-struct-id structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' noop          ' noop                  ' domain-deallocate     ' .domain       s" Domain"      domain-mma      domain-struct-id        structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' noop          ' noop                  ' session-deallocate    ' .session      s" Session"     session-mma     session-struct-id       structinfo-new structinfo-list-store-push-end
 
@@ -263,6 +268,7 @@ list-new to structinfo-list-store
     corner-tests
     corner-list-tests
 \    need-tests
+    maskcorr-tests
     inc-pair-tests
     regioncorr-tests
     regioncorr-list-tests

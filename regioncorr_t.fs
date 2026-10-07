@@ -174,6 +174,36 @@
     cr ." regioncorr-test-superset? - Ok"
 ;
 
+: regioncorr-test-dif-mask-statecorr
+    s" (stac (s1001 s01100)) (regc 0 0 (rx0x0 r1x1x1))" string-to-stack-a
+    2dup regioncorr-dif-mask-statecorr  \ stac regc mskc
+
+    \ cr ." result: " dup .maskcorr cr
+
+    s" ( mskc (m0001 m10001))" maskcorr-from-string-a   \ stac regc mskc mskc
+    2dup maskcorrs-eq?                                  \ stac regc mskc mskc bool
+    ifnot
+        cr ." maskcorrs ne?" cr
+        abort
+    then
+
+    \ Deallocate.
+    maskcorr-deallocate
+    maskcorr-deallocate
+    regioncorr-deallocate
+    statecorr-deallocate
+
+    \ Check for memory leaks.
+    check-project-deallocated
+
+    cr ." regioncorr-test-dif-mask-statecorr - Ok"
+;
+
+\ (stac (s1001 s01100))
+\ (regc (rx0x0 r1x1x1))
+\ (mskc (m1000 m11101))
+\ (mskc (m0001 m10001)) s/b
+
 : regioncorr-tests
     regioncorr-test-from-string
     regioncorrs-test-intersect?
@@ -181,5 +211,6 @@
     regioncorr-test-intersection
     regioncorr-test-distance
     regioncorr-test-superset?
+    regioncorr-test-dif-mask-statecorr
     cr
 ;

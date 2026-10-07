@@ -83,9 +83,35 @@
     cr ." statecorr-test-eq? - Ok"
 ;
 
+: statecorr-test-xor-maskcorr
+    s" (mskc (m0010 m01010)) (stac (s1000 s10101))" string-to-stack-a
+
+    2dup statecorr-xor-maskcorr     \ mskc stac stac
+    \ cr ." result: " dup .statecorr cr
+
+    s" (stac (s1010 s11111))" statecorr-from-string-a   \ mskc stac stac stac
+    2dup statecorrs-eq?                                 \ mskc stac stac stac bool
+    ifnot
+        cr ." state not expected" cr
+        abort
+    then
+
+    \ Deallocate.
+    statecorr-deallocate
+    statecorr-deallocate
+    statecorr-deallocate
+    maskcorr-deallocate
+
+    \ Check for memory leaks.
+    check-project-deallocated
+
+    cr ." statecorr-test-xor-maskcorr - Ok"
+;
+
 : statecorr-tests
     statecorr-test-from-string
     statecorrs-test-eq?
     statecorr-test-distance
+    statecorr-test-xor-maskcorr
     cr
 ;
