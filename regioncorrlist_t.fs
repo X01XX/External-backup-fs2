@@ -86,7 +86,7 @@
     cr ." regioncorr-list-test-map-routes - Ok"
 ;
 
-: regioncorr-list-test-path
+: regioncorr-list-test-find-path
     s" ( regc 0  0 (r0101)) ( regc 0  0 (r1111))" list-from-string-a    \ regcl-avd'
     s" ( regc 0  0 (rxxxx))" list-from-string-a                         \ regcl-avd' regcl-max'
     2dup regioncorr-list-subtract                                       \ regcl-avd' regcl-max' regcl-trv'
@@ -101,27 +101,29 @@
     \ Try to get path stac-from to stac-to.
     2dup                                        \ regcl-trv' stac-t' stac-f' stac-t' stac-f'
     #4 pick                                     \ regcl-trv' stac-t' stac-f' stac-t' stac-f' regcl-trv'
-    regioncorr-list-path                        \ regcl-trv' stac-t' stac-f', path t | f
+    regioncorr-list-find-path                   \ regcl-trv' stac-t' stac-f', path t | f
     if
         cr ." Path found: " dup .statecorr-list cr
+        dup list-get-length #4 <> abort" path len ne 4?"
         statecorr-list-deallocate
+        2drop
     else
         cr ." Path not found" cr
+        statecorr-deallocate
+        statecorr-deallocate
     then
 
-    statecorr-deallocate
-    statecorr-deallocate
     regioncorr-list-deallocate
 
     \ Check for memory leaks.
     check-project-deallocated
 
-    cr ." regioncorr-list-test-path - Ok"
+    cr ." regioncorr-list-test-find-path - Ok"
 ;
 
 : regioncorr-list-tests
     regioncorr-list-test-split-by-intersections
     regioncorr-list-test-split-by-intersections2
-    \ regioncorr-list-test-map-routes
+    regioncorr-list-test-find-path
     cr
 ;

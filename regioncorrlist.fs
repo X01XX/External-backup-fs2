@@ -1017,9 +1017,10 @@
     regioncorr-list-distance-statecorr-eq       \ regc-lst
 ;
 
-\ Find a path from a statecorr to another statecorr,
+\ Find the next steps in a path from a statecorr to another statecorr,
 \ given a regioncorr-list that is to be traversed.
-: regioncorr-list-path ( stac-to2 stac-from1 regc-lst0 -- stac-lst t | f )
+\ Returns a list of stac-to to to to ...
+: regioncorr-list-find-path2 ( stac-to2 stac-from1 regc-lst0 -- stac-lst t | f )
     \ Check args.
     assert( tos is-regioncorr-list? )
     assert( nos is-statecorr? )
@@ -1039,6 +1040,17 @@
     regioncorr-list-min-distance-statecorr      \ stac-t stac-f regcl-trv | regcl-sup' cur-min
     cr ." Min dist to " #4 pick .statecorr space ." = " dup dec. cr
 
+    \ Check if stac-f and stac-f are in the same regioncorr.
+    dup 0= if
+        drop                                    \ stac-t stac-f regcl-trv | regcl-sup'
+        regioncorr-list-deallocate              \ stac-t stac-f regcl-trv
+        2drop                                   \ stac-t
+        list-new tuck                           \ stac-lst stac-t stac-lst
+        list-push-struct                        \ stac-lst
+        true
+        exit
+    then
+
     \ Get superset regioncorrs closest to stac-to.
     dup                                         \ stac-t stac-f regcl-trv | regcl-sup' cur-min cur-min
     #5 pick #3 pick                             \ stac-t stac-f regcl-trv | regcl-sup' cur-min cur-min stac-t regcl-sup'
@@ -1046,11 +1058,6 @@
     rot regioncorr-list-deallocate              \ stac-t stac-f regcl-trv | cur-min regcl-sup''
 
     cr ." regioncorrs " #3 pick .statecorr space ." is in, closest to : " #4 pick .statecorr space ." = " dup .regioncorr-list cr
-
-    \ Check if stac-f and stac-f are in the same regioncorr.
-    over 0= if
-        cr ." todo" cr abort                    \ return stac-f -> stac-t ?
-    then
 
     \ Subtract stac-from superset regioncorrs, closest to stac-to, from traverse regcs.
     [ ' = ] literal                             \ stac-t stac-f regcl-trv | cur-min regcl-sup' xt
@@ -1118,16 +1125,53 @@
 
     cr ." next stac: " dup .statecorr cr
 
-    statecorr-deallocate                        \ stac-t stac-f regcl-trv | cur-min regcl-sup' regcl-dif' regcl-int' regcx regc-int' mskc'
-    maskcorr-deallocate                         \ stac-t stac-f regcl-trv | cur-min regcl-sup' regcl-dif' regcl-int' regcx regc-int'
-    regioncorr-deallocate                       \ stac-t stac-f regcl-trv | cur-min regcl-sup' regcl-dif' regcl-int' regcx
+    \ Clean up.
+    swap maskcorr-deallocate                    \ stac-t stac-f regcl-trv | cur-min regcl-sup' regcl-dif' regcl-int' regcx regc-int' stac-nxt'
+    swap regioncorr-deallocate                  \ stac-t stac-f regcl-trv | cur-min regcl-sup' regcl-dif' regcl-int' regcx stac-nxt'
+    nip                                         \ stac-t stac-f regcl-trv | cur-min regcl-sup' regcl-dif' regcl-int' stac-nxt'
+    swap regioncorr-list-deallocate             \ stac-t stac-f regcl-trv | cur-min regcl-sup' regcl-dif' stac-nxt'
+    swap regioncorr-list-deallocate             \ stac-t stac-f regcl-trv | cur-min regcl-sup' stac-nxt'
+    swap regioncorr-list-deallocate             \ stac-t stac-f regcl-trv | cur-min stac-nxt'
+    nip                                         \ stac-t stac-f regcl-trv | stac-nxt'
 
-    \ TODO: Traverse stac-nxt to sta-to.
+    \ Prep for recursion.
+    #3 pick                                     \ stac-t stac-f regcl-trv | stac-nxt' stac-t
+    over                                        \ stac-t stac-f regcl-trv | stac-nxt' stac-t stac-nxt'
+    #3 pick                                     \ stac-t stac-f regcl-trv | stac-nxt' stac-t stac-nxt' regcl-trv
 
-    drop                                        \ stac-t stac-f regcl-trv | cur-min regcl-sup' regcl-dif' regcl-int'
-    regioncorr-list-deallocate                  \ stac-t stac-f regcl-trv | cur-min regcl-sup' regcl-dif'
-    regioncorr-list-deallocate                  \ stac-t stac-f regcl-trv | cur-min regcl-sup'
-    regioncorr-list-deallocate                  \ stac-t stac-f regcl-trv | cur-min
-    2drop 2drop
-    false
+    recurse                                     \ stac-t stac-f regcl-trv | stac-nxt', stac-lst t | f
+    if
+        tuck                                    \ stac-t stac-f regcl-trv | stac-lst stac-nxt' stac-lst
+        list-push-struct                        \ stac-t stac-f regcl-trv | stac-lst
+        2nip nip                                \ stac-lst
+        true
+    else
+        statecorr-deallocate                    \ stac-t stac-f regcl-trv
+        2drop drop                              \
+        false
+    then
+;
+
+\ Find a path from a statecorr to another statecorr,
+\ given a regioncorr-list that is to be traversed.
+: regioncorr-list-find-path ( stac-to2 stac-from1 regc-lst0 -- stac-lst t | f )
+    \ Check args.
+    assert( tos is-regioncorr-list? )
+    assert( nos is-statecorr? )
+    assert( 3os is-statecorr? )
+
+    rot                         \ stac-from1 regc-lst0 stac-to2
+    #2 pick                     \ stac-from1 regc-lst0 stac-to2 stac-from1
+    rot                         \ stac-from1 stac-to2 stac-from1 regc-lst0
+    regioncorr-list-find-path2  \ stac-from1, stac-lst t | f
+    if
+        \ regioncorr-list-path2 returns a list of stac-to to to to ...
+        \ Add the stac-from1 to the beginning of the list.
+        tuck                    \ stac-lst stac-from1 stac-lst
+        list-push-struct        \ stac-lst
+        true
+    else
+        drop
+        false
+    then
 ;
