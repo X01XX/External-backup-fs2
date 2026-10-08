@@ -15,8 +15,8 @@
 \ Group     RegionCorr  Mask*   State*
 \ 43717,    47317       61719   61717
 \
-\ Corner  StructInfo
-\ 53719,  53731
+\ Corner  StructInfo Path ( PathStep in fs1 )
+\ 53719,  53731      53197
 \
 \ Token StateCorr*  MaskcCorr ( PlanCorr in fs1 )
 \ 59797 61979       53717
@@ -36,7 +36,6 @@
 \ 31973, Changes.
 \ 53171, RuleCorr
 \ 53173, ChangesCorr
-\ 53197, PathStep
 
 \ Start a clean vocabulary.
 cr ." Starting vocabulary UES," cr
@@ -89,6 +88,8 @@ include rulelist.fs
 
 include regioncorr.fs
 include regioncorrlist.fs
+include path.fs
+include pathlist.fs
 
 include actionstep.fs
 include actionsteplist.fs
@@ -166,6 +167,7 @@ include randompick_t.fs
 \ #1110 need-mma-init
 #1130 group-mma-init
 #1600 regioncorr-mma-init
+#0020 path-mma-init
 #0100 planstep-mma-init
 #0100 plan-mma-init
 #1010 domain-mma-init
@@ -191,6 +193,7 @@ list-new to structinfo-list-store
 ' noop  ' noop  ' noop          ' noop                  ' actionstep-deallocate ' .actionstep  s" ActionStep" actionstep-mma actionstep-struct-id   structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' noop          ' noop                  ' planstep-deallocate   ' .planstep     s" PlanStep"    planstep-mma    planstep-struct-id      structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' noop          ' noop                  ' plan-deallocate       ' .plan         s" Plan"        plan-mma        plan-struct-id          structinfo-new structinfo-list-store-push-end
+' noop  ' noop  ' noop          ' noop                  ' path-deallocate       ' .path         s" Path"        path-mma        path-struct-id          structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' noop          ' corner-from-string    ' corner-deallocate     ' .corner       s" Corner"      corner-mma      corner-struct-id        structinfo-new structinfo-list-store-push-end
 ' regioncorr-from-list  ' regioncorr-list-definition?    ' regioncorrs-eq?  ' noop  ' regioncorr-deallocate ' .regioncorr   s" Regioncorr"  regioncorr-mma  regioncorr-struct-id    structinfo-new structinfo-list-store-push-end
 \ ' noop  ' noop  ' noop          ' noop                  ' need-deallocate       ' .need       s" Need"        need-mma        need-struct-id          structinfo-new structinfo-list-store-push-end

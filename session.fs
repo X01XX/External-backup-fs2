@@ -7,12 +7,11 @@
 0                                       constant session-header-disp                \ 16-bits [0] struct id [1] use count
 session-header-disp             cell+   constant session-domains-disp               \ A domain-list, kind of like senses.
 session-domains-disp            cell+   constant session-step-num-disp              \ Starts at zero.
-session-step-num-disp           cell+   constant session-max-regions-disp           \ A regioncorr list of maximum regions, corresponding in order to the domain list.
+session-step-num-disp           cell+   constant session-max-regions-disp           \ A regioncorr of maximum regions, corresponding in order to the domain list.
 
 session-max-regions-disp        cell+   constant session-valued-regioncorrs-disp    \ A valued regioncorr list, added during session definition.
 
-session-valued-regioncorrs-disp cell+   constant session-avoid-lol-disp             \ A list-of-lists of negative valued regioncorrs to avoid, calculated from the
-                                                                                    \ session-valued-regioncorrs.
+session-valued-regioncorrs-disp cell+   constant session-paths-disp                 \ A list of path structs, made from lists of regioncorr-lists to avoid.
                                                                                     \
                                                                                     \ Lists of increasingly fewer, more negative, regioncorrs, to avoid.
                                                                                     \ Like ( (-1 -2 ) ( -2 ) ()).
@@ -91,7 +90,7 @@ session-valued-regioncorrs-disp cell+   constant session-avoid-lol-disp         
     @                           \ Fetch the field.
 ;
 
-: _session-set-max-regions ( regc-lst sess0 -- ) \ Set the max regions list.
+: _session-set-max-regions ( regc1 sess0 -- ) \ Set the max regions list.
     \ Check arg.
     assert( tos is-session? )
     assert( nos is-regioncorr? )
@@ -117,21 +116,21 @@ session-valued-regioncorrs-disp cell+   constant session-avoid-lol-disp         
     !struct                             \ Set the field.
 ;
 
-: session-get-avoid-lol ( sess0 -- avd-lst )  \ Return the avoid list-of-lists.
+: session-get-paths ( sess0 -- avd-lst )  \ Return the avoid list-of-lists.
     \ Check arg.
     assert( tos is-session? )
 
-    session-avoid-lol-disp +    \ Add offset.
-    @                           \ Fetch the field.
+    session-paths-disp +    \ Add offset.
+    @                       \ Fetch the field.
 ;
 
-: _session-set-avoid-lol ( avd-lst1 sess0 -- ) \ Set the avoid lists-of-lists field.
+: _session-set-paths ( pth-lst1 sess0 -- ) \ Set the avoid lists-of-lists field.
     \ Check arg.
     assert( tos is-session? )
-    assert( nos is-region-list? )
+    assert( nos is-path-list? )
 
-    session-avoid-lol-disp +    \ Add offset.
-    !struct                     \ Set the field.
+    session-paths-disp +    \ Add offset.
+    !struct                 \ Set the field.
 ;
 
 : session-inc-step-num ( sess0 -- )
@@ -143,7 +142,7 @@ session-valued-regioncorrs-disp cell+   constant session-avoid-lol-disp         
 ;
 
 \ Return a regioncorr of max domain regions.
-: session-calc-max-regions ( sess0 -- max-regs )
+: session-calc-max-regions ( sess0 -- regc-max )
 
     \ Get domain-list.
     dup session-get-domains         \ sess0 dom-lst
@@ -228,9 +227,11 @@ session-valued-regioncorrs-disp cell+   constant session-avoid-lol-disp         
     list-get-length                         \ sess0 num
     0= if
         \ Push avoid-nothing list.
-        list-new swap                       \ lst sess0
-        session-get-avoid-lol               \ lst avoid-lst
-        list-push-struct
+        list-new                            \ sess0 avd-lst
+        over session-get-max-regions        \ sess0 avd-lst regc-max
+        path-new                            \ sess0 pth
+        swap session-get-paths              \ pth pth-lst
+        list-push-end-struct
         exit
     then
 \ Test with one regc.
@@ -251,8 +252,8 @@ session-valued-regioncorrs-disp cell+   constant session-avoid-lol-disp         
         list-deallocate                     \ sess0
 
         \ Push avoid-nothing list.
-        list-new swap                       \ lst sess0
-        session-get-avoid-lol               \ lst avoid-lst
+        list-new path-new swap              \ pth sess0
+        session-get-paths                   \ pth pth-lst
         list-push-struct
         exit
     then
@@ -291,8 +292,13 @@ session-valued-regioncorrs-disp cell+   constant session-avoid-lol-disp         
         regioncorr-list-deallocate          \ sess0 spl-lst' val-lst' avoid-lol' val-lnk
         \ cr ." avoid list: " over .regioncorr-list cr
         over list-copy-struct               \ sess0 spl-lst' val-lst' avoid-lol' val-lnk avoid-lst2'
-        #5 pick                             \ sess0 spl-lst' val-lst' avoid-lol' val-lnk avoid-lst2' sess0
-        session-get-avoid-lol               \ sess0 spl-lst' val-lst' avoid-lol' val-lnk avoid-lst2' lol
+
+        \ Calc regions to traverse.
+        #5 pick session-get-max-regions     \ sess0 spl-lst' val-lst' avoid-lol' val-lnk avoid-lst2' regc-max
+        path-new                            \ sess0 spl-lst' val-lst' avoid-lol' val-lnk pth'
+        \ cr ." path: " dup .path cr
+        #5 pick                             \ sess0 spl-lst' val-lst' avoid-lol' val-lnk pth' sess0
+        session-get-paths                   \ sess0 spl-lst' val-lst' avoid-lol' val-lnk pth' pth-lst
         list-push-struct                    \ sess0 spl-lst' val-lst' avoid-lol' val-lnk
     next-item
 
@@ -302,14 +308,17 @@ session-valued-regioncorrs-disp cell+   constant session-avoid-lol-disp         
     regioncorr-list-deallocate              \ sess0
 
     \ Push avoid-nothing list.
-    list-new swap                           \ lst sess0
-    session-get-avoid-lol                   \ lst avoid-lst
+    list-new                                \ sess0 avd-lst
+    over session-get-max-regions            \ sess0 avd-lst regc-max
+    path-new                                \ sess0 pth
+    swap session-get-paths                  \ pth pth-lst
     list-push-end-struct
 ;
 
-\ Create a session instance, given a valued-regioncorr list, and a domain-list.
-: session-new ( vregc-lst1 dom-lst0 -- sess ) \ new session pushed onto session stack.
+\ Create a session instance, given a valued-regioncorr avoid list, and a domain-list.
+: session-new ( regc-lst1 dom-lst0 -- sess ) \ new session pushed onto session stack.
     \ cr ." session-new: start " .s cr
+
     \ Allocate instance.
     session-struct-id session-mma
     struct-allocate                         \ vregc-lst1 dom-lst0 ses
@@ -326,7 +335,7 @@ session-valued-regioncorrs-disp cell+   constant session-avoid-lol-disp         
     over _session-set-max-regions           \ sess
 
     \ Process valued regioncorr list.
-    list-new over _session-set-avoid-lol
+    list-new over _session-set-paths
 
     dup _session-process-valued-regioncorrs
 
@@ -357,23 +366,17 @@ session-valued-regioncorrs-disp cell+   constant session-avoid-lol-disp         
     #2 pick session-get-valued-regioncorrs
     .regioncorr-list-prefix
 
-    dup session-get-avoid-lol
+    dup session-get-paths
     dup list-get-length
     0=
     if
-        cr ." Avoid list-of-lists: None"
+        cr ." Paths: None"
         drop
     else
-        cr ." Avoid list-of-lists: ("
+        cr ." Paths:"
         foreach
-            .regioncorr-list
-            link-get-next
-            dup 0<>
-            if
-                cr #22 spaces
-            then
-        repeat
-        ." )"
+            cr .path
+        next-item
     then
 
     dup session-get-domains
@@ -394,7 +397,7 @@ session-valued-regioncorrs-disp cell+   constant session-avoid-lol-disp         
     dup session-get-domains domain-list-deallocate
     dup session-get-max-regions regioncorr-deallocate
     dup session-get-valued-regioncorrs regioncorr-list-deallocate
-    dup session-get-avoid-lol struct-list-deallocate
+    dup session-get-paths path-list-deallocate
 
     \ Deallocate session.
     session-mma mma-deallocate
@@ -665,20 +668,21 @@ session-valued-regioncorrs-disp cell+   constant session-avoid-lol-disp         
 ;
 
 \ Return regioncorr list to avoid, may be empty.
-: session-find-avoidance-list ( stac2 stac1 sess0 -- regc-lst )
+: session-find-path-instance ( stac2 stac1 sess0 -- pth )
     \ Check args.
     assert( tos is-session? )
     assert( nos is-statecorr? )
     assert( 3os is-statecorr? )
 
     \ Find regioncorr list to avoid.
-    session-get-avoid-lol               \ stac2 stac1 avd-lol
-    foreach                             \ stac2 stac1 avd-lnk regc-lstx
-        #3 pick #3 pick                 \ stac2 fstac1 avd-lnk regc-lstx gstac2 fstac1
-        rot                             \ stac2 fstac1 avd-lnk gstac2 fstac1 regc-lstx
-        regioncorrlist-neither-stac-in? \ stac2 fstac1 avd-lnk bool
+    session-get-paths                   \ stac2 stac1 pth-lol
+    foreach                             \ stac2 stac1 pth-lnk pthx
+        #3 pick #3 pick                 \ stac2 fstac1 pth-lnk pthx gstac2 fstac1
+        rot                             \ stac2 fstac1 pth-lnk gstac2 fstac1 pthx
+        path-get-avoid-list             \ stac2 fstac1 pth-lnk gstac2 fstac1 avd-lst
+        regioncorrlist-neither-stac-in? \ stac2 fstac1 pth-lnk bool
         if
-            link-get-data               \ stac2 fstac1 regc-lstx
+            link-get-data               \ stac2 fstac1 pthx
             nip nip                     \ regc-lst
             exit
         then
@@ -917,7 +921,8 @@ session-valued-regioncorrs-disp cell+   constant session-avoid-lol-disp         
     #2 pick #2 pick statecorrs-eq? abort" session-make-plan: from and goal are equal?"
 
     \ Get regioncorr-list to avoid.
-    #2 pick #2 pick #2 pick session-find-avoidance-list     \ gstac2 fstac1 sess0 avd-lst
+    #2 pick #2 pick #2 pick session-find-path-instance      \ gstac2 fstac1 sess0 pth
+    path-get-avoid-list                                     \ gstac2 fstac1 sess0 avd-lst
     cr ." avoid: " dup .regioncorr-list cr
 
     swap                                                    \ gstac2 fstac1 avd-lst sess0
