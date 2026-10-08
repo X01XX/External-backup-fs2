@@ -406,21 +406,23 @@ session-valued-regioncorrs-disp cell+   constant session-paths-disp             
 ;
 
 \ Return a list of states, one for each domain, in domain list order.
-: session-get-current-states ( sess0 -- sta-corr-lst )
+: session-get-current-states ( sess0 -- stac )
     \ Check args.
     assert( tos is-session? )
 
-    list-new                        \ cur-dom sess0 sat-lst
-    over session-get-domains        \ cur-dom sess0 sta-lst dom-lst
+    list-new                        \ sess0 sat-lst
+    over session-get-domains        \ sess0 sta-lst dom-lst
 
-    foreach                         \ cur-dom sess0 sta-lst link dom
-        domain-get-current-state    \ cur-dom sess0 sta-lst link stax
-        #2 pick                     \ cur-dom sess0 sta-lst link stax sta-lst
-        list-push-end               \ cur-dom sess0 sta-lst link
+    foreach                         \ sess0 sta-lst link dom
+        domain-get-current-state    \ sess0 sta-lst link stax
+        #2 pick                     \ sess0 sta-lst link stax sta-lst
+        list-push-end-struct        \ sess0 sta-lst link
     next-item
-                                    \ cur-dom sess0 sta-lst
+                                    \ sess0 sta-lst
 
-    nip nip                         \ sta-lst
+    nip                             \ sta-lst
+    statecorr-new
+    \ cr ." session-get-current-states: end: " dup .statecorr cr
 ;
 
 : session-get-current-regions ( sess0 -- regc )  \ Return a list of regions, one for each domain state, in domain list order.
@@ -871,6 +873,7 @@ session-valued-regioncorrs-disp cell+   constant session-paths-disp             
     assert( tos is-session? )
     assert( 3os is-regioncorr-list? )
     assert( 4os is-statecorr-list? )
+    cr ." session-make-plan3: start: "
 
     \ Init return plan.
     list-new plan-new                                       \ stac-lst3 avd-lst2 exc-lim1 sess0 ret-pln
@@ -909,71 +912,171 @@ session-valued-regioncorrs-disp cell+   constant session-paths-disp             
     true
 ;
 
-\ Return a plan to change from a statecorr to a different statecorr.
-: session-make-plan ( goal-stac2 from-stac1 sess0 -- pln t | f )
+\ Return a plan to change from a statecorr to a different statecorr,
+\ given a list of regioncorrs to avoid.
+: session-make-plan ( pth-lst2 avd-lst1 sess0 -- pln t | f )
     \ Check args.
     assert( tos is-session? )
-    assert( nos is-statecorr? )
-    assert( 3os is-statecorr? )
-    \ cr ." session-make-plan: from: " over .statecorr space ." to: " #2 pick .statecorr cr
+    assert( nos is-regioncorr-list? )
+    assert( 3os is-statecorr-list? )
+    \ cr ." session-make-plan: for: " #2 pick .statecorr-list
 
-    \ Test if goal and from are eq.
-    #2 pick #2 pick statecorrs-eq? abort" session-make-plan: from and goal are equal?"
-
-    \ Get regioncorr-list to avoid.
-    #2 pick #2 pick #2 pick session-find-path-instance      \ gstac2 fstac1 sess0 pth
-    path-get-avoid-list                                     \ gstac2 fstac1 sess0 avd-lst
-    cr ." avoid: " dup .regioncorr-list cr
-
-    swap                                                    \ gstac2 fstac1 avd-lst sess0
-
-\    \ Try forward direction.
-\    #3 pick #3 pick #3 pick                                 \ gstac2 fstac1 avd-lst sess0 gstac2 fstac1 avd-lst
-\    #3                                                      \ gstac2 fstac1 avd-lst sess0 gstac2 fstac1 avd-lst exc-lim
-\    #4 pick                                                 \ gstac2 fstac1 avd-lst sess0 gstac2 fstac1 avd-lst exc-lim sess0
-\    session-make-plan2                                      \ gstac2 fstac1 avd-lst sess0, pln t | f
+    \ Try forward direction.
+\    #2 pick #2 pick                                         \ pth-lst2 avd-lst1 sess0 pth-lst2 avd-lst1
+\    #3                                                      \ pth-lst2 avd-lst1 sess0 pth-lst2 avd-lst1 exc-lim
+\    #3 pick                                                 \ pth-lst2 avd-lst1 sess0 pth-lst2 avd-lst1 exc-lim sess0
+\    session-make-plan3                                      \ pth-lst2 avd-lst1 sess0, pln t | f
 \    if
-\        2nip nip nip                                        \ pln
+\        2nip nip                                            \ pln
 \        true
 \        exit
 \    then
 
-    \ Try the backward direction.                           \ gstac2 fstac1 avd-lst sess0
+    \ Try the backward direction.                           \ pth-lst2 avd-lst1 sess0 sess0
     \ Literal backward-chaining may need to get through X->0 and X->1 bit changes.
     \ That could be done, but we would have to deal with regioncorrs instead of statecorrs,
     \ linking partial plans that may have intersecting, but not equal, joints would involve rippling the change
     \ throughout the plans.
-    #2 pick                                                 \ gstac2 fstac1 avd-lst sess0 fstac1
-    #4 pick                                                 \ gstac2 fstac1 avd-lst sess0 fstac1 gstac2
-    #3 pick                                                 \ gstac2 fstac1 avd-lst sess0 fstac1 gstac2 avd-lst
-    #3                                                      \ gstac2 fstac1 avd-lst sess0 fstac1 gstac2 avd-lst exc-lim
-    #4 pick                                                 \ gstac2 fstac1 avd-lst sess0 fstac1 gstac2 avd-lst exc-lim sess0
-    session-make-plan2                                      \ gstac2 fstac1 avd-lst sess0, pln t | f
+    #2 pick                                                 \ pth-lst2 avd-lst1 sess0 pth-lst2
+    list-reverse-struct                                     \ pth-lst2 avd-lst1 sess0 pth-lst2'
+    dup                                                     \ pth-lst2 avd-lst1 sess0 pth-lst2' pth-lst2'
+    #3 pick                                                 \ pth-lst2 avd-lst1 sess0 pth-lst2' pth-lst2' avd-lst
+    #3                                                      \ pth-lst2 avd-lst1 sess0 pth-lst2' pth-lst2' avd-lst exc-lim
+    #4 pick                                                 \ pth-lst2 avd-lst1 sess0 pth-lst2' pth-lst2' avd-lst exc-lim sess0
+    session-make-plan3                                      \ pth-lst2 avd-lst1 sess0 pth-lst2', b-pln t | f
     ifnot
-        2drop 2drop
+        statecorr-list-deallocate                           \ pth-lst2 avd-lst1 sess0
+        2drop drop
         false
         exit
     then
+    swap statecorr-list-deallocate                           \ pth-lst2 avd-lst1 sess0 b-pln
+    \ cr ." backward plan: " dup .plan cr
 
     \ Get plan as a statecorr-to-statecorr list, reversed.
-    dup plan-statecorr-path                                 \ gstac2 fstac1 avd-lst sess0 bpln stac-lst
-    swap plan-deallocate                                    \ gstac2 fstac1 avd-lst sess0 stac-lst
-    dup list-reverse-struct                                 \ gstac2 fstac1 avd-lst sess0 stac-lst stac-rev'
-    swap statecorr-list-deallocate                          \ gstac2 fstac1 avd-lst sess0 stac-rev'
+    dup plan-statecorr-path                                 \ pth-lst2 avd-lst1 sess0 b-pln stac-lst
+    swap plan-deallocate                                    \ pth-lst2 avd-lst1 sess0 stac-lst
+    dup list-reverse-struct                                 \ pth-lst2 avd-lst1 sess0 stac-lst stac-rev'
+    swap statecorr-list-deallocate                          \ pth-lst2 avd-lst1 sess0 stac-rev'
+    \ cr ." forward path: " dup .statecorr-list cr
 
     \ Get forward plan from statecorr list.
-    dup                                                     \ gstac2 fstac1 avd-lst sess0 stac-rev' | stac-rev'
-    #3 pick #3                                              \ gstac2 fstac1 avd-lst sess0 stac-rev' | stac-rev' avd-lst exc-lim
-    #4 pick                                                 \ gstac2 fstac1 avd-lst sess0 stac-rev' | stac-rev' avd-lst exc-lim sess0
-    session-make-plan3                                      \ gstac2 fstac1 avd-lst sess0 stac-rev', pln t | f
+    dup                                                     \ pth-lst2 avd-lst1 sess0 stac-rev' | stac-rev'
+    #3 pick #3                                              \ pth-lst2 avd-lst1 sess0 stac-rev' | stac-rev' avd-lst1 exc-lim
+    #4 pick                                                 \ pth-lst2 avd-lst1 sess0 stac-rev' | stac-rev' avd-lst1 exc-lim sess0
+    session-make-plan3                                      \ pth-lst2 avd-lst1 sess0 stac-rev', pln t | f
     if
-        swap statecorr-list-deallocate                      \ gstac2 fstac1 avd-lst sess0 pln
-        2nip nip nip                                        \ pln
+        swap statecorr-list-deallocate                      \ pth-lst2 avd-lst1 sess0 pln
+        2nip nip                                            \ pln
         true
         exit
     then
 
-    statecorr-list-deallocate                               \ gstac2 fstac1 avd-lst sess0
-    2drop 2drop
+    statecorr-list-deallocate                               \ pth-lst2 avd-lst1 sess0
+    2drop drop
     false
+;
+
+\ Arbitrarily set the domain current states.
+: session-set-current-states ( stac1 sess0 -- )
+    \ Check args.
+    assert( tos is-session? )
+    assert( nos is-statecorr? )
+    \ cr ." session-set-current-states: start: " over .statecorr cr
+
+    \ Get states list to traverse.
+    swap statecorr-get-list list-get-links swap \ sta-lnk sess0
+
+    \ Get domain list to traverse.
+    session-get-domains list-get-links          \ sta-lnk dom-lnk
+
+    begin
+        ?dup
+    while
+        \ Set one domain's current state.
+        over link-get-data          \ sta-lnk dom-lnk stax
+        over link-get-data          \ sta-lnk dom-lnk stax domx
+        domain-update-current-state \ sta-lnk dom-lnk
+
+        \ Prep for next cycle.
+        link-get-next swap
+        link-get-next swap
+    repeat
+                                    \ sta-lnk
+    drop
+;
+
+\ Run a plan, return true if the plan succeeded.
+: session-run-plan ( pln1 sess0 -- bool )
+   cr ." session-run-plan: todo " abort
+;
+
+\ Change states, given statecorr-to.
+\ Return true if the change was made.
+: session-make-it-so ( stac-to1 sess0 -- bool ) \ ref to Star Trek Next Generation.
+    \ Check args.
+    assert( tos is-session? )
+    assert( nos is-statecorr? )
+
+    \ Get current states.
+    dup
+    session-get-current-states                  \ stac-to1 sess0 stac-from'
+    swap                                        \ stac-to1 stac-from' sess0
+
+    \ Find path instance to use.
+    #2 pick #2 pick #2 pick                     \ stac-to1 stac-from' sess0 stac-to1 stac-from' sess0
+    session-find-path-instance                  \ stac-to1 stac-from' sess0 pth
+
+    \ Find path.
+    #3 pick #3 pick #2 pick                     \ stac-to1 stac-from' sess0 pth stac-to1 stac-from' pth
+    path-get-traverse-list                      \ stac-to1 stac-from' sess0 pth stac-to1 stac-from' regc-trvl
+    cr ." session-make-it-so: at 1: " cr
+    regioncorr-list-find-path                   \ stac-to1 stac-from' sess0 pth, pth-from-to' t | f
+    if
+        cr ." path found: " dup .statecorr-list cr
+    else
+        cr ." path not found" cr
+        2drop                                   \ stac-to1 stac-from'
+        statecorr-list-deallocate               \ stac-to1
+        drop
+        false
+        exit
+    then
+
+    \ Make plan.
+    dup                                         \ stac-to1 stac-from' sess0 pth pth-from-to' pth-from-to'
+    #2 pick path-get-avoid-list                 \ stac-to1 stac-from' sess0 pth pth-from-to' pth-from-to' avd-lst
+    #4 pick                                     \ stac-to1 stac-from' sess0 pth pth-from-to' pth-from-to' avd-lst sess0
+    session-make-plan                           \ stac-to1 stac-from' sess0 pth pth-from-to', pln' t | f
+    if
+        cr ." plan found: " dup .plan cr
+        swap statecorr-list-deallocate          \ stac-to1 stac-from' sess0 pth pln'
+    else
+        cr ." plan not found" cr
+        statecorr-list-deallocate               \ stac-to1 stac-from' sess0 pth
+        2drop                                   \ stac-to1 stac-from'
+        statecorr-list-deallocate               \ stac-to1
+        drop
+        false
+        exit
+    then
+
+    \ Run plan.
+    dup                                         \ stac-to1 stac-from' sess0 pth pln' pln'
+    #3 pick                                     \ stac-to1 stac-from' sess0 pth pln' pln' sess0
+    session-run-plan                            \ stac-to1 stac-from' sess0 pth pln' bool
+    if
+        cr ." Plan succeeded" cr
+        plan-deallocate                         \ stac-to1 stac-from' sess0 pth
+        2drop                                   \ stac-to1 stac-from'
+        statecorr-deallocate                    \ stac-to1
+        drop
+        true
+    else
+        cr ." Plan failed." cr
+        2drop                                   \ stac-to1 stac-from'
+        statecorr-deallocate                    \ stac-to1
+        drop
+        false
+    then
 ;

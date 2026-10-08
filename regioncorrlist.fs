@@ -899,6 +899,7 @@
     assert( tos is-regioncorr-list? )
     assert( nos is-statecorr?-xt execute )
     assert( 3os is-statecorr?-xt execute )
+    \ cr ." regioncorrlist-neither-stac-in?: " cr #2 pick .statecorr cr over .statecorr cr dup .regioncorr-list cr
 
     2dup regioncorr-list-stac-in?   \ stac2 stac1 regc-lst0 bool
     if

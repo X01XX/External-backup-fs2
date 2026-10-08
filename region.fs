@@ -700,6 +700,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     \ Check args.
     assert( tos is-region? )
     assert( nos is-state? )
+    \ cr ." region-superset-of-state?: start: " over .state space dup .region cr
     assert( over state-get-num-bits over region-get-num-bits = )
 
     \ cr ." region-superset-of-state?: " over .state space dup .region cr

@@ -132,9 +132,13 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
     assert( tos is-domain? )
     assert( nos is-state? )
 
+    over state-get-num-bits     \ sta1 dom0 sta-num
+    over domain-get-num-bits    \ sta1 dom0 sta-num dom-num
+    <> abort" _domain-set-current-state: invalid state number bits"
+
     \ Set inst id.
     domain-current-state-disp +
-    !
+    !struct
 ;
 
 \ Update the current state.
@@ -186,7 +190,7 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
     assert( tos is-domain? )
 
     domain-all-bits-mask-disp +    \ Add offset.
-    !                               \ Set the field.
+    !struct                        \ Set the field.
 ;
 
 \ Return the ms-bit-mask of the domain.
@@ -206,7 +210,7 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
     assert( tos is-domain? )
 
     domain-ms-bit-mask-disp +   \ Add offset.
-    !                           \ Set the field.
+    !struct                     \ Set the field.
 ;
 
 \ End accessors.

@@ -27,7 +27,7 @@
     cr ." session-test-new - Ok"
 ;
 
-: session-test-make-plan
+: session-test-make-it-so
     \ Make valued-regioncorr list.
     list-new                        \ regc-lst
     s" ( regc 0  -1 (r01XX r00000))" string-to-stack-a over list-push-struct
@@ -82,18 +82,19 @@
 
     cr dup .session cr
 
-    s" ( stac (s0001 s00000))" statecorr-from-string-a \ sess goal
-    s" ( stac (s1111 s00000))" statecorr-from-string-a \ sess goal from
+    \ Set session current states.
+    s" ( stac (s1111 s00000))" statecorr-from-string-a  \ sess from1'
+    2dup swap session-set-current-states                \ sess from1'
+    statecorr-deallocate                                \ sess
 
-    2dup                                        \ sess goal from goal from
-    #4 pick                                     \ sess goal from goal from sess
-    session-make-plan                           \ sess goal from, pln t | f
+    s" ( stac (s0001 s00000))" statecorr-from-string-a  \ sess goal'
+
+    2dup swap                                           \ sess goal' goal' sess
+    session-make-it-so                                  \ sess goal' bool
     if
-        cr ." plan found:" cr
-        dup .plan
-        plan-deallocate
+        cr ." Change succeeded!" cr
     else
-        cr ." plan not found" cr
+        cr ." Change failed!" cr
     then
 
     \ Check memory use.
@@ -102,17 +103,16 @@
     \ Deallocate.
     cr ." Deallocating ..." cr
     statecorr-deallocate
-    statecorr-deallocate
     session-deallocate
 
     \ Check for memory leaks.
     check-project-deallocated
 
-    cr ." session-test-make-plan - Ok"
+    cr ." session-test-make-it-so - Ok"
 ;
 
 : session-tests
     session-test-new
-    session-test-make-plan
+    \ session-test-make-it-so
     cr
 ;
