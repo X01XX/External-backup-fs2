@@ -441,6 +441,7 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
 : square-deallocate ( sqr0 -- )
     \ Check arg.
     assert( tos is-square? )
+    \ cr ." deallocating square: " dup square-get-state .state space dup square-get-rules .rule-list cr
 
     dup struct-get-use-count      \ sqr0 count
     dup 0< abort" square-deallocate: Invalid use count"

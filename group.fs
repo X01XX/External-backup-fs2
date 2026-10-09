@@ -309,6 +309,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 : group-deallocate ( grp0 -- )
     \ Check arg.
     assert( tos is-group? )
+    \ cr ." group-deallocate: " dup group-get-region .region cr
 
     dup struct-get-use-count    \ grp0 count
     dup 0< abort" invalid use count"

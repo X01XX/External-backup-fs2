@@ -101,12 +101,13 @@
     \ Try to get path stac-from to stac-to.
     2dup                                        \ regcl-trv' stac-t' stac-f' stac-t' stac-f'
     #4 pick                                     \ regcl-trv' stac-t' stac-f' stac-t' stac-f' regcl-trv'
-    regioncorr-list-find-path                   \ regcl-trv' stac-t' stac-f', path t | f
+    regioncorr-list-find-path                   \ regcl-trv' stac-t' stac-f', sta-lst t | f
     if
         cr ." Path found: " dup .statecorr-list cr
         dup list-get-length #4 <> abort" path len ne 4?"
         statecorr-list-deallocate
-        2drop
+        statecorr-deallocate
+        statecorr-deallocate
     else
         cr ." Path not found" cr
         statecorr-deallocate

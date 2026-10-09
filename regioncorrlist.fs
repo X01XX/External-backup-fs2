@@ -1046,6 +1046,7 @@
         drop                                    \ stac-t stac-f regcl-trv | regcl-sup'
         regioncorr-list-deallocate              \ stac-t stac-f regcl-trv
         2drop                                   \ stac-t
+        statecorr-copy                          \ stac-t'
         list-new tuck                           \ stac-lst stac-t stac-lst
         list-push-struct                        \ stac-lst
         true
@@ -1168,7 +1169,9 @@
     if
         \ regioncorr-list-path2 returns a list of stac-to to to to ...
         \ Add the stac-from1 to the beginning of the list.
-        tuck                    \ stac-lst stac-from1 stac-lst
+        swap                    \ stac-lst stac-from1
+        statecorr-copy          \ stac-lst stac-from1'
+        over                    \ stac-lst stac-from1 stac-lst
         list-push-struct        \ stac-lst
         true
     else

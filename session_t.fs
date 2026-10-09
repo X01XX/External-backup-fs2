@@ -27,6 +27,50 @@
     cr ." session-test-new - Ok"
 ;
 
+: stmis-dom-0-act1-get-result ( current-state -- result )
+    \ Check arg.
+    assert( tos is-state? )
+
+    dup state-get-number        \ csta cnum
+    #1 xor                      \ csta rnum
+    swap                        \ rnum csta
+    state-get-num-bits          \ rnum nb
+    state-new                   \ rsta
+;
+
+: stmis-dom-0-act2-get-result ( current-state -- result )
+    \ Check arg.
+    assert( tos is-state? )
+
+    dup state-get-number        \ csta cnum
+    #2 xor                      \ csta rnum
+    swap                        \ rnum csta
+    state-get-num-bits          \ rnum nb
+    state-new                   \ rsta
+;
+
+: stmis-dom-0-act3-get-result ( current-state -- result )
+    \ Check arg.
+    assert( tos is-state? )
+
+    dup state-get-number        \ csta cnum
+    #4 xor                      \ csta rnum
+    swap                        \ rnum csta
+    state-get-num-bits          \ rnum nb
+    state-new                   \ rsta
+;
+
+: stmis-dom-0-act4-get-result ( current-state -- result )
+    \ Check arg.
+    assert( tos is-state? )
+
+    dup state-get-number        \ csta cnum
+    #8 xor                      \ csta rnum
+    swap                        \ rnum csta
+    state-get-num-bits          \ rnum nb
+    state-new                   \ rsta
+;
+
 : session-test-make-it-so
     \ Make valued-regioncorr list.
     list-new                        \ regc-lst
@@ -40,10 +84,10 @@
     #4 domain-new                   \ regc-lst dom-lst dom
 
     \ Add actions to domain.
-    [ ' dom-0-act1-get-result ] literal over domain-add-action
-    [ ' dom-0-act2-get-result ] literal over domain-add-action
-    [ ' dom-0-act3-get-result ] literal over domain-add-action
-    [ ' dom-0-act4-get-result ] literal over domain-add-action
+    [ ' stmis-dom-0-act1-get-result ] literal over domain-add-action
+    [ ' stmis-dom-0-act2-get-result ] literal over domain-add-action
+    [ ' stmis-dom-0-act3-get-result ] literal over domain-add-action
+    [ ' stmis-dom-0-act4-get-result ] literal over domain-add-action
 
     \ Pre-load action 1.
     1 over domain-find-action invert abort" act not found?" \ regc-lst dom-lst dom act1
@@ -91,18 +135,15 @@
 
     2dup swap                                           \ sess goal' goal' sess
     session-make-it-so                                  \ sess goal' bool
-    if
-        cr ." Change succeeded!" cr
-    else
-        cr ." Change failed!" cr
-    then
+    invert abort" Change failed!"
+                                                        \ sess goal'
+    statecorr-deallocate                                \ sess
 
     \ Check memory use.
     .memory-use
 
     \ Deallocate.
     cr ." Deallocating ..." cr
-    statecorr-deallocate
     session-deallocate
 
     \ Check for memory leaks.
@@ -113,6 +154,6 @@
 
 : session-tests
     session-test-new
-    \ session-test-make-it-so
+    session-test-make-it-so
     cr
 ;

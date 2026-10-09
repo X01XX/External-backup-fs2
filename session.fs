@@ -821,7 +821,7 @@ session-valued-regioncorrs-disp cell+   constant session-paths-disp             
     false
 ;
 
-: session-make-plan2 ( goal-stac2 from-stac1 avd-lst exc-lim sess0 -- pln t | f )
+: session-make-plan3 ( goal-stac2 from-stac1 avd-lst exc-lim sess0 -- pln t | f )
     \ Check args.
     assert( tos is-session? )
     assert( 3os is-regioncorr-list? )
@@ -868,12 +868,12 @@ session-valued-regioncorrs-disp cell+   constant session-paths-disp             
 
 \ Return a plan, from statecorr to statecorr, of a given list
 \ of two, or more statecorrs.
-: session-make-plan3 ( stac-lst3 avd-lst2 exc-lim1 sess0 -- pln t | f )
+: session-make-plan2 ( stac-lst3 avd-lst2 exc-lim1 sess0 -- pln t | f )
     \ Check args.
     assert( tos is-session? )
     assert( 3os is-regioncorr-list? )
     assert( 4os is-statecorr-list? )
-    cr ." session-make-plan3: start: "
+    cr ." session-make-plan2: start: "
 
     \ Init return plan.
     list-new plan-new                                       \ stac-lst3 avd-lst2 exc-lim1 sess0 ret-pln
@@ -887,7 +887,7 @@ session-valued-regioncorrs-disp cell+   constant session-paths-disp             
             swap                                            \ stac-lst3 avd-lst2 exc-lim1 sess0 ret-pln stac-lnk stac-nxt stacx
             #6 pick #3                                      \ stac-lst3 avd-lst2 exc-lim1 sess0 ret-pln stac-lnk | to from avd-lst2 exc-lim
             #6 pick                                         \ stac-lst3 avd-lst2 exc-lim1 sess0 ret-pln stac-lnk | to from avd-lst2 exc-lim sess0
-            session-make-plan2                              \ stac-lst3 avd-lst2 exc-lim1 sess0 ret-pln stac-lnk, pln t | f
+            session-make-plan3                              \ stac-lst3 avd-lst2 exc-lim1 sess0 ret-pln stac-lnk, pln t | f
             ifnot
                 drop                                        \ stac-lst3 avd-lst2 exc-lim1 sess0 ret-pln
                 plan-deallocate                             \ stac-lst3 avd-lst2 exc-lim1 sess0
@@ -925,7 +925,7 @@ session-valued-regioncorrs-disp cell+   constant session-paths-disp             
 \    #2 pick #2 pick                                         \ pth-lst2 avd-lst1 sess0 pth-lst2 avd-lst1
 \    #3                                                      \ pth-lst2 avd-lst1 sess0 pth-lst2 avd-lst1 exc-lim
 \    #3 pick                                                 \ pth-lst2 avd-lst1 sess0 pth-lst2 avd-lst1 exc-lim sess0
-\    session-make-plan3                                      \ pth-lst2 avd-lst1 sess0, pln t | f
+\    session-make-plan2                                      \ pth-lst2 avd-lst1 sess0, pln t | f
 \    if
 \        2nip nip                                            \ pln
 \        true
@@ -943,7 +943,7 @@ session-valued-regioncorrs-disp cell+   constant session-paths-disp             
     #3 pick                                                 \ pth-lst2 avd-lst1 sess0 pth-lst2' pth-lst2' avd-lst
     #3                                                      \ pth-lst2 avd-lst1 sess0 pth-lst2' pth-lst2' avd-lst exc-lim
     #4 pick                                                 \ pth-lst2 avd-lst1 sess0 pth-lst2' pth-lst2' avd-lst exc-lim sess0
-    session-make-plan3                                      \ pth-lst2 avd-lst1 sess0 pth-lst2', b-pln t | f
+    session-make-plan2                                      \ pth-lst2 avd-lst1 sess0 pth-lst2', b-pln t | f
     ifnot
         statecorr-list-deallocate                           \ pth-lst2 avd-lst1 sess0
         2drop drop
@@ -964,7 +964,7 @@ session-valued-regioncorrs-disp cell+   constant session-paths-disp             
     dup                                                     \ pth-lst2 avd-lst1 sess0 stac-rev' | stac-rev'
     #3 pick #3                                              \ pth-lst2 avd-lst1 sess0 stac-rev' | stac-rev' avd-lst1 exc-lim
     #4 pick                                                 \ pth-lst2 avd-lst1 sess0 stac-rev' | stac-rev' avd-lst1 exc-lim sess0
-    session-make-plan3                                      \ pth-lst2 avd-lst1 sess0 stac-rev', pln t | f
+    session-make-plan2                                      \ pth-lst2 avd-lst1 sess0 stac-rev', pln t | f
     if
         swap statecorr-list-deallocate                      \ pth-lst2 avd-lst1 sess0 pln
         2nip nip                                            \ pln
@@ -1006,9 +1006,69 @@ session-valued-regioncorrs-disp cell+   constant session-paths-disp             
     drop
 ;
 
+\ Run a planstep.
+: session-run-planstep ( plnstp1 sess0 -- bool )
+    \ Check args.
+    assert( tos is-session? )
+    assert( nos is-planstep? )
+
+    \ Look up domain instance.
+    over planstep-get-actionstep    \ plnstp1 sess0 actstp1
+    dup actionstep-get-dom-inst-id  \ plnstp1 sess0 actstp1 dom-id
+    #2 pick                         \ plnstp1 sess0 actstp1 dom-id sess0
+    session-find-domain             \ plnstp1 sess0 actstp1, dom t | f
+    invert abort" domain not found? "
+
+    \ Look up action instance       \ plnstp1 sess0 actstp1 dom
+    over actionstep-get-act-inst-id \ plnstp1 sess0 actstp1 dom act-id
+    over domain-find-action         \ plnstp1 sess0 actstp1 dom, act t | f
+    invert abort" action not found?"
+
+    \ Run action.
+    swap                            \ plnstp1 sess0 actstp1 act dom
+    domain-get-sample               \ plnstp1 sess0 actstp1 smpl
+    drop
+
+    drop                            \ plnstp1 sess0
+
+    \ Check results.
+    dup session-get-current-states  \ plnstp1 sess0 ses-cur'
+    #2 pick planstep-get-to         \ plnstp1 sess0 ses-cur' plnstp-to
+    over statecorrs-eq?             \ plnstp1 sess0 ses-cur' bool
+    swap statecorr-deallocate       \ plnstp1 sess0 bool
+
+    \ Return.
+    nip nip
+;
+
 \ Run a plan, return true if the plan succeeded.
 : session-run-plan ( pln1 sess0 -- bool )
-   cr ." session-run-plan: todo " abort
+    \ Check args.
+    assert( tos is-session? )
+    assert( nos is-plan? )
+    cr ." session-run-plan: start " over .plan cr
+
+    \ Check plan initial states match session current states.
+    dup session-get-current-states  \ pln1 sess0 stac'
+    #2 pick plan-get-first-states   \ pln1 sess0 stac' stac
+    over statecorrs-eq?             \ pln1 sess0 stac' bool
+    swap statecorr-deallocate       \ pln1 sess0 bool
+    invert abort" plan first states do not match session current states"
+
+    over plan-get-steps             \ pln1 sess0 stp-lst
+
+    foreach                         \ pln1 sess0 stp-lnk plnstpx
+        #2 pick                     \ pln1 sess0 stp-lnk plnstpx sess0
+        session-run-planstep        \ pln1 sess0 stp-lnk, bool
+        ifnot
+            2drop drop
+            false
+            exit
+        then
+    next-item
+                                    \ pln1 sess0
+    2drop
+    true
 ;
 
 \ Change states, given statecorr-to.
@@ -1030,7 +1090,6 @@ session-valued-regioncorrs-disp cell+   constant session-paths-disp             
     \ Find path.
     #3 pick #3 pick #2 pick                     \ stac-to1 stac-from' sess0 pth stac-to1 stac-from' pth
     path-get-traverse-list                      \ stac-to1 stac-from' sess0 pth stac-to1 stac-from' regc-trvl
-    cr ." session-make-it-so: at 1: " cr
     regioncorr-list-find-path                   \ stac-to1 stac-from' sess0 pth, pth-from-to' t | f
     if
         cr ." path found: " dup .statecorr-list cr
@@ -1042,6 +1101,7 @@ session-valued-regioncorrs-disp cell+   constant session-paths-disp             
         false
         exit
     then
+
 
     \ Make plan.
     dup                                         \ stac-to1 stac-from' sess0 pth pth-from-to' pth-from-to'

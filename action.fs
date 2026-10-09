@@ -649,6 +649,7 @@ action-groups-disp                          cell+   constant action-function-dis
 : action-deallocate ( act0 -- )
     \ Check arg.
     assert( tos is-action? )
+    \ cr ." deallocating action: " dup action-get-inst-id dec. cr
 
     dup struct-get-use-count      \ act0 count
     dup 0< abort" invalid use count"
@@ -658,21 +659,15 @@ action-groups-disp                          cell+   constant action-function-dis
         \ Clear fields.
         dup action-get-max-region region-deallocate
         dup action-get-squares square-list-deallocate
-
         dup action-get-adj-pairs region-list-deallocate
         dup action-get-adj-regions region-list-deallocate
-
         dup action-get-nadj-pairs region-list-deallocate
         dup action-get-nadj-regions region-list-deallocate
-
         dup action-get-possible-regions region-list-deallocate
-
         dup action-get-groups group-list-deallocate
-
         dup action-get-states-in-one-region state-list-deallocate
         dup action-get-defining-regions region-list-deallocate
         dup action-get-states-not-in-defining-regions state-list-deallocate
-
         dup action-get-corners corner-list-deallocate
         dup action-get-corner-clusters corner-lol-deallocate
 
@@ -2008,15 +2003,15 @@ action-groups-disp                          cell+   constant action-function-dis
     assert( nos is-state? )
 
     2dup                    \ sta1 act0 sta1 act0
-    dup                     \ sta1 act0 sta1 act0 act0
-    action-get-function     \ sta1 act0 sta1 act0 xt
-    execute                 \ sta1 act0 rslt
-    rot                     \ act0 rslt sta1
+    action-get-function     \ sta1 act0 sta1 xt
+    execute                 \ sta1 act0 r-sta
+    rot                     \ act0 r-sta sta1
     sample-new              \ act0 smpl
     tuck                    \ smpl act0 smpl
     swap                    \ smpl smpl act0
 
-    action-add-sample       \ smpl
+    action-add-sample       \ smpl bool
+    drop                    \ smpl
 ;
 
 : action-get-forward-steps ( from-sta1 act0 -- actstp-lst t | f )

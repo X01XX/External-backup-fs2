@@ -202,8 +202,8 @@ plan-header-disp  cell+ constant plan-list-disp     \ A list of plansteps that a
     drop
 ;
 
-\ Return the first state of a non-empty plan.
-: plan-get-first-state ( pln0 -- stac )
+\ Return the first statecorr of a non-empty plan.
+: plan-get-first-states ( pln0 -- stac )
     \ Check arg.
     assert( tos is-plan? )
 
@@ -221,7 +221,7 @@ plan-header-disp  cell+ constant plan-list-disp     \ A list of plansteps that a
     list-new swap               \ ret-lst pln0
 
     \ Init return list.
-    dup plan-get-first-state    \ ret-lst pln0 stacx
+    dup plan-get-first-states   \ ret-lst pln0 stacx
     #2 pick list-push-struct    \ ret-lst pln0
 
     plan-get-steps              \ ret-lst stp-lst

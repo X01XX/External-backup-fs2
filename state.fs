@@ -81,6 +81,7 @@ state-header-disp cell+   constant state-number-disp
     \ Store number given.
     tuck                        \ sta num1 sta
     _state-set-number           \ sta
+    \ cr ." state-new: " dup hex. cr
 ;
 
 ' state-new to state-new-xt

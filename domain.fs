@@ -324,6 +324,7 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
 : domain-deallocate ( dom0 -- )
     \ Check arg.
     assert( tos is-domain? )
+    \ cr ." deallocating domain: " dup domain-get-inst-id dec. cr
 
     dup struct-get-use-count      \ act0 count
     dup 0< abort" invalid use count"
@@ -364,7 +365,6 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
 ;
 
 \ Get a sample from an action in a domain.
-\ Call only from session-get-sample, since current-domain in set there.
 : domain-get-sample ( act1 dom0 -- smpl )
      \ Check args.
     assert( tos is-domain? )
@@ -378,7 +378,7 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
     \ Set domain current state.
     dup sample-get-result           \ act1 dom0 | smpl sta
     #2 pick                         \ act1 dom0 | smpl sta dom
-    _domain-set-current-state       \ act1 dom0 | smpl
+    domain-update-current-state     \ act1 dom0 | smpl
 
 \    cr
 \    over domain-get-inst-id cr ." Dom: " #3 dec.r   \ act1 dom0 | smpl
