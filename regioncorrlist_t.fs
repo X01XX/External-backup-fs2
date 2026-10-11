@@ -36,7 +36,7 @@
     cr s" intersections: " #2 pick .regioncorr-list-prefix cr
 
     \ Test.
-    s" ( regc #10  #-10 (rX1X1)) ( regc #3  #-3 (rX0X1)) ( regc 1  -1 (rxxx0))"
+    s" ( regc #7  #-7 (rX1X1)) ( regc #3 #-3 (rX0X1)) ( regc 1 -1 (rxxx0))"
     list-from-string-a
     2dup regioncorr-lists-eq?
     invert abort" unexpected results?"

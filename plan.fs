@@ -4,7 +4,9 @@
     #2 constant plan-struct-number-cells
 
 \ Struct fields
-0                       constant plan-header-disp   \ 16-bits [0] struct id [1] use count [2] Value ( 8 bits, sign bit and 0-127 ) Cost ( 8 bits, sign bit and 0-127 ).
+0                       constant plan-header-disp   \ 16-bits [0] struct id [1] use count [2] Value ( 8 bits, 0-255 ) Cost ( 8 bits, 0-255 ).
+                                                    \ Value is the summation of all statecorr positive values, after the initial statecorr.
+                                                    \ Cost is the abs summation of all statecorr negative values, after the initial statecorr.
 plan-header-disp  cell+ constant plan-list-disp     \ A list of plansteps that are equal in successive to-from fields.
 
 0 value plan-mma \ Storage for plan mma instance.
@@ -57,27 +59,16 @@ plan-header-disp  cell+ constant plan-list-disp     \ A list of plansteps that a
     assert( tos is-plan? )
 
     4c@                 \ Fetch the field.
-    dup #128 and        \ val msb
-    if
-        #127 and -1 *
-    then
 ;
 
 \ Set the plan value.
 : plan-set-value ( u1 pln0 -- )
     \ Check arg.
     assert( tos is-plan? )
-    assert( nos #129 < )
-    assert( nos #-129 > )
+    assert( nos #256 < )
+    assert( nos #-1 > )
 
-    over 0<
-    if
-        swap
-        abs #128 or
-        swap
-    then
-
-    4c!
+    4c!                 \ Set the field.
 ;
 
 \ Return the plan cost.
@@ -86,27 +77,16 @@ plan-header-disp  cell+ constant plan-list-disp     \ A list of plansteps that a
     assert( tos is-plan? )
 
     5c@                 \ Fetch the field.
-    dup #128 and        \ val msb
-    if
-        #127 and -1 *
-    then
 ;
 
 \ Set the action domain id.
 : plan-set-cost ( u1 pln0 -- )
     \ Check arg.
     assert( tos is-plan? )
-    assert( nos #129 < )
-    assert( nos #-129 > )
+    assert( nos #256 < )
+    assert( nos #-1 > )
 
-    over 0<
-    if
-        swap
-        abs #128 or
-        swap
-    then
-
-    5c!
+    5c!                 \ Set the field.
 ;
 
 \ End accessors.

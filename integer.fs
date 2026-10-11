@@ -94,3 +94,14 @@ integer-header-disp  cell+  constant integer-number-disp  \ A number.
     dec.
 ;
 
+\ Add a given number to an integer instance.
+: integer-plus-num ( u1 int0 -- )
+    \ Check arg.
+    assert( tos is-integer? )
+
+    dup integer-get-number  \ u1 int0 cur-num
+    rot +                   \ int0 new-num
+    swap integer-set-number
+;
+
+

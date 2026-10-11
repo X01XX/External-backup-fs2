@@ -132,8 +132,15 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
     dup regioncorr-get-pos-value    \ val regc0 pos
     rot +                           \ regc0 new-pos
 
-    dup #256 < ifnot 2drop exit then
-    dup 0 >= ifnot 2drop exit then
+    dup #255 >
+    if
+        cr ." regioncorr-add-pos-value: " dec. space ." too large" cr abort
+    then
+
+    dup 0 <
+    if
+        cr ." regioncorr-add-pos-value: " dec. space ." too small" cr abort
+    then
 
     swap _regioncorr-set-pos-value  \
 ;
@@ -148,8 +155,10 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
     dup regioncorr-get-neg-value    \ val regc0 neg
     rot +                           \ regc0 new-neg
 
-    dup #-256 > ifnot 2drop exit then
-    dup 0 <= ifnot 2drop exit then
+    dup abs #255 >
+    if
+        cr ." regioncorr-add-neg-value: " dec. space ." too large" cr abort
+    then
 
     swap _regioncorr-set-neg-value  \
 ;
@@ -483,7 +492,7 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
 : regioncorr-from-list ( lst -- regc t | f)
     \ Check arg.
     assert( tos is-list? )
-    \ cr ." regioncorr-from-list: start" cr
+    \ cr ." regioncorr-from-list: start: " dup .struct-list cr
 
     dup regioncorr-list-definition?     \ lst bool
     ifnot
@@ -503,13 +512,13 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
     over _regioncorr-set-neg-value      \ regc
 
     true
-    \ cr ." regioncorr-from-list: end: " .stack cr
+    \ cr ." regioncorr-from-list: end: " over .regioncorr cr
 ;
 \ Return a regioncorr from a string.
 \ Like ( regc 1 -2 (rxxxx r1010))
 \ Like ( regc 0 0 (rxxxx r1010))
 : regioncorr-from-string ( str-addr str-n -- regc t | f )
-    \ cr ." regioncorr-from-string: start: " 2dup type cr
+    cr ." regioncorr-from-string: start: " 2dup type cr
 
     \ Convert string to list.
     list-from-string-xt execute             \ lst t | f
@@ -522,7 +531,7 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
     if
         struct-list-deallocate
         false
-        \ cr ." regioncorr-from-string: exit 2: false" cr
+        cr ." regioncorr-from-string: exit 2: false" cr
         exit
     then
                                             \ lst
@@ -533,12 +542,12 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
         invert abort" pop faled?"
         swap list-deallocate                \ itm
         true
-        \ cr ." regioncorr-from-string: end: true"  .stack cr
+        cr ." regioncorr-from-string: end: true"  .stack cr
         exit
     else
         struct-list-deallocate
         false
-        \ cr ." regioncorr-from-string: exit 3: false" cr
+        cr ." regioncorr-from-string: exit 3: false" cr
         exit
     then
 ;
@@ -784,38 +793,6 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
                                 \ lnk1
     drop
     true
-;
-
-\ Rate a regioncorr, given a regioncorr list.
-: regioncorr-rate ( regc-lst1 regc0 -- )
-    \ Check args.
-    assert( tos is-regioncorr? )
-    assert( nos is-regioncorr-list?-xt execute )
-
-    dup regioncorr-init-values              \ regc-lst1 regc0
-    swap                                    \ regc0 regc-lst1
-
-    \ cr ." regioncorr-rate: regc start: " over .regioncorr cr
-    foreach                                 \ regc0 regc-lnk1 regcx
-        #2 pick swap                        \ regc0 regc-lnk1 regc0 regcx
-        regioncorr-superset?                \ regc0 regc-lnk1 bool
-        if
-            dup link-get-data               \ regc0 regc-lnk1 regcx
-
-            \ Update positive value.
-            dup regioncorr-get-pos-value    \ regc0 regc-lnk1 regcx pos
-            #3 pick                         \ regc0 regc-lnk1 regcx pos regc0
-            regioncorr-add-pos-value        \ regc0 regc-lnk1 regcx
-
-            \ Update negative value.
-            regioncorr-get-neg-value        \ regc0 regc-lnk1 neg
-            #2 pick                         \ regc0 regc-lnk1 neg regc0
-            regioncorr-add-neg-value        \ regc0 regc-lnk1
-        then
-    next-item
-                                            \ regc0
-    \ cr ." regioncorr-rate: regc end: " dup .regioncorr cr
-    drop
 ;
 
 \ Return true if a statecorr is in a regioncorr.

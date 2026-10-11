@@ -313,32 +313,36 @@
     cr
 ;
 
-: regioncorr-list-rate-regioncorr ( regc1 regc-lst0 -- )
+: regioncorr-list-set-regioncorr-rates ( regc1 regc-lst0 -- )
     \ Check args.
     assert( tos is-regioncorr-list? )
     assert( nos is-regioncorr? )
 
-    \ Set nos values to zero.
-    over
-    regioncorr-init-values                  \ regc1 regc-lst0
+    0 integer-new swap                      \ regc1 val-int' regc-lst0
+    0 integer-new swap                      \ regc1 val-int' cst-int' regc-lst0
 
-    foreach                                 \ regc1 regc-lnk0 regc0
-        #2 pick swap                        \ regc1 regc-lnk0 regc1 regc0
-        regioncorr-superset?                \ regc1 regc-lnk0 bool
+    foreach                                 \ regc1 val-int' cst-int' regc-lnk regcx
+        #4 pick swap                        \ regc1 val-int' cst-int' regc-lnk regc1 regcx
+        regioncorr-superset?                \ regc1 val-int' cst-int' regc-lnk bool
         if
-            \ Get superset values.
-            dup link-get-data               \ regc1 regc-lnk0 regc0
-            dup regioncorr-get-pos-value    \ regc1 regc-lnk0 regc0 pos
-            swap regioncorr-get-neg-value   \ regc1 regc-lnk0 pos neg
+            \ Add value.
+            dup link-get-data               \ regc1 val-int' cst-int' regc-lnk regcx
+            dup regioncorr-get-pos-value    \ regc1 val-int' cst-int' regc-lnk regcx pos
+            #4 pick                         \ regc1 val-int' cst-int' regc-lnk regcx pos val-int'
+            integer-plus-num                \ regc1 val-int' cst-int' regc-lnk regcx
 
-            \ Set subset values.regioncorr-list-prefix
-            #3 pick                         \ regc1 regc-lnk0 pos neg regc1
-            regioncorr-add-neg-value        \ regc1 regc-lnk0 pos
-            #2 pick                         \ regc1 regc-lnk0 pos regc1
-            regioncorr-add-pos-value        \ regc1 regc-lnk0
+            \ Add cost.
+            regioncorr-get-neg-value abs    \ regc1 val-int' cst-int' regc-lnk neg
+            #2 pick                         \ regc1 val-int' cst-int' regc-lnk neg cst-int'
+            integer-plus-num                \ regc1 val-int' cst-int' regc-lnk
         then
     next-item
-    drop
+                                            \ regc1 val-int' cst-int'
+    rot drop                                \ val-int' cst-int'
+
+    \ Return.
+    integer-deallocate                      \ cst-int'
+    integer-deallocate                      \ val cst
 ;
 
 \ Rate regioncorrs in tos by supersets in nos.
@@ -348,9 +352,9 @@
     assert( nos is-regioncorr-list? )
 
     \ Set rates as an accumulation of superset values.
-    foreach                             \ regc-lst1 regc-lnk0 regc0
-        #2 pick                         \ regc-lst1 regc-lnk0 regc0 regc-lst1
-        regioncorr-list-rate-regioncorr \ regc-lst1 regc-lnk0
+    foreach                                     \ regc-lst1 regc-lnk0 regc0
+        #2 pick                                 \ regc-lst1 regc-lnk0 regc0 regc-lst1
+        regioncorr-list-set-regioncorr-rates    \ regc-lst1 regc-lnk0
     next-item
     drop
 ;
@@ -393,31 +397,24 @@
     swap drop                                       \ regc-lst0  ret-lst int-regcs'
 
     begin
-        \ cr ." regioncorr-list-split-by-intersections: top loop" cr
         dup                                         \ regc-lst0  ret-lst cur-regcs' cur-regcs'
-        \ cr ." regioncorr-list-split-by-intersections: at 1" cr
         regioncorr-list-self-intersections-nodups   \ regc-lst0  ret-lst cur-regcs', int-regcs' t | f
         if
-            \ cr ." regioncorr-list-split-by-intersections: at 2" cr
             \ Get current regions minus intersections.
             2dup swap                               \ regc-lst0  ret-lst cur-regcs' int-regcs' int-regcs' cur-regcs'
             regioncorr-list-subtract                \ regc-lst0  ret-lst cur-regcs' int-regcs' rem-lst'
-            \ cr ." remainders: " dup .regioncorr-list cr
-\ cr ." regioncorr-list-split-by-intersections: at 2.3" cr
+
             \ Add remainders to the return list.
             dup #4 pick                             \ regc-lst0  ret-lst cur-regcs' int-regcs' rem-lst' rem-lst' ret-lst
             regioncorr-list-append-nodups           \ regc-lst0  ret-lst cur-regcs' int-regcs' rem-lst'
-\ cr ." regioncorr-list-split-by-intersections: at 2.5" cr
+
             \ Replace the current regions with the intersections.
             regioncorr-list-deallocate              \ regc-lst0  ret-lst cur-regcs' int-regcs'
             swap regioncorr-list-deallocate         \ regc-lst0  ret-lst int-regcs'
-            \ cr ." regioncorr-list-split-by-intersections: at 2.9" cr
         else
-            \ cr ." regioncorr-list-split-by-intersections: at 3" cr
             \ No new intersections, add whats left.
             2dup swap                               \ regc-lst0  ret-lst cur-regcs' cur-regcs' ret-lst
             regioncorr-list-append-nodups           \ regc-lst0  ret-lst cur-regsc'
-            \ cr ." remainders: " dup .regioncorr-list cr
             regioncorr-list-deallocate              \ regc-lst0  ret-lst
 
             \ Set intersection fragment rates.
@@ -798,20 +795,6 @@
     false
 ;
 
-\ Rate regioncorrs in a list, given a regioncorr list.
-: regioncorr-list-rate ( regc-lst1 regc-lst0 -- )
-    \ Check args.
-    assert( tos is-regioncorr-list? )
-    assert( nos is-regioncorr-list? )
-
-    foreach             \ regc-lst1 regc-lnk0 regc0
-        #2 pick swap    \ regc-lst1 regc-lnk0 regc-lst1 regc0
-        regioncorr-rate \ regc-lst1 regc-lnk0
-    next-item
-                        \ regc-lst1
-    drop
-;
-
 \ Return list items that do not intersect a given regioncorr.
 : regioncorr-list-non-intersections ( regc2 regcslst0 -- regc-lst )
     \ Check args.
@@ -1178,4 +1161,43 @@
         drop
         false
     then
+;
+
+\ Return positive integers for value and cost of a statecorr,
+\ based on valued-regioncorrs it is within.
+: regioncorr-list-get-statecorr-rates ( stac1 regc-lst0 -- value cost )
+    \ Check args.
+    assert( tos is-regioncorr-list? )
+    assert( nos is-statecorr? )
+    \ cr ." regioncorr-list-rate-statecorr: "
+    \ cr 5 spaces ." regcl: " dup .regioncorr-list
+    \ cr 5 spaces ." stac:  " over .statecorr cr
+
+    0 integer-new swap                      \ stac1 val-int' regc-lst0
+    0 integer-new swap                      \ stac1 val-int' cst-int' regc-lst0
+
+    foreach                                 \ stac1 val-int' cst-int' regc-lnk regcx
+        #4 pick swap                        \ stac1 val-int' cst-int' regc-lnk stac1 regcx
+        regioncorr-superset-of-statecorr?   \ stac1 val-int' cst-int' regc-lnk bool
+        if
+            \ Add value.
+            dup link-get-data               \ stac1 val-int' cst-int' regc-lnk regcx
+            dup regioncorr-get-pos-value    \ stac1 val-int' cst-int' regc-lnk regcx pos
+            #4 pick                         \ stac1 val-int' cst-int' regc-lnk regcx pos val-int'
+            integer-plus-num                \ stac1 val-int' cst-int' regc-lnk regcx
+
+            \ Add cost.
+            regioncorr-get-neg-value abs    \ stac1 val-int' cst-int' regc-lnk neg
+            #2 pick                         \ stac1 val-int' cst-int' regc-lnk neg cst-int'
+            integer-plus-num                \ stac1 val-int' cst-int' regc-lnk
+        then
+    next-item
+                                            \ stac1 val-int' cst-int'
+    rot drop                                \ val-int' cst-int'
+
+    \ Return.
+    over integer-get-number                 \ val-int' cst-int' val
+    rot integer-deallocate                  \ cst-int' val
+    over integer-get-number                 \ cst-int' val cst
+    rot integer-deallocate                  \ val cst
 ;

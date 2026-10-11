@@ -74,8 +74,10 @@
 : session-test-make-it-so
     \ Make valued-regioncorr list.
     list-new                        \ regc-lst
-    s" ( regc 0  -1 (r01XX r00000))" string-to-stack-a over list-push-struct
-    s" ( regc 0  -1 (r0X1X r00000))" string-to-stack-a over list-push-struct
+    s" ( regc 0 -2 (r01XX r00000))" regioncorr-from-string-a over list-push-struct
+    s" ( regc 0 -2 (r0X1X r00000))" regioncorr-from-string-a over list-push-struct
+    s" ( regc 0 -1 (r11XX r00000))" regioncorr-from-string-a over list-push-struct
+    s" ( regc 2  0 (rX00X r00000))" regioncorr-from-string-a over list-push-struct
 
     \ Make domain-list.
     list-new                        \ regc-lst dom-lst

@@ -224,6 +224,8 @@ session-valued-regioncorrs-disp cell+   constant session-paths-disp             
 
     \ Check if no valued regioncorrs.
     dup session-get-valued-regioncorrs      \ sess0 regc-lst
+    \ cr ." _session-process-valued-regioncorrs: start: " dup .regioncorr-list cr
+
     list-get-length                         \ sess0 num
     0= if
         \ Push avoid-nothing list.
@@ -242,6 +244,7 @@ session-valued-regioncorrs-disp cell+   constant session-paths-disp             
     invert abort" split failed?"
 
     cr s" fragments: " #2 pick .regioncorr-list-prefix cr
+
 \ Save fragments?
 
     \ Check if no negative regioncorrs.
@@ -311,6 +314,7 @@ session-valued-regioncorrs-disp cell+   constant session-paths-disp             
     list-new                                \ sess0 avd-lst
     over session-get-max-regions            \ sess0 avd-lst regc-max
     path-new                                \ sess0 pth
+
     swap session-get-paths                  \ pth pth-lst
     list-push-end-struct
 ;
@@ -873,7 +877,7 @@ session-valued-regioncorrs-disp cell+   constant session-paths-disp             
     assert( tos is-session? )
     assert( 3os is-regioncorr-list? )
     assert( 4os is-statecorr-list? )
-    cr ." session-make-plan2: start: "
+    \ cr ." session-make-plan2: start: "
 
     \ Init return plan.
     list-new plan-new                                       \ stac-lst3 avd-lst2 exc-lim1 sess0 ret-pln
@@ -912,6 +916,52 @@ session-valued-regioncorrs-disp cell+   constant session-paths-disp             
     true
 ;
 
+\ Set the plan value based on valued-regioncorrs each step to-field is in.
+: session-set-plan-value-cost ( pln1 sess0 -- )
+    \ Check args.
+    assert( tos is-session? )
+    assert( nos is-plan? )
+
+    \ Get valued regioncorrs to scan.
+    session-get-valued-regioncorrs      \ pln1 vregc-lst
+
+    \ Set up counters.
+    0 integer-new -rot                  \ cst-int' pln1 vregc-lst
+    0 integer-new -rot                  \ cst-int' val-int' pln1 vregc-lst
+
+    \ Prep for loop on plan steps.
+    over plan-get-steps                 \ cst-int' val-int' pln vreg-lst plnstp-lst
+
+    foreach                             \ cst-int' val-int' pln vreg-lst plnstp-lnk plnstpx
+        \ Get planstep value, cost.
+        planstep-get-to                     \ cst-int' val-int' pln vreg-lst plnstp-lnk sta-t
+        #2 pick                             \ cst-int' val-int' pln vreg-lst plnstp-lnk sta-t vreg-lst
+        regioncorr-list-get-statecorr-rates \ cst-int' val-int' pln vreg-lst plnstp-lnk val-num cst-num
+
+        \ Inc cost integer.
+        #6 pick                         \ cst-int' val-int' pln vreg-lst plnstp-lnk val-num cst-num cst-int'
+        integer-plus-num                \ cst-int' val-int' pln vreg-lst plnstp-lnk val-num
+
+        \ Inc value integer.
+        #4 pick                         \ cst-int' val-int' pln vreg-lst plnstp-lnk val-num val-int
+        integer-plus-num                \ cst-int' val-int' pln vreg-lst plnstp-lnk
+    next-item
+                                        \ cst-int' val-int' pln vreg-lst
+    drop                                \ cst-int' val-int' pln
+
+    \ Set plan value.
+    over integer-get-number             \ cnt-int' val-int' pln num
+    over plan-set-value
+
+    \ Set plan cost.
+    #2 pick integer-get-number          \ cnt-int' val-int' pln num
+    swap plan-set-cost                  \ cnt-int' val-int'
+
+    \ Clean up.
+    integer-deallocate
+    integer-deallocate
+;
+
 \ Return a plan to change from a statecorr to a different statecorr,
 \ given a list of regioncorrs to avoid.
 : session-make-plan ( pth-lst2 avd-lst1 sess0 -- pln t | f )
@@ -927,7 +977,9 @@ session-valued-regioncorrs-disp cell+   constant session-paths-disp             
 \    #3 pick                                                 \ pth-lst2 avd-lst1 sess0 pth-lst2 avd-lst1 exc-lim sess0
 \    session-make-plan2                                      \ pth-lst2 avd-lst1 sess0, pln t | f
 \    if
-\        2nip nip                                            \ pln
+\       tuck swap                                           \ pth-lst2 avd-lst1 pln pln sess0
+\        session-set-plan-value-cost                        \ pth-lst2 avd-lst1 pln
+\        nip nip
 \        true
 \        exit
 \    then
@@ -967,7 +1019,9 @@ session-valued-regioncorrs-disp cell+   constant session-paths-disp             
     session-make-plan2                                      \ pth-lst2 avd-lst1 sess0 stac-rev', pln t | f
     if
         swap statecorr-list-deallocate                      \ pth-lst2 avd-lst1 sess0 pln
-        2nip nip                                            \ pln
+        tuck swap                                           \ pth-lst2 avd-lst1 pln pln sess0
+        session-set-plan-value-cost                         \ pth-lst2 avd-lst1 pln
+        nip nip
         true
         exit
     then
