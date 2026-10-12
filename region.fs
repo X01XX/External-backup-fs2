@@ -122,52 +122,79 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     state-get-num-bits       \ nb
 ;
 
+\ Return a token containing a string representation of a region.
+: region-str ( reg0 -- tkn )
+    \ Check arg.
+    assert( tos is-region? )
+
+    \ Start token with region prefix.
+    s" r" token-new                 \ reg0, tkn t | f
+    invert abort" token-new failed"
+    swap                            \ tkn reg0
+
+    \ Init string length.
+    1 swap                          \ tkn nc reg0
+
+    \ Setup for bit-position loop.
+    dup region-get-state-1          \ tkn nc reg0 sta1
+    swap                            \ tkn nc sta1 reg0
+    dup region-get-state-0          \ tkn nc sta1 reg0 sta0
+    swap                            \ tkn nc sta1 sta0 reg0
+    region-get-num-bits             \ tkn nc sta1 sta0 nb
+    -1 swap                         \ tkn nc sta1 sta0 -1 nb
+    1-                              \ tkn nc sta1 sta0 -1 nb-
+
+    do
+        \ Process each trit.        \ tkn nc sta1 sta0
+        \ Get state bit.
+        i                           \ tkn nc sta1 sta0 i
+        #2 pick                     \ tkn nc sta1 sta0 i sta1
+        state-bit                   \ tkn nc sta1 sta0 b1
+
+        \ Get state bit.
+        i                           \ tkn nc sta1 sta0 b1 i
+        #2 pick                     \ tkn nc sta1 sta0 b1 i sta0
+        state-bit                   \ tkn nc sta1 sta0 b1 b0
+
+        \ Put char on stack.
+        if                          \ tkn nc sta1 sta0 b1
+            if                      \ tkn nc sta1 sta0
+                s" 1" #5 pick       \ tkn nc sta1 sta0 c-addr u tkn
+                token-concatenate   \ tkn nc sta1 sta0 bool
+                invert abort" token-concatenate failed"
+            else
+                s" X" #5 pick       \ tkn nc sta1 sta0 c-addr u tkn
+                token-concatenate   \ tkn nc sta1 sta0 bool
+                invert abort" token-concatenate failed"
+            then
+        else                        \ tkn nc sta1 sta0 b1
+            if                      \ tkn nc sta1 sta0
+                s" x" #5 pick       \ tkn nc sta1 sta0 c-addr u tkn
+                token-concatenate   \ tkn nc sta1 sta0 bool
+                invert abort" token-concatenate failed"
+            else
+                s" 0" #5 pick       \ tkn nc sta1 sta0 c-addr u tkn
+                token-concatenate   \ tkn nc sta1 sta0 bool
+                invert abort" token-concatenate failed"
+            then
+        then
+
+    1 -loop
+    2drop drop                      \ tkn
+;
+
 \ Print a region.
 : .region ( reg0 -- )
     \ Check arg.
     assert( tos is-region? )
 
-    \ Print prefix.
-    [char] r emit
+    \ Put mask string into pad.
+    region-str          \ tkn'
 
-    \ Setup for bit-position loop.
-    dup region-get-state-1          \ reg0 sta1
-    swap                            \ sta1 reg0
-    dup region-get-state-0          \ sta1 reg0 sta0
-    swap                            \ sta1 sta0 reg0
-    region-get-num-bits             \ sta1 sta0 nb
-    -1 swap                         \ sta1 sta0 -1 nb
-    1-                              \ sta1 sta0 -1 nb-
+    \ Output string.
+    dup .token          \ tkn'
 
-    do
-        \ Process each trit.        \ sta1 sta0
-        \ Get state bit.
-        i                           \ sta1 sta0 i
-        #2 pick                     \ sta1 sta0 i sta1
-        state-bit                   \ sta1 sta0 b1
-
-        \ Get state bit.
-        i                           \ sta1 sta0 b1 i
-        #2 pick                     \ sta1 sta0 b1 i sta0
-        state-bit                   \ sta1 sta0 b1 b0
-
-        \ Put char on stack.
-        if                          \ sta1 sta0 b1
-            if                      \ sta1 sta0
-                [char] 1 emit
-            else
-                [char] X emit
-            then
-        else                        \ sta1 sta0 b1
-            if                      \ sta1 sta0
-                [char] x emit
-            else
-                [char] 0 emit
-            then
-        then
-
-    1 -loop
-    2drop
+    token-deallocate
 ;
 
 \ Deallocate a region.

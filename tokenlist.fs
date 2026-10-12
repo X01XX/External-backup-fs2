@@ -39,7 +39,7 @@
     \ Check arg.
     assert( tos is-token-list? )
 
-    [ ' .token ] literal swap .list
+    [ ' .token-with-parens ] literal swap .list
 ;
 
 \ Return the maximum depth of a token list,

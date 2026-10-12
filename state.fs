@@ -86,37 +86,61 @@ state-header-disp cell+   constant state-number-disp
 
 ' state-new to state-new-xt
 
-\ Print a state struct instance.
-: .state (  sta0 -- )
+\ Return a token containing a string representation of a state.
+: state-str ( sta0 -- tkn )
     \ Check arg.
     assert( tos is-state? )
 
-    \ Print prefix.
-    [char] s emit
+    \ Start token with state prefix.
+    s" s" token-new                 \ sta0, tkn t | f
+    invert abort" token-new failed"
+    swap                            \ tkn sta0
+
+    \ Init string length.
+    1 swap                          \ tkn nc sta0
 
     \ Setup for bit-position loop.
-    dup state-get-number        \ sta0 num
-    swap                        \ num sta0
-    state-get-num-bits          \ num nb
-    dup _msb-from-num-bits      \ num nb ms-bit
-    swap                        \ num ms-bit nb
+    dup state-get-number        \ tkn nc sta0 num
+    swap                        \ tkn nc num sta0
+    state-get-num-bits          \ tkn nc num nc
+    tuck                        \ tkn nc nc num nc
+    _msb-from-num-bits          \ tkn nc nc num ms-bit
+    rot                         \ tkn nc num ms-bit nc
     0
 
     do
         \ Apply msb to state, to get an isolated bit.
-                                \ num ms-bit
-        2dup and                \ num ms-bit bit
+                                \ tkn nc num ms-bit
+        2dup and                \ tkn nc num ms-bit bit
 
         if
-            [char] 1 emit
+            s" 1" #5 pick       \ tkn nc num ms-bit c-addr u tkn
+            token-concatenate   \ tkn nc num ms-bit bool
+            invert abort" token-concatenate failed"
         else
-            [char] 0 emit
+            s" 0" #5 pick       \ tkn nc num ms-bit c-addr u tkn
+            token-concatenate   \ tkn nc num ms-bit bool
+            invert abort" token-concatenate failed"
         then
 
         \ Adjust msb state.
-        1 rshift                \ num ms-bit
+        1 rshift                \ tkn nc num ms-bit
     loop
-    2drop
+    2drop drop                  \ tkn
+;
+
+\ Print a state.
+: .state ( sta0 -- )
+    \ Check arg.
+    assert( tos is-state? )
+
+    \ Put state string on stack.
+    state-str           \ tkn'
+
+    \ Output string.
+    dup .token          \ tkn'
+
+    token-deallocate
 ;
 
 \ Deallocate a state.

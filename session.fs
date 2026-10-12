@@ -1156,7 +1156,6 @@ session-valued-regioncorrs-disp cell+   constant session-paths-disp             
         exit
     then
 
-
     \ Make plan.
     dup                                         \ stac-to1 stac-from' sess0 pth pth-from-to' pth-from-to'
     #2 pick path-get-avoid-list                 \ stac-to1 stac-from' sess0 pth pth-from-to' pth-from-to' avd-lst

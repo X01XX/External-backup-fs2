@@ -176,54 +176,47 @@ mask-header-disp cell+  constant mask-number-disp
     again
 ;
 
-\ Store a character representation to a given address,
-\ return the number characters stored.
-\ Caller must set, or accumulate, the number bits prefix
-\ of the string.
-: mask-str ( addr1 msk0 --  nc )
+\ Return a token containing a string representation of a mask.
+: mask-str ( msk0 -- )
     \ Check arg.
     assert( tos is-mask? )
 
-    \ Save string length.
-    dup mask-get-num-bits    \ addr1 msk0 nc
-    -rot                        \ nc addr1 msk0
+    \ Start token with mask prefix.
+    s" m" token-new                 \ msk0, tkn t | f
+    invert abort" token-new failed"
+    swap                            \ tkn msk0
 
-    \ Store prefix.
-    [char] m #2 pick c!
-    swap 1+ swap
+    \ Init string length.
+    1 swap                          \ tkn nc msk0
 
     \ Setup for bit-position loop.
-    dup mask-get-number         \ nc addr1 msk0 num
-    swap                        \ nc addr1 num msk0
-    mask-get-num-bits        \ nc addr1 num nc
-    tuck                        \ nc addr1 nc num nc
-    _msb-from-num-bits          \ nc addr1 nc num ms-bit
-    rot                         \ nc addr1 num ms-bit nc
+    dup mask-get-number         \ tkn nc msk0 num
+    swap                        \ tkn nc num msk0
+    mask-get-num-bits           \ tkn nc num nc
+    tuck                        \ tkn nc nc num nc
+    _msb-from-num-bits          \ tkn nc nc num ms-bit
+    rot                         \ tkn nc num ms-bit nc
     0
 
     do
         \ Apply msb to mask, to get an isolated bit.
-                                \ nc addr1 num ms-bit
-        2dup and                \ nc addr1 num ms-bit bit
+                                \ tkn nc num ms-bit
+        2dup and                \ tkn nc num ms-bit bit
 
         if
-            [char] 1            \ nc addr1 num ms-bit chr
+            s" 1" #5 pick       \ tkn nc num ms-bit c-addr u tkn
+            token-concatenate   \ tkn nc num ms-bit bool
+            invert abort" token-concatenate failed"
         else
-            [char] 0            \ nc addr1 num ms-bit chr
+            s" 0" #5 pick       \ tkn nc num ms-bit c-addr u tkn
+            token-concatenate   \ tkn nc num ms-bit bool
+            invert abort" token-concatenate failed"
         then
 
-        \ Store char to pad.
-        #3 pick                 \ nc addr1 num ms-bit chr pad+
-        c!                      \ nc addr1 num ms-bit
-
-        \ Point to next nc addr1 char.
-        rot 1+ -rot             \ nc addr1 num ms-bit
-
         \ Adjust msb mask.
-        1 rshift                \ nc addr1 num ms-bit
+        1 rshift                \ tkn nc num ms-bit
     loop
-    2drop drop                  \ nc
-    1+
+    2drop drop                  \ tkn
 ;
 
 \ Print a mask.
@@ -231,20 +224,13 @@ mask-header-disp cell+  constant mask-number-disp
     \ Check arg.
     assert( tos is-mask? )
 
-    \ Calc string target address.
-    pad 1+ swap         \ addr msk0
-
-    \ Put mask string into pad.
-    mask-str            \ nc
-
-    \ Store string length.
-    pad c!              \
-
-    \ Move pad string to stack.
-    pad string@         \ c-addr u
+    \ Put mask string on stack.
+    mask-str            \ tkn'
 
     \ Output string.
-    type
+    dup .token          \ tkn'
+
+    token-deallocate
 ;
 
 \ Return true if two masks have a different number of bits.

@@ -1,6 +1,8 @@
 \ The token struct, storing a token of up to 15 characters.
 #59797 constant token-struct-id
-   #11 constant token-struct-number-cells
+   #21 constant token-struct-number-cells
+
+token-struct-number-cells 1 - #8 * value token-number-bytes
 
 \ Token struct fields.
 0                       constant token-header-disp   \ 16 bits, [0] id, [1] use count.
@@ -49,16 +51,6 @@ token-header-disp cell+ constant token-string-disp
     \ Check args.
     assert( tos is-token? )
 
-    over #80 >
-    if
-        ." token-set-string: string length is too large"
-        abort
-    then
-    over 1 <
-    if
-        ." token-set-string: string length is too small/invalid"
-        abort
-    then
     token-string-disp + string!
 ;
 
@@ -97,9 +89,21 @@ token-header-disp cell+ constant token-string-disp
 \ An empty string, or a string of spaces, will return false.
 : token-new ( c-addr u -- tkn t | f )
     \ Check args.
-    ltrim
-    rtrim
-    dup 0= if 2drop false exit then
+    assert( tos #256 < )
+    assert( tos -1 > )
+
+    dup token-number-bytes <
+    ifnot
+        2drop
+        false
+        exit
+    then
+    over 0 <
+    if
+        2drop
+        false
+        exit
+    then
 
     token-struct-id token-mma
     struct-allocate             \ c-addr u tkn
@@ -111,8 +115,16 @@ token-header-disp cell+ constant token-string-disp
     true
 ;
 
-\ Print a token struct instance.
+\ Print a token struct.
 : .token ( tkn -- )
+    \ Check arg.
+    assert( tos is-token? )
+
+    token-get-string type
+;
+
+\ Print a token struct instance.
+: .token-with-parens ( tkn -- )
     \ Check arg.
     assert( tos is-token? )
 
@@ -162,4 +174,28 @@ token-header-disp cell+ constant token-string-disp
             struct-dec-use-count
         then
     then
+;
+
+\ Concatenate an a string to the end of a token's existing string.
+: token-concatenate ( c-addr n tkn0 -- t | f )
+    \ Check arg.
+    assert( tos is-token? )
+    assert( nos #256 < )
+    assert( nos -1 > )
+
+    \ Get address of token string.
+    token-string-disp + \ c-addr n c-addr
+
+    \ Check string lengths added up are within bounds.
+    dup c@                  \ c-addr n c-addr cur-len
+    #2 pick +               \ c-addr n c-addr nxt-len
+    token-number-bytes <    \ c-addr n c-addr bool
+    ifnot
+        2drop drop
+        false
+        exit
+    then
+                            \ c-addr n c-addr
+    +place
+    true
 ;

@@ -9,7 +9,7 @@
 \ Link      List    Region  Rule    Square
 \ 17137,    17971,  19317,  23131,  23197
 \
-\ Sample    Action  Session Domain  Need
+\ Sample    Action  Session Domain  ActNeed
 \ 23719,    29717,  31319,  31379,  19717
 \
 \ Group     RegionCorr  Mask*   State*
@@ -58,13 +58,13 @@ include struct.fs
 include link.fs
 include list.fs
 include structlist.fs
+include token.fs
 include mask.fs
 include masklist.fs
 include integer.fs
 
 include state.fs
 
-include token.fs
 include tokenlist.fs
 
 include maskcorr.fs
@@ -85,6 +85,8 @@ include sample.fs
 include samplelist.fs
 include rule.fs
 include rulelist.fs
+
+include actneed.fs
 
 include regioncorr.fs
 include regioncorrlist.fs
@@ -113,7 +115,6 @@ include plansteplist.fs
 include plan.fs
 
 include actionxts.fs
-
 include action.fs
 
 include actionlist.fs
@@ -164,7 +165,7 @@ include randompick_t.fs
 #1010 action-mma-init
 #1110 corner-mma-init
 #0100 maskcorr-mma-init
-\ #1110 need-mma-init
+#0100 actneed-mma-init
 #1130 group-mma-init
 #1600 regioncorr-mma-init
 #0020 path-mma-init
@@ -196,7 +197,7 @@ list-new to structinfo-list-store
 ' noop  ' noop  ' noop          ' noop                  ' path-deallocate       ' .path         s" Path"        path-mma        path-struct-id          structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' noop          ' corner-from-string    ' corner-deallocate     ' .corner       s" Corner"      corner-mma      corner-struct-id        structinfo-new structinfo-list-store-push-end
 ' regioncorr-from-list  ' regioncorr-list-definition?    ' regioncorrs-eq?  ' noop  ' regioncorr-deallocate ' .regioncorr   s" Regioncorr"  regioncorr-mma  regioncorr-struct-id    structinfo-new structinfo-list-store-push-end
-\ ' noop  ' noop  ' noop          ' noop                  ' need-deallocate       ' .need       s" Need"        need-mma        need-struct-id          structinfo-new structinfo-list-store-push-end
+' noop  ' noop  ' noop          ' noop                  ' actneed-deallocate       ' .actneed       s" ActNeed"        actneed-mma        actneed-struct-id          structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' =             ' noop                  ' square-deallocate     ' .square       s" Square"      square-mma      square-struct-id        structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' =             ' noop                  ' group-deallocate      ' .group        s" Group"       group-mma       group-struct-id         structinfo-new structinfo-list-store-push-end
 ' statecorr-from-list  ' statecorr-list-definition?    ' statecorrs-eq? ' noop  ' statecorr-deallocate ' .statecorr   s" StateCorr"  statecorr-mma  statecorr-struct-id structinfo-new structinfo-list-store-push-end

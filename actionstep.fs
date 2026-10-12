@@ -103,7 +103,7 @@ actionstep-to-disp        cell+   constant actionstep-alt-to-disp   \ Possible a
 : _actionstep-set-alt-to ( rul1 actstp0 -- )
     \ Check args.
     assert( tos is-actionstep? )
-    assert( nos ?dup if is-state? else true then )
+    assert( nos 0= if true else nos is-state? then )
 
     actionstep-alt-to-disp +
     over 0=
@@ -120,7 +120,7 @@ actionstep-to-disp        cell+   constant actionstep-alt-to-disp   \ Possible a
     \ Check args.
     assert( 3os is-state? )
     assert( 4os is-state? )
-    assert( 5os ?dup if is-state? else true then )
+    assert( 5os 0= if true else 5os is-state? then )
     \ cr ." actionstep-new: more arg checks todo " .stack cr
 
     \ Allocate instance.

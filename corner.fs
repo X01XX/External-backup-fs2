@@ -179,27 +179,85 @@ corner-region-disp          cell+   constant corner-adjacent-states-disp    \ Al
     0 over corner-set-rate              \ crn
 ;
 
+\ Return a token containing a string representation of a state-list.
+: corner-str ( crn0 -- tkn )
+    \ Check arg.
+    assert( tos is-corner? )
+
+    s" (" token-new                 \ crn0, tkn t | f
+    invert abort" token-new failed"
+
+    over corner-get-region          \ crn0 tkn reg
+    region-str                      \ crn0 tkn tkn'
+    dup token-get-string            \ crn0 tkn tkn' c-addr u
+    #3 pick token-concatenate       \ crn0 tkn tkn' bool
+    invert abort" token-concatenate failed"
+    token-deallocate                \ crn0 tkn
+
+    s" anchor: "                    \ crn0 tkn c-addr u
+    #2 pick token-concatenate       \ crn0 tkn bool
+    invert abort" token-concatenate failed"
+
+    over corner-get-anchor-state    \ crn0 tkn sta
+    state-str                       \ crn0 tkn tkn'
+    dup token-get-string            \ crn0 tkn tkn' c-addr u
+    #3 pick token-concatenate       \ crn0 tkn tkn' bool
+    invert abort" token-concatenate failed"
+    token-deallocate                \ crn0 tkn
+
+    s" AE: "                        \ crn0 tkn c-addr u
+    #2 pick token-concatenate       \ crn0 tkn bool
+    invert abort" token-concatenate failed"
+
+    over corner-get-adjacent-states \ crn0 tkn sta-lst
+    state-list-str                  \ crn0 tkn tkn'
+    dup token-get-string            \ crn0 tkn tkn' c-addr u
+    #3 pick token-concatenate       \ crn0 tkn tkn' bool
+    invert abort" token-concatenate failed"
+    token-deallocate                \ crn0 tkn
+
+    s" )"                           \ crn0 tkn c-addr u
+    #2 pick token-concatenate       \ crn0 tkn bool
+    invert abort" token-concatenate failed"
+
+    nip
+;
+
 \ Print a corner.
 : .corner ( crn0 -- )
     \ Check arg.
     assert( tos is-corner? )
 
-    ." ("
-    dup corner-get-region               \ crn0 reg
-    .region                             \ crn0
+    \ Put corner string on stack.
+    corner-str              \ tkn'
 
-    space ." anchor: "
-    dup corner-get-anchor-state         \ crn0 sta
-    .state                              \ crn0
+    \ Output string.
+    dup .token              \ tkn' c-addr u
 
-    space ." AE: "
-    dup corner-get-adjacent-states      \ crn0 ext-sta-lst
-    .state-list                         \ crn0
-
-    ." )"
-                                        \ crn0
-    drop
+    token-deallocate
 ;
+
+\ Print a corner.
+\ : .corner ( crn0 -- )
+\    \ Check arg.
+\    assert( tos is-corner? )
+\
+\    ." ("
+\    dup corner-get-region               \ crn0 reg
+\    .region                             \ crn0
+\
+\    space ." anchor: "
+\    dup corner-get-anchor-state         \ crn0 sta
+\    .state                              \ crn0
+\
+\    space ." AE: "
+\    dup corner-get-adjacent-states      \ crn0 ext-sta-lst
+\    .state-list                         \ crn0
+\
+\    ." )"
+\                                        \ crn0
+\    drop
+\ ;
 
 \ Validate a corner.
 \ Recalc if needed.
