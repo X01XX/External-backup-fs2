@@ -181,48 +181,16 @@ actionstep-to-disp        cell+   constant actionstep-alt-to-disp   \ Possible a
 ;
 
 \ Return a copy of a statecorr, with the actionstep to-state inserted.
-: actionstep-insert-to-state ( stac1 actstp -- stac )
+: actionstep-insert-to-state ( stac1 actstp0 -- stac )
     \ Check args.
     assert( tos is-actionstep? )
     assert( nos is-statecorr?-xt execute )
 
-    \ Init return list.
-    list-new -rot                   \ sta-lst stac1 actstp
-
-    \ Prep for loop.
-
     \ Get domain intance id, as index, and to-state.
-    dup actionstep-get-dom-inst-id    \ sta-lst stac1 actstp dom-id
-    swap actionstep-get-to            \ sta-lst stac1 dom-id to-sta
-    rot                             \ sta-lst dom-id to-sta stac1
-    statecorr-get-list              \ sta-lst dom-id to-sta stac-lst
-    dup list-get-length             \ sta-lst dom-id to-sta stac-lst len
-    swap list-get-links swap        \ sta-lst dom-id to-sta stac-lst len
-    0                               \ sta-lst dom-id to-sta stac-lnk len 0
+    dup actionstep-get-to           \ stac1 actstp0 sta-to
+    -rot                            \ sta-to stac1 actstp0
+    actionstep-get-dom-inst-id      \ sta-to stac1 dom-id
+    swap                            \ sta-to dom-id stac1
 
-    do                              \ sta-lst dom-id to-sta stac-lnk
-        i                           \ sta-lst dom-id to-sta stac-lnk i
-        #3 pick                     \ sta-lst dom-id to-sta stac-lnk i dom-id
-        =                           \ sta-lst dom-id to-sta stac-lnk bool
-
-        if
-            \ Push actionstep to state.
-            over                    \ sta-lst dom-id to-sta stac-lnk to-sta
-            #4 pick                 \ sta-lst dom-id to-sta stac-lnk to-sta sta-lst
-            list-push-end-struct    \ sta-lst dom-id to-sta stac-lnk
-        else
-            \ Push stac1 state.
-            dup link-get-data       \ sta-lst dom-id to-sta stac-lnk stax
-            #4 pick                 \ sta-lst dom-id to-sta stac-lnk stax sta-lst
-            list-push-end-struct    \ sta-lst dom-id to-sta stac-lnk
-        then
-
-        link-get-next
-    loop
-                                    \ sta-lst dom-id to-sta stac-lnk
-    \ Clean up.
-    2drop drop                      \ sta-lst
-
-    \ Return.
-    statecorr-new
+    statecorr-insert-state          \ stac
 ;

@@ -578,3 +578,22 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     nip nip nip                     \ actstp
     true
 ;
+
+\ Get both group, and domain, instance ids.
+: group-get-inst-ids ( grp0 -- act-id dom-id )
+    \ Check arg.
+    assert( tos is-group? )
+
+    dup group-get-act-inst-id       \ grp0 act-id
+    swap group-get-dom-inst-id      \ act-id dom-id
+;
+
+\ Return true if a given state is in a group's s-region.
+: group-state-in-s-region? ( sta1 grp0 -- bool )
+    \ Check arg.
+    assert( tos is-group? )
+    assert( nos is-state? )
+
+    group-get-s-region          \ sta1 sreg
+    region-superset-of-state?   \ bool
+;

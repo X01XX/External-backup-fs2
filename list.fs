@@ -1388,3 +1388,14 @@ list-header-disp    cell+   constant list-links-disp
     2drop
     true
 ;
+
+\ Code to check a list, return false if empty, else return the list and true.
+: check-list-return ( lst0 -- lst0 t | f )
+    dup list-is-empty?       \ ret-lst bool
+    if
+        list-deallocate
+        false
+    else
+        true
+    then
+;

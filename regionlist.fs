@@ -996,13 +996,8 @@
         next-item
     next-item
                                         \ ret-lst
-    dup list-is-empty?
-    if
-        list-deallocate
-        false
-    else
-        true
-    then
+
+    check-list-return
     \ cr ." region-list-proper-intersections: end" cr
 ;
 
@@ -1038,13 +1033,8 @@
         next-item
     next-item
                                         \ ret-lst
-    dup list-is-empty?
-    if
-        list-deallocate
-        false
-    else
-        true
-    then
+
+    check-list-return
     \ cr ." region-list-self-intersections-nodups: end" cr
 ;
 

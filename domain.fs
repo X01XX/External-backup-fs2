@@ -460,13 +460,17 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
                                         \ f-sta1 ret
     nip                                 \ ret
 
-    \ Return.
-    dup list-is-empty?
-    if
-        list-deallocate
-        false
-    else
-        true
-    then
+    check-list-return
     \ cr ." domain-get-forward-steps: end: " .stack cr
+;
+
+\ Return domain action needs, if any.
+: domain-get-needs ( dom0 -- actned-lst t | f )
+    \ Check arg.
+    assert( tos is-domain? )
+
+    dup domain-get-current-state    \ dom0 cur-sta
+    swap                            \ cur-sta dom0
+    domain-get-actions              \ cur-sta act-lst
+    action-list-get-needs           \ ned-lst t | f
 ;

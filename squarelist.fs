@@ -261,14 +261,7 @@
                                             \ pn inc-lst
     nip                                     \ inc-lst
 
-    \ Check if any found.
-    dup list-is-empty?                      \ inc-lst
-    if
-        list-deallocate
-        false
-    else
-        true
-    then
+    check-list-return
 
     \ cr ." square-list-find-adj-incompatible-pairs: end: " .stack cr
 ;
@@ -364,15 +357,7 @@
                                                 \ pn inc-lst
     nip                                         \ inc-lst
 
-    \ Check if any found.
-    dup list-is-empty?                          \ inc-lst
-    if
-        list-deallocate
-        false
-    else
-        true
-    then
-
+    check-list-return
     \ cr ." square-list-find-nadj-incompatible-pairs: end: " .stack cr
 ;
 
@@ -681,13 +666,7 @@
         then
     next-item
                                     \ ret-lst
-    dup list-is-empty?
-    if
-        list-deallocate
-        false
-    else
-        true
-    then
+    check-list-return
 ;
 
 \ Return true if a square is a member of a square-list.

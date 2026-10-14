@@ -102,14 +102,7 @@
     \ Clean up.
     nip                             \ ret-lst
 
-    \ Return.
-    dup list-is-empty?
-    if
-        list-deallocate
-        false
-    else
-        true
-    then
+    check-list-return
 ;
 
 \ Return a list of groups a square should be in.
@@ -174,10 +167,10 @@
     [ ' group-region-eq? ] literal -rot list-find
 ;
 
-\ Remove a group from a list.
+\ Remove group-list-state-in-any?a group from a list.
 \ If use count becomes zero, deallocate it.
 : group-list-remove ( grp1 grp-lst0 -- )
-\ Check args.
+    \ Check args.
     assert( tos is-group-list? )
     assert( nos is-group? )
 
@@ -192,4 +185,57 @@
             drop
         then
     then
+;
+
+\ Return true if a state is in any group s-region.
+: group-list-state-in-any-s-region? ( sta1 grp-lst0 -- bool )
+    \ Check args.
+    assert( tos is-group-list? )
+    assert( nos is-state? )
+
+    foreach                         \ sta1 grp-lnk grpx
+        #2 pick swap                \ sta1 grp-lnk sta1 grpx
+        group-state-in-s-region?    \ sta1 grp-lnk bool
+        if
+            2drop
+            true
+            exit
+        then
+    next-item
+                                    \ sta1
+    drop
+    false
+;
+
+\ Return action needs for groups in a group-list.
+\ Caller to set actionid, domain-id.
+: group-list-get-needs ( sta1 grp-lst0 -- ned-lst t | f )
+    \ Check args.
+    assert( tos is-group-list? )
+    assert( nos is-state? )
+
+    \ Init return list.
+    list-new -rot               \ ret-lst sta1 grp-lst0
+
+    2dup                                \ ret-lst sta1 grp-lst0 sta1 grp-lst0
+    group-list-state-in-any-s-region?   \ ret-lst sta1 grp-lst0 bool
+    ifnot
+        \ Make actneed.
+        0                       \ ret-lst sta1 grp-lst0 tkn
+        #2 pick                 \ ret-lst sta1 grp-lst0 tkn targ
+        actneed-type-snig       \ ret-lst sta1 grp-lst0 tkn targ ned-typ
+        0 0                     \ ret-lst sta1 grp-lst0 tkn targ ned-typ act-id dom-id
+        actneed-new             \ ret-lst sta1 grp-lst0 actned
+
+        \ Store actneed.
+        #3 pick                 \ ret-lst sta1 grp-lst0 actned ret-lst
+        list-push-struct        \ ret-lst sta1 grp-lst0
+    then
+
+                                \ ret-lst sta1 grp-lst0
+    \ TODO : more needs, per group.
+
+    2drop                       \ ret-lst
+
+    check-list-return
 ;

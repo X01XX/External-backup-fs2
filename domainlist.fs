@@ -71,4 +71,24 @@
     [ ' domain-id-eq? ] literal -rot list-find
 ;
 
+\ Return action needs for domains in a domain list.
+: domain-list-get-needs ( dom-lst0 -- ned-lst t | f )
+    \ Check args.
+    assert( tos is-domain-list? )
 
+    \ Init session need list.
+    list-new swap                       \ ret-lst dom-lst0
+
+    foreach                             \ ret-lst dom-lnk domx
+        domain-get-needs                \ ret-lst dom-lnk, actned-lst' t | f
+        if
+            dup                         \ ret-lst dom-lnk actned-lst' actned-lst'
+            #3 pick                     \ ret-lst dom-lnk actned-lst' actned-lst' ret-lst
+            list-append-struct          \ ret-lst dom-lnk actned-lst'
+            actneed-list-deallocate     \ ret-lst dom-lnk
+        then
+    next-item
+                                        \ ret-lst
+
+    check-list-return
+;

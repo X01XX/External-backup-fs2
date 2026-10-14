@@ -24,15 +24,14 @@
 \ Plan  ActionStep* PlanStep
 \ 37379 61379       37171
 \
-\ Integer ( Rate in fs1 )
-\ 41719
+\ Integer ( Rate in fs1 )   sesneed ( RuleStore in fs1 )
+\ 41719                     23173
 \
 \ * Not used in fs1.
 \
 \ Struct ids not yet used:
 \
 \ ID     In fs1
-\ 23173, RuleStore
 \ 31973, Changes.
 \ 53171, RuleCorr
 \ 53173, ChangesCorr
@@ -87,6 +86,9 @@ include rule.fs
 include rulelist.fs
 
 include actneed.fs
+include actneedlist.fs
+include sesneed.fs
+include sesneedlist.fs
 
 include regioncorr.fs
 include regioncorrlist.fs
@@ -166,6 +168,7 @@ include randompick_t.fs
 #1110 corner-mma-init
 #0100 maskcorr-mma-init
 #0100 actneed-mma-init
+#0100 sesneed-mma-init
 #1130 group-mma-init
 #1600 regioncorr-mma-init
 #0020 path-mma-init
@@ -198,6 +201,7 @@ list-new to structinfo-list-store
 ' noop  ' noop  ' noop          ' corner-from-string    ' corner-deallocate     ' .corner       s" Corner"      corner-mma      corner-struct-id        structinfo-new structinfo-list-store-push-end
 ' regioncorr-from-list  ' regioncorr-list-definition?    ' regioncorrs-eq?  ' noop  ' regioncorr-deallocate ' .regioncorr   s" Regioncorr"  regioncorr-mma  regioncorr-struct-id    structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' noop          ' noop                  ' actneed-deallocate       ' .actneed       s" ActNeed"        actneed-mma        actneed-struct-id          structinfo-new structinfo-list-store-push-end
+' noop  ' noop  ' noop          ' noop                  ' sesneed-deallocate       ' .sesneed       s" SesNeed"        sesneed-mma        sesneed-struct-id          structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' =             ' noop                  ' square-deallocate     ' .square       s" Square"      square-mma      square-struct-id        structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' =             ' noop                  ' group-deallocate      ' .group        s" Group"       group-mma       group-struct-id         structinfo-new structinfo-list-store-push-end
 ' statecorr-from-list  ' statecorr-list-definition?    ' statecorrs-eq? ' noop  ' statecorr-deallocate ' .statecorr   s" StateCorr"  statecorr-mma  statecorr-struct-id structinfo-new structinfo-list-store-push-end
@@ -212,6 +216,13 @@ list-new to structinfo-list-store
     \ Make domain-list.
     list-new                        \ regc-lst dom-lst
     #4 domain-new                   \ regc-lst dom-lst dom
+
+    \ Add actions to domain.
+    [ ' dom-0-act1-get-result ] literal over domain-add-action
+    [ ' dom-0-act2-get-result ] literal over domain-add-action
+    [ ' dom-0-act3-get-result ] literal over domain-add-action
+    [ ' dom-0-act4-get-result ] literal over domain-add-action
+
     over domain-list-push-end       \ regc-lst dom-lst
     #6 domain-new                   \ regc-lst dom-lst dom
     over domain-list-push-end       \ regc-lst dom-lst

@@ -77,3 +77,28 @@
 
     list-push-end-struct
 ;
+
+\ Return needs of actions in an action-list, if any.
+: action-list-get-needs ( sta1 act-lst0 -- actned-lst t | f )
+    \ Check args.
+    assert( tos is-action-list? )
+    assert( nos is-state? )
+
+    \ Init return list.
+    list-new -rot                   \ ret-lst sta1 act-lst0
+
+    foreach                         \ ret-lst sta1 act-lnk actx
+        #2 pick swap                \ ret-lst sta1 act-lnk sta1 actx
+        action-get-needs            \ ret-lst sta1 act-lnk, ned-lst' t | f
+        if
+            dup                     \ ret-lst sta1 act-lnk ned-lst' ned-lst'
+            #4 pick                 \ ret-lst sta1 act-lnk ned-lst' ned-lst' ret-lst
+            list-append-struct      \ ret-lst sta1 act-lnk ned-lst'
+            actneed-list-deallocate \ ret-lst sta1 act-lnk
+        then
+    next-item
+                                    \ ret-lst sta1
+    drop                            \ ret-lst
+
+    check-list-return
+;

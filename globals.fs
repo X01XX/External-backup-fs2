@@ -55,3 +55,4 @@ display-debug-status
 : check-project-deallocated ( -- )
     structinfo-list-store-check-project-deallocated-xt execute
 ;
+

@@ -1,7 +1,7 @@
 \ Functions for actneed lists.
 
-\ Check TOS for need-list.
-: is-need-list? ( tos -- t )
+\ Check TOS for actneed-list.
+: is-actneed-list? ( tos -- t )
    dup is-list?            \ tos bool
     ifnot
         drop
@@ -18,19 +18,19 @@
 
     list-get-links          \ link
     link-get-data           \ data
-    is-need?                \ bool
+    is-actneed?             \ bool
 ;
 
-\ Deallocate a need list.
-: need-list-deallocate ( lst0 -- )
+\ Deallocate a actneed list.
+: actneed-list-deallocate ( lst0 -- )
     \ Check arg.
-    assert( tos is-need-list? )
+    assert( tos is-actneed-list? )
 
     \ Check if the list will be deallocated for the last time.
     dup struct-get-use-count                        \ lst0 uc
     #2 < if
-        \ Deallocate need instances in the list.
-        [ ' need-deallocate ] literal over          \ lst0 xt lst0
+        \ Deallocate actneed instances in the list.
+        [ ' actneed-deallocate ] literal over       \ lst0 xt lst0
         list-apply                                  \ lst0
 
         \ Deallocate the list.
@@ -40,26 +40,26 @@
     then
 ;
 
-\ Print a need-list
-: .need-list ( list0 -- )
+\ Print a actneed-list
+: .actneed-list ( list0 -- )
     \ Check args.
-    assert( tos is-need-list? )
+    assert( tos is-actneed-list? )
 
     \ Init counter
     0 swap                  \ cnt link
 
-    \ Scan needs
+    \ Scan actneeds
     list-get-links
     begin
         ?dup
     while
         dup link-get-data   \ cnt link ned
 
-        \ Print need and count.
+        \ Print actneed and count.
         cr
         #2 pick #3 dec.r
         space
-        .need
+        .actneed
 
         \ Update count.
         swap 1+ swap
@@ -71,20 +71,20 @@
     drop
 ;
 
-\ Push a need to a need-list, unless it is already in the list.
-: need-list-push ( ned1 list0 -- )
+\ Push a actneed to a actneed-list, unless it is already in the list.
+: actneed-list-push ( ned1 list0 -- )
     \ Check args.
-    assert( tos is-need-list? )
-    assert( nos is-need? )
+    assert( tos is-actneed-list? )
+    assert( nos is-actneed? )
 
     list-push-struct
 ;
 
-\ Append nos need-list to the tos need-list.
-: need-list-append ( lst1 lst0 -- )
+\ Append nos actneed-list to the tos actneed-list.
+: actneed-list-append ( lst1 lst0 -- )
     \ Check args.
-    assert( tos is-need-list? )
-    assert( nos is-need-list? )
+    assert( tos is-actneed-list? )
+    assert( nos is-actneed-list? )
 
     swap                    \ lst0 lst1
     list-get-links          \ lst0 link
@@ -93,7 +93,7 @@
     while
         dup link-get-data   \ lst0 link nedx
         #2 pick             \ lst0 link nedx lst0
-        need-list-push      \ lst0 link
+        actneed-list-push   \ lst0 link
 
         link-get-next
     repeat
@@ -101,10 +101,10 @@
     drop
 ;
 
-\ Return true need-list-contains-targetif a need in a list has a given target state.
-: ?need-list-contains-target ( sta1 lst0 -- bool )
+\ Return true actneed-list-contains-targetif a actneed in a list has a given target state.
+: ?actneed-list-contains-target ( sta1 lst0 -- bool )
     \ Check args.
-    assert( tos is-need-list? )
+    assert( tos is-actneed-list? )
     assert( nos is-state? )
 
     list-get-links          \ sta1 link
@@ -112,7 +112,7 @@
         ?dup
     while
         dup link-get-data   \ sta1 link nedx
-        need-get-target     \ sta1 link n-sta
+        actneed-get-target  \ sta1 link n-sta
         #2 pick             \ sta1 link n-sta sta1
         =                   \ sta1 link
         if
@@ -128,11 +128,11 @@
     false
 ;
 
-\ Find all needs matching a given type.
-: need-list-find-all-match-type ( typ1 ned-lst0 -- ned-lst t | f )
+\ Find all actneeds matching a given type.
+: actneed-list-find-all-match-type ( typ1 ned-lst0 -- ned-lst t | f )
     \ Check args.
-    assert( tos is-need-list? )
-    assert( nos is-need-type? )
+    assert( tos is-actneed-list? )
+    assert( nos is-actneed-type? )
 
     \ Init return list.
     list-new -rot               \ ret-lst typ1 ned-lst0
@@ -144,24 +144,19 @@
         ?dup
     while
         dup link-get-data       \ ret-lst typ1 ned-link nedx
-        need-get-type           \ ret-lst typ1 ned-link typx
+        actneed-get-type        \ ret-lst typ1 ned-link typx
         #2 pick                 \ ret-lst typ1 ned-link typx typ1
         =                       \ ret-lst typ1 ned-link bool
         if
             dup link-get-data   \ ret-lst typ1 ned-link nedx
             #3 pick             \ ret-lst typ1 ned-link nedx ret-lst
-            need-list-push      \ ret-lst typ1 ned-link
+            actneed-list-push   \ ret-lst typ1 ned-link
         then
 
         link-get-next
     repeat
                                 \ ret-lst typ1
     drop                        \ ret-lst
-    dup list-is-empty?          \ ret-lst bool
-    if
-        list-deallocate
-        false
-    else
-        true
-    then
+
+    check-list-return
 ;

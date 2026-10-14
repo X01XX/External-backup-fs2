@@ -372,3 +372,55 @@ statecorr-header-disp    cell+      constant statecorr-list-disp   \ State list 
     drop
     statecorr-new               \ stac
 ;
+
+: statecorr-get-length ( stac0 -- u )
+    \ Check arg.
+    assert( tos is-statecorr? )
+
+    statecorr-get-list
+    list-get-length
+;
+
+\ Return a copy of a statecorr, with a domain's state replaced by a given state.
+: statecorr-insert-state ( sta2 dom-id1 stac0 -- stac )
+    \ Check args.
+    assert( tos is-statecorr? )
+    assert( 2dup statecorr-get-length < )
+    assert( 3os is-state? )
+
+    \ Init return list.
+    list-new swap                   \ sta2 dom-id1 sta-lst stac0
+
+    \ Prep for loop.
+    statecorr-get-list              \ sta2 dom-id1 sta-lst stac-lst
+    dup list-get-length             \ sta2 dom-id1 sta-lst stac-lst len
+    swap list-get-links swap        \ sta2 dom-id1 sta-lst stac-lnk len
+    0                               \ sta2 dom-id1 sta-lst stac-lnk len 0
+
+    do                              \ sta2 dom-id1 sta-lst stac-lnk
+        i                           \ sta2 dom-id1 sta-lst stac-lnk i
+        #3 pick                     \ sta2 dom-id1 sta-lst stac-lnk i dom-id
+        =                           \ sta2 dom-id1 sta-lst stac-lnk bool
+
+        if
+            \ Push insert state.
+            #3 pick                 \ sta2 dom-id1 sta-lst stac-lnk sta2
+            #2 pick                 \ sta2 dom-id1 sta-lst stac-lnk sta2 sta-lst
+            list-push-end-struct    \ sta2 dom-id1 sta-lst stac-lnk
+        else
+            \ Push stac1 state.
+            dup link-get-data       \ sta2 dom-id1 sta-lst stac-lnk stax
+            #2 pick                 \ sta2 dom-id1 sta-lst stac-lnk stax sta-lst
+            list-push-end-struct    \ sta2 dom-id1 sta-lst stac-lnk
+        then
+
+        link-get-next
+    loop
+                                    \ sta2 dom-id1 sta-lst sta-lnk
+    \ Clean up.
+    drop                            \ sta2 dom-id1 sta-lst
+    nip nip                         \ sta-lst
+
+    \ Return.
+    statecorr-new
+;

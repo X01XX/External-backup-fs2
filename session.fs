@@ -1,7 +1,7 @@
 \ Implement a Session struct and functions.
 
 #31319 constant session-struct-id
-    #6 constant session-struct-number-cells
+    #7 constant session-struct-number-cells
 
 \ Struct fields
 0                                       constant session-header-disp                \ 16-bits [0] struct id [1] use count
@@ -23,6 +23,8 @@ session-valued-regioncorrs-disp cell+   constant session-paths-disp             
                                                                                     \ -2 regions, but not -1 regioncorrs.
                                                                                     \
                                                                                     \ If your start, or goal, are in a -2 regioncorr, proceed without avoiding any regioncorr.
+session-paths-disp              cell+   constant session-sesneed-list-disp          \ A sesneed list.
+
 0 value session-mma     \ Storage for session mma instance.
 
 \ Init session mma, return the addr of allocated memory.
@@ -214,6 +216,26 @@ session-valued-regioncorrs-disp cell+   constant session-paths-disp             
     drop
 ;
 
+: session-get-sesneed-list ( sess0 -- ned-lst )
+    \ Check arg.
+    assert( tos is-session? )
+
+    session-sesneed-list-disp + \ Add offset.
+    @                           \ Fetch the field.
+;
+
+: _session-set-sesneed-list ( ned-lst sess0 -- )
+    session-sesneed-list-disp + \ Add offset.
+    !struct                     \ Set the field.
+;
+
+: _session-update-sesneed-list ( ned-lst sess0 -- )
+    dup session-get-sesneed-list    \ ned-lst sess0 old-neds
+    -rot                            \ old-neds ned-lst sess0
+    _session-set-sesneed-list       \ old-neds
+    sesneed-list-deallocate
+;
+
 \ End accessors.
 
 \ Process the valued-regioncorr list.
@@ -343,6 +365,8 @@ session-valued-regioncorrs-disp cell+   constant session-paths-disp             
 
     dup _session-process-valued-regioncorrs
 
+    list-new over _session-set-sesneed-list
+
     dup to session-store
 ;
 
@@ -402,6 +426,7 @@ session-valued-regioncorrs-disp cell+   constant session-paths-disp             
     dup session-get-max-regions regioncorr-deallocate
     dup session-get-valued-regioncorrs regioncorr-list-deallocate
     dup session-get-paths path-list-deallocate
+    dup session-get-sesneed-list sesneed-list-deallocate
 
     \ Deallocate session.
     session-mma mma-deallocate
@@ -578,12 +603,74 @@ session-valued-regioncorrs-disp cell+   constant session-paths-disp             
     true
 ;
 
-: session-set-all-needs
+\ Make a new session need, from an agtion need.
+: session-make-sesneed-from-actneed ( actned1 sess0 -- sesned )
+    \ Check args.
+    assert( tos is-session? )
+    assert( nos is-actneed? )
 
+    \ Assemble statecorr-to from current state and action state target.
+    session-get-current-states          \ actned1 stac-cur'
+    over actneed-get-target             \ actned1 stac-cur' stac-to
+    #2 pick actneed-get-dom-inst-id     \ actned1 stac-cur' stac-to dom-id
+    #2 pick                             \ actned1 stac-cur' stac-to dom-id stac-cur'
+    statecorr-insert-state              \ actned1 stac-cur' stac-to'
+    swap statecorr-deallocate           \ actned1 stac-to'
+
+    \ Make session need.
+    actneed-type-snig                   \ actned1 stac-to' typ
+    sesneed-new                         \ sessned
 ;
 
-: session-get-needs
+\ Return a list of session needs, if any.
+: session-get-needs ( sess0 -- sesned-lst t | f )
+    \ Check arg.
+    assert( tos is-session? )
 
+    dup session-get-domains     \ sess0 dom-lst
+    domain-list-get-needs       \ sess0, actned-lst' t | f
+    ifnot
+        drop
+        false
+        exit
+    then
+
+    \ Init return list.
+    list-new -rot               \ ret-lst sess0 actned-lst'
+
+    \ Prep for loop.
+    dup                         \ ret-lst sess0 actned-lst' actned-lst'
+
+    foreach                     \ ret-lst sess0 actned-lst' actned-lnk actnedx
+        \ Convert an action need to a session need.
+        #3 pick                             \ ret-lst sess0 actned-lst' actned-lnk actnedx sess0
+        session-make-sesneed-from-actneed   \ ret-lst sess0 actned-lst' actned-lnk sessneed
+
+        \ Save session need.
+        #4 pick                 \ ret-lst sess0 actned-lst' actned-lnk sessneed ret-lst
+        list-push-struct        \ ret-lst sess0 actned-lst' actned-lnk
+    next-item
+                                \ ret-lst sess0 actned-lst'
+    actneed-list-deallocate     \ ret-lst sess0
+    drop                        \ ret-lst
+
+    check-list-return
+;
+
+\ Get and save needs.
+: session-set-all-needs ( sess0 -- )
+    assert( tos is-session? )
+
+    dup session-get-needs           \ sess0, ned-lst t | f
+    if
+        swap                        \ ned-lst sess0
+    else
+        list-new swap               \ lst sess0
+    then
+
+    \ TODO add session-level needs.
+
+    _session-update-sesneed-list
 ;
 
 \ Get input of up to TOS characters from user, using the PAD area, up to a given number of characters.
@@ -611,16 +698,14 @@ session-valued-regioncorrs-disp cell+   constant session-paths-disp             
     assert( tos is-session? )
 
     \ Display needs.
-    \ dup session-set-all-needs   \ sess0
-    \ dup session-get-needs       \ sess0 ned-lst
-    \ dup list-is-empty?          \ sess0 ned-lst bool
-    true
+    dup session-set-all-needs       \ sess0
+    dup session-get-sesneed-list    \ sess0 ned-lst
+    dup list-is-empty?              \ sess0 ned-lst bool
     if
         cr ." Needs: No needs found" cr
-        \ 2drop
+        drop
     else
-        \ drop
-        \ cr ." Needs:" cr .need-list cr  \ sess0
+        cr s" Needs:" rot .sesneed-list-prefix cr   \ sess0
         cr ." Press Enter to randomly choose a need."
     then
 
@@ -1181,7 +1266,13 @@ session-valued-regioncorrs-disp cell+   constant session-paths-disp             
     if
         cr ." Plan succeeded" cr
         plan-deallocate                         \ stac-to1 stac-from' sess0 pth
-        2drop                                   \ stac-to1 stac-from'
+        drop                                    \ stac-to1 stac-from' sess0
+
+        dup session-get-current-states          \ stac-to1 stac-from' sess0 stac'
+        cr ." Session end states: " dup .statecorr cr
+        statecorr-deallocate
+
+        drop                                    \ stac-to1 stac-from'
         statecorr-deallocate                    \ stac-to1
         drop
         true

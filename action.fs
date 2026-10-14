@@ -1535,18 +1535,9 @@ action-groups-disp                          cell+   constant action-function-dis
 
     \ cr ." action-check-pair-list-for-changed-square: process del list: " .stack cr
 
-    \ Process del list.
-    dup list-is-empty?                  \ sqr2 act0 del-lst bool
-    if
-        list-deallocate
-        2drop
-        false
-        \ cr ." action-check-incompatible-pairs-for-changed-square: exit 2: " .stack cr
-        exit
-    then
+    nip nip                             \ del-lst
 
-    nip nip
-    true
+    check-list-return
 
     \ cr ." action-check-pair-list-for-changed-square: end: " .stack cr
 ;
@@ -2036,13 +2027,44 @@ action-groups-disp                          cell+   constant action-function-dis
                                         \ f-sta1 ret
     nip                                 \ ret
 
-    \ Return.
-    dup list-is-empty?
-    if
-        list-deallocate
-        false
-    else
-        true
-    then
+    check-list-return
     \ cr ." action-get-forward-steps: end: " .stack cr
+;
+
+\ Set the action and domain ids of a list of needs.
+: action-set-ids ( ned-lst1 act0 -- )
+    \ Check args.
+    assert( tos is-action? )
+    assert( nos is-actneed-list? )
+
+    action-get-inst-ids     \ ned-lst1 act-id dom-id
+    rot                     \ act-id dom-id ned-lst1
+
+    foreach                 \ act-id dom-id ned-lnk actnedx
+        #3 pick             \ act-id dom-id ned-lnk actnedx act-id
+        over actneed-set-act-inst-id
+        #2 pick             \ act-id dom-id ned-lnk actnedx dom-id
+        swap actneed-set-dom-inst-id
+    next-item
+                            \ act-id dom-id
+    2drop
+;
+
+\ Return action needs, if any.
+: action-get-needs ( cur-sta1 act0 -- ned-lst t | f )
+    \ Check args.
+    assert( tos is-action? )
+    assert( nos is-state? )
+
+    \ Check if the state is in any group.
+    tuck action-get-groups          \ act0 cur-sta1 grp-lst
+    group-list-get-needs            \ act0 ned-lst t | f
+    if
+        tuck swap                   \ ned-lst ned-lst act0
+        action-set-ids              \ ned-lst
+        true
+    else
+        drop
+        false
+    then
 ;

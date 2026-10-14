@@ -5,7 +5,7 @@
 
 \ Struct fields
 0                               constant actneed-header-disp    \ 16 bits' [0] struct id, [1] use count, [2] Type (8 bits).
-                                                                \ Action instance id (8 bits)
+                                                                \ Action instance id (8 bits), Domain instance ID ( 8 bits ).
 actneed-header-disp    cell+   constant actneed-target-disp     \ A state.
 actneed-target-disp    cell+   constant actneed-info-disp       \ Zero, or a Token struct, depending on actneed type.
 
@@ -51,8 +51,21 @@ actneed-target-disp    cell+   constant actneed-info-disp       \ Zero, or a Tok
 
 \ Start accessors.
 
+\ Return the actneed domain id.
+: actneed-get-dom-inst-id ( actned0 -- id )
+    \ Check arg.
+    assert( tos is-actneed? )
+
+    6c@                 \ Fetch the field.
+;
+
+\ Set the actneed domain id.
+: actneed-set-dom-inst-id ( id1 actned0 -- )
+    6c!
+;
+
 \ Return the action instance id.
-: actneed-get-act-inst-id ( ned0 -- act )
+: actneed-get-act-inst-id ( actned0 -- act )
     \ Check arg.
     assert( tos is-actneed? )
 
@@ -60,14 +73,14 @@ actneed-target-disp    cell+   constant actneed-info-disp       \ Zero, or a Tok
 ;
 
 \ Set the action instance id, use only in this file.
-: _actneed-set-act-inst-id ( id1 ned0 -- )
+: actneed-set-act-inst-id ( id1 actned0 -- )
     \ Check args.
 
     5c!                 \ Set the field.
 ;
 
 \ Return the target field from a actneed instance.
-: actneed-get-target ( ned0 -- targ )
+: actneed-get-target ( actned0 -- targ )
     \ Check arg.
     assert( tos is-actneed? )
 
@@ -104,7 +117,7 @@ actneed-target-disp    cell+   constant actneed-info-disp       \ Zero, or a Tok
 ;
 
 \ Return actneed info field.
-: actneed-get-info ( ned -- tkn )
+: actneed-get-info ( ned -- tkn | 0 )
     \ Check arg.
     assert( tos is-actneed? )
 
@@ -126,44 +139,47 @@ actneed-target-disp    cell+   constant actneed-info-disp       \ Zero, or a Tok
 \ End accessors.
 
 \ Create a actneed given:
-\ An action intance id.
+\ A Domain instance id.
+\ An action instance id.
 \ A need type.
 \ A target, a state.
 \ A token for extra info, may be zero.
 \
-: actneed-new ( tkn3 targ2 typ1 act-id0 -- addr) \ For non-test code, call action-make-need instead of this.
+: actneed-new ( tkn4 targ3 typ2 act-id1 dom-id0 -- addr)
     \ Check args.
     assert( tos is-valid-inst-id? )
-    assert( nos is-actneed-type? )
-    assert( 3os is-state? )
-    assert( 4os 0= if true else 4os is-token? then )
+    assert( nos is-valid-inst-id? )
+    assert( 3os is-actneed-type? )
+    assert( 4os is-state? )
+    assert( 5os 0= if true else 5os is-token? then )
 
     \ Allocate instance.
     actneed-struct-id actneed-mma
-    struct-allocate                 \  tkn3 targ2 typ1 act-id0 dom-id0 ned
+    struct-allocate                 \  tkn4 targ3 typ2 act-id1 dom-id0 ned
 
     \ Store fields.
-    tuck _actneed-set-act-inst-id   \ tkn3 targ2 typ1 ned
-    tuck _actneed-set-type          \ tkn3 targ2 ned
-    tuck _actneed-set-target        \ tkn3
+    tuck actneed-set-dom-inst-id    \ tkn4 targ3 typ2 act-id1 ned
+    tuck actneed-set-act-inst-id    \ tkn4 targ3 typ2 ned
+    tuck _actneed-set-type          \ tkn4 targ3 ned
+    tuck _actneed-set-target        \ tkn4
     tuck _actneed-set-info          \ ned
 ;
 
-: .actneed-act-targ ( ned -- )
+: .actneed-dom-act-targ ( actned -- )
+    ." Dom: " dup actneed-get-dom-inst-id #3 dec.r space
     ." Act: " dup actneed-get-act-inst-id #3 dec.r space
-
-    ." Target: "
-    actneed-get-target .state
+    ." Target: " actneed-get-target .state
 ;
 
-\ Print a need.
-: .actneed ( ned0 -- )
+\ Print an actneed.
+: .actneed ( actned0 -- )
     \ Check arg.
     assert( tos is-actneed? )
 
-    dup .actneed-act-targ
+    ." ("
+    dup .actneed-dom-act-targ
 
-    actneed-get-type
+    dup actneed-get-type
     case
         actneed-type-snig of
             space ." State not in a group"
@@ -195,10 +211,13 @@ actneed-target-disp    cell+   constant actneed-info-disp       \ Zero, or a Tok
         endof
         ." Unrecognized type value" abort
     endcase
+                    \ actned0
+    drop
+    ." )"
 ;
 
 \ Deallocate a need.
-: actneed-deallocate ( ned0 -- )
+: actneed-deallocate ( actned0 -- )
     \ Check arg.
     assert( tos is-actneed? )
 
@@ -218,7 +237,7 @@ actneed-target-disp    cell+   constant actneed-info-disp       \ Zero, or a Tok
 ;
 
 \ Return true if a satte satisfies a need.
-: need-satisfied-by? ( sta1 ned0 -- bool )
+: actneed-satisfied-by? ( sta1 actned0 -- bool )
     \ Check arg.
     assert( tos is-actneed? )
     assert( nos is-state? )

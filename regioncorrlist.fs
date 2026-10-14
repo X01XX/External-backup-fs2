@@ -252,13 +252,8 @@
         next-item
     next-item
                                             \ ret-lst
-    dup list-is-empty?
-    if
-        list-deallocate
-        false
-    else
-        true
-    then
+
+    check-list-return
     \ cr ." regioncorr-list-self-intersections-nodups: end" cr
 ;
 
