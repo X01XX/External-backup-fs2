@@ -947,3 +947,19 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     dup mask-num-bits-set   \ msk nb
     swap mask-deallocate    \ nb
 ;
+
+\ Given a state in a region, return the state in the region
+\ farthest from the state.
+: region-far-state ( sta1 reg0 -- sta-far )
+    \ Check args.
+    assert( tos is-region? )
+    assert( nos is-state? )
+    assert( 2dup region-superset-of-state? )
+
+    region-calc-x-mask      \ sta1 msk'
+    dup rot                 \ msk' msk' sta1
+    state-xor-mask          \ msk' sta-far
+
+    \ Return.
+    swap mask-deallocate    \ sta-far
+;

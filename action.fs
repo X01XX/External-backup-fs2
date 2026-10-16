@@ -226,6 +226,7 @@ action-groups-disp                          cell+   constant action-function-dis
     assert( tos is-action? )
     assert( nos is-region-list? )
 
+    cr ." _action-set-possible-regions: " over .region-list cr
     action-possible-regions-disp +  \ Add offset.
     !struct                         \ Set the field.
 ;
@@ -396,6 +397,7 @@ action-groups-disp                          cell+   constant action-function-dis
     \ Check args.
     assert( tos is-action? )
     assert( nos is-region-list? )
+    cr ." _action-update-possible-regions " over .region-list cr
 
     dup action-get-possible-regions     \ reg-lst1 act0 pos-regs
     -rot                                \ pos-regs reg-lst1 act0
@@ -511,7 +513,8 @@ action-groups-disp                          cell+   constant action-function-dis
     #2 pick                             \ xt2 mr1 act lst mr1
     over list-push-struct               \ xt2 mr1 act lst
     over                                \ xt2 mr1 act lst act
-    _action-set-possible-regions        \ xt2 mr1 act
+    2dup _action-set-possible-regions   \ xt2 mr1 act
+    _action-set-defining-regions        \ xt2
 
     \ Set maximum region.
     tuck _action-set-max-region         \ xt2 act
@@ -525,7 +528,6 @@ action-groups-disp                          cell+   constant action-function-dis
     list-new over _action-set-nadj-pairs
     list-new over _action-set-groups
     list-new over _action-set-states-in-one-region
-    list-new over _action-set-defining-regions
     list-new over _action-set-states-not-in-defining-regions
     list-new over _action-set-corners
     list-new over _action-set-corner-clusters
@@ -688,15 +690,55 @@ action-groups-disp                          cell+   constant action-function-dis
     square-list-find        \ sqr t | f
 ;
 
+\ Return a list of defining regions in the possible regions.
+: action-defining-regions ( act0 -- reg-lst )
+    \ Check arg.
+    assert( tos is-action? )
+
+    \ Init result list.
+    list-new                                \ act0 rslt-lst
+
+    \ Get possible-regions.
+    over action-get-possible-regions        \ act0 rslt-lst pos-lst
+
+    \ Get states in one region.
+    #2 pick action-get-states-in-one-region \ act0 rslt-lst pos-lst sta-lst
+
+    foreach                                 \ act0 rslt-lst pos-lst sta-lnk stax
+        \ Get region state is in.
+        #2 pick                             \ act0 rslt-lst pos-lst sta-lnk stax pos-lst
+        region-list-state-in                \ act0 rslt-lst pos-lst sta-lnk regs-in'
+
+        \ Check result.
+        dup list-get-length                 \ act0 rslt-lst pos-lst sta-lnk regs-in' len
+        1 <> abort" state not in exactly one region?"
+
+        \ Check if its already in the list.
+        [ ' = ] literal                     \ act0 rslt-lst pos-lst sta-lnk regs-in' xt
+        over list-get-first-item            \ act0 rslt-lst pos-lst sta-lnk regs-in' xt regx
+        #5 pick                             \ act0 rslt-lst pos-lst sta-lnk regs-in' xt regx rslt-lst
+        list-member?                        \ act0 rslt-lst pos-lst sta-lnk regs-in' bool
+        ifnot
+            \ Add to result list.
+            dup list-get-first-item         \ act0 rslt-lst pos-lst sta-lnk regs-in' regx
+            #4 pick                         \ act0 rslt-lst pos-lst sta-lnk regs-in' regx rslt-lst
+            list-push-struct                \ act0 rslt-lst pos-lst sta-lnk regs-in'
+        then
+        region-list-deallocate              \ act0 rslt-lst pos-lst sta-lnk
+    next-item
+                                            \ act0 rslt-lst pos-lst
+    drop nip
+;
+
 \ Add a group to the group list.
 : action-add-group ( grp1 act0 -- )
     \ Check args.
     assert( tos is-action? )
     assert( nos is-group? )
-    cr dup .action-parent-inst-id dup .action-inst-id ." : Adding group: " over .group cr
+    \ cr dup .action-parent-inst-id dup .action-inst-id ." : Adding group: " over .group cr
 
-    action-get-groups        \ grp1 grp-lst
-    list-push-struct
+    action-get-groups   \ act0 grp1 grp-lst
+    list-push-struct    \
 ;
 
 \ Scan the group list to delete groups that have a region
@@ -839,46 +881,6 @@ action-groups-disp                          cell+   constant action-function-dis
     next-item
                                         \ act0 pos-regs
     2drop
-;
-
-\ Return a list of defining regions in the possible regions.
-: action-defining-regions ( act0 -- reg-lst )
-    \ Check arg.
-    assert( tos is-action? )
-
-    \ Init result list.
-    list-new                                \ act0 rslt-lst
-
-    \ Get possible-regions.
-    over action-get-possible-regions        \ act0 rslt-lst pos-lst
-
-    \ Get states in one region.
-    #2 pick action-get-states-in-one-region \ act0 rslt-lst pos-lst sta-lst
-
-    foreach                                 \ act0 rslt-lst pos-lst sta-lnk stax
-        \ Get region state is in.
-        #2 pick                             \ act0 rslt-lst pos-lst sta-lnk stax pos-lst
-        region-list-state-in                \ act0 rslt-lst pos-lst sta-lnk regs-in'
-
-        \ Check result.
-        dup list-get-length                 \ act0 rslt-lst pos-lst sta-lnk regs-in' len
-        1 <> abort" state not in exactly one region?"
-
-        \ Check if its already in the list.
-        [ ' = ] literal                     \ act0 rslt-lst pos-lst sta-lnk regs-in' xt
-        over list-get-first-item            \ act0 rslt-lst pos-lst sta-lnk regs-in' xt regx
-        #5 pick                             \ act0 rslt-lst pos-lst sta-lnk regs-in' xt regx rslt-lst
-        list-member?                        \ act0 rslt-lst pos-lst sta-lnk regs-in' bool
-        ifnot
-            \ Add to result list.
-            dup list-get-first-item         \ act0 rslt-lst pos-lst sta-lnk regs-in' regx
-            #4 pick                         \ act0 rslt-lst pos-lst sta-lnk regs-in' regx rslt-lst
-            list-push-struct                \ act0 rslt-lst pos-lst sta-lnk regs-in'
-        then
-        region-list-deallocate              \ act0 rslt-lst pos-lst sta-lnk
-    next-item
-                                            \ act0 rslt-lst pos-lst
-    drop nip
 ;
 
 \ Return square states not in defining regions.
@@ -1279,7 +1281,7 @@ action-groups-disp                          cell+   constant action-function-dis
 : action-recalc-possible-regions ( act0 -- )
     \ Check arg.
     assert( tos is-action? )
-\    cr ." action-recalc-possible-regions: start: " .stack cr
+    cr ." action-recalc-possible-regions: start: " .stack cr
 
     dup action-get-adj-regions              \ act0 adj-regs
     over action-get-nadj-regions            \ act0 adj-regs nadj-regs
@@ -2050,21 +2052,64 @@ action-groups-disp                          cell+   constant action-function-dis
     2drop
 ;
 
+\ Return a group, given a matchig region.
+: action-find-group ( reg1 act0 -- grp t | f )
+    \ Check args.
+    assert( tos is-action? )
+    assert( nos is-region? )
+
+    action-get-groups           \ reg1 grp-lst
+    group-list-find             \ grp t | f
+;
+
 \ Return action needs, if any.
 : action-get-needs ( cur-sta1 act0 -- ned-lst t | f )
     \ Check args.
     assert( tos is-action? )
     assert( nos is-state? )
 
+    \ Init return list.
+    list-new -rot                   \ ret-lst cur-sta1 act0
+
     \ Check if the state is in any group.
-    tuck action-get-groups          \ act0 cur-sta1 grp-lst
-    group-list-get-needs            \ act0 ned-lst t | f
+    tuck action-get-groups          \ ret-lst act0 cur-sta1 grp-lst
+    group-list-get-needs            \ ret-lst act0, ned-lst' t | f
     if
-        tuck swap                   \ ned-lst ned-lst act0
-        action-set-ids              \ ned-lst
-        true
-    else
-        drop
-        false
+       dup                          \ ret-lst act0 ned-lst' ned-lst'
+       #3 pick                      \ ret-lst act0 ned-lst' ned-lst' ret-lst
+       list-append-struct           \ ret-lst act0 ned-lst'
+       actneed-list-deallocate      \ ret-lst act0
     then
+
+                                    \ ret-lst act0
+
+    \ Get more needs, per defining, non-pnc, group.
+    dup action-get-defining-regions \ ret-lst act0 def-lst
+    foreach                         \ ret-lst act0 def-lnk regx
+        #2 pick                     \ ret-lst act0 def-lnk regx act0
+        action-find-group           \ ret-lst act0 def-lnk, grpx t | f
+        if
+            dup group-get-pnc       \ ret-lst act0 def-lnk grpx bool
+            if
+                drop
+            else
+                group-get-needs         \ ret-lst act0 def-lnk, ned-lst' t | f
+                if
+                    dup                     \ ret-lst act0 def-lnk ned-lst' ned-lst'
+                    #4 pick                 \ ret-lst act0 def-lnk ned-lst' ned-lst' ret-lst
+                    list-append-struct      \ ret-lst act0 def-lnk ned-lst'
+                    actneed-list-deallocate \ ret-lst act0 def-lnk
+                then
+            then
+\        else
+\            cr ." Defining group not found?"
+        then
+    next-item
+                                    \ ret-lst act0
+    over swap                       \ ret-lst ret-lst act0
+    action-set-ids                  \ ret-lst
+
+   \ cr ." action needs found: " dup list-get-length dec. cr
+
+    check-list-return
 ;

@@ -533,6 +533,37 @@ session-paths-disp              cell+   constant session-sesneed-list-disp      
 
 ' session-get-number-domains to session-get-number-domains-xt
 
+\ Check current state for an actneed.
+\ If it matches, run the action, return true.
+: session-check-current-state-for-actneed ( actneed sess0 -- bool )
+    \ Look up domain instance.
+    over actneed-get-dom-inst-id    \ actned1 sess0 dom-id
+    over                            \ actned1 sess0 dom-id sess0
+    session-find-domain             \ actned1 sess0, domx t | f
+    invert abort" domain not found?"
+
+    \ Check if states are equal.
+    dup domain-get-current-state    \ actned1 sess0 domx d-sta
+    #3 pick actneed-get-target      \ actned1 sess0 domx d-sta targ
+    states-eq?                      \ actned1 sess0 domx bool
+    ifnot
+        2drop drop
+        false
+        exit
+    then
+
+    \ Look up action instance.
+    #2 pick actneed-get-act-inst-id \ actned1 sess0 domx act-id
+    over domain-find-action         \ actned1 sess0 domx, act t | f
+    invert abort" action not found?"
+
+    \ Run action.
+    swap                            \ actned1 sess0 act domx
+    domain-get-sample               \ actned1 sess0 smpl
+    2drop drop
+    true
+;
+
 \ Do actneed.
 : session-do-sesneed-type-1 ( sesned1 sess0 -- bool )
     \ Check args.
@@ -543,26 +574,62 @@ session-paths-disp              cell+   constant session-sesneed-list-disp      
     dup actneed-get-type        \ sesned1 sess0 actnedx typ
 
     case
-        actneed-type-snig of
+        actneed-type-snig of                \ sesned1 sess0 actnedx
             \ State not in group, run action.
 
-            \ Look up domain instance.
-            dup actneed-get-dom-inst-id     \ sesned1 sess0 actnedx dom-id
-            #2 pick                         \ sesned1 sess0 actnedx dom-id sess0
-            session-find-domain             \ sesned1 sess0 actnedx, domx t | f
-            invert abort" domain not found?"
-
-            \ Look up action instance.
-            over actneed-get-act-inst-id    \ plnstp1 sess0 actstp1 dom act-id
-            over domain-find-action         \ plnstp1 sess0 actstp1 dom, act t | f
-            invert abort" action not found?"
-
-            \ Run action.
-            swap                            \ plnstp1 sess0 actstp1 act dom
-            domain-get-sample               \ plnstp1 sess0 actstp1 smpl
-            2drop 2drop
-            true
+            swap                                    \ sesned1 actnedx sess0
+            session-check-current-state-for-actneed \ sesned1 bool
+            nip
+            if
+                true
+                exit
+            else
+                cr ." snig need type failed?" cr abort
+            then
         endof
+        actneed-type-cg of                  \ sesned1 sess0 actnedx
+            \ Group confirm.
+
+            \ Check if domain current state satisfies the need.
+            2dup swap                               \ sesned1 sess0 actnedx actnedx sess0
+            session-check-current-state-for-actneed \ sesned1 sess0 actnedx bool
+            if
+                2drop drop
+                true
+                exit
+            then
+
+            \ Try a path, plan, run.
+            over session-get-current-states         \ sesned1 sess0 actnedx stac-cur'
+            over actneed-get-target                 \ sesned1 sess0 actnedx stac-cur' targ
+            #2 pick actneed-get-dom-inst-id         \ sesned1 sess0 actnedx stac-cur' targ dom-id
+            #2 pick                                 \ sesned1 sess0 actnedx stac-cur' targ dom-id stac-cur'
+            statecorr-insert-state                  \ sesned1 sess0 actnedx stac-cur' stac-targ'
+            dup                                     \ sesned1 sess0 actnedx stac-cur' stac-targ' stac-targ'
+            #4 pick                                 \ sesned1 sess0 actnedx stac-cur' stac-targ' stac-targ' 'sess0
+            session-make-it-so-xt execute           \ sesned1 sess0 actnedx stac-cur' stac-targ' bool
+
+            \ Clean up a little.
+            swap statecorr-deallocate               \ sesned1 sess0 actnedx stac-cur' bool
+            swap statecorr-deallocate               \ sesned1 sess0 actnedx bool
+
+            ifnot
+                2drop drop
+                false
+                exit
+            then
+
+            swap                                    \ sesned1 actnedx sess0
+            session-check-current-state-for-actneed \ sesned1 bool
+            if
+                drop
+                true
+                exit
+            else
+                cr ." plan worked, but result bad?" cr abort
+            then
+        endof
+        2nip nip
         false swap
     endcase
 ;
@@ -580,11 +647,14 @@ session-paths-disp              cell+   constant session-sesneed-list-disp      
             session-do-sesneed-type-1
         endof
         #2 of
+            2drop
             false               \ sesned1 sess0 bool
         endof
         #3 of
+            2drop
             false               \ sesned1 sess0 bool
         endof
+        nip nip
         swap false              \ sesned1 sess0 bool type
     endcase
                                 \ bool
@@ -613,11 +683,12 @@ session-paths-disp              cell+   constant session-sesneed-list-disp      
         \ Get a randomly chosen need ( no dups ).
         dup random-pick                     \ sess0 sesned-lst pik-lst, inx t | f
         invert abort" random pick failed?"
+
         #2 pick list-get-item               \ sess0 sesned-lst pik-lst sesnedx
+        cr ." Need chosen: " dup .sesneed cr
 
         \ Satisfy need.
         #3 pick                             \ sess0 sesned-lst pik-lst sesnedx sess0
-
         session-satisfy-need                \ sess0 sesned-lst pik-lst result ( true = plan run )
         if
             list-deallocate                 \ sess0 sesned-lst
@@ -922,7 +993,7 @@ session-paths-disp              cell+   constant session-sesneed-list-disp      
                                                         \ gstac2 fstac1 avd-lst ex-lm sess0 opt-lst' f-lnk
     drop                                                \ gstac2 fstac1 avd-lst ex-lm sess0 opt-lst'
 
-    cr s" options: " #2 pick .actionstep-list-prefix cr
+    \ cr s" options: " #2 pick .actionstep-list-prefix cr
 
     \ Filter out options that do not go toward the goal, or enter regioncorrs to avoid.
 
@@ -980,7 +1051,7 @@ session-paths-disp              cell+   constant session-sesneed-list-disp      
                                                         \ gstac2 fstac1 avd-lst ex-lm sess0 opt-lst' opt-lst2' regc'
     regioncorr-deallocate                               \ gstac2 fstac1 avd-lst ex-lm sess0 opt-lst' opt-lst2'
 
-    cr s" direct planstep list: " #2 pick .planstep-list-prefix cr
+    \ cr s" direct planstep list: " #2 pick .planstep-list-prefix cr
 
     dup list-is-empty?
     ifnot
@@ -1275,7 +1346,7 @@ session-paths-disp              cell+   constant session-sesneed-list-disp      
     \ Check args.
     assert( tos is-session? )
     assert( nos is-plan? )
-    cr ." session-run-plan: start " over .plan cr
+    \ cr ." session-run-plan: start " over .plan cr
 
     \ Check plan initial states match session current states.
     dup session-get-current-states  \ pln1 sess0 stac'
@@ -1321,9 +1392,9 @@ session-paths-disp              cell+   constant session-sesneed-list-disp      
     path-get-traverse-list                      \ stac-to1 stac-from' sess0 pth stac-to1 stac-from' regc-trvl
     regioncorr-list-find-path                   \ stac-to1 stac-from' sess0 pth, pth-from-to' t | f
     if
-        cr ." path found: " dup .statecorr-list cr
+        \ cr ." path found: " dup .statecorr-list cr
     else
-        cr ." path not found" cr
+        \ cr ." path not found" cr
         2drop                                   \ stac-to1 stac-from'
         statecorr-list-deallocate               \ stac-to1
         drop
@@ -1337,13 +1408,13 @@ session-paths-disp              cell+   constant session-sesneed-list-disp      
     #4 pick                                     \ stac-to1 stac-from' sess0 pth pth-from-to' pth-from-to' avd-lst sess0
     session-make-plan                           \ stac-to1 stac-from' sess0 pth pth-from-to', pln' t | f
     if
-        cr ." plan found: " dup .plan cr
+        \ cr ." plan found: " dup .plan cr
         swap statecorr-list-deallocate          \ stac-to1 stac-from' sess0 pth pln'
     else
-        cr ." plan not found" cr
+        \ cr ." plan not found" cr
         statecorr-list-deallocate               \ stac-to1 stac-from' sess0 pth
         2drop                                   \ stac-to1 stac-from'
-        statecorr-list-deallocate               \ stac-to1
+        statecorr-deallocate                    \ stac-to1
         drop
         false
         exit
@@ -1359,7 +1430,7 @@ session-paths-disp              cell+   constant session-sesneed-list-disp      
         drop                                    \ stac-to1 stac-from' sess0
 
         dup session-get-current-states          \ stac-to1 stac-from' sess0 stac'
-        cr ." Session end states: " dup .statecorr cr
+        \ cr ." Session end states: " dup .statecorr cr
         statecorr-deallocate
 
         drop                                    \ stac-to1 stac-from'
@@ -1374,3 +1445,5 @@ session-paths-disp              cell+   constant session-sesneed-list-disp      
         false
     then
 ;
+
+' session-make-it-so to session-make-it-so-xt

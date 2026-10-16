@@ -1011,13 +1011,13 @@
     2dup                                        \ stac-t stac-f regcl-trv | stac-f regcl-trv
     regioncorr-list-supersets-of-statecorr      \ stac-t stac-f regcl-trv | regcl-sup'
 
-    cr ." regioncorrs " #2 pick .statecorr space ." is in: " dup .regioncorr-list cr
+    \ cr ." regioncorrs " #2 pick .statecorr space ." is in: " dup .regioncorr-list cr
 
     \ Get min distance to stac-to.
     #3 pick                                     \ stac-t stac-f regcl-trv | regcl-sup' stac-t
     over                                        \ stac-t stac-f regcl-trv | regcl-sup' stac-t regcl-sup'
     regioncorr-list-min-distance-statecorr      \ stac-t stac-f regcl-trv | regcl-sup' cur-min
-    cr ." Min dist to " #4 pick .statecorr space ." = " dup dec. cr
+    \ cr ." Min dist to " #4 pick .statecorr space ." = " dup dec. cr
 
     \ Check if stac-f and stac-f are in the same regioncorr.
     dup 0= if
@@ -1037,7 +1037,7 @@
     regioncorr-list-distance-statecorr-eq       \ stac-t stac-f regcl-trv | regcl-sup' cur-min regcl-sup''
     rot regioncorr-list-deallocate              \ stac-t stac-f regcl-trv | cur-min regcl-sup''
 
-    cr ." regioncorrs " #3 pick .statecorr space ." is in, closest to : " #4 pick .statecorr space ." = " dup .regioncorr-list cr
+    \ cr ." regioncorrs " #3 pick .statecorr space ." is in, closest to : " #4 pick .statecorr space ." = " dup .regioncorr-list cr
 
     \ Subtract stac-from superset regioncorrs, closest to stac-to, from traverse regcs.
     [ ' = ] literal                             \ stac-t stac-f regcl-trv | cur-min regcl-sup' xt
@@ -1045,20 +1045,20 @@
     #2 pick                                     \ stac-t stac-f regcl-trv | cur-min regcl-sup' xt regcl-trv regcl-sup'
     list-difference-struct                      \ stac-t stac-f regcl-trv | cur-min regcl-sup' regcl-dif'
 
-    cr ." Other regioncorrs: " dup .regioncorr-list cr
+    \ cr ." Other regioncorrs: " dup .regioncorr-list cr
 
     \ Get regcs in regcl-dif that intersect with regcl-sup.
     dup                                         \ stac-t stac-f regcl-trv | cur-min regcl-sup' regcl-dif' regcl-dif'
     #2 pick                                     \ stac-t stac-f regcl-trv | cur-min regcl-sup' regcl-dif' regcl-dif' regcl-sup'
     regioncorr-list-intersections               \ stac-t stac-f regcl-trv | cur-min regcl-sup' regcl-dif' regcl-int'
 
-    cr ." Intersectors of : " #2 pick .regioncorr-list space ." = " dup .regioncorr-list cr
+    \ cr ." Intersectors of : " #2 pick .regioncorr-list space ." = " dup .regioncorr-list cr
 
     \ Find min distance between regioncorrs in regcl-int and stac-t.
     \ Minimum distance may be zero.
     #6 pick over                                \ stac-t stac-f regcl-trv | cur-min regcl-sup' regcl-dif' regcl-int' stac-t regcl-int'
     regioncorr-list-min-distance-statecorr      \ stac-t stac-f regcl-trv | cur-min regcl-sup' regcl-dif' regcl-int' new-min
-    cr ." Intersectors min dist to : " #7 pick .statecorr space ." = " dup dec. space ." s\b less than: " #4 pick dec. cr
+    \ cr ." Intersectors min dist to : " #7 pick .statecorr space ." = " dup dec. space ." s\b less than: " #4 pick dec. cr
 
     \ Check if any option is closer to stac-to.
     dup                                         \ stac-t stac-f regcl-trv | cur-min regcl-sup' regcl-dif' regcl-int' new-min new-min
@@ -1079,12 +1079,12 @@
     regioncorr-list-distance-statecorr-eq       \ stac-t stac-f regcl-trv | cur-min regcl-sup' regcl-dif' regcl-int' regcl-int''
     swap regioncorr-list-deallocate             \ stac-t stac-f regcl-trv | cur-min regcl-sup' regcl-dif' regcl-int''
 
-    cr ." Min dist intersectors: " dup .regioncorr-list cr
+    \ cr ." Min dist intersectors: " dup .regioncorr-list cr
 
     \ Choose one randomly.
     dup list-get-length random                  \ stac-t stac-f regcl-trv | cur-min regcl-sup' regcl-dif' regcl-int' inx
     over list-get-item                          \ stac-t stac-f regcl-trv | cur-min regcl-sup' regcl-dif' regcl-int' regcx
-    cr ." Randomly chosen min dist intersector: " dup .regioncorr cr
+    \ cr ." Randomly chosen min dist intersector: " dup .regioncorr cr
 
     \ Find intersection of regcl-sup and chossen regioncorr.
     dup                                         \ stac-t stac-f regcl-trv | cur-min regcl-sup' regcl-dif' regcl-int' regcx regcx
@@ -1103,7 +1103,7 @@
     dup #9 pick                                 \ stac-t stac-f regcl-trv | cur-min regcl-sup' regcl-dif' regcl-int' regcx regc-int' mskc' mskc' stac-f
     statecorr-xor-maskcorr                      \ stac-t stac-f regcl-trv | cur-min regcl-sup' regcl-dif' regcl-int' regcx regc-int' mskc' stac-nxt'
 
-    cr ." next stac: " dup .statecorr cr
+    \ cr ." next stac: " dup .statecorr cr
 
     \ Clean up.
     swap maskcorr-deallocate                    \ stac-t stac-f regcl-trv | cur-min regcl-sup' regcl-dif' regcl-int' regcx regc-int' stac-nxt'

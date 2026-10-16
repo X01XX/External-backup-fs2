@@ -590,10 +590,111 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 
 \ Return true if a given state is in a group's s-region.
 : group-state-in-s-region? ( sta1 grp0 -- bool )
-    \ Check arg.
+    \ Check args.
     assert( tos is-group? )
     assert( nos is-state? )
 
     group-get-s-region          \ sta1 sreg
     region-superset-of-state?   \ bool
+;
+
+\ Return a need to confirm a group.
+: group-make-need ( sta1 grp0 -- ned )
+    \ Check args.
+    assert( tos is-group? )
+    assert( nos is-state? )
+
+    \ Make actneed.
+
+    \ Make token.
+    group-get-region        \ sta1 reg
+    region-str              \ sta1 tkn
+
+    \ Finish need.
+    swap                    \ tkn targ
+    actneed-type-cg         \ tkn targ ned-typ
+    0 0                     \ tkn targ ned-typ act-id dom-id
+    actneed-new             \ actned
+;
+
+\ Return group needs, if any.
+\ Caller should only call wint defining, non-pnc, groups.
+\
+\ This logic may set pnc on.
+\
+\ This is guided by the possible future need to use a square state
+\ used in a corner cluster, by changing the first square in the
+\ group square list, setting group pnc off, then let group needs,
+\ then data deletion, finish the change.
+: group-get-needs ( grp0 -- ned-lst t | f )
+    \ Check arg.
+    assert( tos is-group? )
+    assert( tos group-get-pnc invert )
+    \ cr ." group-needs-start: " cr
+
+    \ Check if a far state/square sample is needed.
+
+    \ Get first square state.
+    dup group-get-squares       \ grp0 sqr-lst
+    list-get-first-item         \ grp0 sqr-first
+    square-get-state            \ grp0 sta-first
+
+    \ Calc far state.
+    over group-get-region       \ grp0 sta-first g-reg
+    region-far-state            \ grp0 sta-far'
+
+    \ Check far square.
+    dup #2 pick                 \ grp0 sta-far' sta-far' grp0
+    group-get-squares           \ grp0 sta-far' sta-far' sqr-lst
+    square-list-find            \ grp0 sta-far', sqr-far t | f
+    if
+        square-get-pnc          \ grp0 sta-far' pnc
+        if
+            state-deallocate    \ grp0
+        else
+            \ Return a need for an additional sample of the far square.
+            over                \ grp0 sta-far' grp0
+            group-make-need     \ grp0 actned
+            nip                 \ actned
+            list-new tuck       \ ret-lst actned ret-lst
+            list-push-struct    \ ret-lst
+            true
+            exit
+        then
+    else
+        \ Return a need for an initial sample of the far state.
+        swap                \ sta-far' grp0
+        group-make-need     \ actned
+        list-new tuck       \ ret-lst actned ret-lst
+        list-push-struct    \ ret-lst
+        true
+        exit
+    then
+
+                            \ grp0
+    \ Check first square.
+
+    \ Get first square.
+    dup group-get-squares       \ grp0 sqr-lst
+    list-get-first-item         \ grp0 sqr-first
+    dup square-get-pnc          \ grp0 sqr-first pnc
+    if
+        \ No needs for first and far squares, set pnc true.
+        drop                    \ grp0
+        true swap               \ bool grp0
+        _group-set-pnc          \
+        false
+        exit
+    then
+
+    \ Make need for additional sample of the first square.
+                                \ grp0 sqr-first
+    square-get-state            \ grp0 sta-first
+    swap                        \ sta-first grp0
+    group-make-need             \ actned
+
+    \ Return.
+    list-new tuck               \ rel-lst actned ret-lst
+    list-push-struct            \ ret-lst
+    true
 ;

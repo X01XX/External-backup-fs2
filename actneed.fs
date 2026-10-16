@@ -182,31 +182,31 @@ actneed-target-disp    cell+   constant actneed-info-disp       \ Zero, or a Tok
     dup actneed-get-type
     case
         actneed-type-snig of
-            space ." State not covered by group"
+            space ." State not covered by group "
         endof
         actneed-type-cls of
             space ." Confirm incompatible pair "
-            actneed-get-info .token
+            dup actneed-get-info .token
             \ region-get-states .state space ." and " .state
         endof
         actneed-type-ils of
             space ." Get sample between incompatible pair "
-            actneed-get-info .token
+            dup actneed-get-info .token
             \ region-get-states .state space ." and " .state
         endof
         actneed-type-cg of
             space ." Confirm group "
-            actneed-get-info .token
+            dup actneed-get-info .token
             \ .region
         endof
         actneed-type-cas of
             space ." Corner confirm anchor square "
-            actneed-get-info .token
+            dup actneed-get-info .token
             \ .corner
         endof
         actneed-type-cds of
             space ." Corner confirm dissimilar square "
-            actneed-get-info .token
+            dup actneed-get-info .token
             \ .corner
         endof
         ." Unrecognized type value" abort

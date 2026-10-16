@@ -45,9 +45,11 @@
     \ Check arg.
     assert( tos is-group-list? )
 
+    ." ("
     foreach                 \ grp-lnk grpx
         cr #8 spaces .group
     next-item
+    ." )"
 ;
 
 : .group-list-prefix ( c-addr u list0 -- )
@@ -192,6 +194,7 @@
     \ Check args.
     assert( tos is-group-list? )
     assert( nos is-state? )
+    \ cr ." group-list-state-in-any-s-region? " over .state space dup .group-list cr
 
     foreach                         \ sta1 grp-lnk grpx
         #2 pick swap                \ sta1 grp-lnk sta1 grpx
@@ -199,12 +202,14 @@
         if
             2drop
             true
+            \ cr ." group-list-state-in-any-s-region? true" cr
             exit
         then
     next-item
                                     \ sta1
     drop
     false
+    \ cr ." group-list-state-in-any-s-region? false" cr
 ;
 
 \ Return action needs for groups in a group-list.
@@ -219,23 +224,24 @@
 
     2dup                                \ ret-lst sta1 grp-lst0 sta1 grp-lst0
     group-list-state-in-any-s-region?   \ ret-lst sta1 grp-lst0 bool
-    ifnot
+    if
+        2drop
+    else
+        \ cr ." group-list-get-needs: at 1: " .stack cr
         \ Make actneed.
         0                       \ ret-lst sta1 grp-lst0 tkn
         #2 pick                 \ ret-lst sta1 grp-lst0 tkn targ
         actneed-type-snig       \ ret-lst sta1 grp-lst0 tkn targ ned-typ
         0 0                     \ ret-lst sta1 grp-lst0 tkn targ ned-typ act-id dom-id
         actneed-new             \ ret-lst sta1 grp-lst0 actned
-
+        \ cr ." group-list-get-needs: at 2: " .stack cr
         \ Store actneed.
         #3 pick                 \ ret-lst sta1 grp-lst0 actned ret-lst
         list-push-struct        \ ret-lst sta1 grp-lst0
+        2drop
     then
 
-                                \ ret-lst sta1 grp-lst0
-    \ TODO : more needs, per group.
-
-    2drop                       \ ret-lst
+    \ cr ." group-list needs found: " .stack cr
 
     check-list-return
 ;
