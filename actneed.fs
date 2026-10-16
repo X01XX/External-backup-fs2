@@ -166,8 +166,8 @@ actneed-target-disp    cell+   constant actneed-info-disp       \ Zero, or a Tok
 ;
 
 : .actneed-dom-act-targ ( actned -- )
-    ." Dom: " dup actneed-get-dom-inst-id #3 dec.r space
-    ." Act: " dup actneed-get-act-inst-id #3 dec.r space
+    ." Dom: " dup actneed-get-dom-inst-id #2 dec.r space
+    ." Act: " dup actneed-get-act-inst-id #2 dec.r space
     ." Target: " actneed-get-target .state
 ;
 
@@ -182,7 +182,7 @@ actneed-target-disp    cell+   constant actneed-info-disp       \ Zero, or a Tok
     dup actneed-get-type
     case
         actneed-type-snig of
-            space ." State not in a group"
+            space ." State not covered by group"
         endof
         actneed-type-cls of
             space ." Confirm incompatible pair "

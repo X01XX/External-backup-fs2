@@ -522,7 +522,7 @@ session-paths-disp              cell+   constant session-sesneed-list-disp      
     true
 ;
 
-\ Return the numebr of domains.
+\ Return the number of domains.
 : session-get-number-domains ( sess0 -- u )
     \ Check arg.
     assert( tos is-session? )
@@ -533,12 +533,101 @@ session-paths-disp              cell+   constant session-sesneed-list-disp      
 
 ' session-get-number-domains to session-get-number-domains-xt
 
-: session-do-zero-token-command ( sess -- bool )
+\ Do actneed.
+: session-do-sesneed-type-1 ( sesned1 sess0 -- bool )
     \ Check args.
+    assert( tos is-session? )
+    assert( nos is-sesneed? )
+
+    over sesneed-get-actneed    \ sesned1 sess0 actnedx
+    dup actneed-get-type        \ sesned1 sess0 actnedx typ
+
+    case
+        actneed-type-snig of
+            \ State not in group, run action.
+
+            \ Look up domain instance.
+            dup actneed-get-dom-inst-id     \ sesned1 sess0 actnedx dom-id
+            #2 pick                         \ sesned1 sess0 actnedx dom-id sess0
+            session-find-domain             \ sesned1 sess0 actnedx, domx t | f
+            invert abort" domain not found?"
+
+            \ Look up action instance.
+            over actneed-get-act-inst-id    \ plnstp1 sess0 actstp1 dom act-id
+            over domain-find-action         \ plnstp1 sess0 actstp1 dom, act t | f
+            invert abort" action not found?"
+
+            \ Run action.
+            swap                            \ plnstp1 sess0 actstp1 act dom
+            domain-get-sample               \ plnstp1 sess0 actstp1 smpl
+            2drop 2drop
+            true
+        endof
+        false swap
+    endcase
+;
+
+\ Try to satisfy a need.
+\ Return true if a plan was run.
+: session-satisfy-need ( sesned1 sess0 -- bool )
+    \ Check args.
+    assert( tos is-session? )
+    assert( nos is-sesneed? )
+
+    over sesneed-get-type       \ sesned1 sess0 typ
+    case
+        1 of
+            session-do-sesneed-type-1
+        endof
+        #2 of
+            false               \ sesned1 sess0 bool
+        endof
+        #3 of
+            false               \ sesned1 sess0 bool
+        endof
+        swap false              \ sesned1 sess0 bool type
+    endcase
+                                \ bool
+;
+
+: session-do-zero-token-command ( sess0 -- )
+    \ Check arg.
     assert( tos is-session? )
     \ cr ." session-do-zero-token-command" cr
 
-    session-inc-step-num
+    dup session-inc-step-num
+
+    dup session-get-sesneed-list            \ sess0 sesned-lst
+
+    dup list-is-empty?
+    if
+        2drop
+        exit
+    then
+
+    dup list-get-length pick-list           \ sess0 sesned-lst pik-lst
+
+    begin
+        dup list-is-not-empty?
+    while
+        \ Get a randomly chosen need ( no dups ).
+        dup random-pick                     \ sess0 sesned-lst pik-lst, inx t | f
+        invert abort" random pick failed?"
+        #2 pick list-get-item               \ sess0 sesned-lst pik-lst sesnedx
+
+        \ Satisfy need.
+        #3 pick                             \ sess0 sesned-lst pik-lst sesnedx sess0
+
+        session-satisfy-need                \ sess0 sesned-lst pik-lst result ( true = plan run )
+        if
+            list-deallocate                 \ sess0 sesned-lst
+            2drop
+            exit
+        then
+    repeat
+
+    list-deallocate                         \ sess0 sesned-lst
+    2drop
 ;
 
 \ Do commands from user input.
@@ -547,7 +636,7 @@ session-paths-disp              cell+   constant session-sesneed-list-disp      
     \ Check args.
     assert( tos is-session? )
     assert( nos is-list? )
-    cr ." session-eval-user-input: start " over .token-list cr
+    \ cr ." session-eval-user-input: start " over .token-list cr
 
     \ Check command.
     over list-get-first-item            \ cmd-lst1 sess0 tkn0
@@ -740,7 +829,8 @@ session-paths-disp              cell+   constant session-sesneed-list-disp      
     dup 0=
     if
         2drop
-        dup session-do-zero-token-command
+        session-do-zero-token-command
+        true
     else
         cr
         list-from-string-xt execute                             \ sess0, lst' t | f

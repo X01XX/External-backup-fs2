@@ -1,6 +1,6 @@
 \ Functions for random picks, where subsequent picks never repeat previous picks.
 
-\ Return a nemuric list, 0 to limit, exclusive.
+\ Return a numeric list, 0 to limit, exclusive.
 : pick-list ( num -- lst )
     assert( tos 0> )
     assert( tos #255 < )

@@ -124,8 +124,8 @@ include actionlist.fs
 include domain.fs
 include domainlist.fs
 
-include session.fs
 include randompick.fs
+include session.fs
 
 include mask_t.fs
 include state_t.fs
