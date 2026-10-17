@@ -9,7 +9,7 @@
     cr ." intersections: " dup .regioncorr-list cr
 
     \ Test.
-    s" ( regc 3  -3 (r0101 r00101)) ( regc 1  -1 (r0X0X r00x00)) ( regc 1  -1 (r0X0X r0000x)) ( regc 1  -1 (r0X00 r00x0x)) ( regc 1  -1 (r000X r00x0x)) ( regc 2  -2 (rx1x1 r0x111)) ( regc 2  -2 (rx1x1 r011x1)) ( regc 2  -2 (rx111 r0x1x1)) ( regc 2  -2 (r11x1 r0x1x1))"
+    s" ( regc #3  #-3 (r0101 r00101)) ( regc 1  -1 (r0X0X r00x00)) ( regc 1  -1 (r0X0X r0000x)) ( regc 1  -1 (r0X00 r00x0x)) ( regc 1  -1 (r000X r00x0x)) ( regc #2  #-2 (rx1x1 r0x111)) ( regc #2 #-2 (rx1x1 r011x1)) ( regc #2 #-2 (rx111 r0x1x1)) ( regc #2 #-2 (r11x1 r0x1x1))"
     list-from-string-a
     2dup regioncorr-lists-eq?
     invert abort" unexpected results?"

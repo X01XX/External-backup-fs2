@@ -1,7 +1,7 @@
 \ Test regioncorr functions.
 
 : regioncorr-test-from-string
-    s" regc 3 -1 (r100 r0x0x)" list-from-string       \ lst t | f
+    s" regc #3 -1 (r100 r0x0x)" list-from-string       \ lst t | f
     invert abort" regioncorr-test-new: list-from-string: string not parsed"
 
     \ Test.
@@ -14,7 +14,7 @@
 
     struct-list-deallocate
 
-    s" regc 3 -1 (r100 r0x0x)" string-to-stack        \ x* t | f
+    s" regc #3 -1 (r100 r0x0x)" string-to-stack        \ x* t | f
     invert abort" regioncorr-test-new: string-to-stack: string not parsed"
 
     \ Test (uses list-from-string).
@@ -22,7 +22,7 @@
 
     regioncorr-deallocate
 
-    s" regc 3 -1 (r100 r0x0x)" regioncorr-from-string        \ regc t | f
+    s" regc #3 -1 (r100 r0x0x)" regioncorr-from-string        \ regc t | f
     invert abort" regioncorr-test-new: regioncorr-from-string: regioncorr not parsed"
 
     \ Test (uses list-from-string).

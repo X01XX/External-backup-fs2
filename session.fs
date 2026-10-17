@@ -565,73 +565,52 @@ session-paths-disp              cell+   constant session-sesneed-list-disp      
 ;
 
 \ Do actneed.
+\ Return true if a plan was run.
 : session-do-sesneed-type-1 ( sesned1 sess0 -- bool )
     \ Check args.
     assert( tos is-session? )
     assert( nos is-sesneed? )
 
     over sesneed-get-actneed    \ sesned1 sess0 actnedx
-    dup actneed-get-type        \ sesned1 sess0 actnedx typ
 
-    case
-        actneed-type-snig of                \ sesned1 sess0 actnedx
-            \ State not in group, run action.
+    \ Check if domain current state satisfies the need.
+    2dup swap                               \ sesned1 sess0 actnedx actnedx sess0
+    session-check-current-state-for-actneed \ sesned1 sess0 actnedx bool
+    if
+        2drop drop
+        true
+        exit
+    then
 
-            swap                                    \ sesned1 actnedx sess0
-            session-check-current-state-for-actneed \ sesned1 bool
-            nip
-            if
-                true
-                exit
-            else
-                cr ." snig need type failed?" cr abort
-            then
-        endof
-        actneed-type-cg of                  \ sesned1 sess0 actnedx
-            \ Group confirm.
+    \ Try a path, plan, run.
+    over session-get-current-states         \ sesned1 sess0 actnedx stac-cur'
+    over actneed-get-target                 \ sesned1 sess0 actnedx stac-cur' targ
+    #2 pick actneed-get-dom-inst-id         \ sesned1 sess0 actnedx stac-cur' targ dom-id
+    #2 pick                                 \ sesned1 sess0 actnedx stac-cur' targ dom-id stac-cur'
+    statecorr-insert-state                  \ sesned1 sess0 actnedx stac-cur' stac-targ'
+    dup                                     \ sesned1 sess0 actnedx stac-cur' stac-targ' stac-targ'
+    #4 pick                                 \ sesned1 sess0 actnedx stac-cur' stac-targ' stac-targ' 'sess0
+    session-make-it-so-xt execute           \ sesned1 sess0 actnedx stac-cur' stac-targ' bool
 
-            \ Check if domain current state satisfies the need.
-            2dup swap                               \ sesned1 sess0 actnedx actnedx sess0
-            session-check-current-state-for-actneed \ sesned1 sess0 actnedx bool
-            if
-                2drop drop
-                true
-                exit
-            then
+    \ Clean up a little.
+    swap statecorr-deallocate               \ sesned1 sess0 actnedx stac-cur' bool
+    swap statecorr-deallocate               \ sesned1 sess0 actnedx bool
 
-            \ Try a path, plan, run.
-            over session-get-current-states         \ sesned1 sess0 actnedx stac-cur'
-            over actneed-get-target                 \ sesned1 sess0 actnedx stac-cur' targ
-            #2 pick actneed-get-dom-inst-id         \ sesned1 sess0 actnedx stac-cur' targ dom-id
-            #2 pick                                 \ sesned1 sess0 actnedx stac-cur' targ dom-id stac-cur'
-            statecorr-insert-state                  \ sesned1 sess0 actnedx stac-cur' stac-targ'
-            dup                                     \ sesned1 sess0 actnedx stac-cur' stac-targ' stac-targ'
-            #4 pick                                 \ sesned1 sess0 actnedx stac-cur' stac-targ' stac-targ' 'sess0
-            session-make-it-so-xt execute           \ sesned1 sess0 actnedx stac-cur' stac-targ' bool
+    ifnot
+        2drop drop
+        true
+        exit
+    then
 
-            \ Clean up a little.
-            swap statecorr-deallocate               \ sesned1 sess0 actnedx stac-cur' bool
-            swap statecorr-deallocate               \ sesned1 sess0 actnedx bool
-
-            ifnot
-                2drop drop
-                false
-                exit
-            then
-
-            swap                                    \ sesned1 actnedx sess0
-            session-check-current-state-for-actneed \ sesned1 bool
-            if
-                drop
-                true
-                exit
-            else
-                cr ." plan worked, but result bad?" cr abort
-            then
-        endof
-        2nip nip
-        false swap
-    endcase
+    swap                                    \ sesned1 actnedx sess0
+    session-check-current-state-for-actneed \ sesned1 bool
+    if
+        drop
+        true
+        exit
+    else
+        cr ." plan worked, but result bad?" cr abort
+    then
 ;
 
 \ Try to satisfy a need.
@@ -1427,18 +1406,13 @@ session-paths-disp              cell+   constant session-sesneed-list-disp      
     if
         cr ." Plan succeeded" cr
         plan-deallocate                         \ stac-to1 stac-from' sess0 pth
-        drop                                    \ stac-to1 stac-from' sess0
-
-        dup session-get-current-states          \ stac-to1 stac-from' sess0 stac'
-        \ cr ." Session end states: " dup .statecorr cr
-        statecorr-deallocate
-
-        drop                                    \ stac-to1 stac-from'
+        2drop                                   \ stac-to1 stac-from'
         statecorr-deallocate                    \ stac-to1
         drop
         true
     else
         cr ." Plan failed." cr
+        plan-deallocate                         \ stac-to1 stac-from' sess0 pth
         2drop                                   \ stac-to1 stac-from'
         statecorr-deallocate                    \ stac-to1
         drop

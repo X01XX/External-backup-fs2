@@ -194,7 +194,7 @@ corner-region-disp          cell+   constant corner-adjacent-states-disp    \ Al
     invert abort" token-concatenate failed"
     token-deallocate                \ crn0 tkn
 
-    s" anchor: "                    \ crn0 tkn c-addr u
+    s"  anchor: "                   \ crn0 tkn c-addr u
     #2 pick token-concatenate       \ crn0 tkn bool
     invert abort" token-concatenate failed"
 
@@ -205,7 +205,7 @@ corner-region-disp          cell+   constant corner-adjacent-states-disp    \ Al
     invert abort" token-concatenate failed"
     token-deallocate                \ crn0 tkn
 
-    s" AE: "                        \ crn0 tkn c-addr u
+    s"  AE: "                       \ crn0 tkn c-addr u
     #2 pick token-concatenate       \ crn0 tkn bool
     invert abort" token-concatenate failed"
 

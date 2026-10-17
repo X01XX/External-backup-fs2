@@ -222,6 +222,7 @@ list-new to structinfo-list-store
     [ ' dom-0-act2-get-result ] literal over domain-add-action
     [ ' dom-0-act3-get-result ] literal over domain-add-action
     [ ' dom-0-act4-get-result ] literal over domain-add-action
+    [ ' dom-0-act5-get-result ] literal over domain-add-action
 
     over domain-list-push-end       \ regc-lst dom-lst
     #6 domain-new                   \ regc-lst dom-lst dom
@@ -290,5 +291,6 @@ list-new to structinfo-list-store
     session-tests
     cr
     .memory-use
+    cr ." base: " base @ dec. cr
 ;
 

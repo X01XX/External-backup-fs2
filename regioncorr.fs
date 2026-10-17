@@ -518,7 +518,7 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
 \ Like ( regc 1 -2 (rxxxx r1010))
 \ Like ( regc 0 0 (rxxxx r1010))
 : regioncorr-from-string ( str-addr str-n -- regc t | f )
-    cr ." regioncorr-from-string: start: " 2dup type cr
+    \ cr ." regioncorr-from-string: start: " 2dup type cr
 
     \ Convert string to list.
     list-from-string-xt execute             \ lst t | f
@@ -531,7 +531,7 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
     if
         struct-list-deallocate
         false
-        cr ." regioncorr-from-string: exit 2: false" cr
+        \ cr ." regioncorr-from-string: exit 2: false" cr
         exit
     then
                                             \ lst
@@ -542,12 +542,12 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
         invert abort" pop faled?"
         swap list-deallocate                \ itm
         true
-        cr ." regioncorr-from-string: end: true"  .stack cr
+        \ cr ." regioncorr-from-string: end: true"  .stack cr
         exit
     else
         struct-list-deallocate
         false
-        cr ." regioncorr-from-string: exit 3: false" cr
+        \ cr ." regioncorr-from-string: exit 3: false" cr
         exit
     then
 ;

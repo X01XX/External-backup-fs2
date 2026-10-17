@@ -226,7 +226,7 @@ action-groups-disp                          cell+   constant action-function-dis
     assert( tos is-action? )
     assert( nos is-region-list? )
 
-    cr ." _action-set-possible-regions: " over .region-list cr
+    \ cr ." _action-set-possible-regions: " over .region-list cr
     action-possible-regions-disp +  \ Add offset.
     !struct                         \ Set the field.
 ;
@@ -397,7 +397,7 @@ action-groups-disp                          cell+   constant action-function-dis
     \ Check args.
     assert( tos is-action? )
     assert( nos is-region-list? )
-    cr ." _action-update-possible-regions " over .region-list cr
+    \ cr ." _action-update-possible-regions " over .region-list cr
 
     dup action-get-possible-regions     \ reg-lst1 act0 pos-regs
     -rot                                \ pos-regs reg-lst1 act0
@@ -1281,7 +1281,7 @@ action-groups-disp                          cell+   constant action-function-dis
 : action-recalc-possible-regions ( act0 -- )
     \ Check arg.
     assert( tos is-action? )
-    cr ." action-recalc-possible-regions: start: " .stack cr
+    \ cr ." action-recalc-possible-regions: start: " .stack cr
 
     dup action-get-adj-regions              \ act0 adj-regs
     over action-get-nadj-regions            \ act0 adj-regs nadj-regs
@@ -1294,7 +1294,7 @@ action-groups-disp                          cell+   constant action-function-dis
     dup _action-add-possible-groups
 
     _action-evaluate-possible-regions
-\    cr ." action-recalc-possible-regions: end: " .stack cr
+    \ cr ." action-recalc-possible-regions: end: " .stack cr
 ;
 
 \ Recalc possible regions, from adjacent, incmpatible pairs.
