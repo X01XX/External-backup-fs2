@@ -564,340 +564,6 @@ session-paths-disp              cell+   constant session-sesneed-list-disp      
     true
 ;
 
-\ Do actneed.
-\ Return true if a plan was run.
-: session-do-sesneed-type-1 ( sesned1 sess0 -- bool )
-    \ Check args.
-    assert( tos is-session? )
-    assert( nos is-sesneed? )
-
-    over sesneed-get-actneed    \ sesned1 sess0 actnedx
-
-    \ Check if domain current state satisfies the need.
-    2dup swap                               \ sesned1 sess0 actnedx actnedx sess0
-    session-check-current-state-for-actneed \ sesned1 sess0 actnedx bool
-    if
-        2drop drop
-        true
-        exit
-    then
-
-    \ Try a path, plan, run.
-    over session-get-current-states         \ sesned1 sess0 actnedx stac-cur'
-    over actneed-get-target                 \ sesned1 sess0 actnedx stac-cur' targ
-    #2 pick actneed-get-dom-inst-id         \ sesned1 sess0 actnedx stac-cur' targ dom-id
-    #2 pick                                 \ sesned1 sess0 actnedx stac-cur' targ dom-id stac-cur'
-    statecorr-insert-state                  \ sesned1 sess0 actnedx stac-cur' stac-targ'
-    dup                                     \ sesned1 sess0 actnedx stac-cur' stac-targ' stac-targ'
-    #4 pick                                 \ sesned1 sess0 actnedx stac-cur' stac-targ' stac-targ' 'sess0
-    session-make-it-so-xt execute           \ sesned1 sess0 actnedx stac-cur' stac-targ' bool
-
-    \ Clean up a little.
-    swap statecorr-deallocate               \ sesned1 sess0 actnedx stac-cur' bool
-    swap statecorr-deallocate               \ sesned1 sess0 actnedx bool
-
-    ifnot
-        2drop drop
-        true
-        exit
-    then
-
-    swap                                    \ sesned1 actnedx sess0
-    session-check-current-state-for-actneed \ sesned1 bool
-    if
-        drop
-        true
-        exit
-    else
-        cr ." plan worked, but result bad?" cr abort
-    then
-;
-
-\ Try to satisfy a need.
-\ Return true if a plan was run.
-: session-satisfy-need ( sesned1 sess0 -- bool )
-    \ Check args.
-    assert( tos is-session? )
-    assert( nos is-sesneed? )
-
-    over sesneed-get-type       \ sesned1 sess0 typ
-    case
-        1 of
-            session-do-sesneed-type-1
-        endof
-        #2 of
-            2drop
-            false               \ sesned1 sess0 bool
-        endof
-        #3 of
-            2drop
-            false               \ sesned1 sess0 bool
-        endof
-        nip nip
-        swap false              \ sesned1 sess0 bool type
-    endcase
-                                \ bool
-;
-
-: session-do-zero-token-command ( sess0 -- )
-    \ Check arg.
-    assert( tos is-session? )
-    \ cr ." session-do-zero-token-command" cr
-
-    dup session-inc-step-num
-
-    dup session-get-sesneed-list            \ sess0 sesned-lst
-
-    dup list-is-empty?
-    if
-        2drop
-        exit
-    then
-
-    dup list-get-length pick-list           \ sess0 sesned-lst pik-lst
-
-    begin
-        dup list-is-not-empty?
-    while
-        \ Get a randomly chosen need ( no dups ).
-        dup random-pick                     \ sess0 sesned-lst pik-lst, inx t | f
-        invert abort" random pick failed?"
-
-        #2 pick list-get-item               \ sess0 sesned-lst pik-lst sesnedx
-        cr ." Need chosen: " dup .sesneed cr
-
-        \ Satisfy need.
-        #3 pick                             \ sess0 sesned-lst pik-lst sesnedx sess0
-        session-satisfy-need                \ sess0 sesned-lst pik-lst result ( true = plan run )
-        if
-            list-deallocate                 \ sess0 sesned-lst
-            2drop
-            exit
-        then
-    repeat
-
-    list-deallocate                         \ sess0 sesned-lst
-    2drop
-;
-
-\ Do commands from user input.
-\ Return true if the read-eval loop should continue.
-: session-eval-user-input ( cmd-lst1 sess0 -- bool )
-    \ Check args.
-    assert( tos is-session? )
-    assert( nos is-list? )
-    \ cr ." session-eval-user-input: start " over .token-list cr
-
-    \ Check command.
-    over list-get-first-item            \ cmd-lst1 sess0 tkn0
-
-    dup token-get-string                \ cmd-lst1 sess0 tkn0 c-addr u
-    s" q" str=                          \ cmd-lst1 sess0 tkn0 bool
-    if
-        2drop drop
-        false
-        \ cr ." session-eval-user-input: end: 2" cr
-        exit
-    then
-
-    dup token-get-string                \ cmd-lst1 sess0 tkn0 c-addr u
-    s" ps" str=                         \ cmd-lst1 sess0 tkn0 bool
-    if
-        drop                            \ cmd-lst1 sess0
-        swap list-get-length            \ sess0 len
-        1 =                             \ sess0 bool
-        if                              \ sess0
-            \ Print Session.
-            .session                    \
-        else                            \ sess0
-            drop                        \
-            \ cr ." ps command: invalid number of arguments" cr
-        then
-        true
-        \ cr ." session-eval-user-input: end: 3" cr
-        exit
-    then
-
-    dup token-get-string                \ cmd-lst1 sess0 tkn0 c-addr u
-    s" mu" str=                         \ cmd-lst1 sess0 tkn0 bool
-    if
-        2drop                           \ cmd-lst1
-        list-get-length                 \ len
-        1 =
-        if
-            \ Display Memory Usage.
-            .memory-use
-        else
-            cr ." mu command: invalid number of arguments" cr
-        then
-        true
-        exit
-    then
-
-\ dn, cds?, scs, sas?, tos, to: remember to do session-inc-step-num
-
-    cr ." Did not understand the command." cr
-    drop 2drop                          \
-    \ cr ." session-eval-user-input: end: 4" cr
-    true
-;
-
-\ Make a new session need, from an agtion need.
-: session-make-sesneed-from-actneed ( actned1 sess0 -- sesned )
-    \ Check args.
-    assert( tos is-session? )
-    assert( nos is-actneed? )
-
-    \ Assemble statecorr-to from current state and action state target.
-    session-get-current-states          \ actned1 stac-cur'
-    over actneed-get-target             \ actned1 stac-cur' stac-to
-    #2 pick actneed-get-dom-inst-id     \ actned1 stac-cur' stac-to dom-id
-    #2 pick                             \ actned1 stac-cur' stac-to dom-id stac-cur'
-    statecorr-insert-state              \ actned1 stac-cur' stac-to'
-    swap statecorr-deallocate           \ actned1 stac-to'
-
-    \ Make session need.
-    actneed-type-snig                   \ actned1 stac-to' typ
-    sesneed-new                         \ sessned
-;
-
-\ Return a list of session needs, if any.
-: session-get-needs ( sess0 -- sesned-lst t | f )
-    \ Check arg.
-    assert( tos is-session? )
-
-    dup session-get-domains     \ sess0 dom-lst
-    domain-list-get-needs       \ sess0, actned-lst' t | f
-    ifnot
-        drop
-        false
-        exit
-    then
-
-    \ Init return list.
-    list-new -rot               \ ret-lst sess0 actned-lst'
-
-    \ Prep for loop.
-    dup                         \ ret-lst sess0 actned-lst' actned-lst'
-
-    foreach                     \ ret-lst sess0 actned-lst' actned-lnk actnedx
-        \ Convert an action need to a session need.
-        #3 pick                             \ ret-lst sess0 actned-lst' actned-lnk actnedx sess0
-        session-make-sesneed-from-actneed   \ ret-lst sess0 actned-lst' actned-lnk sessneed
-
-        \ Save session need.
-        #4 pick                 \ ret-lst sess0 actned-lst' actned-lnk sessneed ret-lst
-        list-push-struct        \ ret-lst sess0 actned-lst' actned-lnk
-    next-item
-                                \ ret-lst sess0 actned-lst'
-    actneed-list-deallocate     \ ret-lst sess0
-    drop                        \ ret-lst
-
-    check-list-return
-;
-
-\ Get and save needs.
-: session-set-all-needs ( sess0 -- )
-    assert( tos is-session? )
-
-    dup session-get-needs           \ sess0, ned-lst t | f
-    if
-        swap                        \ ned-lst sess0
-    else
-        list-new swap               \ lst sess0
-    then
-
-    \ TODO add session-level needs.
-
-    _session-update-sesneed-list
-;
-
-\ Get input of up to TOS characters from user, using the PAD area, up to a given number of characters.
-\ Evaluate the input.
-\ like: 80 s" Enter command: > " get-user-input
-\
-\ If this aborts, various things can be done:
-\
-\ Print all domains, and actions.
-\   current-session-gbl  .session
-\
-\ Print Domain 1.
-\    1  current-session-gbl  session-find-domain  drop  .domain
-\
-\ Print Domain 1, Act 4.
-\    1  current-session-gbl  session-find-domain  drop  4  swap  domain-find-action  drop  .action
-\
-\ Print the squares of domain 1 action 4.
-\    1  current-session-gbl  session-find-domain  drop  4  swap  domain-find-action  drop  action-get-squares  .square-list
-\
-\ Return a bool for continuing the REP loop.
-\ Return false if the user enterd the q (quit) command, else true.
-: session-get-user-input ( sess0 -- bool )
-    \ Check arg.
-    assert( tos is-session? )
-
-    \ Display needs.
-    dup session-set-all-needs       \ sess0
-    dup session-get-sesneed-list    \ sess0 ned-lst
-    dup list-is-empty?              \ sess0 ned-lst bool
-    if
-        cr ." Needs: No needs found" cr
-        drop
-    else
-        cr s" Needs:" rot .sesneed-list-prefix cr   \ sess0
-        cr ." Press Enter to randomly choose a need."
-    then
-
-    cr ." q - to quit"
-    cr
-    cr ." ps - Print Session, all domains."
-    cr ." pd <domain id> - Print Domain."
-    cr ." pa <domain id> <action id> - Print Action."
-    cr ." cds <domain ID> <state> - Change Domain current State, to an arbitrary value."
-    cr ." psd <domain ID> <action ID> - Print Square Detail, for a given domain/action."
-    cr ." scs <domain id> <action id> - Sample the Current State of a domain, with an action."
-    cr ." sas <domain id> <action id> <state> - Sample an Arbitrary State. Change domain current state, then sample with an action."
-    cr ." dn <number> - Do Need number."
-    cr ." mu - Display Memory Use."
-    cr ." tos <domain ID> <state> - TO domain State, from the current state, to an arbitrary value, by finding and executing a plan."
-    cr ." to - Change all domain states, like: to (r0X00 r000X1). Leading zeros are not required."
-    cr
-    cr ." <state> will usually be like: %0101, leading zeros can be ommitted."
-    cr
-
-    \ Display the prompt.
-    cr
-    s" Enter command: > "       \ sess0 c-addr c
-    type                        \ sess0
-    \ Get chars, leaves num chars on TOS.
-    pad                         \ sess0 p-addr
-    dup                         \ sess0 p-addr p-addr
-    #80                         \ sess0 p-addr p-addr #80
-    accept                      \ sess0 pad-add n
-
-    \ Check for no input.
-    dup 0=
-    if
-        2drop
-        session-do-zero-token-command
-        true
-    else
-        cr
-        list-from-string-xt execute                             \ sess0, lst' t | f
-        if
-            2dup swap                                           \ sess0 lst' lst' sess0
-            session-eval-user-input                             \ sess0 lst' bool
-            swap                                                \ sess0 bool lst'
-            struct-list-deallocate                              \ sess0 bool
-            nip                                                 \ bool
-        else
-            cr ." Did not understand the command." cr
-            drop
-            true
-        then
-    then
-;
-
 \ Return regioncorr list to avoid, may be empty.
 : session-find-path-instance ( stac2 stac1 sess0 -- pth )
     \ Check args.
@@ -1256,35 +922,57 @@ session-paths-disp              cell+   constant session-sesneed-list-disp      
     false
 ;
 
-\ Arbitrarily set the domain current states.
-: session-set-current-states ( stac1 sess0 -- )
+: session-calc-plan ( stac-to1 sess0 -- pln t | f )
     \ Check args.
     assert( tos is-session? )
     assert( nos is-statecorr? )
-    \ cr ." session-set-current-states: start: " over .statecorr cr
 
-    \ Get states list to traverse.
-    swap statecorr-get-list list-get-links swap \ sta-lnk sess0
+    \ Get current states.
+    dup
+    session-get-current-states                  \ stac-to1 sess0 stac-from'
+    swap                                        \ stac-to1 stac-from' sess0
 
-    \ Get domain list to traverse.
-    session-get-domains list-get-links          \ sta-lnk dom-lnk
+    \ Find path instance to use.
+    #2 pick #2 pick #2 pick                     \ stac-to1 stac-from' sess0 stac-to1 stac-from' sess0
+    session-find-path-instance                  \ stac-to1 stac-from' sess0 pth
 
-    begin
-        ?dup
-    while
-        \ Set one domain's current state.
-        over link-get-data          \ sta-lnk dom-lnk stax
-        over link-get-data          \ sta-lnk dom-lnk stax domx
-        domain-update-current-state \ sta-lnk dom-lnk
+    \ Find path.
+    #3 pick #3 pick #2 pick                     \ stac-to1 stac-from' sess0 pth stac-to1 stac-from' pth
+    path-get-traverse-list                      \ stac-to1 stac-from' sess0 pth stac-to1 stac-from' regc-trvl
+    regioncorr-list-find-path                   \ stac-to1 stac-from' sess0 pth, pth-from-to' t | f
+    if
+        \ cr ." path found: " dup .statecorr-list cr
+    else
+        \ cr ." path not found" cr
+        2drop                                   \ stac-to1 stac-from'
+        statecorr-list-deallocate               \ stac-to1
+        drop
+        false
+        exit
+    then
 
-        \ Prep for next cycle.
-        link-get-next swap
-        link-get-next swap
-    repeat
-                                    \ sta-lnk
-    drop
+    \ Make plan.
+    dup                                         \ stac-to1 stac-from' sess0 pth pth-from-to' pth-from-to'
+    #2 pick path-get-avoid-list                 \ stac-to1 stac-from' sess0 pth pth-from-to' pth-from-to' avd-lst
+    #4 pick                                     \ stac-to1 stac-from' sess0 pth pth-from-to' pth-from-to' avd-lst sess0
+    session-make-plan                           \ stac-to1 stac-from' sess0 pth pth-from-to', pln' t | f
+    if
+        \ cr ." plan found: " dup .plan cr
+        swap statecorr-list-deallocate          \ stac-to1 stac-from' sess0 pth pln'
+        nip nip                                 \ stac-to1 stac-from' pln'
+        swap statecorr-deallocate               \ stac-to1 pln'
+        nip                                     \ pln'
+        true
+    else
+        \ cr ." plan not found" cr
+        statecorr-list-deallocate               \ stac-to1 stac-from' sess0 pth
+        2drop                                   \ stac-to1 stac-from'
+        statecorr-deallocate                    \ stac-to1
+        drop
+        false
+        exit
+    then
 ;
-
 \ Run a planstep.
 : session-run-planstep ( plnstp1 sess0 -- bool )
     \ Check args.
@@ -1339,6 +1027,7 @@ session-paths-disp              cell+   constant session-sesneed-list-disp      
     foreach                         \ pln1 sess0 stp-lnk plnstpx
         #2 pick                     \ pln1 sess0 stp-lnk plnstpx sess0
         session-run-planstep        \ pln1 sess0 stp-lnk, bool
+        \ cr ." planstep run: " dup .bool cr
         ifnot
             2drop drop
             false
@@ -1348,6 +1037,383 @@ session-paths-disp              cell+   constant session-sesneed-list-disp      
                                     \ pln1 sess0
     2drop
     true
+;
+
+\ Do actneed.
+\ Return true if a plan was run.
+: session-do-sesneed-type-1 ( sesned1 sess0 -- bool )
+    \ Check args.
+    assert( tos is-session? )
+    assert( nos is-sesneed? )
+
+    over sesneed-get-actneed    \ sesned1 sess0 actnedx
+
+    \ Check if domain current state satisfies the need.
+    2dup swap                               \ sesned1 sess0 actnedx actnedx sess0
+    session-check-current-state-for-actneed \ sesned1 sess0 actnedx bool
+    if
+        2drop drop
+        true
+        exit
+    then
+
+    \ Try a path, plan, run.
+    over session-get-current-states         \ sesned1 sess0 actnedx stac-cur'
+    over actneed-get-target                 \ sesned1 sess0 actnedx stac-cur' targ
+    #2 pick actneed-get-dom-inst-id         \ sesned1 sess0 actnedx stac-cur' targ dom-id
+    #2 pick                                 \ sesned1 sess0 actnedx stac-cur' targ dom-id stac-cur'
+    statecorr-insert-state                  \ sesned1 sess0 actnedx stac-cur' stac-targ'
+    dup                                     \ sesned1 sess0 actnedx stac-cur' stac-targ' stac-targ'
+    #4 pick                                 \ sesned1 sess0 actnedx stac-cur' stac-targ' stac-targ' 'sess0
+    session-calc-plan                       \ sesned1 sess0 actnedx stac-cur' stac-targ', pln' t | f
+    ifnot
+        cr ." Plan not found" cr
+        statecorr-deallocate                \ sesned1 sess0 actnedx stac-cur'
+        statecorr-deallocate                \ sesned1 sess0 actnedx
+        2drop drop
+        false
+        exit
+    then
+                                            \ sesned1 sess0 actnedx stac-cur' stac-targ' pln'
+    dup                                     \ sesned1 sess0 actnedx stac-cur' stac-targ' pln' pln'
+    #5 pick                                 \ sesned1 sess0 actnedx stac-cur' stac-targ' pln' pln' sess0
+    session-run-plan                        \ sesned1 sess0 actnedx stac-cur' stac-targ' pln' bool
+    swap plan-deallocate                    \ sesned1 sess0 actnedx stac-cur' stac-targ' bool
+    \ cr ." Plan run: returns: " dup .bool cr
+
+    \ Clean up a little.
+    swap statecorr-deallocate               \ sesned1 sess0 actnedx stac-cur' bool
+    swap statecorr-deallocate               \ sesned1 sess0 actnedx bool
+
+    ifnot
+        2drop drop
+        true
+        exit
+    then
+
+    swap                                    \ sesned1 actnedx sess0
+    session-check-current-state-for-actneed \ sesned1 bool
+    if
+        drop
+        true
+        exit
+    else
+        cr ." Plan worked, but result bad?" cr abort
+    then
+;
+
+\ Try to satisfy a need.
+\ Return true if a plan was run.
+: session-satisfy-need ( sesned1 sess0 -- bool )
+    \ Check args.
+    assert( tos is-session? )
+    assert( nos is-sesneed? )
+
+    over sesneed-get-type       \ sesned1 sess0 typ
+    case
+        1 of
+            session-do-sesneed-type-1
+        endof
+        #2 of
+            2drop
+            false               \ sesned1 sess0 bool
+        endof
+        #3 of
+            2drop
+            false               \ sesned1 sess0 bool
+        endof
+        nip nip
+        swap false              \ sesned1 sess0 bool type
+    endcase
+                                \ bool
+;
+
+: session-do-zero-token-command ( sess0 -- )
+    \ Check arg.
+    assert( tos is-session? )
+    \ cr ." session-do-zero-token-command" cr
+
+    dup session-inc-step-num
+
+    dup session-get-sesneed-list            \ sess0 sesned-lst
+
+    dup list-is-empty?
+    if
+        2drop
+        exit
+    then
+
+    dup list-get-length pick-list           \ sess0 sesned-lst pik-lst
+
+    begin
+        dup list-is-not-empty?
+    while
+        \ Get a randomly chosen need ( no dups ).
+        dup random-pick                     \ sess0 sesned-lst pik-lst, inx t | f
+        invert abort" random pick failed?"
+
+        #2 pick list-get-item               \ sess0 sesned-lst pik-lst sesnedx
+        cr ." Need chosen: " dup .sesneed cr
+
+        \ Satisfy need.
+        #3 pick                             \ sess0 sesned-lst pik-lst sesnedx sess0
+        session-satisfy-need                \ sess0 sesned-lst pik-lst result ( true = plan run )
+        if
+            list-deallocate                 \ sess0 sesned-lst
+            2drop
+            exit
+        then
+    repeat
+
+    list-deallocate                         \ sess0 sesned-lst
+    2drop
+;
+
+\ Do commands from user input.
+\ Return true if the read-eval loop should continue.
+: session-eval-user-input ( cmd-lst1 sess0 -- bool )
+    \ Check args.
+    assert( tos is-session? )
+    assert( nos is-list? )
+    \ cr ." session-eval-user-input: start " over .token-list cr
+
+    \ Check command.
+    over list-get-first-item            \ cmd-lst1 sess0 tkn0
+
+    dup token-get-string                \ cmd-lst1 sess0 tkn0 c-addr u
+    s" q" str=                          \ cmd-lst1 sess0 tkn0 bool
+    if
+        2drop drop
+        false
+        \ cr ." session-eval-user-input: end: 2" cr
+        exit
+    then
+
+    dup token-get-string                \ cmd-lst1 sess0 tkn0 c-addr u
+    s" ps" str=                         \ cmd-lst1 sess0 tkn0 bool
+    if
+        drop                            \ cmd-lst1 sess0
+        swap list-get-length            \ sess0 len
+        1 =                             \ sess0 bool
+        if                              \ sess0
+            \ Print Session.
+            .session                    \
+        else                            \ sess0
+            drop                        \
+            \ cr ." ps command: invalid number of arguments" cr
+        then
+        true
+        \ cr ." session-eval-user-input: end: 3" cr
+        exit
+    then
+
+    dup token-get-string                \ cmd-lst1 sess0 tkn0 c-addr u
+    s" mu" str=                         \ cmd-lst1 sess0 tkn0 bool
+    if
+        2drop                           \ cmd-lst1
+        list-get-length                 \ len
+        1 =
+        if
+            \ Display Memory Usage.
+            .memory-use
+        else
+            cr ." mu command: invalid number of arguments" cr
+        then
+        true
+        exit
+    then
+
+\ dn, cds?, scs, sas?, tos, to: remember to do session-inc-step-num
+
+    cr ." Did not understand the command." cr
+    drop 2drop                          \
+    \ cr ." session-eval-user-input: end: 4" cr
+    true
+;
+
+\ Make a new session need, from an agtion need.
+: session-make-sesneed-from-actneed ( actned1 sess0 -- sesned )
+    \ Check args.
+    assert( tos is-session? )
+    assert( nos is-actneed? )
+
+    \ Assemble statecorr-to from current state and action state target.
+    session-get-current-states          \ actned1 stac-cur'
+    over actneed-get-target             \ actned1 stac-cur' stac-to
+    #2 pick actneed-get-dom-inst-id     \ actned1 stac-cur' stac-to dom-id
+    #2 pick                             \ actned1 stac-cur' stac-to dom-id stac-cur'
+    statecorr-insert-state              \ actned1 stac-cur' stac-to'
+    swap statecorr-deallocate           \ actned1 stac-to'
+
+    \ Make session need.
+    actneed-type-snig                   \ actned1 stac-to' typ
+    sesneed-new                         \ sessned
+;
+
+\ Return a list of session needs, if any.
+: session-get-needs ( sess0 -- sesned-lst t | f )
+    \ Check arg.
+    assert( tos is-session? )
+
+    dup session-get-domains     \ sess0 dom-lst
+    domain-list-get-needs       \ sess0, actned-lst' t | f
+    ifnot
+        drop
+        false
+        exit
+    then
+
+    \ Init return list.
+    list-new -rot               \ ret-lst sess0 actned-lst'
+
+    \ Prep for loop.
+    dup                         \ ret-lst sess0 actned-lst' actned-lst'
+
+    foreach                     \ ret-lst sess0 actned-lst' actned-lnk actnedx
+        \ Convert an action need to a session need.
+        #3 pick                             \ ret-lst sess0 actned-lst' actned-lnk actnedx sess0
+        session-make-sesneed-from-actneed   \ ret-lst sess0 actned-lst' actned-lnk sessneed
+
+        \ Save session need.
+        #4 pick                 \ ret-lst sess0 actned-lst' actned-lnk sessneed ret-lst
+        list-push-struct        \ ret-lst sess0 actned-lst' actned-lnk
+    next-item
+                                \ ret-lst sess0 actned-lst'
+    actneed-list-deallocate     \ ret-lst sess0
+    drop                        \ ret-lst
+
+    check-list-return
+;
+
+\ Get and save needs.
+: session-set-all-needs ( sess0 -- )
+    assert( tos is-session? )
+
+    dup session-get-needs           \ sess0, ned-lst t | f
+    if
+        swap                        \ ned-lst sess0
+    else
+        list-new swap               \ lst sess0
+    then
+
+    \ TODO add session-level needs.
+
+    _session-update-sesneed-list
+;
+
+\ Get input of up to TOS characters from user, using the PAD area, up to a given number of characters.
+\ Evaluate the input.
+\ like: 80 s" Enter command: > " get-user-input
+\
+\ If this aborts, various things can be done:
+\
+\ Print all domains, and actions.
+\   current-session-gbl  .session
+\
+\ Print Domain 1.
+\    1  current-session-gbl  session-find-domain  drop  .domain
+\
+\ Print Domain 1, Act 4.
+\    1  current-session-gbl  session-find-domain  drop  4  swap  domain-find-action  drop  .action
+\
+\ Print the squares of domain 1 action 4.
+\    1  current-session-gbl  session-find-domain  drop  4  swap  domain-find-action  drop  action-get-squares  .square-list
+\
+\ Return a bool for continuing the REP loop.
+\ Return false if the user enterd the q (quit) command, else true.
+: session-get-user-input ( sess0 -- bool )
+    \ Check arg.
+    assert( tos is-session? )
+
+    \ Display needs.
+    dup session-set-all-needs       \ sess0
+    dup session-get-sesneed-list    \ sess0 ned-lst
+    dup list-is-empty?              \ sess0 ned-lst bool
+    if
+        cr ." Needs: No needs found" cr
+        drop
+    else
+        cr s" Needs:" rot .sesneed-list-prefix cr   \ sess0
+        cr ." Press Enter to randomly choose a need."
+    then
+
+    cr ." q - to quit"
+    cr
+    cr ." ps - Print Session, all domains."
+    cr ." pd <domain id> - Print Domain."
+    cr ." pa <domain id> <action id> - Print Action."
+    cr ." cds <domain ID> <state> - Change Domain current State, to an arbitrary value."
+    cr ." psd <domain ID> <action ID> - Print Square Detail, for a given domain/action."
+    cr ." scs <domain id> <action id> - Sample the Current State of a domain, with an action."
+    cr ." sas <domain id> <action id> <state> - Sample an Arbitrary State. Change domain current state, then sample with an action."
+    cr ." dn <number> - Do Need number."
+    cr ." mu - Display Memory Use."
+    cr ." tos <domain ID> <state> - TO domain State, from the current state, to an arbitrary value, by finding and executing a plan."
+    cr ." to - Change all domain states, like: to (r0X00 r000X1). Leading zeros are not required."
+    cr
+    cr ." <state> will usually be like: %0101, leading zeros can be ommitted."
+    cr
+
+    \ Display the prompt.
+    cr
+    s" Enter command: > "       \ sess0 c-addr c
+    type                        \ sess0
+    \ Get chars, leaves num chars on TOS.
+    pad                         \ sess0 p-addr
+    dup                         \ sess0 p-addr p-addr
+    #80                         \ sess0 p-addr p-addr #80
+    accept                      \ sess0 pad-add n
+
+    \ Check for no input.
+    dup 0=
+    if
+        2drop
+        session-do-zero-token-command
+        true
+    else
+        cr
+        list-from-string-xt execute                             \ sess0, lst' t | f
+        if
+            2dup swap                                           \ sess0 lst' lst' sess0
+            session-eval-user-input                             \ sess0 lst' bool
+            swap                                                \ sess0 bool lst'
+            struct-list-deallocate                              \ sess0 bool
+            nip                                                 \ bool
+        else
+            cr ." Did not understand the command." cr
+            drop
+            true
+        then
+    then
+;
+
+\ Arbitrarily set the domain current states.
+: session-set-current-states ( stac1 sess0 -- )
+    \ Check args.
+    assert( tos is-session? )
+    assert( nos is-statecorr? )
+    \ cr ." session-set-current-states: start: " over .statecorr cr
+
+    \ Get states list to traverse.
+    swap statecorr-get-list list-get-links swap \ sta-lnk sess0
+
+    \ Get domain list to traverse.
+    session-get-domains list-get-links          \ sta-lnk dom-lnk
+
+    begin
+        ?dup
+    while
+        \ Set one domain's current state.
+        over link-get-data          \ sta-lnk dom-lnk stax
+        over link-get-data          \ sta-lnk dom-lnk stax domx
+        domain-update-current-state \ sta-lnk dom-lnk
+
+        \ Prep for next cycle.
+        link-get-next swap
+        link-get-next swap
+    repeat
+                                    \ sta-lnk
+    drop
 ;
 
 \ Change states, given statecorr-to.
@@ -1419,5 +1485,3 @@ session-paths-disp              cell+   constant session-sesneed-list-disp      
         false
     then
 ;
-
-' session-make-it-so to session-make-it-so-xt

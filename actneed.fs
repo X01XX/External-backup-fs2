@@ -200,12 +200,12 @@ actneed-target-disp    cell+   constant actneed-info-disp       \ Zero, or a Tok
             \ .region
         endof
         actneed-type-cas of
-            space ." Corner confirm anchor square "
+            space ." Corner confirm anchor square of group "
             dup actneed-get-info .token
             \ .corner
         endof
         actneed-type-cds of
-            space ." Corner confirm dissimilar square "
+            space ." Corner confirm dissimilar square of group "
             dup actneed-get-info .token
             \ .corner
         endof

@@ -1948,8 +1948,9 @@ action-groups-disp                          cell+   constant action-function-dis
     if
         rot                     \ act0 sqr smpl1
         over                    \ act0 sqr smpl1 sqr
-        cr #3 pick .action-parent-inst-id #3 pick .action-inst-id ." : Updating square: " dup .square cr
+        \ cr #3 pick .action-parent-inst-id #3 pick .action-inst-id ." : Updating square: " dup .square cr
         square-add-sample       \ act0 sqr bool
+        cr #2 pick .action-parent-inst-id #2 pick .action-inst-id ." : Updated square: " over .square cr
         if
             swap                        \ sqr act0
             action-check-changed-square \
@@ -1977,7 +1978,8 @@ action-groups-disp                          cell+   constant action-function-dis
 
     \ Non-adjacent square pairs, where both states are not in any defining regions.
 
-    \ pnc for selected corner anchors.
+    \ pnc for selected corner anchors.***************************
+
 
     \ pnc for selected corner adjacent squares.
 
@@ -2062,6 +2064,19 @@ action-groups-disp                          cell+   constant action-function-dis
     group-list-find             \ grp t | f
 ;
 
+: action-make-need-dis ( tkn3 sta2 typ1 act0 -- actned )
+    \ Check args.
+    assert( tos is-action? )
+    assert( nos dup actneed-type-cls = swap actneed-type-ils = or )
+    assert( 3os is-state? )
+    assert( 4os is-token? )
+
+    dup action-get-inst-id swap \ tkn3 sta2 typ1 act-id act0
+    action-get-dom-inst-id      \ tkn3 sta2 typ1 act-id dom-id
+
+    actneed-new
+;
+
 \ Return action needs, if any.
 : action-get-needs ( cur-sta1 act0 -- ned-lst t | f )
     \ Check args.
@@ -2071,14 +2086,74 @@ action-groups-disp                          cell+   constant action-function-dis
     \ Init return list.
     list-new -rot                   \ ret-lst cur-sta1 act0
 
+    \ Check non-adjacent dissimilar pairs for confirmation need.
+    dup action-get-nadj-pairs       \ ret-lst cur-sta1 act0 nadj-lst
+    foreach                         \ ret-lst cur-sta1 act0 nadj-lnk regx
+        \ Get square from state zero.
+        dup region-get-state-0 dup  \ ret-lst cur-sta1 act0 nadj-lnk regx sta-0 sta-0
+        #4 pick                     \ ret-lst cur-sta1 act0 nadj-lnk regx sta-0 sta-0 act0
+        action-find-square          \ ret-lst cur-sta1 act0 nadj-lnk regx sta-0, sqrx t | f
+        invert abort" square find failed?"
+
+        \ Check if not pnc.
+        square-get-pnc              \ ret-lst cur-sta1 act0 nadj-lnk regx sta-0 bool
+        if
+            drop                    \ ret-lst cur-sta1 act0 nadj-lnk regx
+        else
+            \ Make need.
+            over region-str swap    \ ret-lst cur-sta1 act0 nadj-lnk regx tkn sta-0
+            actneed-type-cls        \ ret-lst cur-sta1 act0 nadj-lnk regx tkn sta-0 typ
+            #5 pick                 \ ret-lst cur-sta1 act0 nadj-lnk regx tkn sta-0 typ act0
+            action-make-need-dis    \ ret-lst cur-sta1 act0 nadj-lnk regx actned
+
+            \ Store need.
+            #5 pick                 \ ret-lst cur-sta1 act0 nadj-lnk regx actned ret-lst
+            list-push-struct        \ ret-lst cur-sta1 act0 nadj-lnk regx
+        then
+
+        \ Get square from state one.
+        dup region-get-state-1 dup  \ ret-lst cur-sta1 act0 nadj-lnk regx sta-1 sta-1
+        #4 pick                     \ ret-lst cur-sta1 act0 nadj-lnk regx sta-1 sta-1 act0
+        action-find-square          \ ret-lst cur-sta1 act0 nadj-lnk regx sta-1, sqrx t | f
+        invert abort" square find failed?"
+
+        \ Check if not pnc.
+        square-get-pnc              \ ret-lst cur-sta1 act0 nadj-lnk regx sta-1 bool
+        if
+            2drop                   \ ret-lst cur-sta1 act0 nadj-lnk
+        else
+            \ Make need.
+            swap region-str swap    \ ret-lst cur-sta1 act0 nadj-lnk tkn sta-1
+            actneed-type-cls        \ ret-lst cur-sta1 act0 nadj-lnk tkn sta-1 typ
+            #4 pick                 \ ret-lst cur-sta1 act0 nadj-lnk tkn sta-1 typ act0
+            action-make-need-dis    \ ret-lst cur-sta1 act0 nadj-lnk actned
+
+            \ Store need.
+            #4 pick                 \ ret-lst cur-sta1 act0 nadj-lnk actned ret-lst
+            list-push-struct        \ ret-lst cur-sta1 act0 nadj-lnk
+        then
+    next-item
+                                    \ ret-lst cur-sta1 act0
+
+    \ Check non-adjacent dissimilar pairs for sample-between need.
+    #2 pick list-is-empty?
+    if
+    then
+
+    \ Check adjacent dissimilar pairs for confirmation need.
+    #2 pick list-is-empty?
+    if
+    then
+
     \ Check if the state is in any group.
     tuck action-get-groups          \ ret-lst act0 cur-sta1 grp-lst
     group-list-get-needs            \ ret-lst act0, ned-lst' t | f
     if
-       dup                          \ ret-lst act0 ned-lst' ned-lst'
-       #3 pick                      \ ret-lst act0 ned-lst' ned-lst' ret-lst
-       list-append-struct           \ ret-lst act0 ned-lst'
-       actneed-list-deallocate      \ ret-lst act0
+        dup #2 pick action-set-ids  \ ret-lst act0 ned-lst'
+        dup                         \ ret-lst act0 ned-lst' ned-lst'
+        #3 pick                     \ ret-lst act0 ned-lst' ned-lst' ret-lst
+        list-append-struct          \ ret-lst act0 ned-lst'
+        actneed-list-deallocate     \ ret-lst act0
     then
 
                                     \ ret-lst act0
@@ -2095,6 +2170,8 @@ action-groups-disp                          cell+   constant action-function-dis
             else
                 group-get-needs         \ ret-lst act0 def-lnk, ned-lst' t | f
                 if
+                    dup #3 pick             \ ret-lst act0 def-lnk ned-lst'
+                    action-set-ids          \ ret-lst act0 def-lnk ned-lst'
                     dup                     \ ret-lst act0 def-lnk ned-lst' ned-lst'
                     #4 pick                 \ ret-lst act0 def-lnk ned-lst' ned-lst' ret-lst
                     list-append-struct      \ ret-lst act0 def-lnk ned-lst'
@@ -2106,8 +2183,7 @@ action-groups-disp                          cell+   constant action-function-dis
         then
     next-item
                                     \ ret-lst act0
-    over swap                       \ ret-lst ret-lst act0
-    action-set-ids                  \ ret-lst
+    drop                            \ ret-lst
 
    \ cr ." action needs found: " dup list-get-length dec. cr
 
