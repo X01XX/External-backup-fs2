@@ -1223,7 +1223,149 @@ session-paths-disp              cell+   constant session-sesneed-list-disp      
         exit
     then
 
-\ dn, cds?, scs, sas?, tos, to: remember to do session-inc-step-num
+    dup token-get-string                \ cmd-lst1 sess0 tkn0 c-addr u
+    s" sas" str=                        \ cmd-lst1 sess0 tkn0 bool
+    if
+        drop                            \ cmd-lst1 sess0
+
+        \ Check command legth.
+        over list-get-length            \ cmd-lst1 sess0 len
+        #4 =
+        ifnot
+             cr ." sas command: invalid number of arguments" cr
+            2drop
+            true
+            exit
+        then
+
+        \ Check fourth item is a state.
+        over list-get-fourth-item       \ cmp-lst sess0 sta
+        is-state?                       \ cmp-lst sess0 bool
+        ifnot
+            cr ." sas command: invalid state parameter" cr
+            2drop
+            true
+            exit
+        then
+
+        \ Check second item is a valid domain id.
+        over list-get-second-item       \ cmp-lst sess0 dom-id
+        over                            \ cmp-lst sess0 dom-id sess0
+        session-valid-dom-id?           \ cmp-lst sess0 bool
+        ifnot
+            cr ." sas command: invalid domain id parameter" cr
+            2drop
+            true
+            exit
+        then
+
+        \ Check third item is a valid action id.
+        over list-get-third-item        \ cmp-lst sess0 act-id
+        #2 pick list-get-second-item    \ cmp-lst sess0 act-id dom-id
+        #2 pick                         \ cmp-lst sess0 act-id dom-id sess0
+        session-find-domain             \ cmp-lst sess0 act-id, dom t | f
+        invert abort" domain not found?"
+
+        2dup domain-valid-act-id?       \ cmp-lst sess0 act-id dom bool
+        ifnot
+            cr ." sas command: invalid action id parameter" cr
+            2drop 2drop
+            true
+            exit
+        then
+
+        \ Check state num bits equals domain num bits.
+        dup domain-get-num-bits         \ cmp-lst sess0 act-id dom dnb
+        #4 pick list-get-fourth-item    \ cmp-lst sess0 act-id dom dnb sta
+        state-get-num-bits =            \ cmp-lst sess0 act-id dom bool
+        ifnot
+            cr ." sas command: state num bits is invalid for domain" cr
+            2drop 2drop
+            true
+            exit
+        then
+
+        \ Get sample.
+        #3 pick list-get-fourth-item    \ cmp-lst sess0 act-id dom sta
+        #2 pick #2 pick                 \ cmp-lst sess0 act-id dom sta act-id dom
+        domain-get-arbitary-sample      \ cmp-lst sess0 act-id dom smpl
+        drop                            \ cmp-lst sess0 act-id dom
+
+        \ Show act.
+        domain-find-action              \ cmp-lst sess0, act t | f
+        invert abort" action not found?"
+        .action
+
+        \ Cleanup.
+        2drop
+        true
+
+        cr ." Press Enter to continue "
+        get-string-from-user            \ true p-addr len
+        2drop
+
+        exit
+    then
+
+    dup token-get-string                \ cmd-lst1 sess0 tkn0 c-addr u
+    s" pa" str=                        \ cmd-lst1 sess0 tkn0 bool
+    if
+        drop                            \ cmd-lst1 sess0
+
+        \ Check command legth.
+        over list-get-length            \ cmd-lst1 sess0 len
+        #3 =
+        ifnot
+             cr ." pa command: invalid number of arguments" cr
+            2drop
+            true
+            exit
+        then
+
+        \ Check second item is a valid domain id.
+        over list-get-second-item       \ cmp-lst sess0 dom-id
+        over                            \ cmp-lst sess0 dom-id sess0
+        session-valid-dom-id?           \ cmp-lst sess0 bool
+        ifnot
+            cr ." pa command: invalid domain id parameter" cr
+            2drop
+            true
+            exit
+        then
+
+        \ Check third item is a valid action id.
+        over list-get-third-item        \ cmp-lst sess0 act-id
+        #2 pick list-get-second-item    \ cmp-lst sess0 act-id dom-id
+        #2 pick                         \ cmp-lst sess0 act-id dom-id sess0
+        session-find-domain             \ cmp-lst sess0 act-id, dom t | f
+        invert abort" domain not found?"
+
+        2dup domain-valid-act-id?       \ cmp-lst sess0 act-id dom bool
+        ifnot
+            cr ." pa command: invalid action id parameter" cr
+            2drop 2drop
+            true
+            exit
+        then
+
+        \ Get action.
+        domain-find-action              \ cmp-lst sess0, act t | f
+        invert abort" action not found?"
+
+        .action                         \ cmp-lst sess0
+
+        \ Cleanup.
+        2drop
+        true
+
+        cr ." Press Enter to continue "
+        get-string-from-user            \ true p-addr len
+        2drop
+
+        exit
+    then
+
+\ dn, cds?, scs, ?, tos, to: remember to do session-inc-step-num
 
     cr ." Did not understand the command." cr
     drop 2drop                          \
@@ -1349,20 +1491,18 @@ session-paths-disp              cell+   constant session-sesneed-list-disp      
     cr ." dn <number> - Do Need number."
     cr ." mu - Display Memory Use."
     cr ." tos <domain ID> <state> - TO domain State, from the current state, to an arbitrary value, by finding and executing a plan."
-    cr ." to - Change all domain states, like: to (r0X00 r000X1). Leading zeros are not required."
+    cr ." to - Change all domain states, like: to (r0X00 r000X1), leading zeros are required"
     cr
-    cr ." <state> will usually be like: %0101, leading zeros can be ommitted."
+    cr ." <state> will be like: s0101, leading zeros are required."
     cr
 
     \ Display the prompt.
     cr
     s" Enter command: > "       \ sess0 c-addr c
     type                        \ sess0
-    \ Get chars, leaves num chars on TOS.
-    pad                         \ sess0 p-addr
-    dup                         \ sess0 p-addr p-addr
-    #80                         \ sess0 p-addr p-addr #80
-    accept                      \ sess0 pad-add n
+
+    \ Get string input from user.
+    get-string-from-user        \ sess0 c-addr u
 
     \ Check for no input.
     dup 0=
@@ -1372,7 +1512,7 @@ session-paths-disp              cell+   constant session-sesneed-list-disp      
         true
     else
         cr
-        list-from-string-xt execute                             \ sess0, lst' t | f
+        list-from-string                                        \ sess0, lst' t | f
         if
             2dup swap                                           \ sess0 lst' lst' sess0
             session-eval-user-input                             \ sess0 lst' bool

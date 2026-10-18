@@ -122,6 +122,23 @@
     cr ." mask-test-same-num-bits - Ok"
 ;
 
+: mask-test-half-bits
+    s" m111101" mask-from-string-a  \ msk'
+    dup                             \ msk' msk'
+    mask-half-bits                  \ msk' msk2'
+
+    cr ." for: " over .mask space ." returns: " dup .mask cr
+
+    \ Clean up.
+    mask-deallocate
+    mask-deallocate
+
+    \ Check for memory leaks.
+    check-project-deallocated
+
+    cr ." mask-test-half-bits - Ok"
+;
+
 : mask-tests
     mask-test-basic
     mask-test-eq

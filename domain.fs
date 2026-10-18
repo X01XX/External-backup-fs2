@@ -474,3 +474,25 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
     domain-get-actions              \ cur-sta act-lst
     action-list-get-needs           \ ned-lst t | f
 ;
+
+\ Take a sample of an arbitrary state.
+: domain-get-arbitary-sample ( sta2 act-id1 dom0 -- smpl )
+    \ Check args.
+    assert( tos is-domain? )
+    assert( 2dup domain-valid-act-id? )
+    assert( 3os is-state? )
+
+    \ Update domain current state.
+    rot                             \ act-id1 dom0 sta2
+    over                            \ act-id1 dom0 sta2 dom
+    domain-update-current-state     \ act-id1 dom0
+
+    \ Find action.
+    tuck                            \ dom act-id1 dom0
+    domain-find-action              \ dom, act t | f
+    invert abort" action not found?"
+
+    \ Get sample.
+    swap                            \ act dom
+    domain-get-sample               \ smpl
+;

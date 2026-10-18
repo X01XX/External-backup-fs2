@@ -40,6 +40,8 @@
     then
 ;
 
+' mask-list-deallocate to mask-list-deallocate-xt
+
 \ Print a mask-list
 : .mask-list ( list0 -- )
     \ Check arg.
@@ -47,6 +49,8 @@
 
     [ ' .mask ] literal swap .list
 ;
+
+' .mask-list to .mask-list-xt
 
 \ Push a mask to a mask-list.
 : mask-list-push ( reg1 list0 -- )

@@ -533,3 +533,45 @@ mask-header-disp cell+  constant mask-number-disp
     swap mask-get-num-bits  \ num nb
     state-new-xt execute
 ;
+
+\ Given a mask with GT one bit set, return a mask with roughly half the bits randomly chosen.
+: mask-half-bits ( msk0 -- msk )
+    \ Check arg.
+    assert( tos is-mask? )
+
+    \ Init return mask.
+    0 over mask-get-num-bits    \ msk0 0 nb
+    mask-new swap               \ ret-msk' msk0
+
+    mask-split                  \ ret-msk' msk-lst'
+    swap                        \ msk-lst' ret-msk'
+
+    over list-get-length        \ msk-lst' ret-msk' len
+    dup 1 < abort" mask-half-bits: too few bits in mask"
+
+    dup                         \ msk-lst' ret-msk' len len
+    pick-list -rot              \ msk-lst' pik-lst ret-msk' len
+
+    \ Calc number of bits to combine.
+    #2 /                        \ msk-lst' pik-lst ret-msk'  num-bits
+    0                           \ msk-lst' pik-lst ret-msk'  num-bits start
+
+    \ Pick bits.
+    do                          \ msk-lst' pik-lst ret-msk'
+        over random-pick        \ msk-lst' pik-lst ret-msk', inx t | f
+        invert abort" random pick failed?"
+
+        #3 pick                 \ msk-lst' pik-lst ret-msk' inx msk-lst'
+        list-get-item           \ msk-lst' pik-lst ret-msk' mskx
+
+        \ Update return mask.
+        over mask-or            \ msk-lst' pik-lst ret-msk' ret-msk''
+        swap mask-deallocate    \ msk-lst' pik-lst ret-msk''
+    loop
+
+    \ Clean up.
+    swap list-deallocate        \ msk-lst' ret-msk
+    swap                        \ ret-msk msk-lst'
+    mask-list-deallocate-xt execute
+;
+

@@ -101,6 +101,8 @@ list-header-disp    cell+   constant list-links-disp
 
 \ Decrement the list length.
 : _list-dec-length ( list-addr -- )
+    assert( tos is-list? )
+
     dup list-get-length     \ list-addr count
     1-
     swap                    \ count list-addr
@@ -570,7 +572,7 @@ list-header-disp    cell+   constant list-links-disp
     >= abort" index too large?" \ u1 lst0
 
     \ Check for first item
-    over ifnot
+    over 0= if
         nip                     \ lst0
         list-pop drop           \ data
         exit
@@ -589,7 +591,7 @@ list-header-disp    cell+   constant list-links-disp
     dup link-get-next           \ lst0 data last cur-link cur-next
     swap link-deallocate        \ lst0 data last cur-next
     swap _link-set-next         \ lst0 data
-    rot _list-dec-length        \ data
+    swap _list-dec-length       \ data
 ;
 
 \ Pop the last item in a list.

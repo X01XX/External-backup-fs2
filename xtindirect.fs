@@ -205,3 +205,9 @@
 ' xtabort value state-new-xt
 
 ' xtabort value regioncorr-new-xt
+
+' xtabort value .mask-list-xt
+
+' xtabort value mask-list-deallocate-xt
+
+

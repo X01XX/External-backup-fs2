@@ -641,7 +641,7 @@
     true
 ;
 
-\ Return a region built from squares of the highest pn value, in a list.
+\ Return a list of squares that have pnc set on.
 : square-list-pnc-squares ( sqr-lst0 -- sqr-lst t | f )
     \ Check arg.
     assert( tos is-square-list? )
@@ -668,6 +668,81 @@
                                     \ ret-lst
     check-list-return
 ;
+
+\ Return a list of squares that have pnc set on.
+: square-list-non-pnc-squares ( sqr-lst0 -- sqr-lst t | f )
+    \ Check arg.
+    assert( tos is-square-list? )
+
+    dup list-is-empty?
+    if
+        drop
+        false
+        exit
+    then
+
+    \ Init return list.
+    list-new swap                   \ ret-lst sqr-lst
+
+    foreach                         \ ret-lst link sqr
+        \ Check if square is pnc.
+        square-get-pnc              \ ret-lst link s-pnc
+        ifnot
+            dup link-get-data       \ ret-lst link sqr
+            #2 pick                 \ ret-lst link sqr ret-lst
+            list-push-struct        \ ret-lst link
+        then
+    next-item
+                                    \ ret-lst
+    check-list-return
+;
+
+\ Return a list of squares with the maximum number of samples.
+: square-list-max-samples ( sqr-lst0 -- sqr-lst t | f )
+    \ Check arg.
+    assert( tos is-square-list? )
+
+    dup list-is-empty?
+    if
+        drop
+        false
+        exit
+    then
+
+    \ Find the maximum number of samples.
+    0                                   \ sqr-lst0 max
+    over                                \ sqr-lst0 max sqr-lst0
+
+    foreach                             \ sqr-lst0 max sqr-lnk sqrx
+        square-get-num-samples          \ sqr-lst0 max sqr-lnk num
+        rot                             \ sqr-lst0 sqr-lnk num max
+        max                             \ sqr-lst0 sqr-lnk max
+        swap                            \ sqr-lst0 max sqr-lnk
+    next-item
+                                        \ sqr-lst0 max
+    \ Init return list.
+    list-new -rot                       \ ret-lst sqr-lst0 max
+
+    swap                                \ ret-lst max sqr-lst0
+
+    foreach                             \ ret-lst max sqr-lnk sqrx
+        dup square-get-num-samples      \ ret-lst max sqr-lnk sqrx num
+        #3 pick                         \ ret-lst max sqr-lnk sqrx num max
+        =                               \ ret-lst max sqr-lnk sqrx bool
+        if
+            \ Save square.
+            #3 pick                     \ ret-lst max sqr-lnk sqrx ret-lst
+            list-push-struct            \ ret-lst max sqr-lnk
+        else
+            drop                        \ ret-lst max sqr-lnk
+        then
+    next-item
+                                        \ ret-lst max
+    drop                                \ ret-lst
+
+    check-list-return
+;
+
 
 \ Return true if a square is a member of a square-list.
 \ Comparing the square states might be more correct,

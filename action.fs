@@ -2138,6 +2138,74 @@ action-groups-disp                          cell+   constant action-function-dis
     \ Check non-adjacent dissimilar pairs for sample-between need.
     #2 pick list-is-empty?
     if
+        dup action-get-nadj-pairs       \ ret-lst cur-sta1 act0 nadj-lst
+        foreach                         \ ret-lst cur-sta1 act0 nadj-lnk regx
+            dup #3 pick                 \ ret-lst cur-sta1 act0 nadj-lnk regx regx act0
+            action-get-squares          \ ret-lst cur-sta1 act0 nadj-lnk regx regx sqr-lst
+            square-list-in-region       \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-lst'
+            dup list-get-length         \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-lst' len
+            #2 =                        \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-lst' bool
+            if
+                \ No squares between, get first sample.
+
+                \ Get state between, by randomly selecting half the region X bits.
+                square-list-deallocate  \ ret-lst cur-sta1 act0 nadj-lnk regx
+                dup                     \ ret-lst cur-sta1 act0 nadj-lnk regx regx
+                region-get-state-0 swap \ ret-lst cur-sta1 act0 nadj-lnk sta-0 regx
+                region-calc-x-mask      \ ret-lst cur-sta1 act0 nadj-lnk sta-0 xmsk'
+                dup mask-half-bits      \ ret-lst cur-sta1 act0 nadj-lnk sta-0 xmsk' hmsk'
+                swap mask-deallocate    \ ret-lst cur-sta1 act0 nadj-lnk sta-0 hmsk'
+                tuck swap               \ ret-lst cur-sta1 act0 nadj-lnk hmsk' hmsk' sta-0
+                state-xor-mask          \ ret-lst cur-sta1 act0 nadj-lnk hmsk' sta-b'
+                swap mask-deallocate    \ ret-lst cur-sta1 act0 nadj-lnk sta-b'
+
+                \ Make need.
+                over link-get-data      \ ret-lst cur-sta1 act0 nadj-lnk sta-b' regx
+                region-str swap         \ ret-lst cur-sta1 act0 nadj-lnk tkn sta-b'
+                actneed-type-ils        \ ret-lst cur-sta1 act0 nadj-lnk tkn sta-b' typ
+                #4 pick                 \ ret-lst cur-sta1 act0 nadj-lnk tkn sta-b' typ act0
+                action-make-need-dis    \ ret-lst cur-sta1 act0 nadj-lnk actneed
+
+                \ Store need.
+                #4 pick                 \ ret-lst cur-sta1 act0 nadj-lnk actneed ret-lst
+                list-push-struct        \ ret-lst cur-sta1 act0 nadj-lnk
+            else
+                \ Squares between, get additional samples.
+
+                \ Isolate squares between.
+                dup                         \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-lst' sqr-lst'
+                square-list-non-pnc-squares \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-lst', sqr-non-lst' t | f
+                invert abort" no non-pnc squares?"
+
+                swap square-list-deallocate \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-non-lst'
+
+                \ Get squares with highest number of samples.
+                dup square-list-max-samples \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-non-lst', sqr-max-lst' t | f
+                invert abort" max samples failed?"
+
+                swap square-list-deallocate \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-max-lst'
+
+                \ Generate needs.
+                dup                         \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-max-lst' sqr-max-lst'
+                foreach                     \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-max-lst' sqr-max-lnk sqrx
+                    \ Make need.
+                    square-get-state        \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-max-lst' sqr-max-lnk stax
+                    #3 pick region-str      \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-max-lst' sqr-max-lnk stax tkn
+                    swap                    \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-max-lst' sqr-max-lnk tkn stax
+                    actneed-type-ils        \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-max-lst' sqr-max-lnk tkn stax typ
+                    #7 pick                 \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-max-lst' sqr-max-lnk tkn stax typ act0
+                    action-make-need-dis    \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-max-lst' sqr-max-lnk actned
+
+                    \ Store need.
+                    #7 pick                 \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-max-lst' sqr-max-lnk actned ret-lst
+                    list-push-struct        \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-max-lst' sqr-max-lnk
+                next-item
+                                            \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-max-lst'
+                square-list-deallocate      \ ret-lst cur-sta1 act0 nadj-lnk regx
+                drop                        \ ret-lst cur-sta1 act0 nadj-lnk
+            then
+        next-item
+                                            \ ret-lst cur-sta1 act0
     then
 
     \ Check adjacent dissimilar pairs for confirmation need.

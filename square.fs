@@ -468,6 +468,7 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
     dup square-get-state .state
     space s" pnc: " type dup square-get-pnc .bool
     space dup square-get-rules .rule-list
+    \ space _square-get-samples .sample-list
     space square-get-num-samples dec.
     s" )" type
 ;

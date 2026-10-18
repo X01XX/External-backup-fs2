@@ -316,3 +316,10 @@
 \ A replacement for "if else" or "0= if".
 : ifnot POSTPONE 0= POSTPONE if ; immediate
 
+\ Get a string from the user, stored in pad.
+: get-string-from-user ( -- pad-addr len )
+    pad                         \ p-addr
+    dup                         \ p-addr p-addr
+    #80                         \ p-addr p-addr #80
+    accept                      \ p-addr n
+;

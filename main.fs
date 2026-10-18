@@ -58,6 +58,7 @@ include link.fs
 include list.fs
 include structlist.fs
 include token.fs
+include randompick.fs
 include mask.fs
 include masklist.fs
 include integer.fs
@@ -124,7 +125,6 @@ include actionlist.fs
 include domain.fs
 include domainlist.fs
 
-include randompick.fs
 include session.fs
 
 include mask_t.fs
