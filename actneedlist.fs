@@ -101,8 +101,8 @@
     drop
 ;
 
-\ Return true actneed-list-contains-targetif a actneed in a list has a given target state.
-: ?actneed-list-contains-target ( sta1 lst0 -- bool )
+\ Return true if an actneed in a list has a given target state.
+: actneed-list-contains-target ( sta1 lst0 -- bool )
     \ Check args.
     assert( tos is-actneed-list? )
     assert( nos is-state? )

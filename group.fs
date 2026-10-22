@@ -178,28 +178,41 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 ;
 
 \ Calc, and set, group rules, based on group square list.
-: _group-calc-set-rules ( grp0 -- )
+\ Return true if it succeeds.
+: _group-calc-set-rules ( grp0 -- bool )
     \ Check arg.
     assert( tos is-group? )
+    \ cr ." _group-calc-set-rules: start: " .stack cr
 
     dup group-get-squares   \ grp0 sqr-lst
     square-list-calc-rules  \ grp0, ruls t | f
     if
         swap                \ ruls grp0
         _group-set-rules
+        true
+        \ cr ." _group-calc-set-rules: exit 1: " .stack cr
     else
-        cr ." Invalid group? " group-get-region .region abort
+        drop
+        false
+        \ cr ." _group-calc-set-rules: exit 2: " .stack cr
     then
 ;
 
 \ Replace current rules with new rules.
-: _group-update-rules ( grp0 -- )
+\ Return true if it succeeds.
+: _group-update-rules ( grp0 -- bool )
     \ Check arg.
     assert( tos is-group? )
 
     dup group-get-rules swap    \ ruls-old grp0
-    _group-calc-set-rules       \ ruls-old
-    rule-list-deallocate        \ Deallocate last, so struct field is never invalid.
+    _group-calc-set-rules       \ ruls-old bool
+    if
+        rule-list-deallocate    \ Deallocate last, so struct field is never invalid.
+        true
+    else
+        drop
+        false
+    then
 ;
 
 \ Calc, and set, group pnc, based on group square list.
@@ -302,6 +315,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     tuck _group-set-squares         \ grp
 
     dup _group-calc-set-pnc         \ grp
+    \ cr ." group-new: " dup .group-xt execute cr
 
     true
 ;
@@ -347,6 +361,8 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     ." )"
 ;
 
+' .group to .group-xt
+
 : .group-regionforeach ( grp0 -- )
     \ Check arg.
     assert( tos is-group? )
@@ -379,6 +395,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     region-superset-of-state?       \ sqr1 grp0 bool
     ifnot
         2drop
+        \ cr ." group-check-changed-square: exit 1" cr
         exit
     then
 
@@ -392,57 +409,62 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     2dup                            \ sqr1 grp0 sqr1 grp
     group-get-squares               \ sqr1 grp0 sqr1 sqr-lst
     square-list-square-compatible?  \ sqr1 grp0 bool
-    if
-        \ Check if square pn GT group pn.
-        over square-get-pn          \ sqr1 grp0 s-pn
-        over group-get-pn           \ sqr1 grp0 s-pn g-pn
-        >
-        if
-            \ Update s-region and rules.
-            dup                     \ sqr1 grp0 grp0
-            _group-update-s-region  \ sqr1 grp0
-            _group-update-rules     \ sqr1
-            drop
-        else
-            \ Check if square is pnc.
-            over square-get-pnc     \ sqr1 grp0 s-pnc
-            if
-                \ Check if group is pnc ...
-                dup group-get-pnc
-                if
-                    2drop
-                else
-                    \ Check if group-region equals group-s-region.
-                    dup _group-region-eq-s-region?   \ sqr1 grp0 bool
-                    if
-                        \ See if the square's change allows setting the group's pnc to true.
-                        _group-calc-set-pnc \ sqr1
-                        drop
-                    else
-                        2drop
-                    then
-                then
-            else
-                2drop
-            then
-        then
-    else                            \ sqr1 grp0
+    ifnot
         2drop
+        \ cr ." group-check-changed-square: exit 2: " cr
+        exit
     then
 
-    \ cr ." group-check-changed-square: exit 2: " .stack cr
+    \ Check if square pn GT group pn.
+    over square-get-pn          \ sqr1 grp0 s-pn
+    over group-get-pn           \ sqr1 grp0 s-pn g-pn
+    >
+    if
+        \ Update s-region and rules.
+        dup                     \ sqr1 grp0 grp0
+        _group-update-s-region  \ sqr1 grp0
+        _group-update-rules     \ sqr1 bool
+        invert abort" rules not updated?"
+
+        drop
+        \ cr ." group-check-changed-square: exit 3: " .stack cr
+        exit
+    then
+
+    \ Check if square is pnc.
+    over square-get-pnc         \ sqr1 grp0 s-pnc
+    ifnot
+        2drop
+        \ cr ." group-check-changed-square: exit 3" cr
+        exit
+    then
+
+    \ Check if group-region equals group-s-region.
+    dup _group-region-eq-s-region?   \ sqr1 grp0 bool
+    ifnot
+        2drop
+        \ cr ." group-check-changed-square: exit 4" cr
+        exit
+    then
+
+    \ See if the square's change allows setting the group's pnc to true.
+    _group-calc-set-pnc             \ sqr1
+    drop
+
+    \ cr ." group-check-changed-square: end: " .stack cr
 ;
 
 \ Attempt to add a square to a group.
 \ The addition may invalidate the group.
-: group-add-new-square ( sqr1 grp0 -- )
+\ Return true if the addition is Ok.
+: group-add-new-square ( sqr1 grp0 -- bool )
     \ Check args.
     assert( tos is-group? )
     assert( nos is-square? )
-    \ cr ." group-add-new-square: start: " over square-get-state .state cr \ .stack cr
+    \ cr ." group-add-new-square: start: "  .stack cr
 
     \ Check that square is new.
-    over square-get-num-samples 1 <> abort" New square gt 1 samples?"
+    over square-get-num-samples 1 <> if cr ." New square gt 1 samples?" cr then
 
     \ Check that the square is a subset of the group's region.
     over square-get-state                   \ sqr1 grp0 sta
@@ -455,8 +477,10 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     over group-get-squares                  \ sqr1 grp0 sta sqr-lst
     square-list-find                        \ sqr1 grp0, sqr t | f
     if
-        2drop
-        drop
+        \ Square already in, maybe new, group.
+        2drop drop
+        true
+        \ cr ." group-add-new-square: exit 1: "  .stack cr
         exit
     then
 
@@ -471,14 +495,32 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     over square-get-state                   \ sqr1 grp0 sta
     over group-get-s-region                 \ sqr1 grp0 sta r-reg
     region-superset-of-state?               \ sqr1 grp0 bool
+    if
 
-    ifnot
+        over square-get-rules               \ sqr1 grp0 s-ruls
+        over group-get-rules                \ sqr1 grp0 s-ruls g-rules
+        rule-list-superset?                 \ sqr1 grp0 bool
+        ifnot
+            2drop
+            false
+            \ cr ." group-add-new-square: exit 2: "  .stack cr
+            exit
+        then
+    else
         dup _group-update-s-region          \ sqr1 grp0
-        dup _group-update-rules             \ sqr1 grp0
+        dup _group-update-rules             \ sqr1 grp0 bool
+        ifnot
+            2drop
+            false
+            \ cr ." group-add-new-square: exit 3: "  .stack cr
+            exit
+        then
         dup _group-calc-set-pnc             \ sqr1 grp0
     then
 
     2drop
+    true
+    \ cr ." group-add-new-square: end: "  .stack cr
 ;
 
 \ Return true if a group's region is superset of a square's state.

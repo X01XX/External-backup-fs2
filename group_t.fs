@@ -93,7 +93,9 @@
     #3 pick square-add-sample                           \ sqr8 sqrf grp bool
     drop                                                \ sqr8 sqrf grp
 
-    #2 pick over group-check-changed-square             \ sqr8 sqrf grp
+    #2 pick over                                        \ sqr8 sqrf grp sqr8 grp
+    group-check-changed-square                          \ sqr8 sqrf grp
+
     cr ." after changing sqr8: " dup .group cr
 
     \ Check group.
@@ -176,9 +178,10 @@
 
     \ Add a compatible square.
     s" s1001->s1001" square-from-string-a                               \ grp sqr9
-    over
+    over                                                                \ grp sqr9 grp
 
-    group-add-new-square                                                \ grp
+    group-add-new-square                                                \ grp bool
+    invert abort" square not added?"
 
     cr ." group + sqr9: " dup .group cr
 

@@ -655,7 +655,6 @@ list-header-disp    cell+   constant list-links-disp
 : list-deallocate-recursive ( lst0 -- )
     \ Check arg.
     assert( tos is-list? )
-    \ cr ." at aa: " .s cr .stack-structs-xt execute cr
 
     dup struct-get-use-count        \ lst0 uc
 

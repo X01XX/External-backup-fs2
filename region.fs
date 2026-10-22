@@ -727,10 +727,9 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     \ Check args.
     assert( tos is-region? )
     assert( nos is-state? )
-    \ cr ." region-superset-of-state?: start: " over .state space dup .region cr
     assert( over state-get-num-bits over region-get-num-bits = )
 
-    \ cr ." region-superset-of-state?: " over .state space dup .region cr
+    \ cr ." region-superset-of-state?: " over .state space dup .region
     region-get-states           \ sta1 reg-sta1 reg-sta0
 
     \ Get sta1 dif reg-sta0
@@ -752,6 +751,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     dup                         \ both-dif' both-dif'
     mask-is-zero?               \ both-dif' bool
     swap mask-deallocate        \ bool
+    \ space dup .bool cr
 ;
 
 \ Return the number of bits distance between a region and a state.

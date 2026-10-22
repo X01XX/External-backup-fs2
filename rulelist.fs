@@ -209,3 +209,116 @@
     next-item
                                 \ lst-n
 ;
+
+\ Return true if the nos 2-rule-list is a subset of the tos 2-rule-list
+\ using correspanding order 1-1 2-2.
+: rule-list-superset-alternate? ( rul-lst1 rul-lst0 -- bool )
+    \ Check args.
+    assert( tos is-rule-list? )
+    assert( nos is-rule-list? )
+    assert( tos list-get-length #2 = )
+    assert( nos list-get-length #2 = )
+
+    \ Compare first pair.
+    over list-get-first-item        \ rul-lst1 rul-lst0 rul1
+    over list-get-first-item        \ rul-lst1 rul-lst0 rul1 rul0
+    rule-superset?                  \ rul-lst1 rul-lst0 bool
+    ifnot
+        2drop
+        false
+        exit
+    then
+
+    \ Compare second pair.
+    swap list-get-second-item       \ rul-lst0 rul1
+    over list-get-second-item       \ rul1 rul0
+    rule-superset?                  \ bool
+;
+
+\ Return true if the nos 2-rule-list is a subset of the tos 2-rule-list
+\ using alternate order 1-2 2-1.
+: rule-list-superset-corresponding? ( rul-lst1 rul-lst0 -- bool )
+    \ Check args.
+    assert( tos is-rule-list? )
+    assert( nos is-rule-list? )
+    assert( tos list-get-length #2 = )
+    assert( nos list-get-length #2 = )
+
+    \ Compare first pair.
+    over list-get-first-item        \ rul-lst1 rul-lst0 rul1
+    over list-get-second-item       \ rul-lst1 rul-lst0 rul1 rul0
+    rule-superset?                  \ rul-lst1 rul-lst0 bool
+    ifnot
+        2drop
+        false
+        exit
+    then
+
+    \ Compare second pair.
+    swap list-get-second-item       \ rul-lst0 rul1
+    over list-get-first-item        \ rul1 rul0
+    rule-superset?                  \ bool
+;
+
+\ Return true if the tos rule list is a superset of the nos rule-list.
+: rule-list-superset? ( rul-lst1 rul-lst0 -- bool )
+    \ Check args.
+    assert( tos is-rule-list? )
+    assert( nos is-rule-list? )
+    assert( tos list-get-length #3 < )
+    assert( tos list-get-length 0<> )
+    assert( nos list-get-length #3 < )
+    assert( nos list-get-length 0<> )
+
+    \ Check for 2 1 lengths.
+    over list-get-length    \ rul-lst1 rul-lst0 len1
+    over list-get-length    \ rul-lst1 rul-lst0 len1 len0
+    > if
+        2drop
+        false
+        exit
+    then
+
+    \ Calc the sum of the list lengths.
+    over list-get-length    \ rul-lst1 rul-lst0 len1
+    over list-get-length    \ rul-lst1 rul-lst0 len1 len0
+    +                       \ rul-lst1 rul-lst0 num
+
+    \ Process the lists.
+    case
+        #2 of               \ len 1 1
+            list-get-first-item swap    \ rul0 rul-lst1
+            list-get-first-item         \ rul0 rul1
+            rule-superset?              \ bool
+        endof
+        #3 of               \ len 1 2
+            \ Check first rule of possible supereset.
+            over list-get-first-item    \ rul-lst1 rul-lst0 rul1
+            over list-get-first-item    \ rul-lst1 rul-lst0 rul1 rul0
+            rule-superset?              \ rul-lst1 rul-lst0 bool
+            if
+                2drop
+                true
+            else
+                swap list-get-first-item    \ rul-lst0 rul1
+                swap list-get-second-item   \ rul-lst1 rul-lst0 rul1 rul0
+                rule-superset?              \ rul-lst1 rul-lst0 bool
+                if
+                    true
+                else
+                    false
+                then
+            then
+        endof
+        #4 of               \ len 2 2
+            2dup rule-list-superset-corresponding?  \ rul-lst1 rul-lst0 bool
+            if
+                2drop
+                true
+            else
+                rule-list-superset-alternate?       \ bool
+            then
+        endof
+        true abort" unexpected sum"
+    endcase
+;

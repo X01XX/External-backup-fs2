@@ -227,14 +227,13 @@
     if
         2drop
     else
-        \ cr ." group-list-get-needs: at 1: " .stack cr
         \ Make actneed.
         0                       \ ret-lst sta1 grp-lst0 tkn
         #2 pick                 \ ret-lst sta1 grp-lst0 tkn targ
         actneed-type-snig       \ ret-lst sta1 grp-lst0 tkn targ ned-typ
         0 0                     \ ret-lst sta1 grp-lst0 tkn targ ned-typ act-id dom-id
         actneed-new             \ ret-lst sta1 grp-lst0 actned
-        \ cr ." group-list-get-needs: at 2: " .stack cr
+
         \ Store actneed.
         #3 pick                 \ ret-lst sta1 grp-lst0 actned ret-lst
         list-push-struct        \ ret-lst sta1 grp-lst0

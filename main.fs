@@ -76,7 +76,6 @@ include statecorr.fs
 include statecorrlist.fs
 
 include regionlist.fs
-include incpairs.fs
 include region2.fs
 include state2.fs
 include regionlist2.fs
@@ -145,7 +144,6 @@ include cornerlist_t.fs
 include squarelist_t.fs
 include action_t.fs
 include group_t.fs
-include incpairs_t.fs
 include domain_t.fs
 include session_t.fs
 include randompick_t.fs
@@ -285,7 +283,6 @@ list-new to structinfo-list-store
     corner-list-tests
 \    need-tests
     maskcorr-tests
-    inc-pair-tests
     regioncorr-tests
     regioncorr-list-tests
     session-tests

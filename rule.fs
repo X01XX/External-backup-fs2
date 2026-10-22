@@ -785,3 +785,57 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
     swap mask-deallocate    \ sta
     true
 ;
+
+\ Return true if the tos rule is a superset of the nos rule.
+: rule-superset? ( rul1 rul0 -- bool )
+    \ Check args.
+    assert( tos is-rule? )
+    assert( nos is-rule? )
+
+    \ Check 00 mask.
+    over rule-get-m00 dup       \ rul1 rul0 1m00 1m00
+    #2 pick rule-get-m00        \ rul1 rul0 1m00 1m00 0m00
+    mask-and                    \ rul1 rul0 1m00 m00'
+    tuck                        \ rul1 rul0 m00' 1m00 m00'
+    masks-eq?                   \ rul1 rul0 m00' bool
+    swap mask-deallocate        \ rul1 rul0 bool
+    ifnot
+        2drop
+        false
+        exit
+    then
+
+    \ Check 01 mask.
+    over rule-get-m01 dup       \ rul1 rul0 1m01 1m01
+    #2 pick rule-get-m01        \ rul1 rul0 1m01 1m01 0m01
+    mask-and                    \ rul1 rul0 1m01 m01'
+    tuck                        \ rul1 rul0 m01' 1m01 m01'
+    masks-eq?                   \ rul1 rul0 m01' bool
+    swap mask-deallocate        \ rul1 rul0 bool
+    ifnot
+        2drop
+        false
+        exit
+    then
+
+    \ Check 11 mask.
+    over rule-get-m11 dup       \ rul1 rul0 1m11 1m11
+    #2 pick rule-get-m11        \ rul1 rul0 1m11 1m11 0m11
+    mask-and                    \ rul1 rul0 1m11 m11'
+    tuck                        \ rul1 rul0 m11' 1m11 m11'
+    masks-eq?                   \ rul1 rul0 m11' bool
+    swap mask-deallocate        \ rul1 rul0 bool
+    ifnot
+        2drop
+        false
+        exit
+    then
+
+    \ Check 10 mask.
+    swap rule-get-m10 dup       \ rul0 1m10 1m10
+    rot rule-get-m10            \ 1m10 1m10 0m10
+    mask-and                    \ 1m10 m10'
+    tuck                        \ m10' 1m10 m10'
+    masks-eq?                   \ m10' bool
+    swap mask-deallocate        \ bool
+;
