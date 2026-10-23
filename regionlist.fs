@@ -867,12 +867,12 @@
 \ Check args.
     assert( tos is-region-list? )
     assert( nos is-region? )
-    cr ." region-list-remove: " over .region space ." from: " dup .region-list cr
+    \ cr ." region-list-remove: " over .region space ." from: " dup .region-list cr
 
     [ ' regions-eq? ] literal -rot  \ xt reg1 reg-lst0
     list-remove-struct              \ reg t | f
     if
-        cr ." removed." cr
+        \ cr ." removed." cr
         dup struct-get-use-count    \ reg uc
         0=
         if
@@ -880,8 +880,8 @@
         else
             drop
         then
-    else
-        cr ." NOT removed." cr
+    \ else
+    \     cr ." NOT removed." cr
     then
 ;
 

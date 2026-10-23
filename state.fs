@@ -523,7 +523,7 @@ state-header-disp cell+   constant state-number-disp
     swap mask-new               \ msk
 ;
 
-\ Return true if a state (tos) is between two other states.
+\ Return true if a state (tos) is between two other states, inclusive.
 : state-between? ( sta2 sta1 sta0 -- bool )
     \ Check args.
     assert( tos is-state? )
@@ -531,6 +531,50 @@ state-header-disp cell+   constant state-number-disp
     assert( 2dup states-same-num-bits? )
     assert( 3os is-state? )
     assert( #2 pick over states-same-num-bits? )
+
+    \ Get sta0 dif masks.
+    tuck                    \ sta2 sta0 sta1 sta0
+    state-dif-mask          \ sta2 sta0 dif1
+    -rot                    \ dif1 sta2 sta0
+    state-dif-mask          \ dif1 dif2
+
+    \ Check if dif masks have the same bit set.
+    2dup mask-and           \ dif1 dif2 dif12
+    dup mask-is-zero?       \ dif1 dif2 dif12 bool
+
+    \ Clean up.
+    swap mask-deallocate    \ dif1 dif2 bool
+    swap mask-deallocate    \ dif1 bool
+    swap mask-deallocate
+;
+
+\ Return true if a state (tos) is between two other states,
+\ but nos equal to either state.
+: state-between-exclusive? ( sta2 sta1 sta0 -- bool )
+    \ Check args.
+    assert( tos is-state? )
+    assert( nos is-state? )
+    assert( 2dup states-same-num-bits? )
+    assert( 3os is-state? )
+    assert( #2 pick over states-same-num-bits? )
+
+    \ Check if sta0 is equal to sta2.
+    #2 pick over            \ sta2 sta1 sta0 sta2 sta0
+    states-eq?              \ sta2 sta1 sta0 bool
+    if
+        2drop drop
+        false
+        exit
+    then
+
+    \ Check if sta0 is equal to sta1.
+    2dup                    \ sta2 sta1 sta0 sta1 sta0
+    states-eq?              \ sta2 sta1 sta0 bool
+    if
+        2drop drop
+        false
+        exit
+    then
 
     \ Get sta0 dif masks.
     tuck                    \ sta2 sta0 sta1 sta0

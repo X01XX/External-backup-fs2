@@ -386,9 +386,9 @@ action-groups-disp                          cell+   constant action-function-dis
     assert( nos is-region-list? )
     \ cr ." _action-update-nadj-regions: " over .region-list cr
 
-    dup action-get-nadj-regions          \ reg-lst1 act0 pos-regs
+    dup action-get-nadj-regions         \ reg-lst1 act0 pos-regs
     -rot                                \ pos-regs reg-lst1 act0
-    _action-set-nadj-regions             \ pos-regs
+    _action-set-nadj-regions            \ pos-regs
     region-list-deallocate
 ;
 
@@ -502,7 +502,7 @@ action-groups-disp                          cell+   constant action-function-dis
     _action-set-adj-regions             \ xt2 mr1 act
 
     \ Init non-adj regions list.
-    list-new                            \ xt2 mr1 act lst
+    list-new                            \ xt2 mr1 act lst1
     #2 pick                             \ xt2 mr1 act lst mr1
     over list-push-struct               \ xt2 mr1 act lst
     over                                \ xt2 mr1 act lst act
@@ -707,6 +707,68 @@ action-groups-disp                          cell+   constant action-function-dis
     square-list-find        \ sqr t | f
 ;
 
+\ Return true if a region, in the possible regions list, can be used as a group.
+\ This does not check the compatibility of the squares in the group.
+: action-valid-group-region2? ( reg1 act0 -- bool )
+    \ Check args.
+    assert( tos is-action? )
+    assert( nos is-region? )
+    cr ." action-valid-group-region2? start" cr
+
+    \ Check if reg1 is in the defining regions list.
+    [ ' regions-eq? ] literal       \ reg1 act0 xt
+    #2 pick #2 pick                 \ reg1 act0 xt reg1 act0
+    action-get-defining-regions     \ reg1 act0 xt reg1 def-regs
+    list-member?                    \ reg1 act0 bool
+    if
+        2drop
+        true
+        exit
+    then
+
+    \ Check if reg1 minus the defining regions is empty.
+    list-new                            \ reg1 act0 reg1-lst'
+    #2 pick                             \ reg1 act0 reg1-lst' reg1
+    over list-push                      \ reg1 act0 reg1-lst' ( reg1 use count unchanged )
+    over action-get-defining-regions    \ reg1 act0 reg1-lst' def-regs
+    over region-list-subtract           \ reg1 act0 reg1-lst' rem-lst'
+
+    dup list-is-empty?
+    if
+        list-deallocate                 \ reg1 act0 reg1-lst'
+        list-deallocate                 \ reg1 act0
+        2drop
+        false
+    else
+        region-list-deallocate          \ reg1 act0 reg1-lst'
+        list-deallocate                 \ reg1 act0
+        2drop
+        true
+    then
+;
+
+\ Return true if a region can be used as a group.
+\ This does not check the compatibility of the squares in the group.
+: action-valid-group-region? ( reg1 act0 -- bool )
+    \ Check args.
+    assert( tos is-action? )
+    assert( nos is-region? )
+    cr ." action-valid-group-region? start" cr
+
+    \ Check if region is in the possible regions list.
+    [ ' regions-eq? ] literal       \ reg1 act0 xt
+    #2 pick #2 pick                 \ reg1 act0 xt reg1 act0
+    action-get-possible-regions     \ reg1 act0 xt reg1 pos-regs
+    list-member?                    \ reg1 act0 bool
+    ifnot
+        2drop
+        false
+        exit
+    then
+
+    action-valid-group-region2?     \ bool
+;
+
 \ Return a list of defining regions in the possible regions.
 : action-defining-regions ( act0 -- reg-lst )
     \ Check arg.
@@ -769,25 +831,21 @@ action-groups-disp                          cell+   constant action-function-dis
     list-new                            \ act0 del-grps
 
     \ Scan group list, gathering groups to remove from the list.
-    over action-get-possible-regions    \ act0 del-grps pos-regs
-    #2 pick action-get-groups           \ act0 del-grps pos-regs grp-lst
+    over action-get-groups              \ act0 del-grps grp-lst
 
-    foreach                             \ act0 del-grps pos-regs grp-lnk grpx
-        [ ' regions-eq? ] literal swap  \ act0 del-grps pos-regs grp-lnk xt grpx
-        group-get-region                \ act0 del-grps pos-regs grp-lnk xt regx
-        #3 pick                         \ act0 del-grps pos-regs grp-lnk xt regx pos-regs
-        list-member?                    \ act0 del-grps pos-regs grp-lnk bool
+    foreach                             \ act0 del-grps grp-lnk grpx
+        group-get-region                \ act0 del-grps grp-lnk regx
+        #3 pick                         \ act0 del-grps grp-lnk regx act0
+        action-valid-group-region?      \ act0 del-grps grp-lnk bool
         ifnot
-            dup link-get-data           \ act0 del-grps pos-regs grp-lnk grpx
-            #3 pick                     \ act0 del-grps pos-regs grp-lnk grpx del-grps
-            list-push-struct            \ act0 del-grps pos-regs grp-lnk
+            dup link-get-data           \ act0 del-grps grp-lnk grpx
+            #2 pick                     \ act0 del-grps grp-lnk grpx del-grps
+            list-push-struct            \ act0 del-grps grp-lnk
         then
     next-item
 
     \ Remove the groups from the action group list.
-                                        \ act0 del-grps pos-regs
-    drop                                \ act0 del-grps
-
+                                        \ act0 del-grps
     dup list-is-empty?
     if
         list-deallocate
@@ -887,28 +945,33 @@ action-groups-disp                          cell+   constant action-function-dis
         #2 pick                         \ act0 grp-lst pos-lnk pos-reg grp-lst
         group-list-member?              \ act0 grp-lst pos-lnk bool
         ifnot
-            \ Get squares in region.
             dup link-get-data           \ act0 grp-lst pos-lnk pos-reg
             #3 pick                     \ act0 grp-lst pos-lnk pos-reg act0
-            action-get-squares          \ act0 grp-lst pos-lnk pos-reg sqr-lst
-            square-list-in-region       \ act0 grp-lst pos-lnk in-lst'
-            dup list-is-empty?
+            action-valid-group-region2? \ act0 grp-lst pos-lnk bool
             if
-                list-deallocate
-            else
-                dup                     \ act0 grp-lst pos-lnk in-lst' in-lst'
-                #2 pick link-get-data   \ act0 grp-lst pos-lnk in-lst' in-lst' pos-reg
-                #5 pick                 \ act0 grp-lst pos-lnk in-lst' in-lst' pos-reg act0
-                action-get-inst-ids     \ act0 grp-lst pos-lnk in-lst' in-lst' pos-reg actsid dom-id
-                group-new               \ act0 grp-lst pos-lnk in-lst', grp t | f
+                \ Get squares in region.
+                dup link-get-data           \ act0 grp-lst pos-lnk pos-reg
+                #3 pick                     \ act0 grp-lst pos-lnk pos-reg act0
+                action-get-squares          \ act0 grp-lst pos-lnk pos-reg sqr-lst
+                square-list-in-region       \ act0 grp-lst pos-lnk in-lst'
+                dup list-is-empty?
                 if
-                    nip                         \ act0 grp-lst pos-lnk grp
-                    cr #3 pick .action-inst-ids space ." Adding group: " dup .group cr
-                    #3 pick                     \ act0 grp-lst pos-lnk grp act0
-                    action-add-group            \ act0 grp-lst pos-lnk
+                    list-deallocate
                 else
-                    \ cr ." group-new failed" cr
-                    square-list-deallocate      \ act0 grp-lst pos-lnk
+                    dup                     \ act0 grp-lst pos-lnk in-lst' in-lst'
+                    #2 pick link-get-data   \ act0 grp-lst pos-lnk in-lst' in-lst' pos-reg
+                    #5 pick                 \ act0 grp-lst pos-lnk in-lst' in-lst' pos-reg act0
+                    action-get-inst-ids     \ act0 grp-lst pos-lnk in-lst' in-lst' pos-reg actsid dom-id
+                    group-new               \ act0 grp-lst pos-lnk in-lst', grp t | f
+                    if
+                        nip                         \ act0 grp-lst pos-lnk grp
+                        cr #3 pick .action-inst-ids space ." Adding group: " dup .group cr
+                        #3 pick                     \ act0 grp-lst pos-lnk grp act0
+                        action-add-group            \ act0 grp-lst pos-lnk
+                    else
+                        \ cr ." group-new failed" cr
+                        square-list-deallocate      \ act0 grp-lst pos-lnk
+                    then
                 then
             then
         then
@@ -2382,8 +2445,6 @@ action-groups-disp                          cell+   constant action-function-dis
                     actneed-list-deallocate \ ret-lst act0 def-lnk
                 then
             then
-\        else
-\            cr ." Defining group not found?"
         then
     next-item
                                     \ ret-lst act0

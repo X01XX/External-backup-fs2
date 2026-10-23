@@ -46,7 +46,7 @@ true constant debug
 UES definitions
 
 decimal
-\ #2 base !  \ Test all numbers GT 1, LT -1, have a base prefix. gforth main.fs, then all-tests
+ #2 base !  \ Test all numbers GT 1, LT -1, have a base prefix. gforth main.fs, then all-tests
 
 include xtindirect.fs
 include globals.fs
