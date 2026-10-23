@@ -528,11 +528,9 @@
 
     dup struct-get-use-count                        \ lst0 uc
     #2 < if
-
         structinfo-list-store-deallocate-struct-xt  \ lst xt
         swap                                        \ xt lst
         list-deallocate-recursive-struct
-
     else
         struct-dec-use-count
     then

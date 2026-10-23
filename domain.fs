@@ -127,14 +127,14 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
 ' domain-get-current-state to domain-get-current-state-xt
 
 \ Set the current state of a domain instance.
-: _domain-set-current-state ( sta1 dom0 -- )
+: domain-set-current-state ( sta1 dom0 -- )
     \ Check args.
     assert( tos is-domain? )
     assert( nos is-state? )
 
     over state-get-num-bits     \ sta1 dom0 sta-num
     over domain-get-num-bits    \ sta1 dom0 sta-num dom-num
-    <> abort" _domain-set-current-state: invalid state number bits"
+    <> abort" domain-set-current-state: invalid state number bits"
 
     \ Set inst id.
     domain-current-state-disp +
@@ -149,7 +149,7 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
 
     dup domain-get-current-state    \ sta1 dom cur
     -rot                            \ cur sta1 dom
-    _domain-set-current-state       \ cur
+    domain-set-current-state        \ cur
     state-deallocate
 ;
 
@@ -290,7 +290,7 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
     over all-bits random            \ nb0 dom rnd
     rot state-new                   \ dom sta
     over                            \ dom sta dom
-    _domain-set-current-state       \ dom
+    domain-set-current-state        \ dom
 ;
 
 : domain-valid-act-id? ( id dom -- bool )

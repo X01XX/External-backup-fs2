@@ -713,7 +713,7 @@ action-groups-disp                          cell+   constant action-function-dis
     \ Check args.
     assert( tos is-action? )
     assert( nos is-region? )
-    cr ." action-valid-group-region2? start" cr
+    \ cr ." action-valid-group-region2? start" cr
 
     \ Check if reg1 is in the defining regions list.
     [ ' regions-eq? ] literal       \ reg1 act0 xt
@@ -753,7 +753,7 @@ action-groups-disp                          cell+   constant action-function-dis
     \ Check args.
     assert( tos is-action? )
     assert( nos is-region? )
-    cr ." action-valid-group-region? start" cr
+    \ cr ." action-valid-group-region? start" cr
 
     \ Check if region is in the possible regions list.
     [ ' regions-eq? ] literal       \ reg1 act0 xt
