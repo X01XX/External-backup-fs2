@@ -932,7 +932,6 @@ action-groups-disp                          cell+   constant action-function-dis
 : action-add-possible-groups ( act0 -- )
     \ Check arg.
     assert( tos is-action? )
-    assert( nos is-square? )
     \ cr ." action-add-possible-groups: start" cr
 
     \ Scan group list.
@@ -1223,11 +1222,11 @@ action-groups-disp                          cell+   constant action-function-dis
 \ Calc corner clusters.
 \ Copy the action corner, and defining region, lists.
 \
-\ Generate one coner cluster after another, until the copied defining
+\ Generate one corner cluster after another, until the copied defining
 \ list is empty.
 \
-\ Return a list of corner clusters, tha is a list or corner lists.
-: action-calc-corner-clusters ( act0 -- crn-lol )
+\ Return a list of corner clusters, that is a list or corner lists.
+: action-calc-corner-clusters ( act0 -- )
     \ Check arg.
     assert( tos is-action? )
     \ cr ." action-calc-corner-clusters: start: " .stack cr
@@ -1291,6 +1290,74 @@ action-groups-disp                          cell+   constant action-function-dis
     \ cr ." action-calc-corner-clusters: end: " .stack cr
 ;
 
+\ To save memory, scan corners in the corner clusters, insure groups
+\ based on a defining region, start with the square/state of a corner anchor.
+: action-update-groups-from-corner-cluster ( act0 -- )
+    \ Check arg.
+    assert( tos is-action? )
+    \ cr ." : action-update-groups-from-corner-cluster: start: " .stack cr
+
+    dup action-get-groups           \ act0 grp-lst
+    over action-get-corner-clusters \ act0 grp-lst crnc-lst
+
+    dup list-is-empty?
+    if
+        2drop
+        drop
+        exit
+    then
+    \ cr ." : action-update-groups-from-corner-cluster: start: " .stack cr
+
+    foreach                         \ act0 grp-lst crnc-lnk crn-lst
+        foreach                     \ act0 grp-lst crnc-lnk crn-lnk crn
+            #4 pick                 \ act0 grp-lst crnc-lnk crn-lnk crn act0
+            .action-inst-ids        \ act0 grp-lst crnc-lnk crn-lnk crn
+
+            \ cr ." corner: " dup .corner
+            dup corner-get-region   \ act0 grp-lst crnc-lnk crn-lnk crn reg
+            \ space ." region: " dup .region
+
+            #4 pick                 \ act0 grp-lst crnc-lnk crn-lnk crn reg grp-lst
+            group-list-find         \ act0 grp-lst crnc-lnk crn-lnk crn, grp t | f
+            if
+                \ space ." group: " dup .group
+
+                dup                 \ act0 grp-lst crnc-lnk crn-lnk crn grp grp
+                group-get-squares   \ act0 grp-lst crnc-lnk crn-lnk crn grp sqr-lst
+                list-get-first-item \ act0 grp-lst crnc-lnk crn-lnk crn grp sqr
+                square-get-state    \ act0 grp-lst crnc-lnk crn-lnk crn grp sta
+                \ space ." starts with: " dup .state
+
+                #2 pick                 \ act0 grp-lst crnc-lnk crn-lnk crn grp sta crn
+                corner-get-anchor-state \ act0 grp-lst crnc-lnk crn-lnk crn grp sta csta
+                \ space ." anchor: " dup .state
+
+                2dup states-eq?         \ act0 grp-lst crnc-lnk crn-lnk crn grp sta csta bool
+                if
+                    \ space ." = "
+                    2drop 2drop
+                else
+                    \ space ." <>"
+                    nip                         \ act0 grp-lst crnc-lnk crn-lnk crn grp csta
+                    swap                        \ act0 grp-lst crnc-lnk crn-lnk crn csta grp
+                    group-change-first-square   \ act0 grp-lst crnc-lnk crn-lnk crn
+                    drop
+                then
+            else
+                cr ." group not found?" cr
+                abort
+            then
+            cr
+        next-item
+    next-item
+                                    \ act0 grp-lst
+    drop                            \ act0
+
+    drop
+
+    \ cr ." : action-update-groups-from-corner-cluster: end: " .stack cr
+;
+
 \ Calc corners, from action-defining-regions and
 \ action-states-in-one-region.
 \
@@ -1346,12 +1413,13 @@ action-groups-disp                          cell+   constant action-function-dis
 
     tuck _action-update-corners         \ act
 
-    action-calc-corner-clusters         \
+    \ Calc and store corner clusters.
+    action-calc-corner-clusters
 ;
 
 \ Evaluate possible regions, to generate corners and corner clusters.
 : _action-evaluate-possible-regions ( act0 -- )
-    \ cr ." _action-evaluate-possible-regions: start"
+    cr ." _action-evaluate-possible-regions: start"
     \ Check arg.
     assert( tos is-action? )
 
@@ -1371,7 +1439,7 @@ action-groups-disp                          cell+   constant action-function-dis
     dup action-calc-corners                             \ act0
 
     drop
-    \ cr ." _action-evaluate-possible-regions: end"
+    cr ." _action-evaluate-possible-regions: end"
 ;
 
 \ **********************************
@@ -1556,7 +1624,10 @@ action-groups-disp                          cell+   constant action-function-dis
     over _action-update-possible-regions    \ act0
 
     dup action-square-states-in-one-region  \ act0 sta-lst'
-    swap _action-update-states-in-one-region
+    over                                    \ act0 sta-lst' act0
+    _action-update-states-in-one-region     \ act0
+
+    _action-evaluate-possible-regions
 
     \ cr ." action-recalc-possible-regions: end: " .stack cr
 ;
@@ -1591,7 +1662,7 @@ action-groups-disp                          cell+   constant action-function-dis
 : action-recalc-nadj-pair-regions ( act0 -- )
     \ Check args.
     assert( tos is-action? )
-    \ cr ." action-recalc-nadj-pair-regions: start" cr
+    \ cr ." action-recalc-nadj-pair-regions: start: " .stack cr
 
     \ Init result list.
     list-new                                \ act0 pos-new
@@ -1618,9 +1689,10 @@ action-groups-disp                          cell+   constant action-function-dis
     cr over .action-inst-ids space ." new nadj regions: " dup .region-list cr
     swap                                    \ pos-new act0
     tuck _action-update-nadj-regions        \ act0
-    dup action-recalc-possible-regions      \ act0
-    _action-evaluate-possible-regions       \
-    \ cr ." action-recalc-nadj-pair-regions: end" cr
+
+    action-recalc-possible-regions          \
+
+    \ cr ." action-recalc-nadj-pair-regions: end: " .stack cr
 ;
 
 \ Remove any nadj pairs that are no longer within an adj region.
@@ -1751,7 +1823,7 @@ action-groups-disp                          cell+   constant action-function-dis
     assert( nos is-square? )
     \ cr ." action-check-square-for-new-adj-pairs: start: " .stack cr
 
-    2dup action-check-square-for-new-adj-pairs2 \ sqr1 act0, pr-lst t | f
+    2dup action-check-square-for-new-adj-pairs2 \ sqr1 act0, pr-lst' t | f
     ifnot
         2drop
         false
@@ -1872,7 +1944,6 @@ action-groups-disp                          cell+   constant action-function-dis
     \ Recalc.
     dup action-recalc-nadj-pair-regions         \ sqr act0
     dup action-recalc-possible-regions          \ sqr act0
-    dup _action-evaluate-possible-regions       \ sqr act
 
     \ Return.
     2drop
@@ -1886,6 +1957,7 @@ action-groups-disp                          cell+   constant action-function-dis
     \ Check args.
     assert( tos is-action? )
     assert( nos is-square? )
+    \ cr ." action-check-square-effect-on-adj-pairs: start: " .stack cr
 
     \ Init any-change flag.
     false -rot                                          \ ch-fl sqr1 act0
@@ -1933,6 +2005,7 @@ action-groups-disp                          cell+   constant action-function-dis
 
     \ Return.
     2drop                                               \ ch-fl
+    \ cr ." action-check-square-effect-on-adj-pairs: end: " .stack cr
 ;
 
 \ Check if a square affects non-adjacent, incompatible, pairs.
@@ -2020,6 +2093,7 @@ action-groups-disp                          cell+   constant action-function-dis
     \ Check args.
     assert( tos is-action? )
     assert( nos is-square? )
+    \ cr ." action-check-square-effect-on-incompatible-pairs: start: " .stack cr
 
     2dup action-check-square-effect-on-adj-pairs    \ sqr1 act0 bool
 
@@ -2028,41 +2102,28 @@ action-groups-disp                          cell+   constant action-function-dis
     action-check-square-effect-on-nadj-pairs        \ bool bool
 
     or
-\    cr ." action-check-square-effect-on-incompatible-pairs: end: " .stack cr
+    \ cr ." action-check-square-effect-on-incompatible-pairs: end: " .stack cr
 ;
 
 \ ********************************
 \ * End incompatible pair logic. *
 \ ********************************
 
-\ Check for invalidated, and new, groups.
-: action-check-square-effect-on-goups  ( sqr1 act0 -- )
-    \ Check args.
-    assert( tos is-action? )
-    assert( nos is-square? )
-    \ cr ." action-check-square-effect-on-groups: start: " .stack cr
-
-    2dup action-udpate-groups-with-new-square
-
-    action-add-possible-groups      \ sqr1
-    drop
-    \ cr ." action-check-square-effect-on-groups: end: " .stack cr
-;
-
 \ Check a new, or updated square.
 : action-check-square ( sqr1 act0 -- )
-    \ cr ." action-check-square: start: " .stack cr
     \ Check args.
     assert( tos is-action? )
     assert( nos is-square? )
+    \ cr ." action-check-square: start: " .stack cr
 
     2dup                                                \ sqr1 act0 sqr1 act0
     action-check-square-effect-on-incompatible-pairs    \ sqr1 act0 bool
+
     -rot                                                \ bool sqr1 act0
+
     2dup action-check-square-for-new-adj-pairs          \ bool sqr1 act0 bool
     -rot                                                \ bool bool sqr1 act0
     2dup action-check-square-for-new-nadj-pairs         \ bool bool sqr1 act0 bool
-
 
     \ Combine the bools.
     #4 pick or                                          \ bool bool sqr1 act0 bool
@@ -2071,8 +2132,11 @@ action-groups-disp                          cell+   constant action-function-dis
         dup _action-delete-orphaned-groups
     then
 
-    action-check-square-effect-on-goups                 \ bool bool
-    2drop
+    dup action-add-possible-groups                      \ bool bool sqr1 act0
+
+    action-update-groups-from-corner-cluster            \ bool bool sqr1
+
+    2drop drop
 
     \ cr ." action-check-square: end: " .stack cr
 ;
@@ -2093,6 +2157,8 @@ action-groups-disp                          cell+   constant action-function-dis
     \ Store the square.
     2dup action-get-squares     \ sqr1 act0 sqr1 sqr-lst
     list-push-struct            \ sqr1 act0
+
+    2dup action-udpate-groups-with-new-square
 
     action-check-square
     \ cr ." action-add-new-square: end: " .stack cr

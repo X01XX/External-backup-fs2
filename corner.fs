@@ -48,7 +48,7 @@ corner-region-disp          cell+   constant corner-adjacent-states-disp    \ Al
 \ Start accessors.
 
 \ Return the anchor-state field from a corner instance.
-: corner-get-anchor-state ( crn0 -- sqr )
+: corner-get-anchor-state ( crn0 -- sta )
     \ Check arg.
     assert( tos is-corner? )
 

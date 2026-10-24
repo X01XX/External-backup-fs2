@@ -462,6 +462,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     assert( tos is-group? )
     assert( nos is-square? )
     \ cr ." group-add-new-square: start: "  .stack cr
+    \ cr ." group-add-new-square: " over .square dup .group cr
 
     \ Check that square is new.
     over square-get-num-samples 1 <> if cr ." New square gt 1 samples?" cr then
@@ -489,7 +490,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     \ Add the square to the square list.
     2dup                                    \ sqr1 grp0 sqr1 grp0
     group-get-squares                       \ sqr1 grp0 sqr1 sqr-lst
-    list-push-struct                        \ sqr1 grp0
+    list-push-end-struct                    \ sqr1 grp0
 
     \ Check if the new square is in the s-region.
     over square-get-state                   \ sqr1 grp0 sta
@@ -739,4 +740,24 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     list-new tuck               \ rel-lst actned ret-lst
     list-push-struct            \ ret-lst
     true
+;
+
+\ Chenge the first square in a group square list.
+\ Return true if the change is made.
+: group-change-first-square ( sta1 grp0 -- )
+    \ Check arg.
+    assert( tos is-group? )
+    assert( nos is-state? )
+    \ cr ." group-change-first-square: sta: " over .state space dup .group cr
+
+    group-get-squares               \ sta1 sqr-lst
+
+    [ ' square-state-eq? ] literal  \ sta1 sqr-lst xt
+    rot                             \ sqr-lst xt sta1
+    #2 pick                         \ sqr-lst xt sta1 sqr-lst
+    list-remove-struct              \ sqr-lst, sqr t | f
+    invert abort" group-change-first-square: square not removed?"
+
+    swap                            \ sqr sqr-lst
+    list-push-struct
 ;

@@ -57,10 +57,10 @@
     assert( tos is-state? )
 
     dup state-get-number        \ csta cnum
-    dup #2 and 0=               \ csta cnum bool
-    if                          \ XX0X
-        1 xor                   \ csta rnum
-    else                        \ XX1X
+    dup invert #10 and #10 =    \ csta cnum bool
+    if                          \ 0X0X
+        #1 xor                  \ csta rnum
+    else                        \ 1XXX, XX1X
         #4 xor                  \ csta rnum
     then
 
