@@ -1419,7 +1419,7 @@ action-groups-disp                          cell+   constant action-function-dis
 
 \ Evaluate possible regions, to generate corners and corner clusters.
 : _action-evaluate-possible-regions ( act0 -- )
-    cr ." _action-evaluate-possible-regions: start"
+    \ cr ." _action-evaluate-possible-regions: start"
     \ Check arg.
     assert( tos is-action? )
 
@@ -1439,7 +1439,7 @@ action-groups-disp                          cell+   constant action-function-dis
     dup action-calc-corners                             \ act0
 
     drop
-    cr ." _action-evaluate-possible-regions: end"
+    \ cr ." _action-evaluate-possible-regions: end"
 ;
 
 \ **********************************

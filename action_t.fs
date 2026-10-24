@@ -1,5 +1,36 @@
 \ Test action functions.
 
+\ Result x
+: calc-result-x ( sta -- rslt )
+    \ Check arg.
+    assert( tos is-state? )
+
+    dup state-get-num-bits      \ sta nb
+    swap state-get-number       \ nb num
+
+    \ Test for ...0XX0, change bit 3.
+    #9 over and                 \ nb num test1
+    0=
+    if
+        #8 or                   \ nb rslt1
+        swap state-new          \ rslt
+        exit
+    then
+
+    \ Test for ...1XX1, change bit 3.
+    #9 over and                 \ nb num test1
+    #9 =
+    if
+        #8 xor                  \ nb rslt1
+        swap state-new          \ rslt
+        exit
+    then
+
+    \ Then its in 0XX1 or 1X0X, no change.
+                                \ nb num
+    state-new                   \ rslt
+;
+
 : action-test-new
     \ Run function..
     [ ' calc-result-x ] literal
@@ -12,7 +43,7 @@
     \ Test results.
     dup action-get-num-bits #4 <> abort" num bits s/b 4?"
     dup action-get-inst-id 0<> abort" inst-id s/b 0?"
-    dup action-get-dom-inst-id 1 <> abort" parent s/b 2?"
+    dup action-get-dom-inst-id 1 <> abort" parent s/b 1?"
 
     \ Deallocate
     action-deallocate
@@ -248,6 +279,46 @@
 
     cr ." action-test-corners2 - Ok"
 ;
+
+: action-test
+    \ Init action.
+    [ ' noop ] literal
+    s" rXXXX 0" string-to-stack-a
+    action-new                              \ act
+
+    cr dup .action cr
+
+    \ Add 6->6
+    s" s0110->s0110" sample-from-string-a   \ act smpl1
+    over action-add-sample                  \ act bool
+    invert abort" Did not return true?"
+
+    \ Add 4->5
+    s" s0100->s0101" sample-from-string-a   \ act smpl1
+    over action-add-sample                  \ act bool
+    invert abort" Did not return true?"
+
+    \ Add 5->4
+    s" s0101->s0100" sample-from-string-a   \ act smpl1
+    over action-add-sample                  \ act bool
+    invert abort" Did not return true?"
+
+    \ Add D->D
+    s" s1101->s1101" sample-from-string-a   \ act smpl1
+    over action-add-sample                  \ act bool
+    invert abort" Did not return true?"
+
+    cr dup .action cr
+
+    \ Deallocate
+    action-deallocate
+
+    \ Check for memory leaks.
+    check-project-deallocated
+
+    cr ." action-test-corners2 - Ok"
+;
+
 
 : action-tests
     action-test-new

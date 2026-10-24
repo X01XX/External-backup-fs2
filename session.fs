@@ -489,24 +489,9 @@ session-paths-disp              cell+   constant session-sesneed-list-disp      
     \ Check args.
     assert( tos is-session? )
 
-    dup session-get-domains         \ sess0 dom-lst
-    list-get-links                  \ sess0 d-link
-    ." ("
-    begin
-        ?dup
-    while
-        dup link-get-data           \ sess0 d-link domx
-        domain-get-current-state    \ sess0 d-link d-sta
-        .state                      \ sess0 d-link
-
-        link-get-next               \ sess0 d-link-nxt
-        dup 0<> if
-            space
-        then
-    repeat
-                                    \ sess0
-    drop                            \
-    ." )"
+    session-get-current-states  \ stac
+    dup .statecorr              \ stac
+    statecorr-deallocate
 ;
 
 \ Return a domain, given a domain ID.
@@ -1179,11 +1164,17 @@ session-paths-disp              cell+   constant session-sesneed-list-disp      
     2drop
 ;
 
-\ Return true if a statecorr is valid.
+\ Return true if nos is a valid statecorr, enterd by the user.
 : session-valid-statecorr? ( stac1 sess0 -- bool )
     \ Check args.
     assert( tos is-session? )
-    assert( nos is-statecorr? )
+    nos is-statecorr?
+    ifnot
+        2drop
+        false
+        cr ." session-valid-statecorr?: exit 1" cr
+        exit
+    then
 
     \ Get list of states and domains.
     session-get-domains             \ stac1 dom-lst
@@ -1196,7 +1187,7 @@ session-paths-disp              cell+   constant session-sesneed-list-disp      
     ifnot
         2drop
         false
-        cr ." session-valid-statecorr?: exit 1" cr
+        cr ." session-valid-statecorr?: exit 2" cr
         exit
     then
 
@@ -1208,12 +1199,12 @@ session-paths-disp              cell+   constant session-sesneed-list-disp      
     while
         \ Check the number bits of a corresponding state/domain pair.
         over link-get-data state-get-num-bits
-        over link-get-data domain-get-num-bits
-        =                           \ sta-lnk dom-lnk bool
+        over link-get-data domain-get-num-bits      \ sta-lnk dom-lnk s-num d-num
+        =                                           \ sta-lnk dom-lnk bool
         ifnot
             2drop
             false
-            cr ." session-valid-statecorr?: exit 2" cr
+            cr ." session-valid-statecorr?: exit 3" cr
             exit
         then
 
@@ -1594,7 +1585,7 @@ session-paths-disp              cell+   constant session-sesneed-list-disp      
 
         \ Set the domain current state.
         swap                            \ cmp-lst sess0 sta dom
-        domain-update-current-state     \ cmp-lst sess0
+        domain-set-current-state        \ cmp-lst sess0
 
         \ Cleanup.
         2drop
@@ -1680,22 +1671,12 @@ session-paths-disp              cell+   constant session-sesneed-list-disp      
             exit
         then
 
-        \ Check second item is a valid domain id.
-        over list-get-second-item       \ cmp-lst sess0 stac
-        is-statecorr?                   \ cmp-lst sess0 bool
-        ifnot
-            cr ." to command: invalid statecorr parameter 1" cr
-            2drop
-            true
-            exit
-        then
-
-        \ Check statecorr composition.
+        \ Check second item is a valid statecorr.
         over list-get-second-item       \ cmp-lst sess0 stac
         over                            \ cmp-lst sess0 stac sess0
         session-valid-statecorr?        \ cmp-lst sess0 bool
         ifnot
-            cr ." to command: invalid statecorr parameter 2" cr
+            cr ." to command: invalid statecorr parameter" cr
             2drop
             true
             exit
@@ -1706,9 +1687,9 @@ session-paths-disp              cell+   constant session-sesneed-list-disp      
         over                            \ cmp-lst sess0 stac sess0
         session-make-it-so-xt execute   \ cmp-lst sess0 bool
         if
-            cr ." command succeeded" cr
+            cr ." to command succeeded" cr
         else
-            cr ." command failed" cr
+            cr ." to command failed" cr
         then
 
         \ Cleanup.
@@ -1880,7 +1861,7 @@ session-paths-disp              cell+   constant session-sesneed-list-disp      
     then
 ;
 
-\ Arbitrarily set the domain current states.
+\ Arbitrarily set the domain current states.session-valid-statecorr?
 : session-set-current-states ( stac1 sess0 -- )
     \ Check args.
     assert( tos is-session? )
