@@ -1,13 +1,5 @@
 \ Functions to execute to get the result from a given state.
 
-\ Act zero for any domain, return the current state with no change.
-: act-0-get-result ( current-state -- result )
-    \ Check arg.
-    assert( tos is-state? )
-
-    state-copy
-;
-
 : dom-0-act1-get-result ( current-state -- result )
     \ Check arg.
     assert( tos is-state? )

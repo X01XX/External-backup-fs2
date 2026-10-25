@@ -306,12 +306,12 @@ mask-header-disp cell+  constant mask-number-disp
     assert( nos is-mask? )
     assert( 2dup masks-same-num-bits? )
 
-    over mask-get-number   \ msk1 msk0 num1
-    swap mask-get-number   \ msk1 num1 num0
-    and                    \ msk1 num
-    swap                   \ num msk1
-    mask-get-num-bits   \ num nb
-    mask-new               \ msk
+    over mask-get-number    \ msk1 msk0 num1
+    swap mask-get-number    \ msk1 num1 num0
+    and                     \ msk1 num
+    swap                    \ num msk1
+    mask-get-num-bits       \ num nb
+    mask-new                \ msk
 ;
 
 \ Return the Boolean OR of two masks.

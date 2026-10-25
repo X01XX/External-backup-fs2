@@ -791,6 +791,7 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
     \ Check args.
     assert( tos is-rule? )
     assert( nos is-rule? )
+    \ cr ." rule-superset?: start: " dup .rule space ." superset of: " over .rule cr
 
     \ Check 00 mask.
     over rule-get-m00 dup       \ rul1 rul0 1m00 1m00
@@ -802,6 +803,7 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
     ifnot
         2drop
         false
+        \ cr ." rule-superset?: exit 1: false" cr
         exit
     then
 
@@ -815,6 +817,7 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
     ifnot
         2drop
         false
+        \ cr ." rule-superset?: exit 2: false" cr
         exit
     then
 
@@ -828,6 +831,7 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
     ifnot
         2drop
         false
+        \ cr ." rule-superset?: exit 3: false" cr
         exit
     then
 
@@ -838,4 +842,5 @@ rule-m11-disp    cell+  constant rule-m10-disp      \ 1->0 mask mask.
     tuck                        \ m10' 1m10 m10'
     masks-eq?                   \ m10' bool
     swap mask-deallocate        \ bool
+    \ cr ." rule-superset?: exit 4: " dup .bool cr
 ;

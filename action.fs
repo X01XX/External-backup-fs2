@@ -1304,14 +1304,14 @@ action-groups-disp                          cell+   constant action-function-dis
     if
         2drop
         drop
+        \ cr ." : action-update-groups-from-corner-cluster: exit 1: "
         exit
     then
-    \ cr ." : action-update-groups-from-corner-cluster: start: " .stack cr
 
     foreach                         \ act0 grp-lst crnc-lnk crn-lst
         foreach                     \ act0 grp-lst crnc-lnk crn-lnk crn
-            #4 pick                 \ act0 grp-lst crnc-lnk crn-lnk crn act0
-            .action-inst-ids        \ act0 grp-lst crnc-lnk crn-lnk crn
+            \ #4 pick                 \ act0 grp-lst crnc-lnk crn-lnk crn act0
+            \ .action-inst-ids      \ act0 grp-lst crnc-lnk crn-lnk crn
 
             \ cr ." corner: " dup .corner
             dup corner-get-region   \ act0 grp-lst crnc-lnk crn-lnk crn reg
@@ -1338,6 +1338,9 @@ action-groups-disp                          cell+   constant action-function-dis
                     2drop 2drop
                 else
                     \ space ." <>"
+                    cr #7 pick .action-inst-ids space ." Change first square of group " #2 pick .group
+                    space ." from " over .state space ." to " dup .state cr
+
                     nip                         \ act0 grp-lst crnc-lnk crn-lnk crn grp csta
                     swap                        \ act0 grp-lst crnc-lnk crn-lnk crn csta grp
                     group-change-first-square   \ act0 grp-lst crnc-lnk crn-lnk crn
@@ -1347,7 +1350,7 @@ action-groups-disp                          cell+   constant action-function-dis
                 cr ." group not found?" cr
                 abort
             then
-            cr
+            \ cr
         next-item
     next-item
                                     \ act0 grp-lst
@@ -2291,6 +2294,151 @@ action-groups-disp                          cell+   constant action-function-dis
     actneed-new
 ;
 
+\ Return true if a state is in more than one possible region.
+: action-state-in-many-regions ( sta1 act0 -- bool )
+    \ Check args.
+    assert( tos is-action? )
+    assert( nos is-state? )
+
+    action-get-possible-regions     \ sta1 reg-lst
+    region-list-num-state-in        \ num
+    1 >                             \ bool
+;
+
+\ Return true if a state does NOT have an adjacent compatible square,
+\ outside of a region.
+: action-state-possible-anchor-for-region ( sta2 reg1 act0 -- bool )
+    \ Check args.
+    assert( tos is-action? )
+    assert( nos is-region? )
+    assert( 3os is-state? )
+    assert( #2 pick #2 pick region-superset-of-state? )
+
+    \ Get list of all squares.
+    dup action-get-squares                  \ sta2 reg1 act0 sqr-lst
+
+    \ Get the square matching sta2.
+    #3 pick over                            \ sta2 reg1 act0 sqr-lst sta2 sqr-lst
+    square-list-find                        \ sta2 reg1 act0 sqr-lst, sqr t | f
+    invert abort" square not found?"
+
+    \ Get region edge mask.
+    #3 pick region-edge-mask                \ sta2 reg1 act0 sqr-lst sqr edg-msk'
+
+    \ Get individual bits from the edge mask.
+    dup mask-split                          \ sta2 reg1 act0 sqr-lst sqr edg-msk' msk-lst'
+    swap mask-deallocate                    \ sta2 reg1 act0 sqr-lst sqr msk-lst'
+
+    dup                                     \ sta2 reg1 act0 sqr-lst sqr msk-lst' msk-lst'
+    foreach                                 \ sta2 reg1 act0 sqr-lst sqr msk-lst' msk-lnk bit-mskx
+        #7 pick state-xor-mask              \ sta2 reg1 act0 sqr-lst sqr msk-lst' msk-lnk adj-sta'
+        dup                                 \ sta2 reg1 act0 sqr-lst sqr msk-lst' msk-lnk adj-sta' adj-sta'
+        #5 pick                             \ sta2 reg1 act0 sqr-lst sqr msk-lst' msk-lnk adj-sta' adj-sta' sqr-lst
+        square-list-find                    \ sta2 reg1 act0 sqr-lst sqr msk-lst' msk-lnk adj-sta', sqrx t | f
+        if
+            #4 pick                         \ sta2 reg1 act0 sqr-lst sqr msk-lst' msk-lnk adj-sta' sqrx sqr
+            squares-compare                 \ sta2 reg1 act0 sqr-lst sqr msk-lst' msk-lnk adj-sta' char
+            [char] C =                      \ sta2 reg1 act0 sqr-lst sqr msk-lst' msk-lnk adj-sta' bool
+            if
+                state-deallocate            \ sta2 reg1 act0 sqr-lst sqr msk-lst' msk-lnk
+                drop                        \ sta2 reg1 act0 sqr-lst sqr msk-lst'
+                mask-list-deallocate        \ sta2 reg1 act0 sqr-lst sqr
+                2drop 2drop drop
+                false
+                exit
+            else
+                state-deallocate            \ sta2 reg1 act0 sqr-lst sqr msk-lst' msk-lnk
+            then
+        then
+    next-item
+                                            \ sta2 reg1 act0 sqr-lst sqr msk-lst'
+    mask-list-deallocate                    \ sta2 reg1 act0 sqr-lst sqr
+    2drop 2drop drop
+    true
+;
+
+\ Return a list of non-pnc square states, or non-sampled states,
+\ adjacent to a potential anchor, outside of the anchor's region,
+\ to seek samples of.
+\ Run action-state-possible-anchor-for-region on the possible anchor state first,
+\ it should return true.
+: action-anchor-states-to-test ( sta2 reg1 act0 -- sta-lst t | f )
+    \ Check args.
+    assert( tos is-action? )
+    assert( nos is-region? )
+    assert( 3os is-state? )
+    assert( #2 pick #2 pick region-superset-of-state? )
+
+    \ Init non-pnc square state list, state-list.
+    >r                                      \ sta2 reg1
+    list-new list-new                       \ sta2 reg1 sta-lst' npnc-lst'
+    2swap                                   \ sta-lst' npnc-lst' sta2 reg1
+    r>                                      \ sta-lst' npnc-lst' sta2 reg1 act0
+
+    \ Scan possible states, populate the lists.
+
+    \ Get list of all squares.
+    dup action-get-squares                  \ sta-lst' npnc-lst' sta2 reg1 act0 sqr-lst
+
+    \ Get the square matching sta2.
+    #3 pick over                            \ sta-lst' npnc-lst' sta2 reg1 act0 sqr-lst sta2 sqr-lst
+    square-list-find                        \ sta-lst' npnc-lst' sta2 reg1 act0 sqr-lst, sqr t | f
+    invert abort" square not found?"
+
+    \ Get region edge mask.
+    #3 pick region-edge-mask                \ sta-lst' npnc-lst' sta2 reg1 act0 sqr-lst sqr edg-msk'
+
+    \ Get individual bits from the edge mask.
+    dup mask-split                          \ sta-lst' npnc-lst' sta2 reg1 act0 sqr-lst sqr edg-msk' msk-lst'
+    swap mask-deallocate                    \ sta-lst' npnc-lst' sta2 reg1 act0 sqr-lst sqr msk-lst'
+
+    dup                                     \ sta-lst' npnc-lst' sta2 reg1 act0 sqr-lst sqr msk-lst' msk-lst'
+    foreach                                 \ sta-lst' npnc-lst' sta2 reg1 act0 sqr-lst sqr msk-lst' msk-lnk bit-mskx
+        #7 pick state-xor-mask              \ sta-lst' npnc-lst' sta2 reg1 act0 sqr-lst sqr msk-lst' msk-lnk adj-sta'
+        dup                                 \ sta-lst' npnc-lst' sta2 reg1 act0 sqr-lst sqr msk-lst' msk-lnk adj-sta' adj-sta'
+        #5 pick                             \ sta-lst' npnc-lst' sta2 reg1 act0 sqr-lst sqr msk-lst' msk-lnk adj-sta' adj-sta' sqr-lst
+        square-list-find                    \ sta-lst' npnc-lst' sta2 reg1 act0 sqr-lst sqr msk-lst' msk-lnk adj-sta', sqrx t | f
+        if
+            #4 pick                         \ sta-lst' npnc-lst' sta2 reg1 act0 sqr-lst sqr msk-lst' msk-lnk adj-sta' sqrx sqr
+            squares-compare                 \ sta-lst' npnc-lst' sta2 reg1 act0 sqr-lst sqr msk-lst' msk-lnk adj-sta' char
+            [char] M =                      \ sta-lst' npnc-lst' sta2 reg1 act0 sqr-lst sqr msk-lst' msk-lnk adj-sta' bool
+            if
+                #8 pick                     \ sta-lst' npnc-lst' sta2 reg1 act0 sqr-lst sqr msk-lst' msk-lnk adj-sta' npnc-lst'
+                list-push-struct            \ sta-lst' npnc-lst' sta2 reg1 act0 sqr-lst sqr msk-lst' msk-lnk
+            else
+                state-deallocate            \ sta-lst' npnc-lst' sta2 reg1 act0 sqr-lst sqr msk-lst' msk-lnk
+            then
+        else
+            #9 pick                         \ sta-lst' npnc-lst' sta2 reg1 act0 sqr-lst sqr msk-lst' msk-lnk adj-sta' sta-lst'
+            list-push-struct                \ sta-lst' npnc-lst' sta2 reg1 act0 sqr-lst sqr msk-lst' msk-lnk
+        then
+    next-item
+                                            \ sta-lst' npnc-lst' sta2 reg1 act0 sqr-lst sqr msk-lst'
+    mask-list-deallocate                    \ sta-lst' npnc-lst' sta2 reg1 act0 sqr-lst sqr
+    2drop 2drop drop                        \ sta-lst' npnc-lst'
+
+    \ Check npnc-lst list.
+    dup list-is-not-empty?
+    if
+        swap                                \ npnc-lst' sta-lst'
+        state-list-deallocate
+        true
+        exit
+    then
+
+    list-deallocate                         \ sta-lst'
+
+    \ Check sta-lst.
+    dup list-is-not-empty?
+    if
+        true
+        exit
+    then
+
+    list-deallocate
+    false
+;
+
 \ Return action needs, if any.
 : action-get-needs ( cur-sta1 act0 -- ned-lst t | f )
     \ Check args.
@@ -2349,133 +2497,163 @@ action-groups-disp                          cell+   constant action-function-dis
     next-item
                                     \ ret-lst cur-sta1 act0
 
-    \ Check non-adjacent dissimilar pairs for sample-between need.
-    #2 pick list-is-empty?
+    #2 pick list-is-not-empty?
     if
-        dup action-get-nadj-pairs       \ ret-lst cur-sta1 act0 nadj-lst
-        foreach                         \ ret-lst cur-sta1 act0 nadj-lnk regx
-            dup #3 pick                 \ ret-lst cur-sta1 act0 nadj-lnk regx regx act0
-            action-get-squares          \ ret-lst cur-sta1 act0 nadj-lnk regx regx sqr-lst
-            square-list-in-region       \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-lst'
-            dup list-get-length         \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-lst' len
-            #2 =                        \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-lst' bool
-            if
-                \ No squares between, get first sample.
+        2drop
+        true
+        exit
+    then
 
-                \ Get state between, by randomly selecting half the region X bits.
-                square-list-deallocate  \ ret-lst cur-sta1 act0 nadj-lnk regx
-                dup                     \ ret-lst cur-sta1 act0 nadj-lnk regx regx
-                region-get-state-0 swap \ ret-lst cur-sta1 act0 nadj-lnk sta-0 regx
-                region-calc-x-mask      \ ret-lst cur-sta1 act0 nadj-lnk sta-0 xmsk'
-                dup mask-half-bits      \ ret-lst cur-sta1 act0 nadj-lnk sta-0 xmsk' hmsk'
-                swap mask-deallocate    \ ret-lst cur-sta1 act0 nadj-lnk sta-0 hmsk'
-                tuck swap               \ ret-lst cur-sta1 act0 nadj-lnk hmsk' hmsk' sta-0
-                state-xor-mask          \ ret-lst cur-sta1 act0 nadj-lnk hmsk' sta-b'
-                swap mask-deallocate    \ ret-lst cur-sta1 act0 nadj-lnk sta-b'
+    \ Check non-adjacent dissimilar pairs for sample-between need.
+    dup action-get-nadj-pairs       \ ret-lst cur-sta1 act0 nadj-lst
+    foreach                         \ ret-lst cur-sta1 act0 nadj-lnk regx
+        dup #3 pick                 \ ret-lst cur-sta1 act0 nadj-lnk regx regx act0
+        action-get-squares          \ ret-lst cur-sta1 act0 nadj-lnk regx regx sqr-lst
+        square-list-in-region       \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-lst'
+        dup list-get-length         \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-lst' len
+        #2 =                        \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-lst' bool
+        if
+            \ No squares between, get first sample.
 
+            \ Get state between, by randomly selecting half the region X bits.
+            square-list-deallocate  \ ret-lst cur-sta1 act0 nadj-lnk regx
+            dup                     \ ret-lst cur-sta1 act0 nadj-lnk regx regx
+            region-get-state-0 swap \ ret-lst cur-sta1 act0 nadj-lnk sta-0 regx
+            region-calc-x-mask      \ ret-lst cur-sta1 act0 nadj-lnk sta-0 xmsk'
+            dup mask-half-bits      \ ret-lst cur-sta1 act0 nadj-lnk sta-0 xmsk' hmsk'
+            swap mask-deallocate    \ ret-lst cur-sta1 act0 nadj-lnk sta-0 hmsk'
+            tuck swap               \ ret-lst cur-sta1 act0 nadj-lnk hmsk' hmsk' sta-0
+            state-xor-mask          \ ret-lst cur-sta1 act0 nadj-lnk hmsk' sta-b'
+            swap mask-deallocate    \ ret-lst cur-sta1 act0 nadj-lnk sta-b'
+
+            \ Make need.
+            over link-get-data      \ ret-lst cur-sta1 act0 nadj-lnk sta-b' regx
+            region-str swap         \ ret-lst cur-sta1 act0 nadj-lnk tkn sta-b'
+            actneed-type-ils        \ ret-lst cur-sta1 act0 nadj-lnk tkn sta-b' typ
+            #4 pick                 \ ret-lst cur-sta1 act0 nadj-lnk tkn sta-b' typ act0
+            action-make-need-dis    \ ret-lst cur-sta1 act0 nadj-lnk actneed
+
+            \ Store need.
+            #4 pick                 \ ret-lst cur-sta1 act0 nadj-lnk actneed ret-lst
+            list-push-struct        \ ret-lst cur-sta1 act0 nadj-lnk
+        else
+            \ Squares between, get additional samples.
+
+            \ Isolate squares between.
+            dup                         \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-lst' sqr-lst'
+            square-list-non-pnc-squares \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-lst', sqr-non-lst' t | f
+            ifnot
+                cr #3 pick .action cr
+                invert abort" action-get-needs: pnc squares between non-adjacent, dissimilar, squares?"
+            then
+            \ cr ." non-pnc squares: " dup .square-list cr
+
+            swap square-list-deallocate \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-non-lst'
+
+            \ Get squares with highest number of samples.
+            dup square-list-max-samples \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-non-lst', sqr-max-lst' t | f
+            invert abort" max samples failed?"
+            \ cr ." max num samples squares: " dup .square-list cr
+
+            swap square-list-deallocate \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-max-lst'
+
+            \ Generate needs.
+            dup                         \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-max-lst' sqr-max-lst'
+            foreach                     \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-max-lst' sqr-max-lnk sqrx
                 \ Make need.
-                over link-get-data      \ ret-lst cur-sta1 act0 nadj-lnk sta-b' regx
-                region-str swap         \ ret-lst cur-sta1 act0 nadj-lnk tkn sta-b'
-                actneed-type-ils        \ ret-lst cur-sta1 act0 nadj-lnk tkn sta-b' typ
-                #4 pick                 \ ret-lst cur-sta1 act0 nadj-lnk tkn sta-b' typ act0
-                action-make-need-dis    \ ret-lst cur-sta1 act0 nadj-lnk actneed
+                square-get-state        \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-max-lst' sqr-max-lnk stax
+                #3 pick region-str      \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-max-lst' sqr-max-lnk stax tkn
+                swap                    \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-max-lst' sqr-max-lnk tkn stax
+                actneed-type-ils        \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-max-lst' sqr-max-lnk tkn stax typ
+                #7 pick                 \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-max-lst' sqr-max-lnk tkn stax typ act0
+                action-make-need-dis    \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-max-lst' sqr-max-lnk actned
 
                 \ Store need.
-                #4 pick                 \ ret-lst cur-sta1 act0 nadj-lnk actneed ret-lst
-                list-push-struct        \ ret-lst cur-sta1 act0 nadj-lnk
-            else
-                \ Squares between, get additional samples.
+                #7 pick                 \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-max-lst' sqr-max-lnk actned ret-lst
+                list-push-struct        \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-max-lst' sqr-max-lnk
+            next-item
+                                        \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-max-lst'
+            square-list-deallocate      \ ret-lst cur-sta1 act0 nadj-lnk regx
+            drop                        \ ret-lst cur-sta1 act0 nadj-lnk
+        then
+    next-item
+                                        \ ret-lst cur-sta1 act0
 
-                \ Isolate squares between.
-                dup                         \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-lst' sqr-lst'
-                square-list-non-pnc-squares \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-lst', sqr-non-lst' t | f
-                ifnot
-                    cr #3 pick .action cr
-                    invert abort" action-get-needs: pnc squares between non-adjacent, dissimilar, squares?"
-                then
-                \ cr ." non-pnc squares: " dup .square-list cr
-
-                swap square-list-deallocate \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-non-lst'
-
-                \ Get squares with highest number of samples.
-                dup square-list-max-samples \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-non-lst', sqr-max-lst' t | f
-                invert abort" max samples failed?"
-                \ cr ." max num samples squares: " dup .square-list cr
-
-                swap square-list-deallocate \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-max-lst'
-
-                \ Generate needs.
-                dup                         \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-max-lst' sqr-max-lst'
-                foreach                     \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-max-lst' sqr-max-lnk sqrx
-                    \ Make need.
-                    square-get-state        \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-max-lst' sqr-max-lnk stax
-                    #3 pick region-str      \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-max-lst' sqr-max-lnk stax tkn
-                    swap                    \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-max-lst' sqr-max-lnk tkn stax
-                    actneed-type-ils        \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-max-lst' sqr-max-lnk tkn stax typ
-                    #7 pick                 \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-max-lst' sqr-max-lnk tkn stax typ act0
-                    action-make-need-dis    \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-max-lst' sqr-max-lnk actned
-
-                    \ Store need.
-                    #7 pick                 \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-max-lst' sqr-max-lnk actned ret-lst
-                    list-push-struct        \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-max-lst' sqr-max-lnk
-                next-item
-                                            \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-max-lst'
-                square-list-deallocate      \ ret-lst cur-sta1 act0 nadj-lnk regx
-                drop                        \ ret-lst cur-sta1 act0 nadj-lnk
-            then
-        next-item
-                                            \ ret-lst cur-sta1 act0
+    #2 pick list-is-not-empty?
+    if
+        2drop
+        true
+        exit
     then
 
     \ Check adjacent dissimilar pairs for confirmation need.
-    #2 pick list-is-empty?
-    if
-        dup action-get-adj-pairs        \ ret-lst cur-sta1 act0 nadj-lst
-        foreach                         \ ret-lst cur-sta1 act0 nadj-lnk regx
-            \ Get square from state zero.
-            dup region-get-state-0 dup  \ ret-lst cur-sta1 act0 nadj-lnk regx sta-0 sta-0
-            #4 pick                     \ ret-lst cur-sta1 act0 nadj-lnk regx sta-0 sta-0 act0
-            action-find-square          \ ret-lst cur-sta1 act0 nadj-lnk regx sta-0, sqrx t | f
-            invert abort" square find failed?"
+    dup action-get-adj-pairs        \ ret-lst cur-sta1 act0 nadj-lst
+    foreach                         \ ret-lst cur-sta1 act0 nadj-lnk regx
+        \ Get square from state zero.
+        dup region-get-state-0 dup  \ ret-lst cur-sta1 act0 nadj-lnk regx sta-0 sta-0
+        #4 pick                     \ ret-lst cur-sta1 act0 nadj-lnk regx sta-0 sta-0 act0
+        action-find-square          \ ret-lst cur-sta1 act0 nadj-lnk regx sta-0, sqrx t | f
+        invert abort" square find failed?"
 
-            \ Check if not pnc.
-            square-get-pnc              \ ret-lst cur-sta1 act0 nadj-lnk regx sta-0 bool
-            if
-                drop                    \ ret-lst cur-sta1 act0 nadj-lnk regx
-            else
-                \ Make need.
-                over region-str swap    \ ret-lst cur-sta1 act0 nadj-lnk regx tkn sta-0
-                actneed-type-cls        \ ret-lst cur-sta1 act0 nadj-lnk regx tkn sta-0 typ
-                #5 pick                 \ ret-lst cur-sta1 act0 nadj-lnk regx tkn sta-0 typ act0
+        \ Check if not pnc.
+        square-get-pnc              \ ret-lst cur-sta1 act0 nadj-lnk regx sta-0 bool
+        if
+            drop                    \ ret-lst cur-sta1 act0 nadj-lnk regx
+        else
+            \ Make need.
+            over region-str swap    \ ret-lst cur-sta1 act0 nadj-lnk regx tkn sta-0
+            actneed-type-cls        \ ret-lst cur-sta1 act0 nadj-lnk regx tkn sta-0 typ
+            #5 pick                 \ ret-lst cur-sta1 act0 nadj-lnk regx tkn sta-0 typ act0
                 action-make-need-dis    \ ret-lst cur-sta1 act0 nadj-lnk regx actned
 
-                \ Store need.
-                #5 pick                 \ ret-lst cur-sta1 act0 nadj-lnk regx actned ret-lst
-                list-push-struct        \ ret-lst cur-sta1 act0 nadj-lnk regx
-            then
+            \ Store need.
+            #5 pick                 \ ret-lst cur-sta1 act0 nadj-lnk regx actned ret-lst
+            list-push-struct        \ ret-lst cur-sta1 act0 nadj-lnk regx
+        then
 
-            \ Get square from state one.
-            dup region-get-state-1 dup  \ ret-lst cur-sta1 act0 nadj-lnk regx sta-1 sta-1
-            #4 pick                     \ ret-lst cur-sta1 act0 nadj-lnk regx sta-1 sta-1 act0
-            action-find-square          \ ret-lst cur-sta1 act0 nadj-lnk regx sta-1, sqrx t | f
-            invert abort" square find failed?"
+        \ Get square from state one.
+        dup region-get-state-1 dup  \ ret-lst cur-sta1 act0 nadj-lnk regx sta-1 sta-1
+        #4 pick                     \ ret-lst cur-sta1 act0 nadj-lnk regx sta-1 sta-1 act0
+        action-find-square          \ ret-lst cur-sta1 act0 nadj-lnk regx sta-1, sqrx t | f
+        invert abort" square find failed?"
 
-            \ Check if not pnc.
-            square-get-pnc              \ ret-lst cur-sta1 act0 nadj-lnk regx sta-1 bool
-            if
-                2drop                   \ ret-lst cur-sta1 act0 nadj-lnk
-            else
-                \ Make need.
-                swap region-str swap    \ ret-lst cur-sta1 act0 nadj-lnk tkn sta-1
-                actneed-type-cls        \ ret-lst cur-sta1 act0 nadj-lnk tkn sta-1 typ
-                #4 pick                 \ ret-lst cur-sta1 act0 nadj-lnk tkn sta-1 typ act0
-                action-make-need-dis    \ ret-lst cur-sta1 act0 nadj-lnk actned
+        \ Check if not pnc.
+        square-get-pnc              \ ret-lst cur-sta1 act0 nadj-lnk regx sta-1 bool
+        if
+            2drop                   \ ret-lst cur-sta1 act0 nadj-lnk
+        else
+            \ Make need.
+            swap region-str swap    \ ret-lst cur-sta1 act0 nadj-lnk tkn sta-1
+            actneed-type-cls        \ ret-lst cur-sta1 act0 nadj-lnk tkn sta-1 typ
+            #4 pick                 \ ret-lst cur-sta1 act0 nadj-lnk tkn sta-1 typ act0
+            action-make-need-dis    \ ret-lst cur-sta1 act0 nadj-lnk actned
 
-                \ Store need.
-                #4 pick                 \ ret-lst cur-sta1 act0 nadj-lnk actned ret-lst
-                list-push-struct        \ ret-lst cur-sta1 act0 nadj-lnk
-            then
-        next-item
+            \ Store need.
+            #4 pick                 \ ret-lst cur-sta1 act0 nadj-lnk actned ret-lst
+            list-push-struct        \ ret-lst cur-sta1 act0 nadj-lnk
+        then
+    next-item
+
+    #2 pick list-is-not-empty?
+    if
+        2drop
+        true
+        exit
+    then
+
+    \ Check corners for corner discovery needs.
+    \ That is check squares adjacent to an anchor,
+    \ that are in more than one possible regions.
+    dup action-get-corner-clusters  \ ret-lst act0 cur-sta1 crnc-lst
+    list-is-not-empty?
+    if
+        \ Check corner cluster list for corner discovery needs.
+    else
+        dup action-get-corners      \ ret-lst act0 cur-sta1 crnc-lst
+        list-is-not-empty?
+        if
+            \ Check corner list for corner discovery needs.
+        then
     then
 
     \ Check if the state is in any group.
@@ -2488,7 +2666,6 @@ action-groups-disp                          cell+   constant action-function-dis
         list-append-struct          \ ret-lst act0 ned-lst'
         actneed-list-deallocate     \ ret-lst act0
     then
-
                                     \ ret-lst act0
 
     \ Get more needs, per defining, non-pnc, group.

@@ -1,39 +1,8 @@
 \ Test action functions.
 
-\ Result x
-: calc-result-x ( sta -- rslt )
-    \ Check arg.
-    assert( tos is-state? )
-
-    dup state-get-num-bits      \ sta nb
-    swap state-get-number       \ nb num
-
-    \ Test for ...0XX0, change bit 3.
-    #9 over and                 \ nb num test1
-    0=
-    if
-        #8 or                   \ nb rslt1
-        swap state-new          \ rslt
-        exit
-    then
-
-    \ Test for ...1XX1, change bit 3.
-    #9 over and                 \ nb num test1
-    #9 =
-    if
-        #8 xor                  \ nb rslt1
-        swap state-new          \ rslt
-        exit
-    then
-
-    \ Then its in 0XX1 or 1X0X, no change.
-                                \ nb num
-    state-new                   \ rslt
-;
-
 : action-test-new
     \ Run function..
-    [ ' calc-result-x ] literal
+    [ ' noop ] literal
     s" rXXXX 1" string-to-stack-a
     action-new              \ act
 
@@ -56,7 +25,7 @@
 
 : action-test-add-sample
     \ Init action.
-    [ ' calc-result-x ] literal
+    [ ' noop ] literal
     s" rXXXX 0" string-to-stack-a
     action-new                              \ act
 
@@ -130,7 +99,7 @@
 \ change them to more sample needed, then compatible.
 : action-test-check-incompatible-pairs-for-changed-square
     \ Init action.
-    [ ' calc-result-x ] literal
+    [ ' noop ] literal
     s" rXXXX 0" string-to-stack-a
     action-new                              \ act
 
@@ -196,7 +165,7 @@
 
 : action-test-corners
     \ Init action.
-    [ ' calc-result-x ] literal
+    [ ' noop ] literal
     s" rXXXX 0" string-to-stack-a
     action-new                              \ act
 
@@ -236,7 +205,7 @@
 
 : action-test-corners2
     \ Init action.
-    [ ' calc-result-x ] literal
+    [ ' noop ] literal
     s" rXXXX 0" string-to-stack-a
     action-new                              \ act
 
@@ -280,7 +249,7 @@
     cr ." action-test-corners2 - Ok"
 ;
 
-: action-test
+: action-test-anchor-dicovery
     \ Init action.
     [ ' noop ] literal
     s" rXXXX 0" string-to-stack-a
@@ -310,13 +279,25 @@
 
     cr dup .action cr
 
+    \ Add C->C
+\    s" s1100->s1100" sample-from-string-a   \ act smpl1
+\    over action-add-sample                  \ act bool
+\    invert abort" Did not return true?"
+
+    \ Add 7->7
+\    s" s0111->s0111" sample-from-string-a   \ act smpl1
+\    over action-add-sample                  \ act bool
+\    invert abort" Did not return true?"
+
+    cr dup .action cr
+
     \ Deallocate
     action-deallocate
 
     \ Check for memory leaks.
     check-project-deallocated
 
-    cr ." action-test-corners2 - Ok"
+    cr ." action-test - Ok"
 ;
 
 

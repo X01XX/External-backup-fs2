@@ -276,6 +276,7 @@
     > if
         2drop
         false
+        \ cr ." rule-list-superset?: exit 1" cr
         exit
     then
 
@@ -288,8 +289,9 @@
     case
         #2 of               \ len 1 1
             list-get-first-item swap    \ rul0 rul-lst1
-            list-get-first-item         \ rul0 rul1
+            list-get-first-item swap    \ rul0 rul1
             rule-superset?              \ bool
+            \ cr ." rule-list-superset?: exit 2" cr
         endof
         #3 of               \ len 1 2
             \ Check first rule of possible supereset.
@@ -299,14 +301,17 @@
             if
                 2drop
                 true
+                \ cr ." rule-list-superset?: exit 3" cr
             else
                 swap list-get-first-item    \ rul-lst0 rul1
                 swap list-get-second-item   \ rul-lst1 rul-lst0 rul1 rul0
                 rule-superset?              \ rul-lst1 rul-lst0 bool
                 if
                     true
+                    \ cr ." rule-list-superset?: exit 4" cr
                 else
                     false
+                    \ cr ." rule-list-superset?: exit 5" cr
                 then
             then
         endof
@@ -315,6 +320,7 @@
             if
                 2drop
                 true
+                \ cr ." rule-list-superset?: exit 6" cr
             else
                 rule-list-superset-alternate?       \ bool
             then

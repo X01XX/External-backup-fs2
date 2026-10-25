@@ -242,7 +242,7 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
     \ Add action 0.
     \ When making multi-step plans of all regions, a no-op for one domain preserves
     \ knowledge of all result states for subsequent steps.
-    [ ' act-0-get-result ] literal  \ nb0 dom act-lst xt
+    [ ' noop ] literal              \ nb0 dom act-lst xt
     #3 pick region-max-x            \ nb0 dom act-lst xt max-reg
     #3 pick                         \ nb0 dom act-lst xt max-reg dom
     domain-get-inst-id              \ nb0 dom act-lst xt max-reg dom-id
