@@ -1941,7 +1941,7 @@ action-groups-disp                          cell+   constant action-function-dis
     cr over .action-inst-ids space ." Appending nadj pairs: " dup .region-list cr
     2dup swap                                   \ sqr1 act0 pr-lst' pr-lst' act0
     action-get-nadj-pairs                       \ sqr1 act0 pr-lst' pr-lst' adj-prs
-    list-append-struct                          \ sqr1 act0 pr-lst'
+    region-list-append-nosups                   \ sqr1 act0 pr-lst'
     region-list-deallocate                      \ sqr1 act0
 
     \ Recalc.

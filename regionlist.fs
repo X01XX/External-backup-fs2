@@ -968,6 +968,28 @@
     drop
 ;
 
+\ Append nos region-list to the tos region-list, no supersets.
+: region-list-append-nosups ( lst1 lst0 -- )
+    \ Check args.
+    assert( tos is-region-list? )
+    assert( nos is-region-list? )
+
+    swap                        \ lst0 lst1
+    list-get-links              \ lst0 link
+    begin
+        ?dup
+    while
+        dup link-get-data       \ lst0 link regx
+        #2 pick                 \ lst0 link regx lst0
+        region-list-push-nosups \ lst0 link bool
+        drop
+
+        link-get-next
+    repeat
+                                \ lst0
+    drop
+;
+
 \ Return a list of propre intersections of any two regions in a list.
 : region-list-proper-intersections ( reg-lst0 -- reg-lst t | f )
     \ Check arg.
