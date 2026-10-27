@@ -295,6 +295,22 @@
     2dup swap action-get-needs              \ act sta', ned-lst' bool
     if
         cr s" Needs: " #2 pick .actneed-list-prefix cr
+
+        \ Test needs.
+        s" s0111" state-from-string-a dup   \ act sta' ned-lst' stax' stax'
+        actneed-type-adisc                  \ act sta' ned-lst' stax' stax' typ
+        #3 pick                             \ act sta' ned-lst' stax' stax' typ ned-lst'
+        actneed-list-contains               \ act sta' ned-lst' stax' bool
+        invert abort" actneed list does not contain need for s0111, for anchor discovery?"
+        state-deallocate                    \ act sta' ned-lst'
+
+        s" s1100" state-from-string-a dup   \ act sta' ned-lst' stax' stax'
+        actneed-type-adisc                  \ act sta' ned-lst' stax' stax' typ
+        #3 pick                             \ act sta' ned-lst' stax' stax' typ ned-lst'
+        actneed-list-contains               \ act sta' ned-lst' stax' bool
+        invert abort" actneed list does not contain need for s0111, for anchor discovery?"
+        state-deallocate                    \ act sta' ned-lst'
+
         actneed-list-deallocate
     else
         cr ." No needs" cr
@@ -312,12 +328,12 @@
     cr ." action-test-anchor-discovery - Ok"
 ;
 
-
 : action-tests
     action-test-new
     action-test-add-sample
     action-test-check-incompatible-pairs-for-changed-square
     action-test-corners
     action-test-corners2
+    action-test-anchor-discovery
     cr
 ;

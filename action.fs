@@ -2456,6 +2456,22 @@ action-groups-disp                          cell+   constant action-function-dis
     \ Init return list.
     list-new -rot                   \ ret-lst cur-sta1 act0
 
+    \ Check if the state is in any group.
+    2dup action-get-groups          \ ret-lst cur-sta1 act0 cur-sta1 grp-lst
+    group-list-get-needs            \ ret-lst cur-sta1 act0, ned-lst' t | f
+    if
+        dup                         \ ret-lst cur-sta1 act0 ned-lst' ned-lst'
+        #2 pick                     \ ret-lst cur-sta1 act0 ned-lst' ned-lst' act0
+        action-set-ids              \ ret-lst cur-sta1 act0 ned-lst'
+
+        dup                         \ ret-lst cur-sta1 act0 ned-lst' ned-lst'
+        #4 pick                     \ ret-lst cur-sta1 act0 ned-lst' ned-lst' ret-lst
+        list-append-struct          \ ret-lst cur-sta1 act0 ned-lst'
+
+        actneed-list-deallocate     \ ret-lst cur-sta1 act0
+    then
+                                    \ ret-lst cur-sta1 act0
+
     \ Check non-adjacent dissimilar pairs for confirmation need.
     dup action-get-nadj-pairs       \ ret-lst cur-sta1 act0 nadj-lst
     foreach                         \ ret-lst cur-sta1 act0 nadj-lnk regx
@@ -2649,7 +2665,40 @@ action-groups-disp                          cell+   constant action-function-dis
         exit
     then
 
-    \ Check corners for corner discovery needs.
+    \ Get more needs, per defining, non-pnc, group.
+    \ Filling out defining groups can sometimes remove possible regions.
+    dup action-get-defining-regions \ ret-lst cur-sta1 act0 def-lst
+    foreach                         \ ret-lst cur-sta1 act0 def-lnk regx
+        #2 pick                     \ ret-lst cur-sta1 act0 def-lnk regx act0
+        action-find-group           \ ret-lst cur-sta1 act0 def-lnk, grpx t | f
+        if
+            dup group-get-pnc       \ ret-lst cur-sta1 act0 def-lnk grpx bool
+            if
+                drop
+            else
+                group-get-needs         \ ret-lst cur-sta1 act0 def-lnk, ned-lst' t | f
+                if
+                    dup #3 pick             \ ret-lst cur-sta1 act0 def-lnk ned-lst' ned-lst' act0
+                    action-set-ids          \ ret-lst cur-sta1 act0 def-lnk ned-lst'
+
+                    dup                     \ ret-lst cur-sta1 act0 def-lnk ned-lst' ned-lst'
+                    #5 pick                 \ ret-lst cur-sta1 act0 def-lnk ned-lst' ned-lst' ret-lst
+                    list-append-struct      \ ret-lst cur-sta1 act0 def-lnk ned-lst'
+                    actneed-list-deallocate \ ret-lst cur-sta1 act0 def-lnk
+                then
+            then
+        then
+    next-item
+                                    \ ret-lst cur-sta1 act0
+
+    #2 pick list-is-not-empty?
+    if
+        2drop
+        true
+        exit
+    then
+
+    \ Check corners for anchor discovery needs.
     \ That is check squares adjacent to an anchor,
     \ that are in more than one possible regions.
     dup action-get-corner-clusters              \ ret-lst cur-sta1 act0 crnc-lst
@@ -2744,46 +2793,6 @@ action-groups-disp                          cell+   constant action-function-dis
         then
     then
 
-    \ Check if the state is in any group.
-    2dup action-get-groups          \ ret-lst cur-sta1 act0 cur-sta1 grp-lst
-    group-list-get-needs            \ ret-lst cur-sta1 act0, ned-lst' t | f
-    if
-        dup                         \ ret-lst cur-sta1 act0 ned-lst' ned-lst'
-        #2 pick                     \ ret-lst cur-sta1 act0 ned-lst' ned-lst' act0
-        action-set-ids              \ ret-lst cur-sta1 act0 ned-lst'
-
-        dup                         \ ret-lst cur-sta1 act0 ned-lst' ned-lst'
-        #4 pick                     \ ret-lst cur-sta1 act0 ned-lst' ned-lst' ret-lst
-        list-append-struct          \ ret-lst cur-sta1 act0 ned-lst'
-
-        actneed-list-deallocate     \ ret-lst cur-sta1 act0
-    then
-                                    \ ret-lst cur-sta1 act0
-
-    \ Get more needs, per defining, non-pnc, group.
-    dup action-get-defining-regions \ ret-lst cur-sta1 act0 def-lst
-    foreach                         \ ret-lst cur-sta1 act0 def-lnk regx
-        #2 pick                     \ ret-lst cur-sta1 act0 def-lnk regx act0
-        action-find-group           \ ret-lst cur-sta1 act0 def-lnk, grpx t | f
-        if
-            dup group-get-pnc       \ ret-lst cur-sta1 act0 def-lnk grpx bool
-            if
-                drop
-            else
-                group-get-needs         \ ret-lst cur-sta1 act0 def-lnk, ned-lst' t | f
-                if
-                    dup #3 pick             \ ret-lst cur-sta1 act0 def-lnk ned-lst' ned-lst' act0
-                    action-set-ids          \ ret-lst cur-sta1 act0 def-lnk ned-lst'
-
-                    dup                     \ ret-lst cur-sta1 act0 def-lnk ned-lst' ned-lst'
-                    #5 pick                 \ ret-lst cur-sta1 act0 def-lnk ned-lst' ned-lst' ret-lst
-                    list-append-struct      \ ret-lst cur-sta1 act0 def-lnk ned-lst'
-                    actneed-list-deallocate \ ret-lst cur-sta1 act0 def-lnk
-                then
-            then
-        then
-    next-item
-                                    \ ret-lst cur-sta1 act0
     2drop                           \ ret-lst
 
    \ cr ." action needs found: " dup list-get-length dec. cr
