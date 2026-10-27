@@ -41,7 +41,7 @@
 ;
 
 \ Return a token containing a string representation of a state-list.
-: state-list-str ( sta-lst0 -- tkn )
+: state-list-token ( sta-lst0 -- tkn )
     \ Check arg.
     assert( tos is-state-list? )
 
@@ -56,11 +56,10 @@
     while
         \ Store one state's string representation.
         dup link-get-data           \ tkn sta-lnk stax
-        state-str                   \ tkn sta-lnk tkn'
-        dup token-get-string        \ tkn sta-lnk tkn' c-addr u
-        #4 pick token-concatenate   \ tkn sta-lnk tkn' bool
+        state-string                \ tkn sta-lnk c-addr u
+        #3 pick
+        token-concatenate           \ tkn sta-lnk bool
         invert abort" token-concatenate failed"
-        token-deallocate            \ tkn sta-lnk
 
         \ Get next link, if any.
         link-get-next               \ tkn sta-lnk
@@ -78,14 +77,23 @@
     invert abort" token-concatenate failed"
 ;
 
+\ Return a token containing a string representation of a state-list.
+: state-list-string ( sta-lst0 -- c-addr u )
+    \ Check arg.
+    assert( tos is-state-list? )
+
+    state-list-token                \ tkn'
+    dup token-string-to-pad         \ tkn' c-addr u
+    rot token-deallocate            \ c-addr u
+;
+
 \ Print a state-list
 : .state-list ( list0 -- )
     \ Check arg.
     assert( tos is-state-list? )
 
-    state-list-str          \ tkn
-    dup .token              \ tkn
-    token-deallocate
+    state-list-string       \ c-addr u
+    type
 ;
 
 \ Push a state to a state-list.

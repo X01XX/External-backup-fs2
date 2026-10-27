@@ -178,7 +178,7 @@ mask-header-disp cell+  constant mask-number-disp
 
 \ Push a character representation of a mask onto the stack, c-addr (pad) u.
 \ The result should be used, or stored, before pad is used again.
-: mask-str-pad ( msk0 -- c-addr u )
+: mask-string ( msk0 -- c-addr u )
     \ Check arg.
     assert( tos is-mask? )
 
@@ -228,11 +228,11 @@ mask-header-disp cell+  constant mask-number-disp
 ;
 
 \ Return a token containing a string representation of a mask.
-: mask-str ( msk0 -- )
+: mask-token ( msk0 -- tkn )
     \ Check arg.
     assert( tos is-mask? )
 
-    mask-str-pad                    \ c-addr u
+    mask-string                     \ c-addr u
     token-new                       \ tkn t | f
     invert abort" token-new failed?"
 ;
@@ -243,12 +243,9 @@ mask-header-disp cell+  constant mask-number-disp
     assert( tos is-mask? )
 
     \ Put mask string on stack.
-    mask-str            \ tkn'
+    mask-string         \ tkn'
 
-    \ Output string.
-    dup .token          \ tkn'
-
-    token-deallocate
+    type
 ;
 
 \ Return true if two masks have a different number of bits.

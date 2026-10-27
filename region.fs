@@ -124,7 +124,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 
 \ Push a character representation of a region onto the stack, c-addr (pad) u.
 \ The result should be used, or stored, before pad is used again.
-: region-str-pad ( reg0 -- c-addr u )
+: region-string ( reg0 -- c-addr u )
     \ Check arg.
     assert( tos is-region? )
 
@@ -187,11 +187,11 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 ;
 
 \ Return a token containing a string representation of a region.
-: region-str ( reg0 -- tkn )
+: region-token ( reg0 -- tkn )
     \ Check arg.
     assert( tos is-region? )
 
-    region-str-pad                  \ c-addr u
+    region-string                   \ c-addr u
     token-new                       \ tkn t | f
     invert abort" token-new failed?"
 ;
@@ -202,12 +202,9 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     assert( tos is-region? )
 
     \ Put mask string into pad.
-    region-str          \ tkn'
+    region-string       \ tkn'
 
-    \ Output string.
-    dup .token          \ tkn'
-
-    token-deallocate
+    type
 ;
 
 \ Deallocate a region.

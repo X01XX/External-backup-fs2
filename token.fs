@@ -46,6 +46,16 @@ token-header-disp cell+ constant token-string-disp
     token-string-disp + string@
 ;
 
+\ Copy a token string to the pad and leave string on stack.
+: token-string-to-pad ( tkn -- c-addr u )
+    \ Check arg.
+    assert( tos is-token? )
+
+    token-get-string        \ c-addr u
+    pad string!             \
+    pad string@             \ c-addr u
+;
+
 \ Set token data cell.
 : token-set-string ( c-addr u tkn -- )
     \ Check args.

@@ -652,7 +652,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
 
     \ Make token.
     group-get-region        \ sta1 reg
-    region-str              \ sta1 tkn
+    region-token            \ sta1 tkn
 
     \ Finish need.
     swap                    \ tkn targ

@@ -88,7 +88,7 @@ state-header-disp cell+   constant state-number-disp
 
 \ Push a character representation of a state onto the stack, c-addr (pad) u.
 \ The result should be used, or stored, before pad is used again.
-: state-str-pad ( sta0 -- c-addr u )
+: state-string ( sta0 -- c-addr u )
     \ Check arg.
     assert( tos is-state? )
 
@@ -138,11 +138,11 @@ state-header-disp cell+   constant state-number-disp
 ;
 
 \ Return a token containing a string representation of a state.
-: state-str ( sta0 -- tkn )
+: state-token ( sta0 -- tkn )
     \ Check arg.
     assert( tos is-state? )
 
-    state-str-pad                   \ c-addr u
+    state-string                    \ c-addr u
     token-new                       \ tkn t | f
     invert abort" token-new failed?"
 ;
@@ -153,12 +153,9 @@ state-header-disp cell+   constant state-number-disp
     assert( tos is-state? )
 
     \ Put state string on stack.
-    state-str           \ tkn'
+    state-string        \ tkn'
 
-    \ Output string.
-    dup .token          \ tkn'
-
-    token-deallocate
+    type
 ;
 
 \ Deallocate a state.

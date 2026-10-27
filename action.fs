@@ -2222,6 +2222,9 @@ action-groups-disp                          cell+   constant action-function-dis
     execute                 \ sta1 act0 r-sta
     rot                     \ act0 r-sta sta1
     sample-new              \ act0 smpl
+
+    cr over .action-inst-ids space dup .sample cr
+
     tuck                    \ smpl act0 smpl
     swap                    \ smpl smpl act0
 
@@ -2468,7 +2471,7 @@ action-groups-disp                          cell+   constant action-function-dis
             drop                    \ ret-lst cur-sta1 act0 nadj-lnk regx
         else
             \ Make need.
-            over region-str swap    \ ret-lst cur-sta1 act0 nadj-lnk regx tkn sta-0
+            over region-token swap  \ ret-lst cur-sta1 act0 nadj-lnk regx tkn sta-0
             actneed-type-cls        \ ret-lst cur-sta1 act0 nadj-lnk regx tkn sta-0 typ
             #5 pick                 \ ret-lst cur-sta1 act0 nadj-lnk regx tkn sta-0 typ act0
             action-make-need-dis    \ ret-lst cur-sta1 act0 nadj-lnk regx actned
@@ -2490,7 +2493,7 @@ action-groups-disp                          cell+   constant action-function-dis
             2drop                   \ ret-lst cur-sta1 act0 nadj-lnk
         else
             \ Make need.
-            swap region-str swap    \ ret-lst cur-sta1 act0 nadj-lnk tkn sta-1
+            swap region-token swap  \ ret-lst cur-sta1 act0 nadj-lnk tkn sta-1
             actneed-type-cls        \ ret-lst cur-sta1 act0 nadj-lnk tkn sta-1 typ
             #4 pick                 \ ret-lst cur-sta1 act0 nadj-lnk tkn sta-1 typ act0
             action-make-need-dis    \ ret-lst cur-sta1 act0 nadj-lnk actned
@@ -2533,7 +2536,7 @@ action-groups-disp                          cell+   constant action-function-dis
 
             \ Make need.
             over link-get-data      \ ret-lst cur-sta1 act0 nadj-lnk sta-b' regx
-            region-str swap         \ ret-lst cur-sta1 act0 nadj-lnk tkn sta-b'
+            region-token swap       \ ret-lst cur-sta1 act0 nadj-lnk tkn sta-b'
             actneed-type-ils        \ ret-lst cur-sta1 act0 nadj-lnk tkn sta-b' typ
             #4 pick                 \ ret-lst cur-sta1 act0 nadj-lnk tkn sta-b' typ act0
             action-make-need-dis    \ ret-lst cur-sta1 act0 nadj-lnk actneed
@@ -2567,7 +2570,7 @@ action-groups-disp                          cell+   constant action-function-dis
             foreach                     \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-max-lst' sqr-max-lnk sqrx
                 \ Make need.
                 square-get-state        \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-max-lst' sqr-max-lnk stax
-                #3 pick region-str      \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-max-lst' sqr-max-lnk stax tkn
+                #3 pick region-token    \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-max-lst' sqr-max-lnk stax tkn
                 swap                    \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-max-lst' sqr-max-lnk tkn stax
                 actneed-type-ils        \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-max-lst' sqr-max-lnk tkn stax typ
                 #7 pick                 \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-max-lst' sqr-max-lnk tkn stax typ act0
@@ -2606,7 +2609,7 @@ action-groups-disp                          cell+   constant action-function-dis
             drop                    \ ret-lst cur-sta1 act0 nadj-lnk regx
         else
             \ Make need.
-            over region-str swap    \ ret-lst cur-sta1 act0 nadj-lnk regx tkn sta-0
+            over region-token swap  \ ret-lst cur-sta1 act0 nadj-lnk regx tkn sta-0
             actneed-type-cls        \ ret-lst cur-sta1 act0 nadj-lnk regx tkn sta-0 typ
             #5 pick                 \ ret-lst cur-sta1 act0 nadj-lnk regx tkn sta-0 typ act0
                 action-make-need-dis    \ ret-lst cur-sta1 act0 nadj-lnk regx actned
@@ -2628,7 +2631,7 @@ action-groups-disp                          cell+   constant action-function-dis
             2drop                   \ ret-lst cur-sta1 act0 nadj-lnk
         else
             \ Make need.
-            swap region-str swap    \ ret-lst cur-sta1 act0 nadj-lnk tkn sta-1
+            swap region-token swap  \ ret-lst cur-sta1 act0 nadj-lnk tkn sta-1
             actneed-type-cls        \ ret-lst cur-sta1 act0 nadj-lnk tkn sta-1 typ
             #4 pick                 \ ret-lst cur-sta1 act0 nadj-lnk tkn sta-1 typ act0
             action-make-need-dis    \ ret-lst cur-sta1 act0 nadj-lnk actned
@@ -2667,38 +2670,39 @@ action-groups-disp                          cell+   constant action-function-dis
                     region-list-num-state-in    \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk num-in
                     1 >                         \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk bool
                     if
-                        cr ." check ae state " dup link-get-data .state
+                        \ cr ." check ae state " dup link-get-data .state
                         dup link-get-data       \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk ae-sta
                         #3 pick                 \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk ae-sta pos-regs
                         region-list-state-in    \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk regs-in'
-                        space ." in: " dup .region-list
+                        \ space ." in: " dup .region-list
                         dup                     \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk regs-in' regs-in'
                         foreach                 \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk regs-in' regs-in-lnk regx
-                            space ." reg " dup .region
+                            \ space ." reg " dup .region
                             #3 pick             \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk regs-in' regs-in-lnk regx ae-lnk
                             link-get-data swap  \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk regs-in' regs-in-lnk stax regx
                             #7 pick             \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk regs-in' regs-in-lnk stax regx act0
                             action-state-possible-anchor-for-region \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk regs-in' regs-in-lnk bool
                             if
-                                space ." pos anchor"
+                                \ space ." pos anchor"
                                 #2 pick link-get-data   \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk regs-in' regs-in-lnk stax
                                 over link-get-data      \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk regs-in' regs-in-lnk stax regx
                                 #7 pick                 \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk regs-in' regs-in-lnk stax regx act0
                                 action-anchor-states-to-test    \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk regs-in' regs-in-lnk, sta-lst' t | f
                                 if
-                                    space ." test: " dup .state-list
+                                    \ space ." test: " dup .state-list
                                     dup                 \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk regs-in' regs-in-lnk sta-lst' sta-lst'
                                     foreach             \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk regs-in' regs-in-lnk sta-lst' sta-lnk stay
                                         \ Build token for actneed.
 
                                         \ Start token.
+                                        \ space dup .state
                                         s" adjacent, external, to " \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk regs-in' regs-in-lnk sta-lst' sta-lnk stay c-addr u
                                         token-new                   \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk regs-in' regs-in-lnk sta-lst' sta-lnk stay, tkn' t | f
                                         invert abort" token-new failed?"
 
                                         \ Add state string to token.
                                         #6 pick link-get-data       \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk regs-in' regs-in-lnk sta-lst' sta-lnk stay tkn' stax
-                                        state-str-pad               \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk regs-in' regs-in-lnk sta-lst' sta-lnk stay tkn' c-addr u
+                                        state-string                \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk regs-in' regs-in-lnk sta-lst' sta-lnk stay tkn' c-addr u
                                         #2 pick token-concatenate   \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk regs-in' regs-in-lnk sta-lst' sta-lnk stay tkn' bool
                                         invert abort" token-conatenate failed?"
 
@@ -2707,21 +2711,29 @@ action-groups-disp                          cell+   constant action-function-dis
                                         invert abort" token-conatenate failed?"
 
                                         #4 pick link-get-data       \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk regs-in' regs-in-lnk sta-lst' sta-lnk stay tkn' regx
-                                        region-str-pad              \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk regs-in' regs-in-lnk sta-lst' sta-lnk stay tkn' c-addr u
+                                        region-string               \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk regs-in' regs-in-lnk sta-lst' sta-lnk stay tkn' c-addr u
                                         #2 pick token-concatenate   \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk regs-in' regs-in-lnk sta-lst' sta-lnk stay tkn' bool
                                         invert abort" token-conatenate failed?"
 
-                                        dup space .token
-                                        token-deallocate            \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk regs-in' regs-in-lnk sta-lst' sta-lnk stay
-                                        drop
+                                        \ space dup .token
+
+                                        \ Make need.
+                                        swap                        \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk regs-in' regs-in-lnk sta-lst' sta-lnk tkn' stay
+                                        actneed-type-adisc          \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk regs-in' regs-in-lnk sta-lst' sta-lnk tkn' stay typ
+                                        #10 pick                    \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk regs-in' regs-in-lnk sta-lst' sta-lnk tkn' stay typ act0
+                                        action-get-inst-ids         \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk regs-in' regs-in-lnk sta-lst' sta-lnk tkn' stay typ act-id dom-id
+                                        actneed-new                 \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk regs-in' regs-in-lnk sta-lst' sta-lnk aned'
+
+                                        \ Save need.
+                                        #10 pick list-push-struct   \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk regs-in' regs-in-lnk sta-lst' sta-lnk
                                     next-item
                                     state-list-deallocate
                                 then
                             else
-                                space ." not pos anchor"
+                                \ space ." not pos anchor"
                             then
                         next-item
-                        cr
+                        \ cr
                         region-list-deallocate
                     then
                 next-item

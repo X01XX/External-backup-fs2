@@ -206,7 +206,7 @@ statecorr-header-disp    cell+      constant statecorr-list-disp   \ State list 
     is-statecorr?                           \ lst bool
     if
         dup list-pop-struct                 \ lst itm
-        invert abort" pop faled?"
+        invert abort" pop failed?"
         swap list-deallocate                \ itm
         true
         \ cr ." statecorr-from-string: end: true"  .stack cr

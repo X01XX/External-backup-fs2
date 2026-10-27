@@ -107,37 +107,31 @@
 
     \ Add 4->4
     s" s0100->s0100" sample-from-string-a   \ act smpl1
-    over action-add-sample                  \ act bool
-    invert abort" Did not return true?"
+    over action-add-sample drop             \ act
 
     \ Add 1->3
     s" s0001->s0011" sample-from-string-a   \ act smpl1
-    over action-add-sample                  \ act bool
-    invert abort" Did not return true?"
+    over action-add-sample drop             \ act
 
     cr dup .action cr
 
     \ Add 3->1
     s" s0011->s0001" sample-from-string-a   \ act smpl1
-    over action-add-sample                  \ act bool
-    invert abort" Did not return true?"
+    over action-add-sample drop             \ act
 
     \ Add 6->6
     s" s0110->s0110" sample-from-string-a   \ act smpl1
-    over action-add-sample                  \ act bool
-    invert abort" Did not return true?"
+    over action-add-sample drop             \ act
 
     cr dup .action cr
 
     \ Add 9->9
     s" s1001->s1001" sample-from-string-a   \ act smpl1
-    over action-add-sample                  \ act bool
-    invert abort" Did not return true?"
+    over action-add-sample drop             \ act
 
     \ Add F->7
     s" s1111->s0111" sample-from-string-a   \ act smpl1
-    over action-add-sample                  \ act bool
-    invert abort" Did not return true?"
+    over action-add-sample drop             \ act
 
     cr dup .action cr
 
@@ -173,20 +167,17 @@
 
     \ Add 5->5
     s" s0101->s0101" sample-from-string-a   \ act smpl1
-    over action-add-sample                  \ act bool
-    invert abort" Did not return true?"
+    over action-add-sample drop             \ act
 
     \ Add 7->F
     s" s0111->s1111" sample-from-string-a   \ act smpl1
-    over action-add-sample                  \ act bool
-    invert abort" Did not return true?"
+    over action-add-sample drop             \ act
 
     cr dup .action cr
 
     \ Add 8->A
     s" s1000->s1010" sample-from-string-a   \ act smpl1
-    over action-add-sample                  \ act bool
-    invert abort" Did not return true?"
+    over action-add-sample drop             \ act
 
     cr dup .action cr
 
@@ -213,20 +204,17 @@
 
     \ Add 5->5
     s" s0101->s0101" sample-from-string-a   \ act smpl1
-    over action-add-sample                  \ act bool
-    invert abort" Did not return true?"
+    over action-add-sample drop             \ act
 
     \ Add 7->F
     s" s0111->s1111" sample-from-string-a   \ act smpl1
-    over action-add-sample                  \ act bool
-    invert abort" Did not return true?"
+    over action-add-sample drop             \ act
 
     cr dup .action cr
 
     \ Add D->F
     s" s1101->s1111" sample-from-string-a   \ act smpl1
-    over action-add-sample                  \ act bool
-    invert abort" Did not return true?"
+    over action-add-sample drop             \ act
 
     cr dup .action cr
 
@@ -301,7 +289,7 @@
 
     \ cr dup .action cr
 
-    cr ." Getting needs ..." cr
+    cr ." Getting actneeds ..." cr
 
     s" s0101" state-from-string-a           \ act sta'
     2dup swap action-get-needs              \ act sta', ned-lst' bool

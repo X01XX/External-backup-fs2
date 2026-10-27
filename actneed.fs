@@ -19,7 +19,7 @@ actneed-target-disp    cell+   constant actneed-info-disp       \ Zero, or a Tok
 #4 value actneed-type-cg        \ Confirm group.
 #5 value actneed-type-cas       \ Corner anchor state.
 #6 value actneed-type-cds       \ Corner adjacent, dissimilar, state.
-#7 value actneed-type-cdisc     \ Corner discovery.
+#7 value actneed-type-adisc     \ Anchor discovery.
 #7 value actneed-type-max
 
 \ Return true if tos is a valid actneed type.
@@ -205,9 +205,9 @@ actneed-target-disp    cell+   constant actneed-info-disp       \ Zero, or a Tok
             space ." Corner confirm dissimilar square of group "
             dup actneed-get-info .token
         endof
-        actneed-type-cdisc of
-            space ." Corner discovery for "
-            dup actneed-get-info .token
+        actneed-type-adisc of
+            dup actneed-get-info space .token
+            space ." for anchor discovery "
         endof
         ." Unrecognized type value" abort
     endcase

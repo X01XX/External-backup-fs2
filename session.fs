@@ -1061,7 +1061,9 @@ session-paths-disp              cell+   constant session-sesneed-list-disp      
     dup                                     \ sesned1 sess0 actnedx stac-cur' stac-targ' stac-targ'
     #4 pick                                 \ sesned1 sess0 actnedx stac-cur' stac-targ' stac-targ' 'sess0
     session-calc-plan                       \ sesned1 sess0 actnedx stac-cur' stac-targ', pln' t | f
-    ifnot
+    if
+        cr ." Plan found: " dup .plan cr
+    else
         cr ." Plan not found" cr
         statecorr-deallocate                \ sesned1 sess0 actnedx stac-cur'
         statecorr-deallocate                \ sesned1 sess0 actnedx
@@ -1073,6 +1075,12 @@ session-paths-disp              cell+   constant session-sesneed-list-disp      
     dup                                     \ sesned1 sess0 actnedx stac-cur' stac-targ' pln' pln'
     #5 pick                                 \ sesned1 sess0 actnedx stac-cur' stac-targ' pln' pln' sess0
     session-run-plan                        \ sesned1 sess0 actnedx stac-cur' stac-targ' pln' bool
+    dup if
+        cr ." Plan suceeded" cr
+    else
+        cr ." Plan failed" cr
+    then
+
     swap plan-deallocate                    \ sesned1 sess0 actnedx stac-cur' stac-targ' bool
     \ cr ." Plan run: returns: " dup .bool cr
 
@@ -1811,23 +1819,29 @@ session-paths-disp              cell+   constant session-sesneed-list-disp      
         cr ." Needs: No needs found" cr
         drop
     else
-        cr s" Needs:" rot .sesneed-list-prefix cr   \ sess0
-        cr ." Press Enter to randomly choose a need."
+        cr s" Needs:" rot .sesneed-list-prefix  \ sess0 ned-lst
+        ." Press Enter to randomly choose a need."
+        cr ." dn <number> - Specify a particular need."
+        cr
     then
 
     cr ." q - to quit"
     cr
     cr ." ps - Print Session, all domains."
-    cr ." pd <domain id> - Print Domain."
-    cr ." pa <domain id> <action id> - Print Action."
-    cr ." cds <domain ID> <state> - Change Domain current State, to an arbitrary value."
-    cr ." scs <domain id> <action id> - Sample the Current State of a domain, with an action."
-    cr ." sas <domain id> <action id> <state> - Sample an Arbitrary State. Change domain current state, then sample with an action."
-    cr ." dn <number> - Do Need number."
-    cr ." mu - Display Memory Use."
-    cr ." to <statecorr> - Change all domain states, like: to (stac (s1111 s00001)), leading zeros are required"
     cr
+    cr ." pd <domain id> - Print a Domain."
+    cr ." pa <domain id> <action id> - Print an Action."
+    cr ." scs <domain id> <action id> - Sample the Current State of a domain, with an action."
+    cr ." <domain id> and <action id> will be a low, positive, integer, like 0, 1, etc.
+    cr
+    cr ." cds <domain ID> <state> - Change Domain current State to an arbitrary value."
+    cr ." sas <domain id> <action id> <state> - Sample an Arbitrary State. Change domain current state, then sample with an action."
     cr ." <state> will be like: s0101, leading zeros are required."
+    cr
+    cr ." to <statecorr> - Change session states."
+    cr ." <statecorr> will be like: (stac (s1111 s00001))."
+    cr
+    cr ." mu - Display Memory Use."
     cr
 
     \ Display the prompt.
@@ -1913,7 +1927,7 @@ session-paths-disp              cell+   constant session-sesneed-list-disp      
     if
         \ cr ." path found: " dup .statecorr-list cr
     else
-        \ cr ." path not found" cr
+        cr ." path not found" cr
         2drop                                   \ stac-to1 stac-from'
         statecorr-list-deallocate               \ stac-to1
         drop
@@ -1927,10 +1941,10 @@ session-paths-disp              cell+   constant session-sesneed-list-disp      
     #4 pick                                     \ stac-to1 stac-from' sess0 pth pth-from-to' pth-from-to' avd-lst sess0
     session-make-plan                           \ stac-to1 stac-from' sess0 pth pth-from-to', pln' t | f
     if
-        \ cr ." plan found: " dup .plan cr
+        cr ." plan found: " dup .plan cr
         swap statecorr-list-deallocate          \ stac-to1 stac-from' sess0 pth pln'
     else
-        \ cr ." plan not found" cr
+        cr ." plan not found" cr
         statecorr-list-deallocate               \ stac-to1 stac-from' sess0 pth
         2drop                                   \ stac-to1 stac-from'
         statecorr-deallocate                    \ stac-to1
