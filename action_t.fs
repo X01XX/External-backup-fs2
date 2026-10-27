@@ -249,7 +249,7 @@
     cr ." action-test-corners2 - Ok"
 ;
 
-: action-test-anchor-dicovery
+: action-test-anchor-discovery
     \ Init action.
     [ ' noop ] literal
     s" rXXXX 0" string-to-stack-a
@@ -258,46 +258,70 @@
     cr dup .action cr
 
     \ Add 6->6
-    s" s0110->s0110" sample-from-string-a   \ act smpl1
-    over action-add-sample                  \ act bool
-    invert abort" Did not return true?"
+    s" s0110->s0110" sample-from-string-a   \ act smpl
+    2dup swap action-add-sample drop        \ act smpl
+    2dup swap action-add-sample drop        \ act smpl
+    2dup swap action-add-sample drop        \ act smpl
+    over action-add-sample drop             \ act
 
     \ Add 4->5
-    s" s0100->s0101" sample-from-string-a   \ act smpl1
-    over action-add-sample                  \ act bool
-    invert abort" Did not return true?"
+    s" s0100->s0101" sample-from-string-a   \ act smpl
+    2dup swap action-add-sample drop        \ act smpl
+    2dup swap action-add-sample drop        \ act smpl
+    2dup swap action-add-sample drop        \ act smpl
+    over action-add-sample drop             \ act bool
 
     \ Add 5->4
-    s" s0101->s0100" sample-from-string-a   \ act smpl1
-    over action-add-sample                  \ act bool
-    invert abort" Did not return true?"
+    s" s0101->s0100" sample-from-string-a   \ act smpl
+    2dup swap action-add-sample drop        \ act smpl
+    2dup swap action-add-sample drop        \ act smpl
+    2dup swap action-add-sample drop        \ act smpl
+    over action-add-sample drop             \ act bool
 
     \ Add D->D
-    s" s1101->s1101" sample-from-string-a   \ act smpl1
-    over action-add-sample                  \ act bool
-    invert abort" Did not return true?"
+    s" s1101->s1101" sample-from-string-a   \ act smpl
+    2dup swap action-add-sample drop        \ act smpl
+    2dup swap action-add-sample drop        \ act smpl
+    2dup swap action-add-sample drop        \ act smpl
+    over action-add-sample drop             \ act
 
-    cr dup .action cr
+    \ Add A->A
+    s" s1010->s1010" sample-from-string-a   \ act smpl
+    2dup swap action-add-sample drop        \ act smpl
+    2dup swap action-add-sample drop        \ act smpl
+    2dup swap action-add-sample drop        \ act smpl
+    over action-add-sample drop             \ act
 
-    \ Add C->C
-\    s" s1100->s1100" sample-from-string-a   \ act smpl1
-\    over action-add-sample                  \ act bool
-\    invert abort" Did not return true?"
+    \ Add B->B
+    s" s1011->s1011" sample-from-string-a   \ act smpl
+    2dup swap action-add-sample drop        \ act smpl
+    2dup swap action-add-sample drop        \ act smpl
+    2dup swap action-add-sample drop        \ act smpl
+    over action-add-sample drop             \ act
 
-    \ Add 7->7
-\    s" s0111->s0111" sample-from-string-a   \ act smpl1
-\    over action-add-sample                  \ act bool
-\    invert abort" Did not return true?"
+    \ cr dup .action cr
 
-    cr dup .action cr
+    cr ." Getting needs ..." cr
+
+    s" s0101" state-from-string-a           \ act sta'
+    2dup swap action-get-needs              \ act sta', ned-lst' bool
+    if
+        cr s" Needs: " #2 pick .actneed-list-prefix cr
+        actneed-list-deallocate
+    else
+        cr ." No needs" cr
+    then
+
+    cr over .action cr
 
     \ Deallocate
+    state-deallocate
     action-deallocate
 
     \ Check for memory leaks.
     check-project-deallocated
 
-    cr ." action-test - Ok"
+    cr ." action-test-anchor-discovery - Ok"
 ;
 
 

@@ -19,7 +19,8 @@ actneed-target-disp    cell+   constant actneed-info-disp       \ Zero, or a Tok
 #4 value actneed-type-cg        \ Confirm group.
 #5 value actneed-type-cas       \ Corner anchor state.
 #6 value actneed-type-cds       \ Corner adjacent, dissimilar, state.
-#6 value actneed-type-max
+#7 value actneed-type-cdisc     \ Corner discovery.
+#7 value actneed-type-max
 
 \ Return true if tos is a valid actneed type.
 : is-actneed-type? ( u -- bool )
@@ -187,27 +188,26 @@ actneed-target-disp    cell+   constant actneed-info-disp       \ Zero, or a Tok
         actneed-type-cls of
             space ." Confirm incompatible pair "
             dup actneed-get-info .token
-            \ region-get-states .state space ." and " .state
         endof
         actneed-type-ils of
             space ." Get sample between incompatible pair "
             dup actneed-get-info .token
-            \ region-get-states .state space ." and " .state
         endof
         actneed-type-cg of
             space ." Confirm group "
             dup actneed-get-info .token
-            \ .region
         endof
         actneed-type-cas of
             space ." Corner confirm anchor square of group "
             dup actneed-get-info .token
-            \ .corner
         endof
         actneed-type-cds of
             space ." Corner confirm dissimilar square of group "
             dup actneed-get-info .token
-            \ .corner
+        endof
+        actneed-type-cdisc of
+            space ." Corner discovery for "
+            dup actneed-get-info .token
         endof
         ." Unrecognized type value" abort
     endcase

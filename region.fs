@@ -122,65 +122,78 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     state-get-num-bits       \ nb
 ;
 
+\ Push a character representation of a region onto the stack, c-addr (pad) u.
+\ The result should be used, or stored, before pad is used again.
+: region-str-pad ( reg0 -- c-addr u )
+    \ Check arg.
+    assert( tos is-region? )
+
+    pad dup rot                     \ p-addr c-addr reg0
+
+    \ Store string length.
+    dup region-get-num-bits         \ p-addr c-addr reg0 nc
+    -rot                            \ p-addr nc c-addr reg0
+
+    \ Store prefix.
+    [char] r #2 pick c!
+    swap 1+ swap
+
+    \ Setup for bit-position loop.
+    dup region-get-state-1          \ p-addr nc c-addr reg0 sta1
+    -rot                            \ p-addr nc sta1 c-addr reg0
+    dup region-get-state-0          \ p-addr nc sta1 c-addr reg0 sta0
+    -rot                            \ p-addr nc sta1 sta0 c-addr reg0
+    region-get-num-bits             \ p-addr nc sta1 sta0 c-addr nb
+    -1 swap                         \ p-addr nc sta1 sta0 c-addr -1 nb
+    1-                              \ p-addr nc sta1 sta0 c-addr -1 nb-
+
+    do
+        \ Process each trit.        \ p-addr nc sta1 sta0 c-addr
+        \ Get state bit.
+        i                           \ p-addr nc sta1 sta0 c-addr i
+        #3 pick                     \ p-addr nc sta1 sta0 c-addr i sta1
+        state-bit                   \ p-addr nc sta1 sta0 c-addr b1
+
+        \ Get state bit.
+        i                           \ p-addr nc sta1 sta0 c-addr b1 i
+        #3 pick                     \ p-addr nc sta1 sta0 c-addr b1 i sta0
+        state-bit                   \ p-addr nc sta1 sta0 c-addr b1 b0
+
+        \ Put char on stack.
+        if                          \ p-addr nc sta1 sta0 c-addr b1
+            if                      \ p-addr nc sta1 sta0 c-addr
+                [char] 1
+            else
+                [char] X
+            then
+        else                        \ p-addr nc sta1 sta0 c-addr b1
+            if                      \ p-addr nc sta1 sta0 c-addr
+                [char] x
+            else
+                [char] 0
+            then
+        then
+
+        \ Store char to pad.        \ p-addr nc sta1 sta0 c-addr chr
+        over                        \ p-addr nc sta1 sta0 c-addr chr c-addr
+        c!                          \ p-addr nc sta1 sta0 c-addr
+
+        \ Point to next c-addr char.
+        1+                          \ p-addr nc sta1 sta0 c-addr
+
+    1 -loop
+    2drop drop                      \ p-addr nc
+    1+
+;
+
 \ Return a token containing a string representation of a region.
 : region-str ( reg0 -- tkn )
     \ Check arg.
     assert( tos is-region? )
 
-    \ Start token with region prefix.
-    s" r" token-new                 \ reg0, tkn t | f
-    invert abort" token-new failed"
-    swap                            \ tkn reg0
-
-    \ Init string length.
-    1 swap                          \ tkn nc reg0
-
-    \ Setup for bit-position loop.
-    dup region-get-state-1          \ tkn nc reg0 sta1
-    swap                            \ tkn nc sta1 reg0
-    dup region-get-state-0          \ tkn nc sta1 reg0 sta0
-    swap                            \ tkn nc sta1 sta0 reg0
-    region-get-num-bits             \ tkn nc sta1 sta0 nb
-    -1 swap                         \ tkn nc sta1 sta0 -1 nb
-    1-                              \ tkn nc sta1 sta0 -1 nb-
-
-    do
-        \ Process each trit.        \ tkn nc sta1 sta0
-        \ Get state bit.
-        i                           \ tkn nc sta1 sta0 i
-        #2 pick                     \ tkn nc sta1 sta0 i sta1
-        state-bit                   \ tkn nc sta1 sta0 b1
-
-        \ Get state bit.
-        i                           \ tkn nc sta1 sta0 b1 i
-        #2 pick                     \ tkn nc sta1 sta0 b1 i sta0
-        state-bit                   \ tkn nc sta1 sta0 b1 b0
-
-        \ Put char on stack.
-        if                          \ tkn nc sta1 sta0 b1
-            if                      \ tkn nc sta1 sta0
-                s" 1" #5 pick       \ tkn nc sta1 sta0 c-addr u tkn
-                token-concatenate   \ tkn nc sta1 sta0 bool
-                invert abort" token-concatenate failed"
-            else
-                s" X" #5 pick       \ tkn nc sta1 sta0 c-addr u tkn
-                token-concatenate   \ tkn nc sta1 sta0 bool
-                invert abort" token-concatenate failed"
-            then
-        else                        \ tkn nc sta1 sta0 b1
-            if                      \ tkn nc sta1 sta0
-                s" x" #5 pick       \ tkn nc sta1 sta0 c-addr u tkn
-                token-concatenate   \ tkn nc sta1 sta0 bool
-                invert abort" token-concatenate failed"
-            else
-                s" 0" #5 pick       \ tkn nc sta1 sta0 c-addr u tkn
-                token-concatenate   \ tkn nc sta1 sta0 bool
-                invert abort" token-concatenate failed"
-            then
-        then
-
-    1 -loop
-    2drop drop                      \ tkn
+    region-str-pad                  \ c-addr u
+    token-new                       \ tkn t | f
+    invert abort" token-new failed?"
 ;
 
 \ Print a region.

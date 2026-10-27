@@ -2173,7 +2173,7 @@ action-groups-disp                          cell+   constant action-function-dis
     \ Check args.
     assert( tos is-action? )
     assert( nos is-sample? )
-    cr dup .action-parent-inst-id  dup .action-inst-id ." : Add sample: " over .sample cr
+    \ cr dup .action-parent-inst-id  dup .action-inst-id ." : Add sample: " over .sample cr
     \ cr ." action-add-sample: start: " .stack cr
 
     over sample-get-initial     \ smpl1 act0 initial
@@ -2188,9 +2188,11 @@ action-groups-disp                          cell+   constant action-function-dis
             swap                        \ sqr act0
             action-check-square         \
             true
+            \ cr ." action-add-sample: exit 1: " cr
         else
             2drop
             false
+            \ cr ." action-add-sample: exit 2: " cr
         then
     else
         over                    \ smpl1 act0 smpl1
@@ -2201,6 +2203,7 @@ action-groups-disp                          cell+   constant action-function-dis
         action-check-square     \ smpl1
         drop
         true
+        \ cr ." action-add-sample: exit 3: " cr
     then
     \ cr ." action-add-sample: end: " .stack cr
 ;
@@ -2349,6 +2352,8 @@ action-groups-disp                          cell+   constant action-function-dis
             else
                 state-deallocate            \ sta2 reg1 act0 sqr-lst sqr msk-lst' msk-lnk
             then
+        else
+            state-deallocate                \ sta2 reg1 act0 sqr-lst sqr msk-lst' msk-lnk
         then
     next-item
                                             \ sta2 reg1 act0 sqr-lst sqr msk-lst'
@@ -2633,7 +2638,7 @@ action-groups-disp                          cell+   constant action-function-dis
             list-push-struct        \ ret-lst cur-sta1 act0 nadj-lnk
         then
     next-item
-
+                                    \ ret-lst cur-sta1 act0
     #2 pick list-is-not-empty?
     if
         2drop
@@ -2644,54 +2649,130 @@ action-groups-disp                          cell+   constant action-function-dis
     \ Check corners for corner discovery needs.
     \ That is check squares adjacent to an anchor,
     \ that are in more than one possible regions.
-    dup action-get-corner-clusters  \ ret-lst act0 cur-sta1 crnc-lst
+    dup action-get-corner-clusters              \ ret-lst cur-sta1 act0 crnc-lst
     list-is-not-empty?
     if
         \ Check corner cluster list for corner discovery needs.
     else
-        dup action-get-corners      \ ret-lst act0 cur-sta1 crnc-lst
+        dup action-get-corners                  \ ret-lst cur-sta1 act0 crnc-lst
         list-is-not-empty?
         if
             \ Check corner list for corner discovery needs.
+            dup action-get-possible-regions     \ ret-lst cur-sta1 act0 pos-regs
+            over  action-get-corners            \ ret-lst cur-sta1 act0 pos-regs crnc-lst
+            foreach                             \ ret-lst cur-sta1 act0 pos-regs crnc-lnk crnx
+                corner-get-adjacent-states      \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lst
+                foreach                         \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk ae-sta
+                    #3 pick                     \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk ae-sta pos-regs
+                    region-list-num-state-in    \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk num-in
+                    1 >                         \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk bool
+                    if
+                        cr ." check ae state " dup link-get-data .state
+                        dup link-get-data       \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk ae-sta
+                        #3 pick                 \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk ae-sta pos-regs
+                        region-list-state-in    \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk regs-in'
+                        space ." in: " dup .region-list
+                        dup                     \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk regs-in' regs-in'
+                        foreach                 \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk regs-in' regs-in-lnk regx
+                            space ." reg " dup .region
+                            #3 pick             \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk regs-in' regs-in-lnk regx ae-lnk
+                            link-get-data swap  \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk regs-in' regs-in-lnk stax regx
+                            #7 pick             \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk regs-in' regs-in-lnk stax regx act0
+                            action-state-possible-anchor-for-region \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk regs-in' regs-in-lnk bool
+                            if
+                                space ." pos anchor"
+                                #2 pick link-get-data   \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk regs-in' regs-in-lnk stax
+                                over link-get-data      \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk regs-in' regs-in-lnk stax regx
+                                #7 pick                 \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk regs-in' regs-in-lnk stax regx act0
+                                action-anchor-states-to-test    \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk regs-in' regs-in-lnk, sta-lst' t | f
+                                if
+                                    space ." test: " dup .state-list
+                                    dup                 \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk regs-in' regs-in-lnk sta-lst' sta-lst'
+                                    foreach             \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk regs-in' regs-in-lnk sta-lst' sta-lnk stay
+                                        \ Build token for actneed.
+
+                                        \ Start token.
+                                        s" adjacent, external, to " \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk regs-in' regs-in-lnk sta-lst' sta-lnk stay c-addr u
+                                        token-new                   \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk regs-in' regs-in-lnk sta-lst' sta-lnk stay, tkn' t | f
+                                        invert abort" token-new failed?"
+
+                                        \ Add state string to token.
+                                        #6 pick link-get-data       \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk regs-in' regs-in-lnk sta-lst' sta-lnk stay tkn' stax
+                                        state-str-pad               \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk regs-in' regs-in-lnk sta-lst' sta-lnk stay tkn' c-addr u
+                                        #2 pick token-concatenate   \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk regs-in' regs-in-lnk sta-lst' sta-lnk stay tkn' bool
+                                        invert abort" token-conatenate failed?"
+
+                                        s"  in "                    \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk regs-in' regs-in-lnk sta-lst' sta-lnk stay tkn' c-addr u
+                                        #2 pick token-concatenate   \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk regs-in' regs-in-lnk sta-lst' sta-lnk stay tkn' bool
+                                        invert abort" token-conatenate failed?"
+
+                                        #4 pick link-get-data       \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk regs-in' regs-in-lnk sta-lst' sta-lnk stay tkn' regx
+                                        region-str-pad              \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk regs-in' regs-in-lnk sta-lst' sta-lnk stay tkn' c-addr u
+                                        #2 pick token-concatenate   \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk regs-in' regs-in-lnk sta-lst' sta-lnk stay tkn' bool
+                                        invert abort" token-conatenate failed?"
+
+                                        dup space .token
+                                        token-deallocate            \ ret-lst cur-sta1 act0 pos-regs crnc-lnk ae-lnk regs-in' regs-in-lnk sta-lst' sta-lnk stay
+                                        drop
+                                    next-item
+                                    state-list-deallocate
+                                then
+                            else
+                                space ." not pos anchor"
+                            then
+                        next-item
+                        cr
+                        region-list-deallocate
+                    then
+                next-item
+                                                \ ret-lst cur-sta1 act0 pos-regs crnc-lnk
+            next-item
+                                                \ ret-lst cur-sta1 act0 pos-regs
+            drop                                \ ret-lst cur-sta1 act0
         then
     then
 
     \ Check if the state is in any group.
-    tuck action-get-groups          \ ret-lst act0 cur-sta1 grp-lst
-    group-list-get-needs            \ ret-lst act0, ned-lst' t | f
+    2dup action-get-groups          \ ret-lst cur-sta1 act0 cur-sta1 grp-lst
+    group-list-get-needs            \ ret-lst cur-sta1 act0, ned-lst' t | f
     if
-        dup #2 pick action-set-ids  \ ret-lst act0 ned-lst'
-        dup                         \ ret-lst act0 ned-lst' ned-lst'
-        #3 pick                     \ ret-lst act0 ned-lst' ned-lst' ret-lst
-        list-append-struct          \ ret-lst act0 ned-lst'
-        actneed-list-deallocate     \ ret-lst act0
+        dup                         \ ret-lst cur-sta1 act0 ned-lst' ned-lst'
+        #2 pick                     \ ret-lst cur-sta1 act0 ned-lst' ned-lst' act0
+        action-set-ids              \ ret-lst cur-sta1 act0 ned-lst'
+
+        dup                         \ ret-lst cur-sta1 act0 ned-lst' ned-lst'
+        #4 pick                     \ ret-lst cur-sta1 act0 ned-lst' ned-lst' ret-lst
+        list-append-struct          \ ret-lst cur-sta1 act0 ned-lst'
+
+        actneed-list-deallocate     \ ret-lst cur-sta1 act0
     then
-                                    \ ret-lst act0
+                                    \ ret-lst cur-sta1 act0
 
     \ Get more needs, per defining, non-pnc, group.
-    dup action-get-defining-regions \ ret-lst act0 def-lst
-    foreach                         \ ret-lst act0 def-lnk regx
-        #2 pick                     \ ret-lst act0 def-lnk regx act0
-        action-find-group           \ ret-lst act0 def-lnk, grpx t | f
+    dup action-get-defining-regions \ ret-lst cur-sta1 act0 def-lst
+    foreach                         \ ret-lst cur-sta1 act0 def-lnk regx
+        #2 pick                     \ ret-lst cur-sta1 act0 def-lnk regx act0
+        action-find-group           \ ret-lst cur-sta1 act0 def-lnk, grpx t | f
         if
-            dup group-get-pnc       \ ret-lst act0 def-lnk grpx bool
+            dup group-get-pnc       \ ret-lst cur-sta1 act0 def-lnk grpx bool
             if
                 drop
             else
-                group-get-needs         \ ret-lst act0 def-lnk, ned-lst' t | f
+                group-get-needs         \ ret-lst cur-sta1 act0 def-lnk, ned-lst' t | f
                 if
-                    dup #3 pick             \ ret-lst act0 def-lnk ned-lst'
-                    action-set-ids          \ ret-lst act0 def-lnk ned-lst'
-                    dup                     \ ret-lst act0 def-lnk ned-lst' ned-lst'
-                    #4 pick                 \ ret-lst act0 def-lnk ned-lst' ned-lst' ret-lst
-                    list-append-struct      \ ret-lst act0 def-lnk ned-lst'
-                    actneed-list-deallocate \ ret-lst act0 def-lnk
+                    dup #3 pick             \ ret-lst cur-sta1 act0 def-lnk ned-lst' ned-lst' act0
+                    action-set-ids          \ ret-lst cur-sta1 act0 def-lnk ned-lst'
+
+                    dup                     \ ret-lst cur-sta1 act0 def-lnk ned-lst' ned-lst'
+                    #5 pick                 \ ret-lst cur-sta1 act0 def-lnk ned-lst' ned-lst' ret-lst
+                    list-append-struct      \ ret-lst cur-sta1 act0 def-lnk ned-lst'
+                    actneed-list-deallocate \ ret-lst cur-sta1 act0 def-lnk
                 then
             then
         then
     next-item
-                                    \ ret-lst act0
-    drop                            \ ret-lst
+                                    \ ret-lst cur-sta1 act0
+    2drop                           \ ret-lst
 
    \ cr ." action needs found: " dup list-get-length dec. cr
 

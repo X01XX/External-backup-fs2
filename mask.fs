@@ -176,47 +176,65 @@ mask-header-disp cell+  constant mask-number-disp
     again
 ;
 
+\ Push a character representation of a mask onto the stack, c-addr (pad) u.
+\ The result should be used, or stored, before pad is used again.
+: mask-str-pad ( msk0 -- c-addr u )
+    \ Check arg.
+    assert( tos is-mask? )
+
+    \ Set up pad start address, and current character address.
+    pad dup rot                 \ p-addr c-addr msk0
+
+    \ Save string length.
+    dup mask-get-num-bits       \ p-addr c-addr msk0 nc
+    -rot                        \ p-addr nc c-addr msk0
+
+    \ Store prefix.
+    [char] m #2 pick c!
+    swap 1+ swap
+
+    \ Setup for bit-position loop.
+    dup mask-get-number         \ p-addr nc c-addr msk0 num
+    swap                        \ p-addr nc c-addr num msk0
+    mask-get-num-bits           \ p-addr nc c-addr num nc
+    tuck                        \ p-addr nc c-addr nc num nc
+    _msb-from-num-bits          \ p-addr nc c-addr nc num ms-bit
+    rot                         \ p-addr nc c-addr num ms-bit nc
+    0
+
+    do
+        \ Apply msb to mask, to get an isolated bit.
+                                \ p-addr nc c-addr num ms-bit
+        2dup and                \ p-addr nc c-addr num ms-bit bit
+
+        if
+            [char] 1            \ p-addr nc c-addr num ms-bit chr
+        else
+            [char] 0            \ p-addr nc c-addr num ms-bit chr
+        then
+
+        \ Store char to pad.
+        #3 pick                 \ p-addr nc c-addr num ms-bit chr pad+
+        c!                      \ p-addr nc c-addr num ms-bit
+
+        \ Point to next c-addr char.
+        rot 1+ -rot             \ p-addr nc c-addr num ms-bit
+
+        \ Adjust msb mask.
+        1 rshift                \ p-addr nc c-addr num ms-bit
+    loop
+    2drop drop                  \ p-addr nc
+    1+
+;
+
 \ Return a token containing a string representation of a mask.
 : mask-str ( msk0 -- )
     \ Check arg.
     assert( tos is-mask? )
 
-    \ Start token with mask prefix.
-    s" m" token-new                 \ msk0, tkn t | f
-    invert abort" token-new failed"
-    swap                            \ tkn msk0
-
-    \ Init string length.
-    1 swap                          \ tkn nc msk0
-
-    \ Setup for bit-position loop.
-    dup mask-get-number         \ tkn nc msk0 num
-    swap                        \ tkn nc num msk0
-    mask-get-num-bits           \ tkn nc num nc
-    tuck                        \ tkn nc nc num nc
-    _msb-from-num-bits          \ tkn nc nc num ms-bit
-    rot                         \ tkn nc num ms-bit nc
-    0
-
-    do
-        \ Apply msb to mask, to get an isolated bit.
-                                \ tkn nc num ms-bit
-        2dup and                \ tkn nc num ms-bit bit
-
-        if
-            s" 1" #5 pick       \ tkn nc num ms-bit c-addr u tkn
-            token-concatenate   \ tkn nc num ms-bit bool
-            invert abort" token-concatenate failed"
-        else
-            s" 0" #5 pick       \ tkn nc num ms-bit c-addr u tkn
-            token-concatenate   \ tkn nc num ms-bit bool
-            invert abort" token-concatenate failed"
-        then
-
-        \ Adjust msb mask.
-        1 rshift                \ tkn nc num ms-bit
-    loop
-    2drop drop                  \ tkn
+    mask-str-pad                    \ c-addr u
+    token-new                       \ tkn t | f
+    invert abort" token-new failed?"
 ;
 
 \ Print a mask.

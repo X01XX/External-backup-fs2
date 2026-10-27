@@ -674,7 +674,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     \ Check arg.
     assert( tos is-group? )
     assert( tos group-get-pnc invert )
-    \ cr ." group-needs-start: " cr
+    \ cr ." group-needs: start: " dup group-get-region .region cr
 
     \ Check if a far state/square sample is needed.
 
@@ -703,6 +703,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
             list-new tuck       \ ret-lst actned ret-lst
             list-push-struct    \ ret-lst
             true
+            \ cr ." group-needs: exit 1: " cr
             exit
         then
     else
@@ -712,6 +713,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
         list-new tuck       \ ret-lst actned ret-lst
         list-push-struct    \ ret-lst
         true
+        \ cr ." group-needs: exit 2: " cr
         exit
     then
 
@@ -728,6 +730,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
         true swap               \ bool grp0
         _group-set-pnc          \
         false
+        \ cr ." group-needs: exit 3: " cr
         exit
     then
 
@@ -741,6 +744,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     list-new tuck               \ rel-lst actned ret-lst
     list-push-struct            \ ret-lst
     true
+    \ cr ." group-needs: end: " cr
 ;
 
 \ Chenge the first square in a group square list.

@@ -86,47 +86,65 @@ state-header-disp cell+   constant state-number-disp
 
 ' state-new to state-new-xt
 
+\ Push a character representation of a state onto the stack, c-addr (pad) u.
+\ The result should be used, or stored, before pad is used again.
+: state-str-pad ( sta0 -- c-addr u )
+    \ Check arg.
+    assert( tos is-state? )
+
+    \ Set up pad start address, and current character address.
+    pad dup rot                 \ p-addr c-addr sta0
+
+    \ Save string length.
+    dup state-get-num-bits      \ p-addr c-addr sta0 nc
+    -rot                        \ p-addr nc c-addr sta0
+
+    \ Store prefix.
+    [char] s #2 pick c!
+    swap 1+ swap
+
+    \ Setup for bit-position loop.
+    dup state-get-number        \ p-addr nc c-addr sta0 num
+    swap                        \ p-addr nc c-addr num sta0
+    state-get-num-bits          \ p-addr nc c-addr num nc
+    tuck                        \ p-addr nc c-addr nc num nc
+    _msb-from-num-bits          \ p-addr nc c-addr nc num ms-bit
+    rot                         \ p-addr nc c-addr num ms-bit nc
+    0
+
+    do
+        \ Apply msb to state, to get an isolated bit.
+                                \ p-addr nc c-addr num ms-bit
+        2dup and                \ p-addr nc c-addr num ms-bit bit
+
+        if
+            [char] 1            \ p-addr nc c-addr num ms-bit chr
+        else
+            [char] 0            \ p-addr nc c-addr num ms-bit chr
+        then
+
+        \ Store char to pad.
+        #3 pick                 \ p-addr nc c-addr num ms-bit chr pad+
+        c!                      \ p-addr nc c-addr num ms-bit
+
+        \ Point to next c-addr char.
+        rot 1+ -rot             \ p-addr nc c-addr num ms-bit
+
+        \ Adjust msb state.
+        1 rshift                \ p-addr nc c-addr num ms-bit
+    loop
+    2drop drop                  \ p-addr nc
+    1+
+;
+
 \ Return a token containing a string representation of a state.
 : state-str ( sta0 -- tkn )
     \ Check arg.
     assert( tos is-state? )
 
-    \ Start token with state prefix.
-    s" s" token-new                 \ sta0, tkn t | f
-    invert abort" token-new failed"
-    swap                            \ tkn sta0
-
-    \ Init string length.
-    1 swap                          \ tkn nc sta0
-
-    \ Setup for bit-position loop.
-    dup state-get-number        \ tkn nc sta0 num
-    swap                        \ tkn nc num sta0
-    state-get-num-bits          \ tkn nc num nc
-    tuck                        \ tkn nc nc num nc
-    _msb-from-num-bits          \ tkn nc nc num ms-bit
-    rot                         \ tkn nc num ms-bit nc
-    0
-
-    do
-        \ Apply msb to state, to get an isolated bit.
-                                \ tkn nc num ms-bit
-        2dup and                \ tkn nc num ms-bit bit
-
-        if
-            s" 1" #5 pick       \ tkn nc num ms-bit c-addr u tkn
-            token-concatenate   \ tkn nc num ms-bit bool
-            invert abort" token-concatenate failed"
-        else
-            s" 0" #5 pick       \ tkn nc num ms-bit c-addr u tkn
-            token-concatenate   \ tkn nc num ms-bit bool
-            invert abort" token-concatenate failed"
-        then
-
-        \ Adjust msb state.
-        1 rshift                \ tkn nc num ms-bit
-    loop
-    2drop drop                  \ tkn
+    state-str-pad                   \ c-addr u
+    token-new                       \ tkn t | f
+    invert abort" token-new failed?"
 ;
 
 \ Print a state.
