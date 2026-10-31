@@ -20,7 +20,8 @@ actneed-target-disp    cell+   constant actneed-info-disp       \ Zero, or a Tok
 #5 value actneed-type-cas       \ Corner anchor state.
 #6 value actneed-type-cds       \ Corner adjacent, dissimilar, state.
 #7 value actneed-type-adisc     \ Anchor discovery.
-#7 value actneed-type-max
+#8 value actneed-type-resunc    \ Resolve uncertainty.
+#8 value actneed-type-max
 
 \ Return true if tos is a valid actneed type.
 : is-actneed-type? ( u -- bool )
@@ -208,6 +209,10 @@ actneed-target-disp    cell+   constant actneed-info-disp       \ Zero, or a Tok
         actneed-type-adisc of
             dup actneed-get-info space .token
             space ." for anchor discovery "
+        endof
+        actneed-type-resunc of
+            dup actneed-get-info space .token
+            space ." Resolve uncertainty in "
         endof
         ." Unrecognized type value" abort
     endcase

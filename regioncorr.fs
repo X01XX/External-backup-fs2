@@ -225,17 +225,17 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
     assert( nos is-regioncorr? )
 
     \ Init links for loop.
-    regioncorr-get-list list-get-links swap \ link0 regc1
-    regioncorr-get-list list-get-links swap \ link1 link0
+    regioncorr-get-list list-get-links swap \  reg-lnk0 regc1
+    regioncorr-get-list list-get-links swap \  reg-lnk1  reg-lnk0
 
     begin
         ?dup
     while
-                                    \ link1 link0
+                                    \  reg-lnk1  reg-lnk0
         \ Compare regions.
-        over link-get-data          \ link1 link0 reg2
-        over link-get-data          \ link1 link0 reg2 reg1
-        region-superset?            \ link1 link0 bool
+        over link-get-data          \  reg-lnk1  reg-lnk0 reg2
+        over link-get-data          \  reg-lnk1  reg-lnk0 reg2 reg1
+        region-superset?            \  reg-lnk1  reg-lnk0 bool
         ifnot
             \ Non-superset found.
             2drop
@@ -245,11 +245,11 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
         then
 
         \ Prep for next cycle.
-                                    \ link1 link0
-        swap link-get-next          \ link0 link1
-        swap link-get-next          \ link1 link0
+                                    \  reg-lnk1  reg-lnk0
+        swap link-get-next          \  reg-lnk0  reg-lnk1
+        swap link-get-next          \  reg-lnk1  reg-lnk0
     repeat
-                                    \ link1
+                                    \  reg-lnk1
     drop                            \
     true                            \ bool
     \ space ." bool: " dup .bool cr
@@ -267,16 +267,16 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
     assert( nos is-regioncorr? )
 
     \ Init links for loop.
-    regioncorr-get-list list-get-links swap   \ link0 regc1
-    regioncorr-get-list list-get-links swap   \ link1 link0
+    regioncorr-get-list list-get-links swap   \  reg-lnk0 regc1
+    regioncorr-get-list list-get-links swap   \  reg-lnk1  reg-lnk0
 
     begin
         ?dup
     while
         \ Check regions
-        over link-get-data          \ link1 link0 reg1
-        over link-get-data          \ link1 link0 reg1 reg0
-        regions-intersect?          \ link1 link0  bool
+        over link-get-data          \  reg-lnk1  reg-lnk0 reg1
+        over link-get-data          \  reg-lnk1  reg-lnk0 reg1 reg0
+        regions-intersect?          \  reg-lnk1  reg-lnk0  bool
         ifnot
             2drop
             false
@@ -284,11 +284,11 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
         then
 
         \ Prep for next cycle.
-                                     \ link1 link0
-        swap link-get-next           \ link0 link1
-        swap link-get-next           \ link1 link0
+                                     \  reg-lnk1  reg-lnk0
+        swap link-get-next           \  reg-lnk0  reg-lnk1
+        swap link-get-next           \  reg-lnk1  reg-lnk0
     repeat
-                                    \ link1
+                                    \  reg-lnk1
     drop                            \
     true
 ;
@@ -346,59 +346,59 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
     list-new -rot                           \ regc0 ret-lst regc1 regc0
 
     \ Init links for loop.
-    regioncorr-get-list list-get-links swap \ regc0 ret-lst link0 regc1
-    regioncorr-get-list list-get-links swap \ regc0 ret-lst link1 link0
+    regioncorr-get-list list-get-links swap \ regc0 ret-lst  reg-lnk0 regc1
+    regioncorr-get-list list-get-links swap \ regc0 ret-lst  reg-lnk1  reg-lnk0
 
-    #3 pick regioncorr-get-list             \ regc0 ret-lst link1 link0 reg-lst
-    list-get-length                         \ regc0 ret-lst link1 link0 len
-    0                                       \ regc0 ret-lst link1 link0 len 0
+    #3 pick regioncorr-get-list             \ regc0 ret-lst  reg-lnk1  reg-lnk0 reg-lst
+    list-get-length                         \ regc0 ret-lst  reg-lnk1  reg-lnk0 len
+    0                                       \ regc0 ret-lst  reg-lnk1  reg-lnk0 len 0
     do
         \ Subtract two regioncorrs.
-        over link-get-data                  \ regc0 ret-lst link1 link0 reg1
-        over link-get-data                  \ regc0 ret-lst link1 link0 reg1 reg0
+        over link-get-data                  \ regc0 ret-lst  reg-lnk1  reg-lnk0 reg1
+        over link-get-data                  \ regc0 ret-lst  reg-lnk1  reg-lnk0 reg1 reg0
 
         \ Check for superset subtrahend.
-        2dup swap                           \ regc0 ret-lst link1 link0 reg1 reg0 reg0 reg1
-        region-superset?                    \ regc0 ret-lst link1 link0 reg1 reg0 bool
+        2dup swap                           \ regc0 ret-lst  reg-lnk1  reg-lnk0 reg1 reg0 reg0 reg1
+        region-superset?                    \ regc0 ret-lst  reg-lnk1  reg-lnk0 reg1 reg0 bool
         if
             \ No action on superset subtrahend.
             \ But it is known that not all subtrahend regions are supersets,
             \ due to the earlier test.
-            2drop                           \ regc0 ret-lst link1 link0 d-link
+            2drop                           \ regc0 ret-lst  reg-lnk1  reg-lnk0 d-link
         else
             \ If the subtrahend is not a superset, it must intersect,
             \ due to the earlier test.
 
             \ cr dup .region space ." - " over .region
-            region-subtract                 \ regc0 ret-lst link1 link0 reg-lst
+            region-subtract                 \ regc0 ret-lst  reg-lnk1  reg-lnk0 reg-lst
             \ space ." = " dup .region-list cr
 
             dup list-get-length 0= abort" region subtraction failed?"
 
             \ Generate result regioncorrs
-            dup list-get-links              \ regc0 ret-lst link1 link0 reg-lst link
+            dup list-get-links              \ regc0 ret-lst  reg-lnk1  reg-lnk0 reg-lst' link
             begin
                 ?dup
             while
-                dup link-get-data           \ regc0 ret-lst link1 link0 reg-lst link | regx
-                i                           \ regc0 ret-lst link1 link0 reg-lst link | regx ctr
-                #7 pick                     \ regc0 ret-lst link1 link0 reg-lst link | regx ctr regc0
-                regioncorr-copy-except      \ regc0 ret-lst link1 link0 reg-lst link | reg-lst2
-                #5 pick                     \ regc0 ret-lst link1 link0 reg-lst link | reg-lst2 ret-lst
-                list-push-struct            \ regc0 ret-lst link1 link0 reg-lst link
+                dup link-get-data           \ regc0 ret-lst  reg-lnk1  reg-lnk0 reg-lst'  reg-lnk | regx
+                i                           \ regc0 ret-lst  reg-lnk1  reg-lnk0 reg-lst'  reg-lnk | regx ctr
+                #7 pick                     \ regc0 ret-lst  reg-lnk1  reg-lnk0 reg-lst'  reg-lnk | regx ctr regc0
+                regioncorr-copy-except      \ regc0 ret-lst  reg-lnk1  reg-lnk0 reg-lst'  reg-lnk | reg-lst2
+                #5 pick                     \ regc0 ret-lst  reg-lnk1  reg-lnk0 reg-lst'  reg-lnk | reg-lst2 ret-lst
+                list-push-struct            \ regc0 ret-lst  reg-lnk1  reg-lnk0 reg-lst'  reg-lnk
 
                 link-get-next
             repeat
-                                            \ regc0 ret-lst link1 link0 reg-lst
-            region-list-deallocate          \ regc0 ret-lst link1 link0
+                                            \ regc0 ret-lst  reg-lnk1  reg-lnk0 reg-lst'
+            region-list-deallocate          \ regc0 ret-lst  reg-lnk1  reg-lnk0
         then
 
-        \ Prep for next cycle.              \ regc0 ret-lst link1 link0
-        swap link-get-next                  \ regc0 ret-lst link0 link1
-        swap link-get-next                  \ regc0 ret-lst link1 link0
+        \ Prep for next cycle.              \ regc0 ret-lst  reg-lnk1  reg-lnk0
+        swap link-get-next                  \ regc0 ret-lst  reg-lnk0  reg-lnk1
+        swap link-get-next                  \ regc0 ret-lst  reg-lnk1  reg-lnk0
     loop
 
-    \ Clean up.                             \ regc0 ret-lst link1 link0
+    \ Clean up.                             \ regc0 ret-lst  reg-lnk1  reg-lnk0
     2drop                                   \ regc0 ret-lst
     nip                                     \ ret-lst
     \ cr ." =           " dup .regioncorr-list-xt execute cr
@@ -568,25 +568,25 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
     0 -rot                  \ cnt regc1 regc0
 
     \ Prep for loop.
-    regioncorr-get-list list-get-links swap   \ cnt link0 regc1
-    regioncorr-get-list list-get-links swap   \ cnt link1 link0
+    regioncorr-get-list list-get-links swap   \ cnt  reg-lnk0 regc1
+    regioncorr-get-list list-get-links swap   \ cnt  reg-lnk1  reg-lnk0
 
     begin
         ?dup
     while
         \ Add one region pair distance.
-        rot                     \ link1 link0 cnt
-        #2 pick link-get-data   \ link1 link0 cnt reg1
-        #2 pick link-get-data   \ link1 link0 cnt reg1 reg0
-        region-distance         \ link1 link0 cnt dist
-        +                       \ link1 link0 cnt
-        -rot                    \ cnt link1 link0
+        rot                     \  reg-lnk1  reg-lnk0 cnt
+        #2 pick link-get-data   \  reg-lnk1  reg-lnk0 cnt reg1
+        #2 pick link-get-data   \  reg-lnk1  reg-lnk0 cnt reg1 reg0
+        region-distance         \  reg-lnk1  reg-lnk0 cnt dist
+        +                       \  reg-lnk1  reg-lnk0 cnt
+        -rot                    \ cnt  reg-lnk1  reg-lnk0
 
         \ Point to next pair.
         swap link-get-next
         swap link-get-next
     repeat
-                                \ cnt link1
+                                \ cnt  reg-lnk1
     drop                        \ cnt
 ;
 
@@ -659,27 +659,27 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
     list-new -rot                           \ pos neg reg-lst regc1 regc0
 
     \ Init links for loop.
-    regioncorr-get-list list-get-links swap \ pos neg reg-lst link0 regc1
-    regioncorr-get-list list-get-links swap \ pos neg reg-lst link1 link0
+    regioncorr-get-list list-get-links swap \ pos neg reg-lst  reg-lnk0 regc1
+    regioncorr-get-list list-get-links swap \ pos neg reg-lst  reg-lnk1  reg-lnk0
 
     begin
         ?dup
-    while                                   \ pos neg reg-lst link1 link0
+    while                                   \ pos neg reg-lst  reg-lnk1  reg-lnk0
         \ Check regions
-        over link-get-data                  \ pos neg reg-lst link1 link0 reg1
-        over link-get-data                  \ pos neg reg-lst link1 link0 reg1 reg0
+        over link-get-data                  \ pos neg reg-lst  reg-lnk1  reg-lnk0 reg1
+        over link-get-data                  \ pos neg reg-lst  reg-lnk1  reg-lnk0 reg1 reg0
 
-        region-intersection                 \ pos neg reg-lst link1 link0 reg-int t | f
+        region-intersection                 \ pos neg reg-lst  reg-lnk1  reg-lnk0 reg-int t | f
         invert abort" intersection failed?"
 
-        #3 pick                             \ pos neg reg-lst link1 link0 reg-int reg-lst
-        region-list-push-end                \ pos neg reg-lst link1 link0
+        #3 pick                             \ pos neg reg-lst  reg-lnk1  reg-lnk0 reg-int reg-lst
+        region-list-push-end                \ pos neg reg-lst  reg-lnk1  reg-lnk0
 
-        \ Prep for next cycle.              \ pos neg reg-lst link1 link0
-        swap link-get-next                  \ pos neg reg-lst link0 link1
-        swap link-get-next                  \ pos neg reg-lst link1 link0
+        \ Prep for next cycle.              \ pos neg reg-lst  reg-lnk1  reg-lnk0
+        swap link-get-next                  \ pos neg reg-lst  reg-lnk0  reg-lnk1
+        swap link-get-next                  \ pos neg reg-lst  reg-lnk1  reg-lnk0
     repeat
-                                            \ pos neg reg-lst link1
+                                            \ pos neg reg-lst  reg-lnk1
     drop                                    \ pos neg reg-lst
 
     \ Make return regioncorr.

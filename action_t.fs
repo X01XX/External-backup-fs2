@@ -237,7 +237,7 @@
     cr ." action-test-corners2 - Ok"
 ;
 
-: action-test-anchor-discovery
+: action-test-anchor-discovery-corners
     \ Init action.
     [ ' noop ] literal
     s" rXXXX 0" string-to-stack-a
@@ -287,12 +287,16 @@
     2dup swap action-add-sample drop        \ act smpl
     over action-add-sample drop             \ act
 
-    \ cr dup .action cr
+    cr dup .action cr
+
+    dup action-get-corner-clusters          \ act crsc-lst
+    list-is-not-empty? abort" Corner clusters?"
 
     cr ." Getting actneeds ..." cr
 
     s" s0101" state-from-string-a           \ act sta'
-    2dup swap action-get-needs              \ act sta', ned-lst' bool
+    2dup swap                               \ act sta1 sta1 act
+    action-calc-anchor-discovery-needs      \ act sta', ned-lst' bool
     if
         cr s" Needs: " #2 pick .actneed-list-prefix cr
 
@@ -325,7 +329,104 @@
     \ Check for memory leaks.
     check-project-deallocated
 
-    cr ." action-test-anchor-discovery - Ok"
+    cr ." action-test-anchor-discovery-corners - Ok"
+;
+
+: action-test-anchor-discovery-clusters
+    \ Init action.
+    [ ' noop ] literal
+    s" rXXXX 0" string-to-stack-a
+    action-new                              \ act
+
+    cr dup .action cr
+
+    \ Add 5->4
+    s" s0101->s0100" sample-from-string-a   \ act smpl
+    2dup swap action-add-sample drop        \ act smpl
+    2dup swap action-add-sample drop        \ act smpl
+    2dup swap action-add-sample drop        \ act smpl
+    over action-add-sample drop             \ act bool
+
+    \ Add D->D
+    s" s1101->s1101" sample-from-string-a   \ act smpl
+    2dup swap action-add-sample drop        \ act smpl
+    2dup swap action-add-sample drop        \ act smpl
+    2dup swap action-add-sample drop        \ act smpl
+    over action-add-sample drop             \ act
+
+    \ Add 7->7
+    s" s0111->s0111" sample-from-string-a   \ act smpl
+    2dup swap action-add-sample drop        \ act smpl
+    2dup swap action-add-sample drop        \ act smpl
+    2dup swap action-add-sample drop        \ act smpl
+    over action-add-sample drop             \ act
+
+    \ Add 8->7
+    s" s1000->s0111" sample-from-string-a   \ act smpl
+    2dup swap action-add-sample drop        \ act smpl
+    2dup swap action-add-sample drop        \ act smpl
+    2dup swap action-add-sample drop        \ act smpl
+    over action-add-sample drop             \ act
+
+    cr dup .action cr
+
+    dup action-get-corner-clusters          \ act crnc-lst
+    list-is-empty? abort" No corner clusters?"
+
+    cr ." Getting actneeds ..." cr
+
+    s" s0101" state-from-string-a           \ act sta'
+    2dup swap                               \ act sta' sta' act
+    action-calc-anchor-discovery-needs      \ act sta', ned-lst' bool
+    if
+        cr s" Needs: " #2 pick .actneed-list-prefix cr
+
+        \ Test needs.
+        s" s1100" state-from-string-a dup   \ act sta' ned-lst' stax' stax'
+        actneed-type-adisc                  \ act sta' ned-lst' stax' stax' typ
+        #3 pick                             \ act sta' ned-lst' stax' stax' typ ned-lst'
+        actneed-list-contains               \ act sta' ned-lst' stax' bool
+        invert abort" actneed list does not contain need for s1100, for anchor discovery?"
+        state-deallocate                    \ act sta' ned-lst'
+
+        s" s1001" state-from-string-a dup   \ act sta' ned-lst' stax' stax'
+        actneed-type-adisc                  \ act sta' ned-lst' stax' stax' typ
+        #3 pick                             \ act sta' ned-lst' stax' stax' typ ned-lst'
+        actneed-list-contains               \ act sta' ned-lst' stax' bool
+        invert abort" actneed list does not contain need for s1001, for anchor discovery?"
+        state-deallocate                    \ act sta' ned-lst'
+
+        actneed-list-deallocate
+    else
+        cr ." No needs" cr
+    then
+
+    cr over .action cr
+
+    \ Deallocate
+    state-deallocate
+    action-deallocate
+
+    \ Check for memory leaks.
+    check-project-deallocated
+
+    cr ." action-test-anchor-discovery-clusters - Ok"
+;
+
+: action-calc-resolve-uncertainty-needs
+    \ Init action.
+    [ ' noop ] literal
+    s" rXXXX 0" string-to-stack-a
+    action-new                              \ act
+
+    cr dup .action cr
+
+    \ Deallocate.
+
+    \ Check for memory leaks.
+    check-project-deallocated
+
+    cr ." action-test-calc-resolve-uncertainty-needs - Ok"
 ;
 
 : action-tests
@@ -334,6 +435,8 @@
     action-test-check-incompatible-pairs-for-changed-square
     action-test-corners
     action-test-corners2
-    action-test-anchor-discovery
+    action-test-anchor-discovery-corners
+    action-test-anchor-discovery-clusters
+    \ action-calc-resolve-uncertainty-needs
     cr
 ;

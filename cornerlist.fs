@@ -117,6 +117,7 @@
         exit
     then
 
+    ." ("
     foreach             \ u lnk crn-lst
         .corner-list
 
@@ -127,6 +128,7 @@
     repeat
                         \ u
     drop
+    ." )"
 ;
 
 \ Return true if a corner's region matches a given region.

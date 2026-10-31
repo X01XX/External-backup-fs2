@@ -41,19 +41,19 @@
 ;
 
 \ Print a sesneed-list
-: .sesneed-list ( list0 -- )
+: .sesneed-list ( sned-lst0 -- )
     \ Check args.
     assert( tos is-sesneed-list? )
 
     \ Init counter
-    0 swap                  \ cnt link
+    0 swap                  \ cnt sned-lst0
 
     \ Scan sesneeds
-    list-get-links
+    list-get-links          \ cnt sned-lst0
     begin
         ?dup
     while
-        dup link-get-data   \ cnt link ned
+        dup link-get-data   \ cnt sned-lnk nedx
 
         \ Print sesneed and count.
         cr
@@ -64,7 +64,7 @@
         \ Update count.
         swap 1+ swap
 
-        link-get-next       \ cnt link
+        link-get-next       \ cnt sned-lnk
     repeat
     cr
                             \ cnt

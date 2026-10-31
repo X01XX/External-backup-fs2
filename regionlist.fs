@@ -904,89 +904,89 @@
 ;
 
 \ Append nos region-list to the tos region-list.
-: region-list-append ( lst1 lst0 -- )
+: region-list-append ( reg-lst1 reg-lst0 -- )
     \ Check args.
     assert( tos is-region-list? )
     assert( nos is-region-list? )
 
-    swap                    \ lst0 lst1
-    list-get-links          \ lst0 link
+    swap                    \  reg-lst0 reg-lst1
+    list-get-links          \  reg-lst0 reg-lnk1
     begin
         ?dup
     while
-        dup link-get-data   \ lst0 link regx
-        #2 pick             \ lst0 link regx lst0
-        region-list-push    \ lst0 link
+        dup link-get-data   \  reg-lst0 reg-lnk1 regx
+        #2 pick             \  reg-lst0 reg-lnk1 regx  reg-lst0
+        region-list-push    \  reg-lst0 reg-lnk1
 
         link-get-next
     repeat
-                            \ lst0
+                            \  reg-lst0
     drop
 ;
 
 \ Append nos region-list to the tos region-list, except duplicates.
-: region-list-append-nodups ( lst1 lst0 -- )
+: region-list-append-nodups (  reg-lst1  reg-lst0 -- )
     \ Check args.
     assert( tos is-region-list? )
     assert( nos is-region-list? )
 
-    swap                        \ lst0 lst1
-    list-get-links              \ lst0 link
+    swap                        \  reg-lst0 reg-lst1
+    list-get-links              \  reg-lst0 reg-lnk1
     begin
         ?dup
     while
-        dup link-get-data       \ lst0 link regx
-        #2 pick                 \ lst0 link regx lst0
-        region-list-push-nodups \ lst0 link bool
+        dup link-get-data       \  reg-lst0 reg-lnk1 regx
+        #2 pick                 \  reg-lst0 reg-lnk1 regx  reg-lst0
+        region-list-push-nodups \  reg-lst0 reg-lnk1 bool
         drop
 
         link-get-next
     repeat
-                                \ lst0
+                                \  reg-lst0
     drop
 ;
 
 \ Append nos region-list to the tos region-list, no subsets.
-: region-list-append-nosubs ( lst1 lst0 -- )
+: region-list-append-nosubs (  reg-lst1  reg-lst0 -- )
     \ Check args.
     assert( tos is-region-list? )
     assert( nos is-region-list? )
 
-    swap                        \ lst0 lst1
-    list-get-links              \ lst0 link
+    swap                        \  reg-lst0 reg-lst1
+    list-get-links              \  reg-lst0 reg-lnk1
     begin
         ?dup
     while
-        dup link-get-data       \ lst0 link regx
-        #2 pick                 \ lst0 link regx lst0
-        region-list-push-nosubs \ lst0 link bool
+        dup link-get-data       \  reg-lst0 reg-lnk1 regx
+        #2 pick                 \  reg-lst0 reg-lnk1 regx  reg-lst0
+        region-list-push-nosubs \  reg-lst0 reg-lnk1 bool
         drop
 
         link-get-next
     repeat
-                                \ lst0
+                                \  reg-lst0
     drop
 ;
 
 \ Append nos region-list to the tos region-list, no supersets.
-: region-list-append-nosups ( lst1 lst0 -- )
+: region-list-append-nosups (  reg-lst1  reg-lst0 -- )
     \ Check args.
     assert( tos is-region-list? )
     assert( nos is-region-list? )
 
-    swap                        \ lst0 lst1
-    list-get-links              \ lst0 link
+    swap                        \  reg-lst0  reg-lst1
+    list-get-links              \  reg-lst0 reg-lnk1
     begin
         ?dup
     while
-        dup link-get-data       \ lst0 link regx
-        #2 pick                 \ lst0 link regx lst0
-        region-list-push-nosups \ lst0 link bool
+        dup link-get-data       \  reg-lst0 reg-lnk1 regx
+        #2 pick                 \  reg-lst0 reg-lnk1 regx  reg-lst0
+        region-list-push-nosups \  reg-lst0 reg-lnk1 bool
         drop
 
         link-get-next
     repeat
-                                \ lst0
+                                \  reg-lst0
     drop
 ;
 
@@ -1131,7 +1131,7 @@
     assert( tos is-region-list? )
     assert( nos is-region-list? )
 
-    swap                                           \ reg-lst0 reg-lst1
+    swap                                            \ reg-lst0 reg-lst1
 
     foreach                                         \ reg-lst0 reg-lnk regx
         [ ' region-proper-intersection? ] literal   \ reg-lst0 reg-lnk regx xt
@@ -1207,15 +1207,15 @@
     assert( tos is-region-list? )
     assert( nos is-region-list? )
 
-    list-get-links swap         \ lnk0 reg-lst1
-    list-get-links              \ lnk0 lnk1
+    list-get-links swap         \  reg-lnk0 reg-lst1
+    list-get-links              \  reg-lnk0  reg-lnk1
 
     begin
         ?dup
     while
-        over link-get-data      \ lnk0 lnk1 reg0
-        over link-get-data      \ lnk0 lnk1 reg0 reg1
-        regions-eq?             \ lnk0 lnk1 bool
+        over link-get-data      \  reg-lnk0  reg-lnk1 reg0
+        over link-get-data      \  reg-lnk0  reg-lnk1 reg0 reg1
+        regions-eq?             \  reg-lnk0  reg-lnk1 bool
         ifnot
             2drop
             false
@@ -1225,7 +1225,7 @@
         swap link-get-next
         swap link-get-next
     repeat
-                                \ lnk0
+                                \  reg-lnk0
     drop
     true
 ;

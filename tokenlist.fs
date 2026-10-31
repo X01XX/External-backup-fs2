@@ -16,7 +16,7 @@
         exit
     then
 
-    list-get-links      \ link
+    list-get-links      \ tos-lnk
     link-get-data       \ data
     is-token?           \ bool
 ;
@@ -52,27 +52,27 @@
     0 swap                          \ max tkn-lst
     0 swap                          \ max cnt tkn-lst
 
-    foreach                         \ max cnt link tkn
+    foreach                         \ max cnt tkn-lnk tkn
         \ Check for left paren.
-        s" ("                       \ max cnt link tkn c-addr u
-        rot                         \ max cnt link c-addr u tkt
+        s" ("                       \ max cnt tkn-lnk tkn c-addr u
+        rot                         \ max cnt tkn-lnk c-addr u tkt
 
-        token-eq-string             \ max cnt link flag
+        token-eq-string             \ max cnt tkn-lnk flag
         if
             \ Inc paren counter.
-            swap 1+ swap            \ max cnt link
+            swap 1+ swap            \ max cnt tkn-lnk
 
             \ Update max value.
-            rot                     \ cnt link max
-            #2 pick                 \ cnt link max cnt
-            max                     \ cnt link max
-            -rot                    \ max cnt link
+            rot                     \ cnt tkn-lnk max
+            #2 pick                 \ cnt tkn-lnk max cnt
+            max                     \ cnt tkn-lnk max
+            -rot                    \ max cnt tkn-lnk
         then
 
         \ Check for right paren.
-        s" )"                       \ max cnt link c-addr u
-        #2 pick link-get-data       \ max cnt link c-addr u tkt
-        token-eq-string             \ max cnt link flag
+        s" )"                       \ max cnt tkn-lnk c-addr u
+        #2 pick link-get-data       \ max cnt tkn-lnk c-addr u tkt
+        token-eq-string             \ max cnt tkn-lnk flag
         if
             \ Dec paren counter.
             swap 1- swap
@@ -273,26 +273,26 @@
 
     over                            \ ret-lst cnt ret-lst
 
-    foreach                         \ ret-lst cnt link tkn
+    foreach                         \ ret-lst cnt ret-lnk tkn
         \ Check for left paren.
-        s" ("                       \ ret-lst cnt link tkn c-addr u
-        rot                         \ ret-lst cnt link c-addr u tkt
-        token-eq-string             \ ret-lst cnt link flag
+        s" ("                       \ ret-lst cnt ret-lnk tkn c-addr u
+        rot                         \ ret-lst cnt ret-lnk c-addr u tkt
+        token-eq-string             \ ret-lst cnt ret-lnk flag
         if
             \ Inc paren counter.
             swap 1+ swap
         then
 
         \ Check for right paren.
-        s" )"                       \ ret-lst cnt link c-addr u
-        #2 pick link-get-data       \ ret-lst cnt link c-addr u tkt
-        token-eq-string             \ ret-lst cnt link flag
+        s" )"                       \ ret-lst cnt ret-lnk c-addr u
+        #2 pick link-get-data       \ ret-lst cnt ret-lnk c-addr u tkt
+        token-eq-string             \ ret-lst cnt ret-lnk flag
         if
             \ Dec paren counter.
-            swap 1-                 \ ret-lst link cnt-
+            swap 1-                 \ ret-lst ret-lnk cnt-
 
             \ Check counter not LT zero.
-            dup 0<                  \ ret-lst link cnt- flag
+            dup 0<                  \ ret-lst ret-lnk cnt- flag
             if
                 2drop
                 token-list-deallocate
@@ -300,7 +300,7 @@
                 exit
             then
 
-            swap                    \ ret-lst cnt- link
+            swap                    \ ret-lst cnt- ret-lnk
         then
     next-item
 
@@ -321,17 +321,17 @@
     \ Init counter.
     0 swap                          \ cnt tkn-lst
 
-    foreach                         \ cnt maxlink tkn
+    foreach                         \ cnt tkn-lnk tknx
         \ Check for left paren.
-        s" ("                       \ cnt link tkn c-addr u
-        rot                         \ cnt link c-addr u tkt
-        token-eq-string             \ cnt link flag
+        s" ("                       \ cnt tkn-lnk tknx c-addr u
+        rot                         \ cnt tkn-lnk c-addr u tkt
+        token-eq-string             \ cnt tkn-lnk flag
         if
         else
             \ Check for right paren.
-            s" )"                       \ cnt link c-addr u
-            #2 pick link-get-data       \ cnt link c-addr u tkt
-            token-eq-string             \ cnt link flag
+            s" )"                       \ cnt tkn-lnk c-addr u
+            #2 pick link-get-data       \ cnt tkn-lnk c-addr u tkt
+            token-eq-string             \ cnt tkn-lnk flag
             if
             else
                 \ Inc counter.

@@ -452,10 +452,10 @@ session-paths-disp              cell+   constant session-sesneed-list-disp      
     list-new                        \ sess0 sat-lst
     over session-get-domains        \ sess0 sta-lst dom-lst
 
-    foreach                         \ sess0 sta-lst link dom
-        domain-get-current-state    \ sess0 sta-lst link stax
-        #2 pick                     \ sess0 sta-lst link stax sta-lst
-        list-push-end-struct        \ sess0 sta-lst link
+    foreach                         \ sess0 sta-lst dom-lnk dom
+        domain-get-current-state    \ sess0 sta-lst dom-lnk stax
+        #2 pick                     \ sess0 sta-lst dom-lnk stax sta-lst
+        list-push-end-struct        \ sess0 sta-lst dom-lnk
     next-item
                                     \ sess0 sta-lst
 
@@ -472,12 +472,12 @@ session-paths-disp              cell+   constant session-sesneed-list-disp      
     list-new                        \ cur-dom sess0 sat-lst
     over session-get-domains        \ cur-dom sess0 reg-lst dom-lst
 
-    foreach                         \ cur-dom sess0 reg-lst link domx
+    foreach                         \ cur-dom sess0 reg-lst dom-lnk domx
 
-        domain-get-current-state    \ cur-dom sess0 reg-lst link stax
-        dup region-new              \ cur-dom sess0 reg-lst link regx
-        #2 pick                     \ cur-dom sess0 reg-lst link regx reg-lst
-        list-push-end               \ cur-dom sess0 reg-lst link
+        domain-get-current-state    \ cur-dom sess0 reg-lst dom-lnk stax
+        dup region-new              \ cur-dom sess0 reg-lst dom-lnk regx
+        #2 pick                     \ cur-dom sess0 reg-lst dom-lnk regx reg-lst
+        list-push-end               \ cur-dom sess0 reg-lst dom-lnk
     next-item
                                     \ cur-dom sess0 reg-lst
     nip nip                         \ reg-lst

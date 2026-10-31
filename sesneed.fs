@@ -52,15 +52,15 @@ sesneed-target-disp cell+   constant sesneed-actneed-disp   \ Zero, or an ActNee
     \ Check arg.include sesneed.fs
     assert( tos is-sesneed? )
 
-    sesneed-target-disp +  \ Add offset.
-    @                   \ Fetch the field.
+    sesneed-target-disp +   \ Add offset.
+    @                       \ Fetch the field.
 ;
 
 \ Set the target field from a sesneed instance, use only in this file.
 : _sesneed-set-target ( targ1 ned0 -- )
 
-    sesneed-target-disp +  \ Add offset.
-    !struct             \ Set the field.
+    sesneed-target-disp +   \ Add offset.
+    !struct                 \ Set the field.
 ;
 
 : sesneed-get-type ( ned0 -- type )

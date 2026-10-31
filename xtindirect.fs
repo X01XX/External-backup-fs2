@@ -214,4 +214,11 @@
 
 ' xtabort value session-make-it-so-xt
 
+' xtabort value is-region?-xt
+
+' xtabort value region-superset-of-state?-xt
+
+' xtabort value region-get-state-0-xt
+
+' xtabort value region-edge-mask-xt
 

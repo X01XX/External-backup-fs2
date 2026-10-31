@@ -197,17 +197,17 @@
 ;
 
 \ Return a copy of a rule-list.
-: rule-list-copy ( lst0 -- lst-copy )
+: rule-list-copy ( rul-lst0 -- rul-lst )
     \ Check arg.
     assert( tos is-rule-list? )
 
-    list-new swap               \ lst-n lst0
+    list-new swap               \ ret-lst rul-lst0
 
-    foreach                     \ lst-n link rule
-        #2 pick                 \ lst-n link rule lst-n
-        list-push-end-struct    \ lst-n link
+    foreach                     \ ret-lst rul-lnk rule
+        #2 pick                 \ ret-lst rul-lnk rule ret-lst
+        list-push-end-struct    \ ret-lst rul-lnk
     next-item
-                                \ lst-n
+                                \ ret-lst
 ;
 
 \ Return true if the nos 2-rule-list is a subset of the tos 2-rule-list

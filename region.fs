@@ -47,6 +47,8 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     then
 ;
 
+' is-region? to is-region?-xt
+
 \ Start accessors.
 
 \ Return the state-0 field from a region instance.
@@ -57,6 +59,8 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     region-state-0-disp +   \ Add offset.
     @                       \ Fetch the field.
 ;
+
+' region-get-state-0 to region-get-state-0-xt
 
 \ Return the state-1 field from a region instance.
 : region-get-state-1 ( reg0 -- sta1 )
@@ -485,6 +489,8 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     swap mask-deallocate    \ msk-edg
 ;
 
+' region-edge-mask to region-edge-mask-xt
+
 : region-xor ( reg1 reg0 -- msk )
     \ Check args.
     assert( tos is-region? )
@@ -764,8 +770,10 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     \ space dup .bool cr
 ;
 
+' region-superset-of-state? to region-superset-of-state?-xt
+
 \ Return the number of bits distance between a region and a state.
-: region-dist-state ( sta1 reg0 -- flag )
+: region-dist-state ( sta1 reg0 -- u )
     \ Check args.
     assert( tos is-region? )
     assert( nos is-state? )
@@ -972,4 +980,13 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 
     \ Return.
     swap mask-deallocate    \ sta-far
+;
+
+: region-copy ( reg0 -- reg )
+    \ Check arg.
+    assert( tos is-region? )
+
+    dup region-get-state-1 swap \ sta1 reg0
+    region-get-state-0          \ sta1 sta0
+    region-new                  \ reg
 ;

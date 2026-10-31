@@ -9,12 +9,13 @@
                                                                 \   16 bits.
                                                                 \ Use count, a number.
                                                                 \   16 bits.
-                                                                \ Result Pattern Number (PN).
-                                                                \    0 - No pattern.
+                                                                \ Result Pattern Number (PN), 8 bits.
+                                                                \ Sorry, acsending order is:
                                                                 \    1 - Only one result.
                                                                 \    2 - Two results, in order.  Like 0, 1, 0, 1.  Not 1, 1, 0, 0.
                                                                 \        Which result comes first does not matter.
-                                                                \    8 bits
+                                                                \    0 - No pattern. Three different, or two different but not in order.
+                                                                \
                                                                 \ Pattern Number Confirmed (PNC), within the most recent
                                                                 \    square-number-samples. 1 or 0, for true or false.
                                                                 \    8 bits.
@@ -666,4 +667,38 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
     square-get-state        \ sqr1 sta0
     swap square-get-state   \ sta0 sta1
     states-adjacent?
+;
+
+\ Return the maximum pn value.
+: max-pn ( pn1 pn0 pn )
+    \ Check args.
+    assert( tos is-pn? )
+    assert( nos is-pn? )
+
+    case
+        0 of
+            drop
+            0
+        endof
+        1 of
+            case
+                0 of
+                    0
+                endof
+                #2 of
+                    #2
+                endof
+                1 swap
+            endcase
+        endof
+        #2 of
+            case
+                0 of
+                    0
+                endof
+                #2 swap
+            endcase
+        endof
+        true abort" Unexpected pn value"
+    endcase
 ;

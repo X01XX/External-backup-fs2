@@ -142,3 +142,20 @@
     swap mask-deallocate            \ sta1 reg0 | ret-lst
     nip nip                         \ ret-lst
 ;
+
+\ Return a region-list from a TOS region minus the NOS region-list.
+: region-subtract-list ( reg-lst1 reg0 -- reg-lst )
+    \ Check args.
+    assert( tos is-region? )
+    assert( nos is-region-list? )
+
+    region-copy                 \ reg-lst1 reg0'
+
+    \ Make list of region, no change in use count.
+    list-new                    \ reg-lst1 reg0' lst0'
+    tuck list-push-struct       \ reg-lst1 reg-lst0'
+    tuck                        \ reg-lst0' reg-lst1 reg-lst0'
+
+    region-list-subtract        \ reg-lst' sub-lst
+    swap region-list-deallocate \ sub-lst
+;

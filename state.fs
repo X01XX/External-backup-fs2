@@ -639,3 +639,31 @@ state-header-disp cell+   constant state-number-disp
     mask-get-num-bits       \ num nb
     mask-new                \ msk
 ;
+
+\ Return a state in a region, making minimal changes to a given state.
+: state-translate-to-region ( reg1 sta0 -- sta )
+    \ Check args.
+    assert( tos is-state? )
+    assert( nos is-region?-xt execute )
+    assert( 2dup swap region-superset-of-state?-xt execute invert )
+
+    \ Get change mask.
+    over                            \ reg1 sta0 reg1
+    region-get-state-0-xt execute   \ reg1 sta0 sta-0
+    over                            \ reg1 sta0 sta-0 sta0
+    state-xor-mask-to-mask          \ reg1 sta0 dif-msk'
+    rot                             \ sta0 dif-msk' reg1
+    region-edge-mask-xt execute     \ sta0 dif-msk' edg-msk'
+    2dup mask-and                   \ sta0 dif-msk' edg-msk' cng-msk'
+
+    \ Clean up.
+    swap mask-deallocate            \ sta0 dif-msk' cng-msk'
+    swap mask-deallocate            \ sta0 cng-msk'
+
+    \ Calc new state.
+    tuck swap                       \ cng-msk' cng-msk' sta0
+    state-xor-mask                  \ cng-msk' sta
+
+    \ Clean up.
+    swap mask-deallocate            \ sta
+;

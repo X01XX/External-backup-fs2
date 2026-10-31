@@ -264,13 +264,13 @@
     assert( nos is-regioncorr-list? )
 
     swap                            \ regc-lst0 regc-lst1
-    list-get-links                  \ regc-lst0 link
+    list-get-links                  \ regc-lst0 regc-lnk1
     begin
         ?dup
     while
-        dup link-get-data           \ regc-lst0 link regx
-        #2 pick                     \ regc-lst0 link regx regc-lst0
-        regioncorr-list-push-nodups \ regc-lst0 link bool
+        dup link-get-data           \ regc-lst0 regc-lnk1 regx
+        #2 pick                     \ regc-lst0 regc-lnk1 regx regc-lst0
+        regioncorr-list-push-nodups \ regc-lst0 regc-lnk1 bool
         drop
 
         link-get-next
