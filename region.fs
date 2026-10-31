@@ -211,6 +211,8 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     type
 ;
 
+' .region to .region-xt
+
 \ Deallocate a region.
 : region-deallocate ( reg0 -- )
     \ Check arg.

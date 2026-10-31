@@ -165,7 +165,7 @@
         square-get-pn           \ ret-lst pn1 sqr-lnk sqr-pn
         #2 pick                 \ ret-lst pn1 sqr-lnk sqr-pn pn1
         = if
-            link-get-data       \ ret-lst pn1 sqr-lnk sqrx
+            dup link-get-data   \ ret-lst pn1 sqr-lnk sqrx
             #3 pick             \ ret-lst pn1 sqr-lnk sqrx ret-lst
             list-push-struct    \ ret-lst pn1 sqr-lnk
         then
@@ -207,12 +207,14 @@
 : square-list-max-pn-squares ( sqr-lst1 -- sqr-lst t | f )
     \ Check arg.
     assert( tos is-square-list? )
+    \ cr ." square-list-max-pn-squares: start" cr
 
     dup square-list-max-pn-value    \ sqr-lst1, mpn t | f
     ifnot drop false exit then
 
     swap                            \ mpn sqr-lst1
     square-list-pn-eq-squares       \ sqr-lst t | f
+    \ cr ." square-list-max-pn-squares: end" cr
 ;
 
 \ Of the squares in a list with the highest pn ( order is 1, 2, 0),

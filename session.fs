@@ -1374,7 +1374,7 @@ session-paths-disp              cell+   constant session-sesneed-list-disp      
     if
         drop                            \ cmd-lst1 sess0
 
-        \ Check command legth.
+        \ Check command length.
         over list-get-length            \ cmd-lst1 sess0 len
         #3 =
         ifnot

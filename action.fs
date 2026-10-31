@@ -2164,6 +2164,22 @@ action-groups-disp                          cell+   constant action-function-dis
     \ cr ." action-add-new-square: end: " .stack cr
 ;
 
+\ Inform groups of chaned square.
+: action-udpate-groups-with-changed-square ( sqr1 act0 -- )
+    \ Check args.
+    assert( tos is-action? )
+    assert( nos is-square? )
+    \ cr ." action-udpate-groups-with-changed-square: start" cr
+
+    action-get-groups                   \ sqr1 grp-lst
+    foreach                             \ sqr1 grp-lnk grpx
+        #2 pick swap                    \ sqr1 grp-lnk sqr1 grpx
+        group-check-changed-square      \ sqr1 grp-lnk
+    next-item
+                                        \ sqr1
+    drop
+;
+
 \ Add a sample, return true if the sample changed
 \ a square.
 : action-add-sample ( smpl1 act0 -- bool )
@@ -2183,7 +2199,8 @@ action-groups-disp                          cell+   constant action-function-dis
         cr #2 pick .action-parent-inst-id #2 pick .action-inst-id ." : Updated square: " over .square cr
         if
             swap                        \ sqr act0
-            action-check-square         \
+            2dup action-check-square    \
+            action-udpate-groups-with-changed-square
             true
             \ cr ." action-add-sample: exit 1: " cr
         else
@@ -2540,15 +2557,22 @@ action-groups-disp                          cell+   constant action-function-dis
 : action-max-pn-squares-in-region ( reg1 act0 -- sqr-lst t | f )
     \ Check args.
     assert( tos is-action? )
+    \ cr ." action-max-pn-squares-in-region: start" cr
 
     \ Get squares in reg2.
     action-get-squares          \ reg1 sqr-lst
     square-list-in-region       \ sqr-lst1' t | f
-    ifnot false exit then
+    ifnot
+        false
+        \ cr ." action-max-pn-squares-in-region: exit 1" cr
+        exit
+    then
 
     dup                         \ sqr-lst1' sqr-lst1'
     square-list-max-pn-squares  \ sqr-lst1' max-lst
+
     swap square-list-deallocate \ max-lst
+    \ cr ." action-max-pn-squares-in-region: end" cr
 ;
 
 \ Compare the squares in two regions.
@@ -2558,6 +2582,7 @@ action-groups-disp                          cell+   constant action-function-dis
     assert( tos is-action? )
     assert( nos is-region? )
     assert( 3os is-region? )
+    \ cr ." action-regions-squares-incompatible?: start" cr
 
     \ Get max-pn squares for reg1.
     tuck                            \ reg2 act0 reg1 act0
@@ -2565,6 +2590,7 @@ action-groups-disp                          cell+   constant action-function-dis
     ifnot
         2drop
         false
+        \ cr ." action-regions-squares-incompatible?: exit 1" cr
         exit
     then
 
@@ -2574,6 +2600,7 @@ action-groups-disp                          cell+   constant action-function-dis
     ifnot
         square-list-deallocate
         false
+        \ cr ." action-regions-squares-incompatible?: exit 2" cr
         exit
     then
 
@@ -2584,6 +2611,7 @@ action-groups-disp                          cell+   constant action-function-dis
     \ Return.
     swap square-list-deallocate \ max-lst1' bool
     swap square-list-deallocate \ bool
+    \ cr ." action-regions-squares-incompatible?: end: " dup .bool cr
 ;
 
 \ Return true if a region is covererd by defining regions.
@@ -2644,14 +2672,15 @@ action-groups-disp                          cell+   constant action-function-dis
 
                 dup #6 pick                 \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' reg-int' act0
                 action-region-covered-by-defining-regions?
-                if
+\ cr ." at 1 : " .stack cr
+                ifnot
                     #2 pick                 \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' pos-lnk
                     link-get-data           \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' pos-reg
 
                     #2 pick                 \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' pos-lnk lnk-nxt
                     link-get-data           \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' pos-reg nxt-reg
 
-                    #8 pick                 \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' pos-reg nxt-reg act0
+                    #7 pick                 \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' pos-reg nxt-reg act0
                     action-regions-squares-incompatible?
                     if
                         \ Make token for need.
@@ -2678,25 +2707,12 @@ action-groups-disp                          cell+   constant action-function-dis
                         over                        \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn reg-int'
                         #7 pick                     \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn reg-int' act0
                         action-get-squares          \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn reg-int' sqr-lst
-                        square-list-in-region       \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn sqr-lst'
-                        dup                         \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn sqr-lst' sqr-lst'
-                        list-is-empty?
-                        if
-                            list-deallocate             \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn
-
-                            \ Make need.
-                            #7 pick #2 pick             \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn sta1 reg-int'
-                            state-translate-to-region   \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn sta
-                            actneed-type-resunc         \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn sta typ
-                            #8 pick action-get-inst-ids \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn sta typ act-id dom-id
-                            actneed-new                 \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' aned'
-
-                            \ Store need.
-                            #8 pick list-push-struct    \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int'
-                        else
+                        square-list-in-region       \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn, sqr-lst' t | f
+                        if                          \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn, sqr-lst'
                             \ Make need for each square state.
                             dup                         \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn sqr-lst' sqr-lst'
-                            square-list-max-samples     \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn sqr-lst' sqr-max-lst'
+                            square-list-max-samples     \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn sqr-lst', sqr-max-lst' t | f
+                            invert abort" no max sample squares found?"
                             swap square-list-deallocate \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn sqr-max-lst'
                             dup                         \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn sqr-max-lst' sqr-max-lst'
                             foreach                     \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn sqr-max-lst' sqr-max-lnk sqrx
@@ -2715,6 +2731,25 @@ action-groups-disp                          cell+   constant action-function-dis
 
                             square-list-deallocate      \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn
                             drop                        \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int'
+                        else                            \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn
+                            \ Make need.
+
+                            \ Get state in region, if needed.
+                            #7 pick #2 pick                 \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn sta1 reg-int'
+                            region-superset-of-state?       \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn bool
+                            if
+                                #7 pick state-copy          \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn sta1
+                            else
+                                #7 pick #2 pick swap        \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn reg-int' sta1
+                                state-translate-to-region   \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn sta
+                            then
+
+                            actneed-type-resunc             \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn sta typ
+                            #8 pick action-get-inst-ids     \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn sta typ act-id dom-id
+                            actneed-new                     \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' aned'
+
+                            \ Store need.
+                            #8 pick list-push-struct        \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int'
                         then
                     then
                                                         \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int'

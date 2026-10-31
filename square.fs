@@ -188,6 +188,7 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
     \ Check args.
     assert( tos is-square? )
     assert( nos is-pn? )
+    \ cr ." _square-update-pn: start: " over dec. cr
 
     dup square-get-pn           \ pn-new sqr0 pn-old
     #2 pick                     \ pn-new sqr0 pn-old pn-new
@@ -233,6 +234,7 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
 : _square-calc-pn ( sqr0 -- )
     \ Check arg.
     assert( tos is-square? )
+    \ cr ."  _square-calc-pn: start" cr
 
     dup _square-get-samples     \ sqr0 smpl-lst
 
@@ -258,7 +260,8 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
         if
         else
             drop                                    \ sqr0
-            #3 swap _square-update-pn
+            cr ."  _square-calc-pn: at 2.2" cr
+            0 swap _square-update-pn
             exit
         then
     then
@@ -273,7 +276,7 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
         if
         else
             drop                                    \ sqr0
-            #3 swap _square-update-pn
+            0 swap _square-update-pn
             exit
         then
     then
@@ -287,6 +290,7 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
     else
         #2 swap _square-update-pn
     then
+    \ cr ."  _square-calc-pn: end" cr
 ;
 
 \ Calculate, and update, square pnc value.
@@ -316,7 +320,7 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
 
     dup square-get-pn       \ sqr0 pn
     case
-        #3 of
+        0 of
             list-new                    \ sqr0 rul-lst
             swap _square-update-rules
         endof
@@ -390,6 +394,7 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
     \ Check args.
     assert( tos is-square? )
     assert( nos is-sample? )
+    \ cr ." square-add-sample: start" cr
 
     \ Check number bits.
     dup square-get-state        \ smpl sqr0 sta1
@@ -545,9 +550,9 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
     over square-get-pn      \ sqr1 sqr0 pn1
     over square-get-pn      \ sqr1 sqr0 pn1 pn0
     case
-        #3 of
+        0 of
             case
-                #3 of
+                0 of
                     2drop
                     [char] C
                 endof
@@ -561,7 +566,7 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
         endof
         1 of
             case
-                #3 of
+                0 of
                     swap squares-compare-pnx-pn0
                 endof
                 1 of
@@ -574,7 +579,7 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
         endof
         #2 of
             case
-                #3 of
+                0 of
                     swap squares-compare-pnx-pn0
                 endof
                 1 of

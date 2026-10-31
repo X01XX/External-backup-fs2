@@ -211,8 +211,8 @@ actneed-target-disp    cell+   constant actneed-info-disp       \ Zero, or a Tok
             space ." for anchor discovery "
         endof
         actneed-type-resunc of
-            dup actneed-get-info space .token
             space ." Resolve uncertainty in "
+            dup actneed-get-info .token
         endof
         ." Unrecognized type value" abort
     endcase

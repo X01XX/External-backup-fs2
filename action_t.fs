@@ -413,15 +413,94 @@
     cr ." action-test-anchor-discovery-clusters - Ok"
 ;
 
-: action-calc-resolve-uncertainty-needs
+: action-test-calc-resolve-uncertainty-needs
     \ Init action.
     [ ' noop ] literal
     s" rXXXX 0" string-to-stack-a
     action-new                              \ act
 
+    \ Add 5->5
+    s" s0101->s0101" sample-from-string-a   \ act smpl
+    over action-add-sample drop             \ act bool
+
+    \ Add 6->6
+    s" s0110->s0110" sample-from-string-a   \ act smpl
+    over action-add-sample drop             \ act bool
+
     cr dup .action cr
 
+    \ Add 5->4
+    s" s0101->s0100" sample-from-string-a   \ act smpl
+    over action-add-sample drop             \ act bool
+
+    cr dup .action cr
+
+    \ Add 6->E
+    s" s0110->s1110" sample-from-string-a   \ act smpl
+    over action-add-sample drop             \ act bool
+
+    cr dup .action cr
+
+    \ Create fake domain current state.
+    s" s1100" state-from-string-a swap          \ sta act
+    2dup action-calc-resolve-uncertainty-needs  \ sta act, ned-lst' t | f
+    if
+        cr ." needs: " dup .actneed-list cr
+
+        \ Test needs.
+        s" s1100" state-from-string-a dup   \ act sta' ned-lst' stax' stax'
+        actneed-type-resunc                 \ act sta' ned-lst' stax' stax' typ
+        #3 pick                             \ act sta' ned-lst' stax' stax' typ ned-lst'
+        actneed-list-contains               \ act sta' ned-lst' stax' bool
+        invert abort" actneed list does not contain need for s1100?"
+        state-deallocate                    \ act sta' ned-lst'
+
+        s" s1111" state-from-string-a dup   \ act sta' ned-lst' stax' stax'
+        actneed-type-resunc                 \ act sta' ned-lst' stax' stax' typ
+        #3 pick                             \ act sta' ned-lst' stax' stax' typ ned-lst'
+        actneed-list-contains               \ act sta' ned-lst' stax' bool
+        invert abort" actneed list does not contain need for s1111?"
+        state-deallocate                    \ act sta' ned-lst'
+
+        actneed-list-deallocate
+    else
+        cr ." no needs found" cr abort
+    then
+
+    \ Add a single-sample B->B to XX11.
+    \ Add B->B
+    s" s1011->s1011" sample-from-string-a   \ sta  act smpl
+    over action-add-sample drop             \ sta act bool
+
+    cr dup .action cr
+
+    2dup action-calc-resolve-uncertainty-needs  \ sta act, ned-lst' t | f
+    if
+        cr ." needs: " dup .actneed-list cr
+
+        \ Test needs.
+        s" s1100" state-from-string-a dup   \ act sta' ned-lst' stax' stax'
+        actneed-type-resunc                 \ act sta' ned-lst' stax' stax' typ
+        #3 pick                             \ act sta' ned-lst' stax' stax' typ ned-lst'
+        actneed-list-contains               \ act sta' ned-lst' stax' bool
+        invert abort" actneed list does not contain need for s1100?"
+        state-deallocate                    \ act sta' ned-lst'
+
+        s" s1011" state-from-string-a dup   \ act sta' ned-lst' stax' stax'
+        actneed-type-resunc                 \ act sta' ned-lst' stax' stax' typ
+        #3 pick                             \ act sta' ned-lst' stax' stax' typ ned-lst'
+        actneed-list-contains               \ act sta' ned-lst' stax' bool
+        invert abort" actneed list does not contain need for s1011?"
+        state-deallocate                    \ act sta' ned-lst'
+
+        actneed-list-deallocate
+    else
+        cr ." no needs found" cr abort
+    then
+
     \ Deallocate.
+    action-deallocate
+    state-deallocate
 
     \ Check for memory leaks.
     check-project-deallocated
@@ -437,6 +516,6 @@
     action-test-corners2
     action-test-anchor-discovery-corners
     action-test-anchor-discovery-clusters
-    \ action-calc-resolve-uncertainty-needs
+    action-test-calc-resolve-uncertainty-needs
     cr
 ;
