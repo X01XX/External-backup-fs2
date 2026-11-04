@@ -94,9 +94,9 @@
     drop                                                \ sqr8 sqrf grp
 
     #2 pick over                                        \ sqr8 sqrf grp sqr8 grp
-    group-check-changed-square                          \ sqr8 sqrf grp
+    group-check-changed-square                          \ sqr8 sqrf grp bool
 
-    cr ." after changing sqr8: " dup .group cr
+    cr ." after changing sqr8: " .bool space dup .group cr
 
     \ Check group.
     dup group-get-pn #2 <> abort" Group pn ne 2?"
@@ -109,8 +109,8 @@
     s" s1111->s1111" sample-from-string-a               \ sqr8 sqrf grp smpl
     #2 pick square-add-sample                           \ sqr8 sqrf grp bool
     drop
-    2dup group-check-changed-square                     \ sqr8 sqrf grp
-    cr ." after changing sqrf: " dup .group cr
+    2dup group-check-changed-square                     \ sqr8 sqrf grp bool
+    cr ." after changing sqrf: " .bool space dup .group cr
 
     \ Deallocate.
     group-deallocate
@@ -150,8 +150,8 @@
     #2 pick #2 pick square-add-sample           \ smpl sqr1 grp bool
     invert abort" added sample did not make square pnc true?"
 
-    2dup group-check-changed-square
-    cr ." group: " dup .group
+    2dup group-check-changed-square             \ smpl sqr1 grp bool
+    cr ." group: " .bool space dup .group
     dup group-get-pnc invert abort" group not pnc?"
 
     \ Clean up.

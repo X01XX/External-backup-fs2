@@ -10,11 +10,11 @@
                                                                 \ Use count, a number.
                                                                 \   16 bits.
                                                                 \ Result Pattern Number (PN), 8 bits.
-                                                                \ Sorry, acsending order is:
+                                                                \ Acsending order is:
                                                                 \    1 - Only one result.
                                                                 \    2 - Two results, in order.  Like 0, 1, 0, 1.  Not 1, 1, 0, 0.
                                                                 \        Which result comes first does not matter.
-                                                                \    0 - No pattern. Three different, or two different but not in order.
+                                                                \    3 - No pattern. Three different, or two different but not in order.
                                                                 \
                                                                 \ Pattern Number Confirmed (PNC), within the most recent
                                                                 \    square-number-samples. 1 or 0, for true or false.
@@ -51,9 +51,9 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
 
 \ Check tos is a valid pn value.
 : is-pn? ( tos -- bool )
-    dup 0 >=    \ tos bool
+    dup 0 >     \ tos bool
     swap        \ bool tos
-    #3 <        \ bool bool
+    #4 <        \ bool bool
     and         \ bool
 ;
 
@@ -260,8 +260,8 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
         if
         else
             drop                                    \ sqr0
-            cr ."  _square-calc-pn: at 2.2" cr
-            0 swap _square-update-pn
+            \ cr ."  _square-calc-pn: at 2.2" cr
+            #3 swap _square-update-pn
             exit
         then
     then
@@ -276,7 +276,7 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
         if
         else
             drop                                    \ sqr0
-            0 swap _square-update-pn
+            #3 swap _square-update-pn
             exit
         then
     then
@@ -299,9 +299,9 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
     \ Check args.
     assert( tos is-square? )
 
-    \ Check for pn 0.
+    \ Check for pn 3.
     dup square-get-pn       \ sqr0 pn
-    0=
+    #3 =
     if
         true swap _square-update-pnc
         exit
@@ -320,10 +320,6 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
 
     dup square-get-pn       \ sqr0 pn
     case
-        0 of
-            list-new                    \ sqr0 rul-lst
-            swap _square-update-rules
-        endof
         1 of
             dup _square-get-samples     \ sqr0 smpl-lst
             list-get-first-item         \ sqr0 smpl
@@ -344,6 +340,10 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
             rule-new-from-sample        \ sqr0 rul-lst rul1
             over list-push-end-struct
 
+            swap _square-update-rules
+        endof
+        #3 of
+            list-new                    \ sqr0 rul-lst
             swap _square-update-rules
         endof
         cr ." invalid pn value: " dec. abort
@@ -550,20 +550,6 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
     over square-get-pn      \ sqr1 sqr0 pn1
     over square-get-pn      \ sqr1 sqr0 pn1 pn0
     case
-        0 of
-            case
-                0 of
-                    2drop
-                    [char] C
-                endof
-                1 of
-                    squares-compare-pnx-pn0
-                endof
-                #2 of
-                    squares-compare-pnx-pn0
-                endof
-            endcase
-        endof
         1 of
             case
                 0 of
@@ -587,6 +573,20 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
                 endof
                 #2 of
                     squares-compare-pn2-pn2
+                endof
+            endcase
+        endof
+        #3 of
+            case
+                0 of
+                    2drop
+                    [char] C
+                endof
+                1 of
+                    squares-compare-pnx-pn0
+                endof
+                #2 of
+                    squares-compare-pnx-pn0
                 endof
             endcase
         endof
@@ -674,36 +674,3 @@ square-samples-disp     cell+   constant square-rules-disp      \ A list of 0, 1
     states-adjacent?
 ;
 
-\ Return the maximum pn value.
-: max-pn ( pn1 pn0 pn )
-    \ Check args.
-    assert( tos is-pn? )
-    assert( nos is-pn? )
-
-    case
-        0 of
-            drop
-            0
-        endof
-        1 of
-            case
-                0 of
-                    0
-                endof
-                #2 of
-                    #2
-                endof
-                1 swap
-            endcase
-        endof
-        #2 of
-            case
-                0 of
-                    0
-                endof
-                #2 swap
-            endcase
-        endof
-        true abort" Unexpected pn value"
-    endcase
-;

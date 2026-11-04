@@ -177,7 +177,6 @@
 ;
 
 \ Return the max pn value, from a non-empty list.
-\ Order is 1, 2 then 0.
 : square-list-max-pn-value ( sqr-lst0 -- mpn t | f)
     \ Check arg.
     assert( tos is-square-list? )
@@ -187,18 +186,16 @@
     list-is-empty?
     if drop false exit then
 
-    \ Get base pn.
-    0 over square-list-any-pn-eq?       \ sqr-lst0 bool
-    if
-        drop 0                          \ mpn
-    else
-        #2 over square-list-any-pn-eq?  \ sqr-lst0 bool
-        if
-            drop #2                     \ mpn
-        else
-            drop 1                      \ mpn
-        then
-    then
+    \ Init max value.
+    1 swap                              \ max sqr-lst
+
+    foreach                             \ max sqr-lnk sqrx
+        square-get-pn                   \ max sqr-lnk s-pn
+        rot                             \ sqr-lnk s-pn max
+        max                             \ sqr-lnk max
+        swap                            \ max sqr-lnk
+    next-item
+                                        \ max
     true
 ;
 
@@ -688,8 +685,8 @@
     dup square-list-max-pn-value        \ sqr-lst0, mpn t | f
     invert abort" unexpected"
 
-    \ Check for pn 0 (Unpredictable).
-    dup 0=
+    \ Check for pn 3 (Unpredictable).
+    dup #3 =
     if
         2drop                           \
         list-new                        \ rul-lst

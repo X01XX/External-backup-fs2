@@ -126,12 +126,12 @@
 
     session-new                     \ sess
 
-    cr dup .session cr
-
     \ Set session current states.
     s" ( stac (s1111 s00000))" statecorr-from-string-a  \ sess from1'
     2dup swap session-set-current-states                \ sess from1'
     statecorr-deallocate                                \ sess
+
+    cr dup .session cr
 
     s" ( stac (s0001 s00000))" statecorr-from-string-a  \ sess goal'
 

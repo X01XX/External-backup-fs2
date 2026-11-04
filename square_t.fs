@@ -33,7 +33,7 @@
     s" s0101->s0111" sample-from-string-a   \ sqr smpl
     over square-add-sample                  \ sqr bool
     if
-        dup square-get-pn 1 <> abort" pn ne 1?"
+        dup square-get-pn #1 <> abort" pn ne 1?"
         dup square-get-pnc false? abort" pnc false?"
     else
         true abort" square did not change?"
@@ -44,7 +44,7 @@
     s" s0101->s0101" sample-from-string-a   \ sqr smpl
     over square-add-sample                  \ sqr bool
     if
-        dup square-get-pn 0 <> abort" pn ne 0?"
+        dup square-get-pn #3 <> abort" pn ne 3"
         dup square-get-pnc false? abort" pnc false?"
         dup square-get-rules list-is-empty? false? abort" rule list not empty?"
     else
@@ -58,7 +58,7 @@
     if
         true abort" square changed?"
     else
-        dup square-get-pn 0 <> abort" pn ne 0?"
+        dup square-get-pn #3 <> abort" pn ne 3?"
         dup square-get-pnc false? abort" pnc false?"
         dup square-get-rules list-is-empty? false? abort" rule list not empty?"
     then

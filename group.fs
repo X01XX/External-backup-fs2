@@ -87,7 +87,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     \ Check arg.
     assert( tos is-group? )
 
-    group-s-region-disp +   \ Add offset.group-check-changed-square
+    group-s-region-disp +   \ Add offset.
     @                       \ Fetch the field.
 ;
 
@@ -383,9 +383,10 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     regions-eq?
 ;
 
-\ Check a square in a group that has changed.
+\ Check a square that has changed.
 \ The change may invalidate the group.
-: group-check-changed-square ( sqr1 grp0 -- )
+\ Return true if the group is still Ok.
+: group-check-changed-square ( sqr1 grp0 -- bool )
     \ Check args.
     assert( tos is-group? )
     assert( nos is-square? )
@@ -397,6 +398,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     region-superset-of-state?       \ sqr1 grp0 bool
     ifnot
         2drop
+        true
         \ cr ." group-check-changed-square: exit 1" cr
         exit
     then
@@ -413,6 +415,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     square-list-square-compatible?  \ sqr1 grp0 bool
     ifnot
         2drop
+        false
         \ cr ." group-check-changed-square: exit 2: " cr
         exit
     then
@@ -426,9 +429,14 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
         dup                     \ sqr1 grp0 grp0
         _group-update-s-region  \ sqr1 grp0
         _group-update-rules     \ sqr1 bool
-        invert abort" rules not updated?"
+        ifnot
+            drop
+            false
+            exit
+        then
 
         drop
+        true
         \ cr ." group-check-changed-square: exit 3: " .stack cr
         exit
     then
@@ -437,6 +445,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     over square-get-pnc         \ sqr1 grp0 s-pnc
     ifnot
         2drop
+        true
         \ cr ." group-check-changed-square: exit 3" cr
         exit
     then
@@ -445,6 +454,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     dup _group-region-eq-s-region?   \ sqr1 grp0 bool
     ifnot
         2drop
+        true
         \ cr ." group-check-changed-square: exit 4" cr
         exit
     then
@@ -452,7 +462,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     \ See if the square's change allows setting the group's pnc to true.
     _group-calc-set-pnc             \ sqr1
     drop
-
+    true
     \ cr ." group-check-changed-square: end: " .stack cr
 ;
 
@@ -473,7 +483,12 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
     over square-get-state                   \ sqr1 grp0 sta
     over group-get-region                   \ sqr1 grp0 sta reg
     region-superset-of-state?               \ sqr1 grp0 bool
-    invert abort" square is not subset of group region?"
+    ifnot
+        2drop
+        true
+        \ cr ." group-add-new-square: exit 1: "  cr
+        exit
+    then
 
     \ Check if the square is already in the square list.
     over square-get-state                   \ sqr1 grp0 sta
@@ -483,7 +498,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
         \ Square already in, maybe new, group.
         2drop drop
         true
-        \ cr ." group-add-new-square: exit 1: "  cr
+        \ cr ." group-add-new-square: exit 2: "  cr
         exit
     then
 
@@ -505,7 +520,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
         ifnot
             2drop
             false
-            \ cr ." group-add-new-square: exit 2: " cr
+            \ cr ." group-add-new-square: exit 3: " cr
             exit
         then
     else
@@ -514,7 +529,7 @@ group-squares-disp  cell+   constant group-rules-disp       \ A rule-list.
         ifnot
             2drop
             false
-            \ cr ." group-add-new-square: exit 3: "  cr
+            \ cr ." group-add-new-square: exit 4: "  cr
             exit
         then
         dup _group-calc-set-pnc             \ sqr1 grp0

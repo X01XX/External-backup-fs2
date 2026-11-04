@@ -201,7 +201,7 @@
 ;
 
 \ Return a list of region intersections with a region-list, no subsets.
-: region-list-intersections-nosubs ( reg-lst1 list0 -- reg-lst)
+: region-list-intersections-nosubs ( reg-lst1 reg-lst0 -- reg-lst)
     \ Check args.
     assert( tos is-region-list? )
     assert( nos is-region-list? )

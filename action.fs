@@ -1,44 +1,42 @@
 \ Implement an Action struct and functions.
 
 #29717 constant action-struct-id
-   #15 constant action-struct-number-cells
+   #14 constant action-struct-number-cells
 
 \ Struct fields
-0                                                   constant action-header-disp                         \ 16 bits, [0] Struct id, [1] Use count [2] Number bits ( 8 bits )
-                                                                                                        \ Action instance ID ( 8 bits ) [3] Domain instance ID.
-action-header-disp                          cell+   constant action-max-region-disp                     \ Maximum region.
+0                                               constant action-header-disp                         \ 16 bits, [0] Struct id, [1] Use count [2] Number bits ( 8 bits )
+                                                                                                    \ Action instance ID ( 8 bits ) [3] Domain instance ID.
+action-header-disp                      cell+   constant action-max-region-disp                     \ Maximum region.
 
-action-max-region-disp                      cell+   constant action-squares-disp                        \ A square list.
+action-max-region-disp                  cell+   constant action-squares-disp                        \ A square list.
 
-action-squares-disp                         cell+   constant action-adj-pairs-disp                      \ A region list.
-                                                                                                        \ Adjacent, incompatible, states, define the regions.
-action-adj-pairs-disp                       cell+   constant action-adj-regions-disp                    \ A region list.
-                                                                                                        \ By calculating ~A + ~B from adj pairs.
+action-squares-disp                     cell+   constant action-adj-pairs-disp                      \ A region list.
+                                                                                                    \ Adjacent, incompatible, states, define the regions.
+action-adj-pairs-disp                   cell+   constant action-adj-regions-disp                    \ A region list.
+                                                                                                    \ By calculating ~A + ~B from adj pairs.
 
-action-adj-regions-disp                     cell+   constant action-nadj-pairs-disp                     \ A region list.
-                                                                                                        \ Not Adjacent, Incompatible, states, define the regions.
-                                                                                                        \ Both states of a region are within at least one region
-                                                                                                        \ in action-ai-regions.
-action-nadj-pairs-disp                      cell+   constant action-nadj-regions-disp                   \ A region list.
-                                                                                                        \ By calculating ~A + ~B from nadj pairs.
+action-adj-regions-disp                 cell+   constant action-nadj-pairs-disp                     \ A region list.
+                                                                                                    \ Not Adjacent, Incompatible, states, define the regions.
+                                                                                                    \ Both states of a region are within at least one region
+                                                                                                    \ in action-ai-regions.
+action-nadj-pairs-disp                  cell+   constant action-nadj-regions-disp                   \ A region list.
+                                                                                                    \ By calculating ~A + ~B from nadj pairs.
 
-action-nadj-regions-disp                    cell+   constant action-possible-regions-disp               \ A region list.
-                                                                                                        \ By intersecting action-ai-regions and action-nai-regions
+action-nadj-regions-disp                cell+   constant action-possible-regions-disp               \ A region list.
+                                                                                                    \ By intersecting action-ai-regions and action-nai-regions
 
-action-possible-regions-disp                cell+   constant action-states-in-one-region-disp           \ A state list of square states in only one possible region,
-                                                                                                        \ possible anchors.
+action-possible-regions-disp            cell+   constant action-states-in-one-region-disp           \ A state list of square states in only one possible region,
+                                                                                                    \ possible anchors.
 
-action-states-in-one-region-disp            cell+   constant action-defining-regions-disp               \ A list of possible regions that are defining regions.
-                                                                                                        \ Developed from action-states-in-one-region,
-                                                                                                        \ instead of doing a lot of region subtractions.
+action-states-in-one-region-disp        cell+   constant action-defining-regions-disp               \ A list of possible regions that are defining regions.
+                                                                                                    \ Developed from action-states-in-one-region,
+                                                                                                    \ instead of doing a lot of region subtractions.
 
-action-defining-regions-disp                cell+   constant action-states-not-in-defining-regions-disp \ A state list of states not in defining regions.
+action-defining-regions-disp            cell+   constant action-corners-disp                        \ A cornor list, from incompatible pairs and possible regions.
+action-corners-disp                     cell+   constant action-corner-clusters-disp                \ A list of corner clusters, a list of lists of corners.
+action-corner-clusters-disp             cell+   constant action-groups-disp                         \ A group list.
 
-action-states-not-in-defining-regions-disp  cell+   constant action-corners-disp                        \ A cornor list, from incompatible pairs and possible regions.
-action-corners-disp                         cell+   constant action-corner-clusters-disp                \ A list of corner clusters, a list of lists of corners.
-action-corner-clusters-disp                 cell+   constant action-groups-disp                         \ A group list.
-
-action-groups-disp                          cell+   constant action-function-disp                       \ A function to run to get a sample for a state.
+action-groups-disp                      cell+   constant action-function-disp                       \ A function to run to get a sample for a state.
 
 
 0 value action-mma \ Storage for action mma instance.
@@ -267,25 +265,6 @@ action-groups-disp                          cell+   constant action-function-dis
     !struct                         \ Set the field.
 ;
 
-\ Return the states-not-in-defining-regions list from an action instance.
-: action-get-states-not-in-defining-regions ( act0 -- sta-lst )
-    \ Check arg.
-    assert( tos is-action? )
-
-    action-states-not-in-defining-regions-disp +    \ Add offset.
-    @                                               \ Fetch the field.
-;
-
-\ Set the states-not-in-defining-regions list of an action instance, use only in this file.
-: _action-set-states-not-in-defining-regions ( sta-lst1 act0 -- )
-    \ Check args.
-    assert( tos is-action? )
-    assert( nos is-state-list? )
-
-    action-states-not-in-defining-regions-disp +    \ Add offset.
-    !struct                                         \ Set the field.
-;
-
 \ Return the group-list from an action instance.
 : action-get-groups ( act0 -- grp-lst )
     \ Check arg.
@@ -400,6 +379,23 @@ action-groups-disp                          cell+   constant action-function-dis
     \ cr ." _action-update-possible-regions " over .region-list cr
 
     dup action-get-possible-regions     \ reg-lst1 act0 pos-regs
+
+    \ Check difference with old list.
+    [ ' regions-eq? ] literal           \ reg-lst1 act0 pos-regs xt
+    over                                \ reg-lst1 act0 pos-regs xt pos-regs
+    #4 pick                             \ reg-lst1 act0 pos-regs xt pos-regs reg-lst1
+    list-difference-struct              \ reg-lst1 act0 pos-regs, dif-lst'
+
+    dup list-is-empty?
+    if
+        cr ." Unneeded possible region update?" cr
+    else
+        \ cr ." old: " over .region-list cr
+        \ cr ." new: " #3 pick .region-list cr
+        cr ." possible regions deleted: " dup .region-list cr
+    then
+    region-list-deallocate
+
     -rot                                \ pos-regs reg-lst1 act0
     _action-set-possible-regions        \ pos-regs
     region-list-deallocate
@@ -415,18 +411,6 @@ action-groups-disp                          cell+   constant action-function-dis
     -rot                            \ crn-lol crn-lol1 act0
     _action-set-corner-clusters     \ crn-lol
     corner-lol-deallocate
-;
-
-\ Update the states-not-in-defining-regions list of an action instance, use only in this file.
-: _action-update-states-not-in-defining-regions ( sta-lst1 act0 -- )
-    \ Check args.
-    assert( tos is-action? )
-    assert( nos is-state-list? )
-
-    dup action-get-states-not-in-defining-regions   \ reg-lst1 act0 pos-regs
-    -rot                                            \ pos-regs reg-lst1 act0
-    _action-set-states-not-in-defining-regions      \ pos-regs
-    state-list-deallocate
 ;
 
 \ Update the defining-regions list of an action instance, use only in this file.
@@ -528,7 +512,6 @@ action-groups-disp                          cell+   constant action-function-dis
     list-new over _action-set-nadj-pairs
     list-new over _action-set-groups
     list-new over _action-set-states-in-one-region
-    list-new over _action-set-states-not-in-defining-regions
     list-new over _action-set-corners
     list-new over _action-set-corner-clusters
 ;
@@ -583,11 +566,6 @@ action-groups-disp                          cell+   constant action-function-dis
 \ Print both inst ids.
 : .action-inst-ids ( act0 -- )
    \ Check arg.
-    \ dup is-action?
-    \ ifnot
-    \     ." ?????"
-    \     exit
-    \ then
     assert( tos is-action? )
 
     dup .action-parent-inst-id
@@ -645,15 +623,7 @@ action-groups-disp                          cell+   constant action-function-dis
     else
         .region-list
     then
-    cr cr
-    #4 spaces ." Sqrs not in def regs: " dup action-get-states-not-in-defining-regions
-    dup list-is-empty?
-    if
-        drop
-        ." None"
-    else
-        .state-list
-    then
+    cr
     cr
     s"     Corners:              " #2 pick action-get-corners .corner-list-prefix
     cr
@@ -686,7 +656,6 @@ action-groups-disp                          cell+   constant action-function-dis
         dup action-get-groups group-list-deallocate
         dup action-get-states-in-one-region state-list-deallocate
         dup action-get-defining-regions region-list-deallocate
-        dup action-get-states-not-in-defining-regions state-list-deallocate
         dup action-get-corners corner-list-deallocate
         dup action-get-corner-clusters corner-lol-deallocate
 
@@ -705,6 +674,81 @@ action-groups-disp                          cell+   constant action-function-dis
 
     action-get-squares      \ sta1 sqr-lst
     square-list-find        \ sqr t | f
+;
+
+
+
+\ Return a list of defining regions in the possible regions.
+: action-defining-regions ( act0 -- reg-lst )
+    \ Check arg.
+    assert( tos is-action? )
+
+    \ Init result list.
+    list-new                                \ act0 rslt-lst
+
+    \ Get possible-regions.
+    over action-get-possible-regions        \ act0 rslt-lst pos-lst
+
+    \ Get states in one region.
+    #2 pick action-get-states-in-one-region \ act0 rslt-lst pos-lst sta-lst
+
+    foreach                                 \ act0 rslt-lst pos-lst sta-lnk stax
+        \ Get region state is in.
+        #2 pick                             \ act0 rslt-lst pos-lst sta-lnk stax pos-lst
+        region-list-state-in                \ act0 rslt-lst pos-lst sta-lnk regs-in'
+
+        \ Check result.
+        dup list-get-length                 \ act0 rslt-lst pos-lst sta-lnk regs-in' len
+        1 <> abort" state not in exactly one region?"
+
+        \ Check if its already in the list.
+        [ ' = ] literal                     \ act0 rslt-lst pos-lst sta-lnk regs-in' xt
+        over list-get-first-item            \ act0 rslt-lst pos-lst sta-lnk regs-in' xt regx
+        #5 pick                             \ act0 rslt-lst pos-lst sta-lnk regs-in' xt regx rslt-lst
+        list-member?                        \ act0 rslt-lst pos-lst sta-lnk regs-in' bool
+        ifnot
+            \ Add to result list.
+            dup list-get-first-item         \ act0 rslt-lst pos-lst sta-lnk regs-in' regx
+            #4 pick                         \ act0 rslt-lst pos-lst sta-lnk regs-in' regx rslt-lst
+            list-push-struct                \ act0 rslt-lst pos-lst sta-lnk regs-in'
+        then
+        region-list-deallocate              \ act0 rslt-lst pos-lst sta-lnk
+    next-item
+                                            \ act0 rslt-lst pos-lst
+    drop nip
+;
+
+\ Get both action, and domain, instance ids.
+: action-get-inst-ids ( act0 -- act-id dom-id )
+    assert( tos is-action? )
+
+    dup action-get-inst-id          \ act0 act-id
+    swap action-get-dom-inst-id     \ act-id dom-id
+;
+
+\ **********************
+\ * Start group logic. *
+\ **********************
+
+\ Add a group to the group list.
+: action-add-group ( grp1 act0 -- )
+    \ Check args.
+    assert( tos is-action? )
+    assert( nos is-group? )
+    \ cr dup .action-parent-inst-id dup .action-inst-id ." : Adding group: " over .group cr
+
+    action-get-groups   \ act0 grp1 grp-lst
+    list-push-struct    \
+;
+
+\ Return a group, given a matchig region.
+: action-find-group ( reg1 act0 -- grp t | f )
+    \ Check args.
+    assert( tos is-action? )
+    assert( nos is-region? )
+
+    action-get-groups           \ reg1 grp-lst
+    group-list-find             \ grp t | f
 ;
 
 \ Return true if a region, in the possible regions list, can be used as a group.
@@ -769,57 +813,6 @@ action-groups-disp                          cell+   constant action-function-dis
     action-valid-group-region2?     \ bool
 ;
 
-\ Return a list of defining regions in the possible regions.
-: action-defining-regions ( act0 -- reg-lst )
-    \ Check arg.
-    assert( tos is-action? )
-
-    \ Init result list.
-    list-new                                \ act0 rslt-lst
-
-    \ Get possible-regions.
-    over action-get-possible-regions        \ act0 rslt-lst pos-lst
-
-    \ Get states in one region.
-    #2 pick action-get-states-in-one-region \ act0 rslt-lst pos-lst sta-lst
-
-    foreach                                 \ act0 rslt-lst pos-lst sta-lnk stax
-        \ Get region state is in.
-        #2 pick                             \ act0 rslt-lst pos-lst sta-lnk stax pos-lst
-        region-list-state-in                \ act0 rslt-lst pos-lst sta-lnk regs-in'
-
-        \ Check result.
-        dup list-get-length                 \ act0 rslt-lst pos-lst sta-lnk regs-in' len
-        1 <> abort" state not in exactly one region?"
-
-        \ Check if its already in the list.
-        [ ' = ] literal                     \ act0 rslt-lst pos-lst sta-lnk regs-in' xt
-        over list-get-first-item            \ act0 rslt-lst pos-lst sta-lnk regs-in' xt regx
-        #5 pick                             \ act0 rslt-lst pos-lst sta-lnk regs-in' xt regx rslt-lst
-        list-member?                        \ act0 rslt-lst pos-lst sta-lnk regs-in' bool
-        ifnot
-            \ Add to result list.
-            dup list-get-first-item         \ act0 rslt-lst pos-lst sta-lnk regs-in' regx
-            #4 pick                         \ act0 rslt-lst pos-lst sta-lnk regs-in' regx rslt-lst
-            list-push-struct                \ act0 rslt-lst pos-lst sta-lnk regs-in'
-        then
-        region-list-deallocate              \ act0 rslt-lst pos-lst sta-lnk
-    next-item
-                                            \ act0 rslt-lst pos-lst
-    drop nip
-;
-
-\ Add a group to the group list.
-: action-add-group ( grp1 act0 -- )
-    \ Check args.
-    assert( tos is-action? )
-    assert( nos is-group? )
-    \ cr dup .action-parent-inst-id dup .action-inst-id ." : Adding group: " over .group cr
-
-    action-get-groups   \ act0 grp1 grp-lst
-    list-push-struct    \
-;
-
 \ Scan the group list to delete groups that have a region
 \ that is not in the possible regions list.
 : _action-delete-orphaned-groups ( act0 -- )
@@ -870,20 +863,12 @@ action-groups-disp                          cell+   constant action-function-dis
     \ cr ." _action-delete-orphaned-groups: end: " .stack cr
 ;
 
-\ Get both action, and domain, instance ids.
-: action-get-inst-ids ( act0 -- act-id dom-id )
-    assert( tos is-action? )
-
-    dup action-get-inst-id          \ act0 act-id
-    swap action-get-dom-inst-id     \ act-id dom-id
-;
-
 \ Check square with groups, possibly invalidating and removing some.
-: action-udpate-groups-with-new-square ( sqr1 act0 -- )
+: action-update-groups-with-new-square ( sqr1 act0 -- )
     \ Check args.group-new failed
     assert( tos is-action? )
     assert( nos is-square? )
-    \ cr ." action-udpate-groups-with-new-square: start" cr
+    \ cr ." action-update-groups-with-new-square: start" cr
 
     \ Init list for groups to be deleted.
     list-new -rot                       \ d-lst' sqr1 act0
@@ -909,6 +894,15 @@ action-groups-disp                          cell+   constant action-function-dis
         then
     next-item
                                         \ d-lst' sqr1 act0
+    #2 pick list-is-empty?              \ d-lst' sqr1 act0 bool
+    if
+        2drop
+        list-deallocate
+        exit
+    then
+
+    cr dup .action-inst-ids ." Deleting groups: " #2 pick .group-list-regions cr
+
     \ Delete groups that were invalidated.
     nip action-get-groups               \ d-lst' grp-lst
     over                                \ d-lst' grp-lst d-lst'
@@ -916,15 +910,15 @@ action-groups-disp                          cell+   constant action-function-dis
     foreach                             \ d-lst' grp-lst d-lnk grpx
         [ ' = ] literal swap            \ d-lst' grp-lst d-lnk xt grpx
         #3 pick                         \ d-lst' grp-lst d-lnk xt grpx grp-lst
-        list-remove                     \ d-lst' grp-lst d-lnk, grpx t | f
+        list-remove-struct              \ d-lst' grp-lst d-lnk, grpx t | f
         invert abort" group not found?"
-        cr ." Deleting group: " dup group-get-region .region cr
-        group-deallocate                \ d-lst' grp-lst d-lnk
+        \ cr ." Deleting group: " dup group-get-region .region cr
+        drop
     next-item
                                         \ d-lst' grp-lst
     drop                                \ d-lst'
     group-list-deallocate
-    \ cr ." action-udpate-groups-with-new-square: end: " .stack cr
+    \ cr ." action-update-groups-with-new-square: end: " .stack cr
 ;
 
 \ Scan the possible regions list, when a region is not represented in the
@@ -977,41 +971,64 @@ action-groups-disp                          cell+   constant action-function-dis
     \ cr ." action-add-possible-groups: end" cr
 ;
 
-\ Return square states not in defining regions.
-: action-states-not-in-defining-regions  ( act0 -- sta-lst )
-    \ Check arg.
+\ Inform groups of changed square.
+: action-update-groups-with-changed-square ( sqr1 act0 -- )
+    \ Check args.
     assert( tos is-action? )
+    assert( nos is-square? )
+    \ cr ." action-update-groups-with-changed-square: start" cr
 
-    \ Init result list.
-    list-new                            \ act0 rslt-lst
-
-    \ Get defining regions.
-    over action-get-defining-regions    \ act0 rslt-lst def-regs
-
-    \ Get all square states.
-    #2 pick action-get-squares          \ act0 rslt-lst def-regs sqr-lst'
-    square-list-states                  \ act0 rslt-lst def-regs sta-lst'
-
-    \ Find states needed.
-    dup                                 \ act0 rslt-lst def-regs sta-lst' sta-lst'
-    foreach                             \ act0 rslt-lst def-regs sta-lst' sta-lnk stax
-        #3 pick                         \ act0 rslt-lst def-regs sta-lst' sta-lnk stax def-regs
-        region-list-any-superset-state? \ act0 rslt-lst def-regs sta-lst' sta-lnk bool
+    \ Init delete list.
+    list-new -rot                       \ d-lst' sqr1 act0
+    dup action-get-groups               \ d-lst' sqr1 act0 grp-lst
+    foreach                             \ d-lst' sqr1 act0 grp-lnk grpx
+        #3 pick swap                    \ d-lst' sqr1 act0 grp-lnk sqr1 grpx
+        group-check-changed-square      \ d-lst' sqr1 act0 grp-lnk bool
         ifnot
-            \ Add state to result list.
-            dup link-get-data           \ act0 rslt-lst def-regs sta-lst' sta-lnk stax
-            #4 pick                     \ act0 rslt-lst def-regs sta-lst' sta-lnk stax rslt-lst
-            list-push-struct            \ act0 rslt-lst def-regs sta-lst' sta-lnk
+            dup link-get-data           \ d-lst' sqr1 act0 grp-lnk grpx
+            #4 pick                     \ d-lst' sqr1 act0 grp-lnk grpx d-lst'
+            list-push-struct            \ d-lst' sqr1 act0 grp-lnk
         then
     next-item
-                                        \ act0 rslt-lst def-regs sta-lst'
-    state-list-deallocate               \ act0 rslt-lst def-regs
-    drop                                \ act0 rslt-lst
-    nip
+                                        \ d-lst' sqr1 act0
+
+    #2 pick list-is-empty?
+    if
+        2drop
+        list-deallocate
+        exit
+    then
+
+    cr dup .action-inst-ids ." Deleting groups: " #2 pick .group-list-regions cr
+
+    \ Delete groups that were invalidated.
+    nip dup action-get-groups           \ d-lst' act0 grp-lst
+    #2 pick                             \ d-lst' act0 grp-lst d-lst'
+
+    foreach                             \ d-lst' act0 grp-lst d-lnk grpx
+        \ cr ." Deleting group: " dup group-get-region .region cr
+        [ ' = ] literal swap            \ d-lst' act0 grp-lst d-lnk xt grpx
+        #3 pick                         \ d-lst' act0 grp-lst d-lnk xt grpx grp-lst
+        list-remove-struct              \ d-lst' act0 grp-lst d-lnk, grpx t | f
+        invert abort" group not found?"
+
+        drop
+    next-item
+                                        \ d-lst' act0 grp-lst
+    2drop                               \ d-lst'
+    group-list-deallocate
 ;
 
-\ Return a rate for a corner.
-: action-corner-calc-set-rate ( crn1 act0 -- )
+\ ********************
+\ * End group logic. *
+\ ********************
+
+\ ***********************
+\ * Start corner logic. *
+\ ***********************
+
+\ Calc and set a rate for a corner.
+: ?action-corner-calc-set-rate ( crn1 act0 -- )
     \ Check args.
     assert( tos is-action? )
     assert( nos is-corner? )
@@ -1168,7 +1185,7 @@ action-groups-disp                          cell+   constant action-function-dis
 
 \ Given a corner, generate additional corners that could be
 \ attached to adjacent states that are in other defining regions.
-: action-calc-additional-corners ( crn1 act0 -- crn-lst t | f )
+: ?action-calc-additional-corners ( crn1 act0 -- crn-lst t | f )
     assert( tos is-action? )
     assert( nos is-corner? )
 
@@ -1288,10 +1305,10 @@ action-groups-disp                          cell+   constant action-function-dis
 
 \ To save memory, scan corners in the corner clusters, insure groups
 \ based on a defining region, start with the square/state of a corner anchor.
-: action-update-groups-from-corner-cluster ( act0 -- )
+: action-update-groups-from-corner-clusters ( act0 -- )
     \ Check arg.
     assert( tos is-action? )
-    \ cr ." : action-update-groups-from-corner-cluster: start: " .stack cr
+    \ cr ." : action-update-groups-from-corner-clusters: start: " .stack cr
 
     dup action-get-groups           \ act0 grp-lst
     over action-get-corner-clusters \ act0 grp-lst crnc-lst
@@ -1300,7 +1317,7 @@ action-groups-disp                          cell+   constant action-function-dis
     if
         2drop
         drop
-        \ cr ." : action-update-groups-from-corner-cluster: exit 1: "
+        \ cr ." : action-update-groups-from-corner-clusters: exit 1: "
         exit
     then
 
@@ -1354,7 +1371,7 @@ action-groups-disp                          cell+   constant action-function-dis
 
     drop
 
-    \ cr ." : action-update-groups-from-corner-cluster: end: " .stack cr
+    \ cr ." : action-update-groups-from-corner-clusters: end: " .stack cr
 ;
 
 \ Calc corners, from action-defining-regions and
@@ -1431,10 +1448,6 @@ action-groups-disp                          cell+   constant action-function-dis
     dup action-defining-regions                         \ act0 reg-lst
     over _action-update-defining-regions                \ act0
 
-    \ Update states-not-in-defining-regions.
-    dup action-states-not-in-defining-regions           \ act0 sta-lst
-    over _action-update-states-not-in-defining-regions  \ act0
-
     \ Update action-corners and action-corner-clusters.
     dup action-calc-corners                             \ act0
 
@@ -1442,61 +1455,22 @@ action-groups-disp                          cell+   constant action-function-dis
     \ cr ." _action-evaluate-possible-regions: end"
 ;
 
+\ *********************
+\ * End corner logic. *
+\ *********************
+
 \ **********************************
 \ * Start incompatible pair logic. *
 \ **********************************
 
-\ Return true if the square for sta1, between sta2 and sta3,
-\ is incompatible with the square for sta2 or sta3.
-: action-check-sqr-between-incompatible ( sta3 sta2 sta1 act0 -- bool )
-    \ Check args.
-    assert( tos is-action? )
-    assert( nos is-state? )
-    assert( 3os is-state? )
-    assert( 4os is-state? )
-    \ cr ." action-check-sqr-between-incompatible: " #3 pick .state #2 pick space .state over space .state
-    assert( #3 pick #3 pick #3 pick state-between? )
-
-    \ Look up square for sta1.
-    action-get-squares              \ sta3 sta2 sta1 sqr-lst
-    swap                            \ sta3 sta2 sqr-lst sta1
-    over                            \ sta3 sta2 sqr-lst sta1 sqr-lst
-    square-list-find                \ sta3 sta2 sqr-lst, sqr1 t | f
-    invert abort" square 1 not found?"
-
-    \ Get square for sta2.
-    rot                             \ sta3 sqr-lst sqr1 sta2
-    #2 pick                         \ sta3 sqr-lst sqr1 sta2 sqr-lst
-    square-list-find                \ sta3 sqr-lst sqr1, sqr2 t | f
-    invert abort" square 2 not found?"
-
-    \ Check if sqr1 and sqr2 are incompatible.
-    over squares-compare            \ sta3 sqr-lst sqr1 char
-    [char] I =
-    if
-        2drop drop
-        true
-        exit
-    then
-
-    \ Get square for sta3.
-    -rot                            \ sqr1 sta3 sqr-lst
-    square-list-find                \ sqr1, sqr3 t | f
-    invert abort" square 3 not found?"
-
-    \ Check if sqr1 and sqr3 are incompatible.
-    squares-compare                 \ char
-    [char] I =
-;
-
 \ Check the effect on incompatible pairs, of a square.
 \ Return a list of pairs that use a given square and are no longer compatible.
-: action-pairs-no-longer-incompatible ( sqr2 pr-lst1 act0 -- del-lst t | f )
-    \ cr ." action-pairs-no-longer-incompatible: start: " .stack cr
+: action-remove-pairs-no-longer-incompatible ( sqr2 pr-lst1 act0 -- bool )
     \ Check args.
     assert( tos is-action? )
     assert( nos is-region-list? )
     assert( 3os is-square? )
+    \ cr ." action-remove-pairs-no-longer-incompatible: start: " .stack cr
 
     \ Check each pair, accumulate pairs to delete.
 
@@ -1504,111 +1478,73 @@ action-groups-disp                          cell+   constant action-function-dis
     swap                                \ sqr2 act0 pr-lst1
 
     \ Init delete list.
-    list-new                            \ sqr2 act0 pr-lst1 del-lst
+    list-new                            \ sqr2 act0 pr-lst1 del-lst'
 
     \ Prep for loop.
-    #3 pick square-get-state            \ sqr2 act0 pr-lst1 del-lst sta2
-    rot                                 \ sqr2 act0 del-lst sta2 pr-lst1
+    #3 pick square-get-state            \ sqr2 act0 pr-lst1 del-lst' sta2
+    #2 pick                             \ sqr2 act0 pr-lst1 del-lst' sta2 pr-lst1
 
-    foreach                             \ sqr2 act0 del-lst sta2 pr-lnk regx
-        #2 pick swap                    \ sqr2 act0 del-lst sta2 pr-lnk sta2 regx
+    foreach                             \ sqr2 act0 pr-lst1 del-lst' sta2 pr-lnk regx
+        #2 pick swap                    \ sqr2 act0 pr-lst1 del-lst' sta2 pr-lnk sta2 regx
 
-        region-uses-state?              \ sqr2 act0 del-lst sta2 pr-lnk bool
+        region-uses-state?              \ sqr2 act0 pr-lst1 del-lst' sta2 pr-lnk bool
         if
-            dup link-get-data           \ sqr2 act0 del-lst sta2 pr-lnk regx
-            dup region-get-state-0      \ sqr2 act0 del-lst sta2 pr-lnk regx r-sta0
-            #3 pick                     \ sqr2 act0 del-lst sta2 pr-lnk regx r-sta0 sta2
-            states-eq?                  \ sqr2 act0 del-lst sta2 pr-lnk regx bool
+            dup link-get-data           \ sqr2 act0 pr-lst1 del-lst' sta2 pr-lnk regx
+            dup region-get-state-0      \ sqr2 act0 pr-lst1 del-lst' sta2 pr-lnk regx r-sta0
+            #3 pick                     \ sqr2 act0 pr-lst1 del-lst' sta2 pr-lnk regx r-sta0 sta2
+            states-eq?                  \ sqr2 act0 pr-lst1 del-lst' sta2 pr-lnk regx bool
             \ Get the other state.
             if
                 \ Check state 1
-                region-get-state-1      \ sqr2 act0 del-lst sta2 pr-lnk r-sta
+                region-get-state-1      \ sqr2 act0 pr-lst1 del-lst' sta2 pr-lnk r-sta
             else
                 \ Check state 0
-                region-get-state-0      \ sqr2 act0 del-lst sta2 pr-lnk r-sta
+                region-get-state-0      \ sqr2 act0 pr-lst1 del-lst' sta2 pr-lnk r-sta
             then
             \ Compare with sqr2.
-            #4 pick                     \ sqr2 act0 del-lst sta2 pr-lnk r-sta2 act0
-            action-find-square          \ sqr2 act0 del-lst sta2 pr-lnk, sqr t | f
+            #5 pick                     \ sqr2 act0 pr-lst1 del-lst' sta2 pr-lnk r-sta2 act0
+            action-find-square          \ sqr2 act0 pr-lst1 del-lst' sta2 pr-lnk, sqr t | f
             invert abort" square not found?"
 
-            #5 pick                 \ sqr2 act0 del-lst sta2 pr-lnk sqr sqr2
-            squares-compare         \ sqr2 act0 del-lst sta2 pr-lnk char
-            \ Allow pairs to go to More Samples Needed. The normal
-            \ confirmation by seeking pnc for each square will push
-            \ it to Compatible or Incompatible.
-            \ If it goes to Incompatible, a complete recalc will be
-            \ avoided.
-            [char] C =
-            if
-                \ Save pair for deletion.
-                dup link-get-data   \ sqr2 act0 del-lst sta2 pr-lnk regx
-                #3 pick             \ sqr2 act0 del-lst sta2 pr-lnk regx det-lst
-                list-push-struct    \ sqr2 act0 del-lst sta2 pr-lnk
-            then
-        then
-    next-item
-                                        \ sqr2 act0 del-lst sta2
-    drop                                \ sqr2 act0 del-lst
-
-    nip nip                             \ del-lst
-
-    check-list-return
-    \ cr ." action-pairs-no-longer-incompatible: end: " .stack cr
-;
-
-\ Check the effect on incompatible pairs, of a pnc square.
-\ Return a list of pairs to delete.
-: action-pairs-with-incompatible-square-between ( sqr2 pr-lst1 act0 -- del-lst t | f )
-    \ cr ." action-pairs-with-incompatible-square-between: start: " .stack cr
-    \ Check args.
-    assert( tos is-action? )
-    assert( nos is-region-list? )
-    assert( 3os is-square? )
-
-    \ Check each pair, accumulate pairs to delete.
-
-    \ Bring region list forward.
-    swap                                                \ sqr2 act0 pr-lst1
-
-    \ Init delete list.
-    list-new                                            \ sqr2 act0 pr-lst1 del-lst
-
-    \ Prep for loop.
-    #3 pick square-get-state                            \ sqr2 act0 pr-lst1 del-lst sta2
-    rot                                                 \ sqr2 act0 del-lst sta2 pr-lst1
-
-    foreach                                             \ sqr2 act0 del-lst sta2 pr-lnk regx
-        #2 pick swap                                    \ sqr2 act0 del-lst sta2 pr-lnk sta2 regx
-
-        region-superset-of-state?                       \ sqr2 act0 del-lst sta2 pr-lnk bool
-        if
-            over                                        \ sqr2 act0 del-lst sta2 pr-lnk sta2
-            over link-get-data                          \ sqr2 act0 del-lst sta2 pr-lnk sta2 regx
-            region-uses-state?                          \ sqr2 act0 del-lst sta2 pr-lnk bool
+            #6 pick                     \ sqr2 act0 pr-lst1 del-lst' sta2 pr-lnk sqr sqr2
+            squares-compare             \ sqr2 act0 pr-lst1 del-lst' sta2 pr-lnk char
+            [char] I =
             ifnot
-                \ Square is between them.
-                2dup                                    \ sqr2 act0 del-lst sta2 pr-lnk sta2 pr-lnk
-                link-get-data                           \ sqr2 act0 del-lst sta2 pr-lnk sta2 regx
-                region-get-states                       \ sqr2 act0 del-lst sta2 pr-lnk sta2 sta-0 sta-1
-                rot                                     \ sqr2 act0 del-lst sta2 pr-lnk sta-0 sta-1 sta2
-                #6 pick                                 \ sqr2 act0 del-lst sta2 pr-lnk sta-0 sta-1 sta2 act0
-                action-check-sqr-between-incompatible   \ sqr2 act0 del-lst sta2 pr-lnk bool
-                if
-                    dup link-get-data                   \ sqr2 act0 del-lst sta2 pr-lnk regx
-                    #3 pick                             \ sqr2 act0 del-lst sta2 pr-lnk regx del-lst
-                    list-push-struct                    \ sqr2 act0 del-lst sta2 pr-lnk
-                then
+                \ Save pair for deletion.
+                dup link-get-data       \ sqr2 act0 pr-lst1 del-lst' sta2 pr-lnk regx
+                #3 pick                 \ sqr2 act0 pr-lst1 del-lst' sta2 pr-lnk regx del-lst'
+                list-push-struct        \ sqr2 act0 pr-lst1 del-lst' sta2 pr-lnk
             then
         then
     next-item
-                                                        \ sqr2 act0 del-lst sta2
-    drop                                                \ sqr2 act0 del-lst
+                                        \ sqr2 act0 pr-lst1 del-lst' sta2
+    drop                                \ sqr2 act0 pr-lst1 del-lst'
 
-    nip nip                                             \ del-lst
+    \ Check delete list.
+    dup list-is-empty?                  \ sqr2 act0 pr-lst1 del-lst' bool
+    if
+        list-deallocate                 \ sqr2 act0 pr-lst1
+        2drop drop
+        false
+        exit
+    then
 
-    check-list-return
-    \ cr ." action-pairs-with-incompatible-square-between: end: " .stack cr
+    \ Remove pairs.
+    dup                                 \ sqr2 act0 pr-lst1 del-lst' del-lst'
+    foreach                             \ sqr2 act0 pr-lst1 del-lst' del-lnk regx
+        cr #4 pick .action-inst-ids ." Deleting adjacent incompatible pair: " dup .region cr
+        [ ' = ] literal swap            \ sqr2 act0 pr-lst1 del-lst' del-lnk xt regx
+        #4 pick                         \ sqr2 act0 pr-lst1 del-lst' del-lnk xt regx pr-lst1
+        list-remove-struct              \ sqr2 act0 pr-lst1 del-lst' del-lnk, regx t | f
+        invert abort" group not found?"
+        drop
+    next-item
+                                        \ sqr2 act0 pr-lst1 del-lst'
+    region-list-deallocate              \ sqr2 act0 pr-lst1
+    2drop drop
+    true
+
+    \ cr ." action-remove-pairs-no-longer-incompatible: end: " .stack cr
 ;
 
 \ Intersect adj and nadj regions, check groups.
@@ -1621,6 +1557,7 @@ action-groups-disp                          cell+   constant action-function-dis
     over action-get-nadj-regions            \ act0 adj-regs nadj-regs
 
     region-list-intersections-nosubs        \ act0 reg-lst'
+    cr over .action-inst-ids space ." new possible regions: " dup .region-list cr
     over _action-update-possible-regions    \ act0
 
     dup action-square-states-in-one-region  \ act0 sta-lst'
@@ -1634,27 +1571,27 @@ action-groups-disp                          cell+   constant action-function-dis
 
 \ Recalc possible regions, from adjacent, incmpatible pairs.
 : action-recalc-adj-pair-regions ( act0 -- )
-    list-new                                \ act0 pos-new
-    over action-get-num-bits                \ act0 pos-new nb
-    region-max-x                            \ act0 pos-new reg-max
-    over list-push-struct                   \ act0 pos-new
+    list-new                                \ act0 adj-new
+    over action-get-num-bits                \ act0 adj-new nb
+    region-max-x                            \ act0 adj-new reg-max
+    over list-push-struct                   \ act0 adj-new
 
-    over action-get-adj-pairs               \ act0 pos-new pr-lst
+    over action-get-adj-pairs               \ act0 adj-new pr-lst
 
-    foreach                                 \ act0 pos-new pr-lnk regx
-        region-get-states                   \ act0 pos-new pr-lnk sta1 sta1
-        state-~a+~b                         \ act0 pos-new pr-lnk reg-lst'
-        dup                                 \ act0 pos-new pr-lnk reg-lst' reg-lst'
-        #3 pick                             \ act0 pos-new pr-lnk reg-lst' reg-lst' pos-new
-        region-list-intersections-nosubs    \ act0 pos-new pr-lnk reg-lst' pos-new2
+    foreach                                 \ act0 adj-new pr-lnk regx
+        region-get-states                   \ act0 adj-new pr-lnk sta1 sta1
+        state-~a+~b                         \ act0 adj-new pr-lnk reg-lst'
+        dup                                 \ act0 adj-new pr-lnk reg-lst' reg-lst'
+        #3 pick                             \ act0 adj-new pr-lnk reg-lst' reg-lst' adj-new
+        region-list-intersections-nosubs    \ act0 adj-new pr-lnk reg-lst' adj-new2
 
         \ Clean up.
-        swap region-list-deallocate         \ act0 pos-new pr-lnk pos-new2
-        rot region-list-deallocate          \ act0 pr-lnk pos-new2
-        swap                                \ act0 pos-new2 pr-lnk
+        swap region-list-deallocate         \ act0 adj-new pr-lnk adj-new2
+        rot region-list-deallocate          \ act0 pr-lnk adj-new2
+        swap                                \ act0 adj-new2 pr-lnk
     next-item
-                                            \ act0 pos-new
-    swap                                    \ pos-new act0
+                                            \ act0 adj-new
+    swap                                    \ adj-new act0
     _action-update-adj-regions              \
 ;
 
@@ -1662,41 +1599,41 @@ action-groups-disp                          cell+   constant action-function-dis
 : action-recalc-nadj-pair-regions ( act0 -- )
     \ Check args.
     assert( tos is-action? )
-    \ cr ." action-recalc-nadj-pair-regions: start: " .stack cr
+    cr ." action-recalc-nadj-pair-regions: start: " cr
 
     \ Init result list.
-    list-new                                \ act0 pos-new
-    over action-get-num-bits                \ act0 pos-new nb
-    region-max-x                            \ act0 pos-new reg-max
-    over list-push-struct                   \ act0 pos-new
+    list-new                                \ act0 nadj-new
+    over action-get-num-bits                \ act0 nadj-new nb
+    region-max-x                            \ act0 nadj-new reg-max
+    over list-push-struct                   \ act0 nadj-new
 
     \ Check each pair.
-    over action-get-nadj-pairs              \ act0 pos-new pr-lst
+    over action-get-nadj-pairs              \ act0 nadj-new pr-lst
 
-    foreach                                 \ act0 pos-new pr-lnk regx
-        region-get-states                   \ act0 pos-new pr-lnk sta1 sta0
-        state-~a+~b                         \ act0 pos-new pr-lnk reg-lst'
-        dup                                 \ act0 pos-new pr-lnk reg-lst' reg-lst'
-        #3 pick                             \ act0 pos-new pr-lnk reg-lst' reg-lst' pos-new
-        region-list-intersections-nosubs    \ act0 pos-new pr-lnk reg-lst' pos-new2
+    foreach                                 \ act0 nadj-new pr-lnk regx
+        region-get-states                   \ act0 nadj-new pr-lnk sta1 sta0
+        state-~a+~b                         \ act0 nadj-new pr-lnk reg-lst'
+        dup                                 \ act0 nadj-new pr-lnk reg-lst' reg-lst'
+        #3 pick                             \ act0 nadj-new pr-lnk reg-lst' reg-lst' nadj-new
+        region-list-intersections-nosubs    \ act0 nadj-new pr-lnk reg-lst' nadj-new2
 
         \ Clean up.
-        swap region-list-deallocate         \ act0 pos-new pr-lnk pos-new2
-        rot region-list-deallocate          \ act0 pr-lnk pos-new2
-        swap                                \ act0 pos-new2 pr-lnk
+        swap region-list-deallocate         \ act0 nadj-new pr-lnk nadj-new2
+        rot region-list-deallocate          \ act0 pr-lnk nadj-new2
+        swap                                \ act0 nadj-new2 pr-lnk
     next-item
-                                            \ act0 pos-new
+                                            \ act0 nadj-new
     cr over .action-inst-ids space ." new nadj regions: " dup .region-list cr
-    swap                                    \ pos-new act0
+    swap                                    \ nadj-new act0
 
-    tuck _action-update-nadj-regions        \ act0
-    action-recalc-possible-regions          \
+    _action-update-nadj-regions             \
 
-    \ cr ." action-recalc-nadj-pair-regions: end: " .stack cr
+    cr ." action-recalc-nadj-pair-regions: end: " cr
 ;
 
 \ Remove any nadj pairs that are no longer within an adj region.
-: action-remove-orphaned-nadj-pairs ( act0 -- )
+\ Return true if any pairs deleted.
+: action-remove-orphaned-nadj-pairs ( act0 -- bool )
     \ Check arg.
     assert( tos is-action? )
     \ cr ." action-remove-orphaned-nadj-pairs: start" cr
@@ -1723,31 +1660,31 @@ action-groups-disp                          cell+   constant action-function-dis
     over list-is-empty?
     if
         drop                                \ del-lst'
-    else
-        \ Delete selected non-adjacent pairs.
-        cr dup .action-inst-ids space ." Deleting orphaned non-adjacent pairs: "
-        dup action-get-nadj-pairs           \ del-lst' act0 nadj-prs
-        #2 pick                             \ del-lst' act0 nadj-prs del-lst'
-        foreach                             \ del-lst' act0 nadj-prs del-lnk prx
-            \ Print region.
-            space dup .region
-
-            \ Remove region.
-            #2 pick                         \ del-lst' act0 nadj-prs del-lnk prx nadj-prs
-            region-list-remove              \ del-lst' act0 nadj-prs del-lnk
-        next-item
-
-        cr                                  \ del-lst' act0 nadj-prs
-        2drop                               \ del-lst'
+        list-deallocate
+        false
+        \ cr ." action-remove-orphaned-nadj-pairs: exit 1: f" cr
+        exit
     then
+
+    \ Delete selected non-adjacent pairs.
+    cr dup .action-inst-ids space ." Deleting orphaned non-adjacent pairs: " over .region-list cr
+    dup action-get-nadj-pairs               \ del-lst' act0 nadj-prs
+    #2 pick                                 \ del-lst' act0 nadj-prs del-lst'
+    foreach                                 \ del-lst' act0 nadj-prs del-lnk prx
+        \ Remove region.
+        #2 pick                             \ del-lst' act0 nadj-prs del-lnk prx nadj-prs
+        region-list-remove                  \ del-lst' act0 nadj-prs del-lnk
+    next-item
+                                            \ del-lst' act0 nadj-prs
+    2drop                                   \ del-lst'
 
     \ Return.
     region-list-deallocate
-    \ cr ." action-remove-orphaned-nadj-pairs: end" cr
+    true
+    \ cr ." action-remove-orphaned-nadj-pairs: end: t" cr
 ;
 
 \ Check for, adjacent, dissimilar, pairs, of a given square,
-\ where the pair is in a adj-pair derived region.
 : action-check-square-for-new-adj-pairs2 ( sqr1 act0 -- pr-lst t | f )
     \ Check args.
     assert( tos is-action? )
@@ -1758,57 +1695,48 @@ action-groups-disp                          cell+   constant action-function-dis
     list-new -rot                                   \ pr-lst sqr1 act0
 
     dup action-get-adj-regions                      \ pr-lst sqr1 act0 adj-regs
-    over action-get-squares                         \ pr-lst sqr1 act0 adj-regs sqr-lst
 
-    foreach                                         \ pr-lst sqr1 act0 adj-regs sqr-lnk sqrx
-        \ Check if the square is adjacent to sqr1.
-        #4 pick                                     \ pr-lst sqr1 act0 adj-regs sqr-lnk sqrx sqr1
-        squares-adjacent?                           \ pr-lst sqr1 act0 adj-regs sqr-lnk bool
+    foreach                                         \ pr-lst sqr1 act0 adj-lnk adj-regx
+        \ Check if given square is within the adjacent region.
+        #3 pick                                     \ pr-lst sqr1 act0 adj-lnk adj-regx sqr1
+        square-get-state                            \ pr-lst sqr1 act0 adj-lnk adj-regx sta1
+        swap region-superset-of-state?              \ pr-lst sqr1 act0 adj-lnk bool
         if
-            \ Check if the square is incompatible to sqr1.
-            dup link-get-data                       \ pr-lst sqr1 act0 adj-regs sqr-lnk sqrx
-            #4 pick                                 \ pr-lst sqr1 act0 adj-regs sqr-lnk sqrx sqr1
-            squares-compare                         \ pr-lst sqr1 act0 adj-regs sqr-lnk char
-            [char] I =                              \ pr-lst sqr1 act0 adj-regs sqr-lnk bool
-            if
-                \ Check if the two squares are in any currently possible region.
+            \ Check if any squares in the region are adjacent the given square.
+            dup link-get-data                       \ pr-lst sqr1 act0 adj-lnk adj-regx
+            #2 pick action-get-squares              \ pr-lst sqr1 act0 adj-lnk adj-regx sqr-lst
+            square-list-in-region                   \ pr-lst sqr1 act0 adj-lnk, sqr-lst' t | f
+            invert abort" no squares is adjacent pair region?" \ s/b at least one, the given square.
 
-                \ Make a region from the two square states.
-                dup link-get-data                   \ pr-lst sqr1 act0 adj-regs sqr-lnk sqrx
-                square-get-state                    \ pr-lst sqr1 act0 adj-regs sqr-lnk stax
-                #4 pick                             \ pr-lst sqr1 act0 adj-regs sqr-lnk stax sqr1
-                square-get-state                    \ pr-lst sqr1 act0 adj-regs sqr-lnk stax sta1
-                region-new                          \ pr-lst sqr1 act0 adj-regs sqr-lnk regx'
-
-                \ Check if a possible region is a superset of the region.
-                dup                                 \ pr-lst sqr1 act0 adj-regs sqr-lnk regx' regx'
-                #3 pick                             \ pr-lst sqr1 act0 adj-regs sqr-lnk regx' regx' adj-regs
-                region-list-any-superset-of?          \ pr-lst sqr1 act0 adj-regs sqr-lnk regx' bool
+            \ Check each square against the given square.
+            dup                                     \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lst'
+            foreach                                 \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk sqrx
+                \ Check if square is adjacent to the given square.
+                #5 pick                             \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk sqrx sqr1
+                squares-adjacent?                   \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk bool
                 if
-                    \ Check if there is any superset region in nadj pairs.
-                    dup                             \ pr-lst sqr1 act0 adj-regs sqr-lnk regx' regx'
-                    #4 pick                         \ pr-lst sqr1 act0 adj-regs sqr-lnk regx' regx' act0
-                    action-get-adj-pairs            \ pr-lst sqr1 act0 adj-regs sqr-lnk regx' regx' nadj-prs
-                    region-list-any-superset-of?    \ pr-lst sqr1 act0 adj-regs sqr-lnk regx' bool
+                    dup link-get-data               \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk sqrx
+                    #5 pick                         \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk sqrx sqr1
+                    squares-compare                 \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk char
+                    [char] I =                      \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk bool
                     if
-                        \ Region
-                        region-deallocate           \ pr-lst sqr1 act0 adj-regs sqr-lnk
-                    else
-                        \ Add region to the new pair list.
-                        #5 pick                     \ pr-lst sqr1 act0 adj-regs sqr-lnk regx' pr-lst
-                        list-push-struct            \ pr-lst sqr1 act0 adj-regs sqr-lnk
-                    else
+                        \ Store new pair.
+                        dup link-get-data           \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk sqrx
+                        square-get-state            \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk stax
+                        #5 pick                     \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk stax sqr1
+                        square-get-state            \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk stax sta1
+                        region-new                  \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk prx
+                        #6 pick list-push-struct    \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk
                     then
-                else
-                    \ Region not within an adj-pair dirived region.
-                    region-deallocate               \ pr-lst sqr1 act0 adj-regs sqr-lnk
                 then
-            then
+            next-item
+            square-list-deallocate                  \ pr-lst sqr1 act0 adj-lnk
         then
     next-item
-                                                    \ pr-lst sqr1 act0 adj-regs
+
+                                                    \ pr-lst sqr1 act0
     \ Return.
-    2drop drop                                      \ pr-lst
+    2drop                                           \ pr-lst
 
     check-list-return
     \ cr ." action-check-square-for-new-adj-pairs2: end:   " .stack cr
@@ -1831,17 +1759,33 @@ action-groups-disp                          cell+   constant action-function-dis
         exit
     then
 
-    cr ." Appending adj pairs: " dup .region-list cr
-    \ Update the adjacent pair list.
-    2dup swap                                   \ sqr1 act0 pr-lst' pr-lst' act0
-    action-get-adj-pairs                        \ sqr1 act0 pr-lst' pr-lst' adj-prs
-    list-append-struct                          \ sqr1 act0 pr-lst'
-    region-list-deallocate                      \ sqr1 act0
+    cr ." Adding adjacent pairs: " dup .region-list cr
+
+    \ Add adjacent pairs, update adjacent pair regions with incremental calculations.
+    over action-get-adj-pairs                   \ sqr1 act0 pr-lst' adj-prs
+    over                                        \ sqr1 act0 pr-lst' adj-prs pr-lst'
+    foreach                                     \ sqr1 act0 pr-lst' adj-prs pr-lnk prx
+        \ Add pair to pair list.
+        #2 pick                                 \ sqr1 act0 pr-lst' adj-prs pr-lnk prx adj-prs
+        list-push-struct                        \ sqr1 act0 pr-lst' adj-prs pr-lnk
+
+        \ Update adjacent pair regions.
+        dup link-get-data                       \ sqr1 act0 pr-lst' adj-prs pr-lnk prx
+        region-get-states                       \ sqr1 act0 pr-lst' adj-prs pr-lnk sta-1 sta-0
+        state-~a+~b                             \ sqr1 act0 pr-lst' adj-prs pr-lnk reg-lst'
+        #4 pick action-get-adj-regions          \ sqr1 act0 pr-lst' adj-prs pr-lnk reg-lst' adj-regs
+        over region-list-intersections-nosubs   \ sqr1 act0 pr-lst' adj-prs pr-lnk reg-lst' adj-regs'
+        #5 pick _action-update-adj-regions      \ sqr1 act0 pr-lst' adj-prs pr-lnk reg-lst'
+        region-list-deallocate                  \ sqr1 act0 pr-lst' adj-prs pr-lnk
+    next-item
+                                                \ sqr1 act0 pr-lst' adj-prs
+    drop region-list-deallocate                 \ sqr1 act0
 
     \ Recalc.
-    dup action-recalc-adj-pair-regions          \ sqr act0
-    dup action-remove-orphaned-nadj-pairs       \ sqr1 act0
-    dup action-recalc-nadj-pair-regions         \ sqr1 act0
+    dup action-remove-orphaned-nadj-pairs       \ sqr1 act0 bool
+    if
+        dup action-recalc-nadj-pair-regions     \ sqr1 act0
+    then
 
     \ Return.
     2drop
@@ -1855,68 +1799,62 @@ action-groups-disp                          cell+   constant action-function-dis
     \ Check args.
     assert( tos is-action? )
     assert( nos is-square? )
-    \ cr ." action-check-square-for-new-nadj-pairs: start: " cr
+    \ cr ." action-check-square-for-new-nadj-pairs2: start: " cr
 
     \ Init return list.
-    list-new -rot                           \ pr-lst sqr1 act0
+    list-new -rot                                   \ pr-lst sqr1 act0
 
-    dup action-get-possible-regions         \ pr-lst sqr1 act0 pos-regs
-    over action-get-squares                 \ pr-lst sqr1 act0 pos-regs sqr-lst
+    dup action-get-adj-regions                      \ pr-lst sqr1 act0 adj-regs
 
-    foreach                                 \ pr-lst sqr1 act0 pos-regs sqr-lnk sqrx
-        \ Check if the square is adjacent to sqr1.
-        #4 pick                             \ pr-lst sqr1 act0 pos-regs sqr-lnk sqrx sqr1
-        squares-adjacent?                   \ pr-lst sqr1 act0 pos-regs sqr-lnk bool
-        ifnot
-            \ Check if the square is incompatible to sqr1.
-            dup link-get-data               \ pr-lst sqr1 act0 pos-regs sqr-lnk sqrx
-            #4 pick                         \ pr-lst sqr1 act0 pos-regs sqr-lnk sqrx sqr1
-            squares-compare                 \ pr-lst sqr1 act0 pos-regs sqr-lnk char
-            [char] I =                      \ pr-lst sqr1 act0 pos-regs sqr-lnk bool
-            if
-                \ Check if the two squares are in any currently possible region.
+    foreach                                         \ pr-lst sqr1 act0 adj-lnk adj-regx
+        \ Check if given square is within the adjacent region.
+        #3 pick square-get-state                    \ pr-lst sqr1 act0 adj-lnk adj-regx sta1
+        swap region-superset-of-state?              \ pr-lst sqr1 act0 adj-lnk bool
+        if
+            \ Check if any squares in the region are adjacent the given square.
+            dup link-get-data                       \ pr-lst sqr1 act0 adj-lnk adj-regx
+            #2 pick action-get-squares              \ pr-lst sqr1 act0 adj-lnk adj-regx sqr-lst
+            square-list-in-region                   \ pr-lst sqr1 act0 adj-lnk, sqr-lst' t | f
+            invert abort" no squares is adjacent pair region?" \ s/b at least one, the given square.
 
-                \ Make a region from the two square states.
-                dup link-get-data           \ pr-lst sqr1 act0 pos-regs sqr-lnk sqrx
-                square-get-state            \ pr-lst sqr1 act0 pos-regs sqr-lnk stax
-                #4 pick                     \ pr-lst sqr1 act0 pos-regs sqr-lnk stax sqr1
-                square-get-state            \ pr-lst sqr1 act0 pos-regs sqr-lnk stax sta1
-                region-new                  \ pr-lst sqr1 act0 pos-regs sqr-lnk regx'
-
-                \ Check if a possible region is a superset of the region.
-                dup                         \ pr-lst sqr1 act0 pos-regs sqr-lnk regx' regx'
-                #3 pick                     \ pr-lst sqr1 act0 pos-regs sqr-lnk regx' regx' pos-regs
-                region-list-any-superset-of?  \ pr-lst sqr1 act0 pos-regs sqr-lnk regx' bool
-                if
-
-                    \ Check if there is any superset region in nadj pairs.
-                    dup                             \ pr-lst sqr1 act0 pos-regs sqr-lnk regx' regx'
-                    #4 pick                         \ pr-lst sqr1 act0 pos-regs sqr-lnk regx' regx' act0
-                    action-get-nadj-pairs           \ pr-lst sqr1 act0 pos-regs sqr-lnk regx' regx' nadj-prs
-                    region-list-any-superset-of?    \ pr-lst sqr1 act0 pos-regs sqr-lnk regx' bool
+            \ Check each square against the given square.
+            dup                                     \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lst'
+            foreach                                 \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk sqrx
+                \ Check if square is adjacent to the given square.
+                #5 pick                             \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk sqrx sqr1
+                squares-adjacent?                   \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk bool
+                ifnot
+                    dup link-get-data               \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk sqrx
+                    #5 pick                         \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk sqrx sqr1
+                    squares-compare                 \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk char
+                    [char] I =                      \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk bool
                     if
-                        \ Region
-                        region-deallocate           \ pr-lst sqr1 act0 pos-regs sqr-lnk
-                    else
-                        \ Add region to the new pair list.
-                        #5 pick                     \ pr-lst sqr1 act0 pos-regs sqr-lnk regx' pr-lst
-                        list-push-struct            \ pr-lst sqr1 act0 pos-regs sqr-lnk
-                    else
+                        \ Store new pair.
+                        dup link-get-data           \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk sqrx
+                        square-get-state            \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk stax
+                        #5 pick square-get-state    \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk stax sta1
+                        region-new                  \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk prx
+                        dup                         \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk prx prx
+                        #7 pick                     \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk prx prx pr-lst
+                        region-list-push-nosups     \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk prx bool
+                        if
+                            drop
+                        else
+                            region-deallocate
+                        then
                     then
-                else
-                    \ Region not within an adj-pair dirived region.
-                    region-deallocate               \ pr-lst sqr1 act0 pos-regs sqr-lnk
                 then
-            then
+            next-item
+            square-list-deallocate                  \ pr-lst sqr1 act0 adj-lnk
         then
     next-item
-                                            \ pr-lst sqr1 act0 pos-regs
 
+                                                    \ pr-lst sqr1 act0
     \ Return.
-    2drop drop                              \ pr-lst
+    2drop                                           \ pr-lst
 
     check-list-return
-    \ cr ." action-check-square-for-new-nadj-pairs: end: " cr
+    \ cr ." action-check-square-for-new-nadj-pairs2: end: " cr
 ;
 
 \ Check for, non-adjacent, dissimilar, pairs, of a given square,
@@ -1927,258 +1865,163 @@ action-groups-disp                          cell+   constant action-function-dis
     assert( tos is-action? )
     assert( nos is-square? )
 
-    2dup action-check-square-for-new-nadj-pairs2    \ sqr1 act0, pr-lst t | f
+    2dup action-check-square-for-new-nadj-pairs2    \ sqr1 act0, pr-lst' t | f
     ifnot
         2drop
         false
         exit
     then
 
-    \ Update the non-adjacent pair list.
-    cr over .action-inst-ids space ." Appending nadj pairs: " dup .region-list cr
-    2dup swap                                   \ sqr1 act0 pr-lst' pr-lst' act0
-    action-get-nadj-pairs                       \ sqr1 act0 pr-lst' pr-lst' adj-prs
-    region-list-append-nosups                   \ sqr1 act0 pr-lst'
-    region-list-deallocate                      \ sqr1 act0
+    cr over .action-inst-ids space ." Adding non-adjacent pairs: " dup .region-list cr
 
-    \ Recalc.
-    dup action-recalc-nadj-pair-regions         \ sqr act0
-    dup action-recalc-possible-regions          \ sqr act0
+                                                \ sqr1 act0 pr-lst' bool
+
+    \ Add new non-adjacent pairs, update non-adjacent regions with incremental calculations.
+    over action-get-nadj-pairs                  \ sqr1 act0 pr-lst' nadj-prs
+    over                                        \ sqr1 act0 pr-lst' nadj-prs pr-lst'
+    foreach                                     \ sqr1 act0 pr-lst' nadj-prs pr-lnk prx
+        \ Add pair to pair list.
+        #2 pick                                 \ sqr1 act0 pr-lst' nadj-prs pr-lnk prx nadj-prs
+        region-list-push-nosups drop            \ sqr1 act0 pr-lst' nadj-prs pr-lnk
+
+        \ Update adjacent pair regions.
+        dup link-get-data                       \ sqr1 act0 pr-lst' nadj-prs pr-lnk prx
+        region-get-states                       \ sqr1 act0 pr-lst' nadj-prs pr-lnk sta-1 sta-0
+        state-~a+~b                             \ sqr1 act0 pr-lst' nadj-prs pr-lnk reg-lst'
+        #4 pick action-get-nadj-regions         \ sqr1 act0 pr-lst' nadj-prs pr-lnk reg-lst' nadj-regs
+        over region-list-intersections-nosubs   \ sqr1 act0 pr-lst' nadj-prs pr-lnk reg-lst' nadj-regs'
+        #5 pick _action-update-nadj-regions     \ sqr1 act0 pr-lst' nadj-prs pr-lnk reg-lst'
+        region-list-deallocate                  \ sqr1 act0 pr-lst' nadj-prs pr-lnk
+    next-item
+                                                \ sqr1 act0 pr-lst' nadj-prs
+    drop region-list-deallocate                 \ sqr1 act0
 
     \ Return.
     2drop
     true
 ;
 
-\ Check if a square affects adjacent, incompatible, pairs.
-\ If there is a change, update adj pairs, adj regions, nadj pairs, and nadj regions.
-\ Return true if there is a change.
-: action-check-square-effect-on-adj-pairs ( sqr1 act0 -- bool )
+\ Check incompatible adjacent pairs for a changed square.
+\ Return true if anything changed.
+: action-check-adj-pairs-changed-square ( sqr1 act0 -- bool )
     \ Check args.
     assert( tos is-action? )
     assert( nos is-square? )
-    \ cr ." action-check-square-effect-on-adj-pairs: start: " .stack cr
 
-    \ Init any-change flag.
-    false -rot                                          \ ch-fl sqr1 act0
+    \ Init bool to return.
+    false                                       \ sqr1 act0 bool
 
-    \ Get pairs, no longer incompatible, due to the square, to remove.
-    2dup                                                \ ch-fl sqr1 act0 sqr1 act0
-    dup action-get-adj-pairs                            \ ch-fl sqr1 act0 sqr1 act0 adj-prs
-    swap                                                \ ch-fl sqr1 act0 sqr1 adj-prs act0
-    action-pairs-no-longer-incompatible                 \ ch-fl sqr1 act0, del-lst' t | f
+    \ Remove invalidated adjacent pairs.
+    #2 pick #2 pick action-get-adj-pairs        \ sqr1 act0 bool sqr1 adj-prs
+    #3 pick                                     \ sqr1 act0 bool sqr1 adj-prs act0
+    action-remove-pairs-no-longer-incompatible  \ sqr1 act0 bool bool
+
+    dup                                         \ sqr1 act0 bool bool bool
     if
-        \ Remove pairs.
-        cr over .action-inst-ids space ." Deleting adjacent pairs: "
-        over action-get-adj-pairs                       \ ch-fl sqr1 act0 del-lst' adj-lst
-        over                                            \ ch-fl sqr1 act0 del-lst' adj-lst del-lst'
-        foreach                                         \ ch-fl sqr1 act0 del-lst' adj-lst del-lnk regx
-            space dup .region cr
-            #2 pick                                     \ ch-fl sqr1 act0 del-lst' adj-lst del-lnk regx adj-lst
-            region-list-remove                          \ ch-fl sqr1 act0 del-lst' adj-lst del-lnk
-        next-item
-        cr
-                                                        \ ch-fl sqr1 act0 del-lst' nadj-lst
-        drop region-list-deallocate                     \ ch-fl sqr1 act0
-
-        \ Recalc adj-regions.
-        dup action-recalc-adj-pair-regions              \ ch-fl sqr1 act0
-
-        \ Update change flag.
-        rot drop true -rot                              \ ch-fl sqr1 act0
+        #2 pick                                 \ sqr1 act0 bool bool act0
+        action-recalc-adj-pair-regions          \ sqr1 act0 bool bool
     then
+    or                                          \ sqr1 act0 bool
 
-    \ Check for new adj pairs.
-    2dup action-check-square-for-new-adj-pairs          \ ch-fl sqr1 act0 bool
-    if
-        \ Update change flag.
-        rot drop true -rot                              \ ch-fl sqr1 act0
-    then
+    #2 pick #2 pick                             \ sqr1 act0 bool sqr1 act0
+    action-check-square-for-new-adj-pairs       \ sta1 act0 bool bool
 
-    \ Process change flag.
-    #2 pick                                             \ ch-fl sqr1 act0 ch-fl
-    if
-        \ Handle non-adjacent pairs.
-        dup action-remove-orphaned-nadj-pairs           \ ch-fl sqr1 act0
-        dup action-recalc-nadj-pair-regions             \ ch-fl sqr1 act0
-    then
-
-    \ Return.
-    2drop                                               \ ch-fl
-    \ cr ." action-check-square-effect-on-adj-pairs: end: " .stack cr
+    \ Combine bools.
+    or                                          \ sta1 act0 bool
+    nip nip
 ;
 
-\ Check if a square affects non-adjacent, incompatible, pairs.
-\ If there is a change, update nadj pairs and regions,
-\ and return true.
-: action-check-square-effect-on-nadj-pairs ( sqr1 act0 -- bool )
+\ Check incompatible non-adjacent pairs for a changed square.
+\ Return true if anything changed.
+: action-check-nadj-pairs-changed-square ( sqr1 act0 -- bool )
     \ Check args.
     assert( tos is-action? )
     assert( nos is-square? )
 
-    \ Init any-change flag.
-    false -rot                                          \ ch-fl sqr1 act0
+    \ Init return bool.
+    false                                       \ sqr1 act0 bool
+    \ Remove invalidated non-adjacent pairs.
+    #2 pick #2 pick action-get-nadj-pairs       \ sqr1 act0 bool sqr1 nadj-prs
+    #3 pick                                     \ sqr1 act0 bool sqr1 nadj-prs act0
+    action-remove-pairs-no-longer-incompatible  \ sqr1 act0 bool bool
 
-    \ Get pairs, no longer incompatible, due to the square, to remove.
-    2dup                                                \ ch-fl sqr1 act0 sqr1 act0
-    dup action-get-nadj-pairs                           \ ch-fl sqr1 act0 sqr1 act0 nadj-prs
-    swap                                                \ ch-fl sqr1 act0 sqr1 nadj-prs act0
-    action-pairs-no-longer-incompatible                 \ ch-fl sqr1 act0, del-lst' t | f
+    dup                                         \ sqr1 act0 bool bool bool
     if
-        \ Remove pairs.
-        over action-get-nadj-pairs                      \ ch-fl sqr1 act0 del-lst' nadj-lst
-        over                                            \ ch-fl sqr1 act0 del-lst' nadj-lst del-lst'
-        foreach                                         \ ch-fl sqr1 act0 del-lst' nadj-lst del-lnk regx
-             cr ." action-check-nadj-pairs-for-square: removing: " dup .region cr
-            #2 pick                                     \ ch-fl sqr1 act0 del-lst' nadj-lst del-lnk regx nadj-lst
-            region-list-remove                          \ ch-fl sqr1 act0 del-lst' nadj-lst del-lnk
-        next-item
-                                                        \ ch-fl sqr1 act0 del-lst' nadj-lst
-        drop region-list-deallocate                     \ ch-fl sqr1 act0
-
-        \ Recalc nadj-regions.
-        dup action-recalc-nadj-pair-regions             \ ch-fl sqr1 act0
-
-        \ Update change flag.
-        rot drop true -rot                              \ ch-fl sqr1 act0
+        #2 pick                                 \ sqr1 act0 bool bool act0
+        action-recalc-nadj-pair-regions         \ sqr1 act0 bool bool
     then
 
-    \ Get pairs to remove 2.
-    2dup                                                \ ch-fl sqr1 act0 sqr1 act0
-    dup action-get-nadj-pairs                           \ ch-fl sqr1 act0 sqr1 act0 nadj-prs
-    swap                                                \ ch-fl sqr1 act0 sqr1 nadj-prs act0
-    action-pairs-with-incompatible-square-between       \ ch-fl sqr1 act0, del-lst' t | f
+    or                                          \ sqr1 act0 bool
+
+    #2 pick #2 pick                             \ sqr1 act0 bool sqr1 act0
+    action-check-square-for-new-nadj-pairs      \ sta1 act0 bool bool
+
+    \ Combine bools.
+    or                                          \ sta1 act0 bool
+    nip nip
+;
+
+\ Processes to run after a change occured in the incompatible pairs,
+\ which will have changed the adjacent pair regions, and/or
+\ the non-adjacent pair regions.
+: action-incompatible-pairs-changed ( act0 -- )
+    \ Check args.
+    assert( tos is-action? )
+
+    dup action-recalc-possible-regions                  \ act0
+    dup _action-delete-orphaned-groups                  \ act0
+    dup action-add-possible-groups                      \ act0
+    action-update-groups-from-corner-clusters           \ act0
+;
+
+\ Check incompatible pairs with a new, or updated, square.
+: action-check-incompatible-pairs-changed-square ( sqr1 act0 -- )
+    \ Check args.
+    assert( tos is-action? )
+    assert( nos is-square? )
+    \ cr ." action-check-incompatible-pairs-changed-square: start: " .stack cr
+
+    2dup action-check-adj-pairs-changed-square              \ sqr1 act0 bool
+
+    #2 pick #2 pick action-check-nadj-pairs-changed-square  \ sqr1 act0 bool bool
+
+    or                                                      \ sqr1 act0 bool
+
     if
-        \ Remove pairs.
-        over action-get-nadj-pairs                      \ ch-fl sqr1 act0 del-lst' nadj-lst
-        over                                            \ ch-fl sqr1 act0 del-lst' nadj-lst del-lst'
-        foreach                                         \ ch-fl sqr1 act0 del-lst' nadj-lst del-lnk regx
-            cr ." action-check-nadj-pairs-for-square: removing: " dup .region cr
-            #2 pick                                     \ ch-fl sqr1 act0 del-lst' nadj-lst del-lnk regx nadj-lst
-            region-list-remove                          \ ch-fl sqr1 act0 del-lst' nadj-lst del-lnk
-        next-item
-                                                        \ ch-fl sqr1 act0 del-lst' nadj-lst
-        drop region-list-deallocate                     \ ch-fl sqr1 act0
-
-        \ Recalc nadj-regions.
-        dup action-recalc-nadj-pair-regions             \ ch-fl sqr1 act0
-
-        \ Update change flag.
-        rot drop true -rot                              \ ch-fl sqr1 act0
-    then
-
-    \ Check for new adj pairs.
-    2dup action-check-square-for-new-nadj-pairs         \ ch-fl sqr1 act0 bool
-
-    if
-        \ Update change flag.
-        rot drop true -rot                              \ ch-fl sqr1 act0
-    then
-
-    \ Process change flag.
-    #2 pick                                             \ ch-fl sqr1 act0 ch-fl
-    if
-        \ Handle groups.
-        action-recalc-possible-regions                  \ ch-fl sqr1
-        drop                                            \ ch-fl
+        action-incompatible-pairs-changed                   \ sqr1
+        drop
     else
-        2drop                                           \ ch-fl
+        2drop
     then
-\    cr ." action-check-square-effect-on-nadj-pairs: end: " .stack cr
 ;
 
-\ Check for effect of a square on incompatible pairs.
-\ Return true if there is a change.
-: action-check-square-effect-on-incompatible-pairs ( sqr1 act0 -- bool )
+\ Check incompatible pairs with a new, or updated, square.
+: action-check-incompatible-pairs-new-square ( sqr1 act0 -- )
     \ Check args.
     assert( tos is-action? )
     assert( nos is-square? )
-    \ cr ." action-check-square-effect-on-incompatible-pairs: start: " .stack cr
+    \ cr ." action-check-incompatible-pairs-new-square: start: " cr
 
-    2dup action-check-square-effect-on-adj-pairs    \ sqr1 act0 bool
+    2dup action-check-square-for-new-adj-pairs      \ sqr1 act0 bool
 
-    -rot                                            \ bool sqr1 act0
+    #2 pick #2 pick                                 \ sqr1 act0 bool sqr1 act0
+    action-check-square-for-new-nadj-pairs          \ sqr1 act0 bool bool
 
-    action-check-square-effect-on-nadj-pairs        \ bool bool
+    or                                                  \ sqr1 act0 bool
 
-    or
-    \ cr ." action-check-square-effect-on-incompatible-pairs: end: " .stack cr
+    if
+        action-incompatible-pairs-changed               \ sqr1
+        drop
+        \ cr ." action-check-incompatible-pairs-new-square: end 1: " cr
+    else
+        2drop
+        \ cr ." action-check-incompatible-pairs-new-square: end 2: " cr
+    then
 ;
 
 \ ********************************
 \ * End incompatible pair logic. *
 \ ********************************
-
-\ Check a new, or updated square.
-: action-check-square ( sqr1 act0 -- )
-    \ Check args.
-    assert( tos is-action? )
-    assert( nos is-square? )
-    \ cr ." action-check-square: start: " .stack cr
-
-    2dup                                                \ sqr1 act0 sqr1 act0
-    action-check-square-effect-on-incompatible-pairs    \ sqr1 act0 bool
-
-    -rot                                                \ bool sqr1 act0
-
-    2dup action-check-square-for-new-adj-pairs          \ bool sqr1 act0 bool
-    -rot                                                \ bool bool sqr1 act0
-    2dup action-check-square-for-new-nadj-pairs         \ bool bool sqr1 act0 bool
-
-    \ Combine the bools.
-    #4 pick or                                          \ bool bool sqr1 act0 bool
-    #3 pick or                                          \ bool bool sqr1 act0 bool
-    if
-        dup _action-delete-orphaned-groups
-    then
-
-    dup action-add-possible-groups                      \ bool bool sqr1 act0
-
-    action-update-groups-from-corner-cluster            \ bool bool sqr1
-
-    2drop drop
-
-    \ cr ." action-check-square: end: " .stack cr
-;
-
-\ Add a new square to the action square list.
-: action-add-new-square ( sqr1 act0 -- )
-    \ Check args.
-    assert( tos is-action? )
-    assert( nos is-square? )
-    \ cr ." action-add-new-square: start: " .stack cr
-
-    over square-get-state       \ sqr1 act0 sta
-    over action-find-square     \ sqr1 act0, sqr t | f
-    if
-        cr ." action-add-new-square: square already exists in square list" abort
-    then
-
-    \ Store the square.
-    2dup action-get-squares     \ sqr1 act0 sqr1 sqr-lst
-    list-push-struct            \ sqr1 act0
-
-    2dup action-udpate-groups-with-new-square
-
-    action-check-square
-    \ cr ." action-add-new-square: end: " .stack cr
-;
-
-\ Inform groups of chaned square.
-: action-udpate-groups-with-changed-square ( sqr1 act0 -- )
-    \ Check args.
-    assert( tos is-action? )
-    assert( nos is-square? )
-    \ cr ." action-udpate-groups-with-changed-square: start" cr
-
-    action-get-groups                   \ sqr1 grp-lst
-    foreach                             \ sqr1 grp-lnk grpx
-        #2 pick swap                    \ sqr1 grp-lnk sqr1 grpx
-        group-check-changed-square      \ sqr1 grp-lnk
-    next-item
-                                        \ sqr1
-    drop
-;
 
 \ Add a sample, return true if the sample changed
 \ a square.
@@ -2186,40 +2029,52 @@ action-groups-disp                          cell+   constant action-function-dis
     \ Check args.
     assert( tos is-action? )
     assert( nos is-sample? )
-    \ cr dup .action-parent-inst-id  dup .action-inst-id ." : Add sample: " over .sample cr
-    \ cr ." action-add-sample: start: " .stack cr
+    \ cr ." action-add-sample: start: " cr
 
     over sample-get-initial     \ smpl1 act0 initial
     over action-find-square     \ smpl1 act0, sqr t | f
     if
+        \ Update square.
         rot                     \ act0 sqr smpl1
         over                    \ act0 sqr smpl1 sqr
-        \ cr #3 pick .action-parent-inst-id #3 pick .action-inst-id ." : Updating square: " dup .square cr
         square-add-sample       \ act0 sqr bool
-        cr #2 pick .action-parent-inst-id #2 pick .action-inst-id ." : Updated square: " over .square cr
+        cr #2 pick .action-inst-ids ." : Updated square: " over .square cr
         if
-            swap                        \ sqr act0
-            2dup action-check-square    \
-            action-udpate-groups-with-changed-square
+            \ Square changed.
+            swap                \ sqr act0
+
+            2dup action-update-groups-with-changed-square
+
+            action-check-incompatible-pairs-changed-square  \
             true
             \ cr ." action-add-sample: exit 1: " cr
-        else
-            2drop
-            false
-            \ cr ." action-add-sample: exit 2: " cr
+            exit
         then
-    else
-        over                    \ smpl1 act0 smpl1
-        square-new              \ smpl1 act0 sqr1
-        cr over .action-parent-inst-id over .action-inst-id ." : Adding new square: " dup .square cr
-        tuck over               \ smpl1 sqr1 act0 sqr1 act0
-        action-add-new-square   \ smpl1 sqr1 act0
-        action-check-square     \ smpl1
-        drop
-        true
-        \ cr ." action-add-sample: exit 3: " cr
+
+        \ Square did not change.
+        2drop                   \
+        false
+        \ cr ." action-add-sample: exit 2: " cr
+        exit
     then
-    \ cr ." action-add-sample: end: " .stack cr
+
+    \ Make new square.
+    swap                        \ act0 smpl1
+    square-new                  \ act0 sqr
+    cr over .action-inst-ids ." : Adding new square: " dup .square cr
+
+    \ Add new square.
+    swap 2dup                   \ sqr act0 sqr act0
+    action-get-squares          \ sqr act0 sqr sqr-lst
+    list-push-struct            \ sqr act0
+
+    2dup action-update-groups-with-new-square
+
+    dup action-add-possible-groups
+
+    action-check-incompatible-pairs-new-square  \
+    true
+    \ cr ." action-add-sample: end: " cr
 ;
 
 \ Get a sample from an action.
@@ -2291,16 +2146,6 @@ action-groups-disp                          cell+   constant action-function-dis
     2drop
 ;
 
-\ Return a group, given a matchig region.
-: action-find-group ( reg1 act0 -- grp t | f )
-    \ Check args.
-    assert( tos is-action? )
-    assert( nos is-region? )
-
-    action-get-groups           \ reg1 grp-lst
-    group-list-find             \ grp t | f
-;
-
 : action-make-need-dis ( tkn3 sta2 typ1 act0 -- actned )
     \ Check args.
     assert( tos is-action? )
@@ -2312,17 +2157,6 @@ action-groups-disp                          cell+   constant action-function-dis
     action-get-dom-inst-id      \ tkn3 sta2 typ1 act-id dom-id
 
     actneed-new
-;
-
-\ Return true if a state is in more than one possible region.
-: action-state-in-many-regions ( sta1 act0 -- bool )
-    \ Check args.
-    assert( tos is-action? )
-    assert( nos is-state? )
-
-    action-get-possible-regions     \ sta1 reg-lst
-    region-list-num-state-in        \ num
-    1 >                             \ bool
 ;
 
 \ Return true if a state does NOT have an adjacent compatible square,
@@ -2633,9 +2467,11 @@ action-groups-disp                          cell+   constant action-function-dis
 
     dup list-is-empty?                  \ regs-left' bool
     if
-        swap list-deallocate
+        list-deallocate
+        true
     else
-        swap region-list-deallocate
+        region-list-deallocate
+        false
     then
 ;
 
@@ -2645,6 +2481,7 @@ action-groups-disp                          cell+   constant action-function-dis
     \ Check arg.
     assert( tos is-action? )
     assert( nos is-state? )
+    \ cr ." action-calc-resolve-uncertainty-needs: start" cr
 
     \ Init return list.
     list-new -rot                           \ ret-lst sta1 act0
@@ -2663,16 +2500,16 @@ action-groups-disp                          cell+   constant action-function-dis
             over link-get-data              \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt pos-reg nxt-reg
             region-intersection             \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt, reg-int' t | f
             if
-                cr ." intersection found: "
-                #2 pick link-get-data .region
-                space ." and: "
-                over link-get-data .region
-                space ." at: "
-                dup .region
+                \ cr ." intersection found: "
+                \ #2 pick link-get-data .region
+                \ space ." and: "
+                \ over link-get-data .region
+                \ space ." at: "
+                \ dup .region
 
                 dup #6 pick                 \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' reg-int' act0
                 action-region-covered-by-defining-regions?
-\ cr ." at 1 : " .stack cr
+
                 ifnot
                     #2 pick                 \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' pos-lnk
                     link-get-data           \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' pos-reg
@@ -2755,7 +2592,7 @@ action-groups-disp                          cell+   constant action-function-dis
                                                         \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int'
                 then
                 region-deallocate
-                cr
+                \ cr
             then
             link-get-next
         repeat
@@ -2766,6 +2603,7 @@ action-groups-disp                          cell+   constant action-function-dis
     2drop 2drop                             \ ret-lst
 
     check-list-return
+    \ cr ." action-calc-resolve-uncertainty-needs: end" cr
 ;
 
 \ Check corners for anchor discovery needs.
@@ -2903,6 +2741,17 @@ action-groups-disp                          cell+   constant action-function-dis
     #2 pick list-is-not-empty?
     if
         2drop
+        true
+        exit
+    then
+
+    2dup action-calc-resolve-uncertainty-needs  \ ret-lst cur-sta1 act0, ned-lst' t | f
+    if
+        dup                                     \ ret-lst cur-sta1 act0 ned-lst' ned-lst'
+        #4 pick                                 \ ret-lst cur-sta1 act0 ned-lst' ned-lst' ret-lst
+        list-append-struct                      \ ret-lst cur-sta1 act0 ned-lst'
+        actneed-list-deallocate                 \ ret-lst cur-sta1 act0
+        2drop                                   \ ret-lst
         true
         exit
     then

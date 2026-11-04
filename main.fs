@@ -37,7 +37,7 @@
 \ 53173, ChangesCorr
 
 \ Start a clean vocabulary.
-cr ." Starting vocabulary UES," cr
+cr ." Starting vocabulary UES." cr
 vocabulary UES
 
 true constant debug
@@ -267,24 +267,35 @@ list-new to structinfo-list-store
 
 : all-tests
     check-project-deallocated
+
+    random-pick-test
+
     mask-tests
+    maskcorr-tests
+
     state-tests
-    region-tests
-    rule-tests
-    sample-tests
     state-list-tests
     statecorr-tests
+    sample-tests
+
+    region-tests
     region-list-tests
+    regioncorr-tests
+    regioncorr-list-tests
+
+    rule-tests
+
+    square-tests
     square-list-tests
-    action-tests
+
     group-tests
-    domain-tests
+
     corner-tests
     corner-list-tests
 \    need-tests
-    maskcorr-tests
-    regioncorr-tests
-    regioncorr-list-tests
+
+    action-tests
+    domain-tests
     session-tests
     cr
     .memory-use

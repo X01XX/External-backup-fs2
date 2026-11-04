@@ -448,6 +448,8 @@
         cr ." needs: " dup .actneed-list cr
 
         \ Test needs.
+        dup list-get-length #2 <> abort" needs len ne 2?"
+
         s" s1100" state-from-string-a dup   \ act sta' ned-lst' stax' stax'
         actneed-type-resunc                 \ act sta' ned-lst' stax' stax' typ
         #3 pick                             \ act sta' ned-lst' stax' stax' typ ned-lst'
@@ -479,6 +481,8 @@
         cr ." needs: " dup .actneed-list cr
 
         \ Test needs.
+        dup list-get-length #2 <> abort" needs len ne 2?"
+
         s" s1100" state-from-string-a dup   \ act sta' ned-lst' stax' stax'
         actneed-type-resunc                 \ act sta' ned-lst' stax' stax' typ
         #3 pick                             \ act sta' ned-lst' stax' stax' typ ned-lst'
