@@ -389,6 +389,7 @@ action-groups-disp                      cell+   constant action-function-disp   
     dup list-is-empty?
     if
         cr ." Unneeded possible region update?" cr
+        abort
     else
         \ cr ." old: " over .region-list cr
         \ cr ." new: " #3 pick .region-list cr
@@ -912,12 +913,11 @@ action-groups-disp                      cell+   constant action-function-disp   
         #3 pick                         \ d-lst' grp-lst d-lnk xt grpx grp-lst
         list-remove-struct              \ d-lst' grp-lst d-lnk, grpx t | f
         invert abort" group not found?"
-        \ cr ." Deleting group: " dup group-get-region .region cr
         drop
     next-item
                                         \ d-lst' grp-lst
     drop                                \ d-lst'
-    group-list-deallocate
+    group-list-deallocate               \ Groups deallocated here.
     \ cr ." action-update-groups-with-new-square: end: " .stack cr
 ;
 
@@ -1016,7 +1016,7 @@ action-groups-disp                      cell+   constant action-function-disp   
     next-item
                                         \ d-lst' act0 grp-lst
     2drop                               \ d-lst'
-    group-list-deallocate
+    group-list-deallocate               \ Groups deallocated here.
 ;
 
 \ ********************
@@ -1720,13 +1720,33 @@ action-groups-disp                      cell+   constant action-function-disp   
                     squares-compare                 \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk char
                     [char] I =                      \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk bool
                     if
-                        \ Store new pair.
+                        \ Make region from pair.
                         dup link-get-data           \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk sqrx
                         square-get-state            \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk stax
                         #5 pick                     \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk stax sqr1
                         square-get-state            \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk stax sta1
+                        cr ." pair: " over .state space dup .state cr
                         region-new                  \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk prx
-                        #6 pick list-push-struct    \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk
+
+                        \ Check new pair.
+                        [ ' regions-eq? ] literal   \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk prx xt
+                        over                        \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk prx xt prx
+                        #6 pick                     \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk prx xt prx act0
+                        action-get-adj-pairs        \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk prx xt prx adj-prs
+                        list-member?                \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk prx bool
+                        if
+                            region-deallocate
+                        else
+                            \ Store pair.
+                            dup                     \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk prx prx
+                            #7 pick                 \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk prx prx pr-lst
+                            region-list-push-nosubs \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk prx bool
+                            if
+                                drop
+                            else
+                                region-deallocate
+                            then
+                        then
                     then
                 then
             next-item
@@ -1759,7 +1779,7 @@ action-groups-disp                      cell+   constant action-function-disp   
         exit
     then
 
-    cr ." Adding adjacent pairs: " dup .region-list cr
+    cr ." Adding adjacent pairs: " dup .region-list space ." cur: " over action-get-adj-pairs .region-list cr
 
     \ Add adjacent pairs, update adjacent pair regions with incremental calculations.
     over action-get-adj-pairs                   \ sqr1 act0 pr-lst' adj-prs
@@ -1767,16 +1787,20 @@ action-groups-disp                      cell+   constant action-function-disp   
     foreach                                     \ sqr1 act0 pr-lst' adj-prs pr-lnk prx
         \ Add pair to pair list.
         #2 pick                                 \ sqr1 act0 pr-lst' adj-prs pr-lnk prx adj-prs
-        list-push-struct                        \ sqr1 act0 pr-lst' adj-prs pr-lnk
-
-        \ Update adjacent pair regions.
-        dup link-get-data                       \ sqr1 act0 pr-lst' adj-prs pr-lnk prx
-        region-get-states                       \ sqr1 act0 pr-lst' adj-prs pr-lnk sta-1 sta-0
-        state-~a+~b                             \ sqr1 act0 pr-lst' adj-prs pr-lnk reg-lst'
-        #4 pick action-get-adj-regions          \ sqr1 act0 pr-lst' adj-prs pr-lnk reg-lst' adj-regs
-        over region-list-intersections-nosubs   \ sqr1 act0 pr-lst' adj-prs pr-lnk reg-lst' adj-regs'
-        #5 pick _action-update-adj-regions      \ sqr1 act0 pr-lst' adj-prs pr-lnk reg-lst'
-        region-list-deallocate                  \ sqr1 act0 pr-lst' adj-prs pr-lnk
+        region-list-push-nosups                 \ sqr1 act0 pr-lst' adj-prs pr-lnk bool
+        if
+            \ Update adjacent pair regions.
+            dup link-get-data                       \ sqr1 act0 pr-lst' adj-prs pr-lnk prx
+            region-get-states                       \ sqr1 act0 pr-lst' adj-prs pr-lnk sta-1 sta-0
+            state-~a+~b                             \ sqr1 act0 pr-lst' adj-prs pr-lnk reg-lst'
+            #4 pick action-get-adj-regions          \ sqr1 act0 pr-lst' adj-prs pr-lnk reg-lst' adj-regs
+            over region-list-intersections-nosubs   \ sqr1 act0 pr-lst' adj-prs pr-lnk reg-lst' adj-regs'
+            #5 pick _action-update-adj-regions      \ sqr1 act0 pr-lst' adj-prs pr-lnk reg-lst'
+            region-list-deallocate                  \ sqr1 act0 pr-lst' adj-prs pr-lnk
+        else
+            cr ." Unneeded add of adj pair: " dup link-get-data .region cr
+            abort
+        then
     next-item
                                                 \ sqr1 act0 pr-lst' adj-prs
     drop region-list-deallocate                 \ sqr1 act0
@@ -1829,18 +1853,29 @@ action-groups-disp                      cell+   constant action-function-disp   
                     squares-compare                 \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk char
                     [char] I =                      \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk bool
                     if
-                        \ Store new pair.
+                        \ Make region of pair.
                         dup link-get-data           \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk sqrx
                         square-get-state            \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk stax
                         #5 pick square-get-state    \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk stax sta1
                         region-new                  \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk prx
+
+                        \ Check against current nadj pairs.
                         dup                         \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk prx prx
-                        #7 pick                     \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk prx prx pr-lst
-                        region-list-push-nosups     \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk prx bool
+                        #5 pick                     \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk prx prx act0
+                        action-get-nadj-pairs       \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk prx prx nadj-prs
+                        region-list-any-subset-of?  \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk prx bool
                         if
-                            drop
+                            region-deallocate       \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk
                         else
-                            region-deallocate
+                            \ Store new pair.
+                            dup                     \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk prx prx
+                            #7 pick                 \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk prx prx pr-lst
+                            region-list-push-nosups \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk prx bool
+                            if
+                                drop
+                            else
+                                region-deallocate
+                            then
                         then
                     then
                 then
@@ -1872,7 +1907,8 @@ action-groups-disp                      cell+   constant action-function-disp   
         exit
     then
 
-    cr over .action-inst-ids space ." Adding non-adjacent pairs: " dup .region-list cr
+    \ cr over .action-inst-ids space ." Adding non-adjacent pairs: " dup .region-list cr
+    cr ." Adding non-adjacent pairs: " dup .region-list space ." cur: " over action-get-nadj-pairs .region-list cr
 
                                                 \ sqr1 act0 pr-lst' bool
 
@@ -1882,16 +1918,20 @@ action-groups-disp                      cell+   constant action-function-disp   
     foreach                                     \ sqr1 act0 pr-lst' nadj-prs pr-lnk prx
         \ Add pair to pair list.
         #2 pick                                 \ sqr1 act0 pr-lst' nadj-prs pr-lnk prx nadj-prs
-        region-list-push-nosups drop            \ sqr1 act0 pr-lst' nadj-prs pr-lnk
-
-        \ Update adjacent pair regions.
-        dup link-get-data                       \ sqr1 act0 pr-lst' nadj-prs pr-lnk prx
-        region-get-states                       \ sqr1 act0 pr-lst' nadj-prs pr-lnk sta-1 sta-0
-        state-~a+~b                             \ sqr1 act0 pr-lst' nadj-prs pr-lnk reg-lst'
-        #4 pick action-get-nadj-regions         \ sqr1 act0 pr-lst' nadj-prs pr-lnk reg-lst' nadj-regs
-        over region-list-intersections-nosubs   \ sqr1 act0 pr-lst' nadj-prs pr-lnk reg-lst' nadj-regs'
-        #5 pick _action-update-nadj-regions     \ sqr1 act0 pr-lst' nadj-prs pr-lnk reg-lst'
-        region-list-deallocate                  \ sqr1 act0 pr-lst' nadj-prs pr-lnk
+        region-list-push-nosups                 \ sqr1 act0 pr-lst' nadj-prs pr-lnk bool
+        if
+            \ Update adjacent pair regions.
+            dup link-get-data                       \ sqr1 act0 pr-lst' nadj-prs pr-lnk prx
+            region-get-states                       \ sqr1 act0 pr-lst' nadj-prs pr-lnk sta-1 sta-0
+            state-~a+~b                             \ sqr1 act0 pr-lst' nadj-prs pr-lnk reg-lst'
+            #4 pick action-get-nadj-regions         \ sqr1 act0 pr-lst' nadj-prs pr-lnk reg-lst' nadj-regs
+            over region-list-intersections-nosubs   \ sqr1 act0 pr-lst' nadj-prs pr-lnk reg-lst' nadj-regs'
+            #5 pick _action-update-nadj-regions     \ sqr1 act0 pr-lst' nadj-prs pr-lnk reg-lst'
+            region-list-deallocate                  \ sqr1 act0 pr-lst' nadj-prs pr-lnk
+        else
+            dup link-get-data cr ." Unneeded add of nadj pair: " .region cr
+            abort
+        then
     next-item
                                                 \ sqr1 act0 pr-lst' nadj-prs
     drop region-list-deallocate                 \ sqr1 act0
