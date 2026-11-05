@@ -512,6 +512,131 @@
     cr ." action-test-calc-resolve-uncertainty-needs - Ok"
 ;
 
+\ Take an actionstep that produces an unexpected result,
+\ update an existing square.
+\ Success = don't abort.
+: action-test-take-step-1
+    \ Init action.
+    [ ' noop ] literal
+    s" rXXXX 0" string-to-stack-a
+    action-new                              \ act
+
+    \ Add 5->4
+    s" s0101->s0100" sample-from-string-a   \ act smpl
+    over action-add-sample drop             \ act bool
+
+    \ Add 6->7
+    s" s0110->s0111" sample-from-string-a   \ act smpl
+    over action-add-sample drop             \ act bool
+
+    cr dup .action cr
+
+    0 s" s0100" state-from-string-a s" s0101" state-from-string-a 0 0 actionstep-new
+                                            \ act actstp
+    swap                                    \ actstp act
+    cr ." actionstep: " over .actionstep cr
+
+    2dup action-take-step                   \ actstp act smpl'
+
+    cr over .action cr
+
+    \ Deallocate.
+    sample-deallocate
+    action-deallocate
+    actionstep-deallocate
+
+    \ Check for memory leaks.
+    check-project-deallocated
+
+    cr ." action-test-take-step-1 - Ok"
+;
+
+\ Take an actionstep that produces an unexpected result,
+\ Create a new square.
+\ Success = don't abort.
+: action-test-take-step-2
+    \ Init action.
+    [ ' noop ] literal
+    s" rXXXX 0" string-to-stack-a
+    action-new                              \ act
+
+    \ Add 5->4
+    s" s0101->s0100" sample-from-string-a   \ act smpl
+    over action-add-sample drop             \ act bool
+
+    \ Add 6->7
+    s" s0110->s0111" sample-from-string-a   \ act smpl
+    over action-add-sample drop             \ act bool
+
+    cr dup .action cr
+
+    0 s" s0110" state-from-string-a s" s0111" state-from-string-a 0 0 actionstep-new
+                                            \ act actstp
+    swap                                    \ actstp act
+    cr ." actionstep: " over .actionstep cr
+
+    2dup action-take-step                   \ actstp act smpl'
+
+    cr over .action cr
+
+    \ Deallocate.
+    sample-deallocate
+    action-deallocate
+    actionstep-deallocate
+
+    \ Check for memory leaks.
+    check-project-deallocated
+
+    cr ." action-test-take-step-2 - Ok"
+;
+
+\ Take an actionstep that produces an unexpected result,
+\ don't create a new square, due to the alternate possible result being matched.
+\ Success = don't abort.
+: action-test-take-step-3
+    \ Init action.
+    [ ' noop ] literal
+    s" rXXXX 0" string-to-stack-a
+    action-new                              \ act
+
+    \ Add 5->4
+    s" s0101->s0100" sample-from-string-a   \ act smpl
+    over action-add-sample drop             \ act bool
+
+    \ Add 5->5
+    s" s0101->s0101" sample-from-string-a   \ act smpl
+    over action-add-sample drop             \ act bool
+
+    \ Add 6->7
+    s" s0110->s0111" sample-from-string-a   \ act smpl
+    over action-add-sample drop             \ act bool
+
+    \ Add 6->6
+    s" s0110->s0110" sample-from-string-a   \ act smpl
+    over action-add-sample drop             \ act bool
+
+    cr dup .action cr
+
+    s" s0111" state-from-string-a s" s0110" state-from-string-a s" s0111" state-from-string-a 0 0 actionstep-new
+                                            \ act actstp
+    swap                                    \ actstp act
+    cr ." actionstep: " over .actionstep cr
+
+    2dup action-take-step                   \ actstp act smpl'
+
+    cr over .action cr
+
+    \ Deallocate.
+    sample-deallocate
+    action-deallocate
+    actionstep-deallocate
+
+    \ Check for memory leaks.
+    check-project-deallocated
+
+    cr ." action-test-take-step-3 - Ok"
+;
+
 : action-tests
     action-test-new
     action-test-add-sample
@@ -521,5 +646,7 @@
     action-test-anchor-discovery-corners
     action-test-anchor-discovery-clusters
     action-test-calc-resolve-uncertainty-needs
+    \ action-test-take-step-1
+    \ action-test-take-step-2
     cr
 ;

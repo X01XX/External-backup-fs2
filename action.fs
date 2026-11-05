@@ -1725,7 +1725,7 @@ action-groups-disp                      cell+   constant action-function-disp   
                         square-get-state            \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk stax
                         #5 pick                     \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk stax sqr1
                         square-get-state            \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk stax sta1
-                        cr ." pair: " over .state space dup .state cr
+                        \ cr ." pair: " over .state space dup .state cr
                         region-new                  \ pr-lst sqr1 act0 adj-lnk sqr-lst' sqr-lnk prx
 
                         \ Check new pair.
@@ -2118,9 +2118,75 @@ action-groups-disp                      cell+   constant action-function-disp   
 ;
 
 \ Get a sample from an action.
-\ Depends on the current domain being set correctly.
-\ Add the sample to the action.
+\ The passed state s/b the domain current state.
 : action-get-sample ( sta1 act0 -- smpl )
+    \ cr ." action-get-sample: start" cr
+    \ Check args.
+    assert( tos is-action? )
+    assert( nos is-state? )
+
+    2dup                    \ sta1 act0 sta1 act0
+    action-get-function     \ sta1 act0 sta1 xt
+    execute                 \ sta1 act0 r-sta
+    rot                     \ act0 r-sta sta1
+    sample-new              \ act0 smpl'
+
+    cr over .action-inst-ids space dup .sample cr
+
+    tuck                    \ smpl' act0 smpl'
+    swap                    \ smpl' smpl' act0
+
+    action-add-sample       \ smpl bool
+    drop sample-copy        \ smpl'
+;
+
+\ Get a sample from an action, for an actionstep/planstep.
+\ The passed state s/b the domain current state.
+\ If a square exists foc the state, update it,
+\ else do not create a new square.
+: action-get-sample-step ( sta1 act0 -- smpl )
+    \ cr ." action-get-sample: start" cr
+    \ Check args.
+    assert( tos is-action? )
+    assert( nos is-state? )
+
+    2dup                    \ sta1 act0 sta1 act0
+    action-get-function     \ sta1 act0 sta1 xt
+    execute                 \ sta1 act0 r-sta
+    rot                     \ act0 r-sta sta1
+    sample-new              \ act0 smpl'
+
+    cr over .action-inst-ids space dup .sample cr
+
+    \ Upate square, if it exists.
+    dup sample-get-initial      \ act0 smpl' initial
+    #2 pick action-find-square  \ act0 smpl', sqr t | f
+    if
+        \ Update square.
+        2dup                    \ act0 smpl' sqr smpl' sqr
+        square-add-sample       \ act0 smpl sqr bool
+        cr #3 pick .action-inst-ids ." : Updated square: " over .square cr
+        if
+            \ Square changed.
+            rot                \ smpl sqr act0
+
+            2dup action-update-groups-with-changed-square   \ smpl sqr act0
+
+            action-check-incompatible-pairs-changed-square  \ smpl
+            sample-copy                                     \ smpl'
+        else
+            drop nip            \ smpl
+            sample-copy         \ smpl'
+        then
+        exit
+    then
+
+    nip                         \ smpl'
+;
+
+\ Take a sample for an action.
+\ The passed state s/b the domain current state.
+: action-take-sample ( sta1 act0 -- )
     \ cr ." action-get-sample: start" cr
     \ Check args.
     assert( tos is-action? )
@@ -2134,11 +2200,71 @@ action-groups-disp                      cell+   constant action-function-disp   
 
     cr over .action-inst-ids space dup .sample cr
 
-    tuck                    \ smpl act0 smpl
-    swap                    \ smpl smpl act0
+    swap                    \ smpl act0
 
-    action-add-sample       \ smpl bool
-    drop                    \ smpl
+    action-add-sample       \ bool
+    drop
+;
+
+\ Take an actionstep.
+\ Avoid creating a new square, unless the result is not as expected.
+: action-take-step ( actstp1 act0 -- smpl' )
+     \ Check args.
+    assert( tos is-action? )
+    assert( nos is-actionstep? )
+
+    over actionstep-get-from    \ actstp1 act0 sta-f
+    over                        \ actstp1 act0 sta-f act0
+    action-get-sample-step      \ actstp1 act0 smpl'
+
+    \ Check results.
+    dup sample-get-result       \ actstp1 act0 smpl' smpl-t
+    #3 pick actionstep-get-to   \ actstp1 act0 smpl' smpl-t actstp-t
+    states-eq?                  \ actstp1 act0 smpl' bool
+
+    \ Check possible alt results.
+    #3 pick                     \ actstp1 act0 smpl' bool actstp1
+    actionstep-get-alt-to       \ actstp1 act0 smpl' bool alt-t
+    ?dup if
+        #2 pick                 \ actstp1 act0 smpl' bool alt-t smpl'
+        sample-get-result       \ actstp1 act0 smpl' bool alt-t sta-t
+        states-eq?              \ actstp1 act0 smpl' bool bool
+        or                      \ actstp1 act0 smpl' bool
+    then
+
+    if
+        \ Result is expected.
+        nip nip                 \ smpl'
+        exit
+    then
+
+    \ Results not as expected. Add new square if needed.
+    dup sample-get-initial      \ actstp1 act0 smpl' smpl-f
+    #2 pick action-get-squares  \ actstp1 act0 smpl' smpl-f sqr-lst
+    square-list-find            \ actstp1 act0 smpl', sqr t | f
+    if
+        \ Square exists, it has already been updated.
+        drop                    \ actstp1 act0 smpl'
+        nip nip
+        exit
+    then
+
+    \ Make new square.          \ actstp1 act0 smpl'
+    tuck  square-new            \ actstp1 smpl act0 sqr
+
+    \ Add new square.
+    cr over .action-inst-ids ." : Adding new square: " dup .square cr
+    swap 2dup                   \ actstp1 smpl sqr act0 sqr act0
+    action-get-squares          \ actstp1 smpl sqr act0 sqr sqr-lst
+    list-push-struct            \ actstp1 smpl sqr act0
+
+    2dup action-update-groups-with-new-square
+
+    dup action-add-possible-groups
+
+    action-check-incompatible-pairs-new-square  \ actstp1 smpl
+    nip                                         \ smpl
+    sample-copy                                 \ smpl'
 ;
 
 : action-get-forward-steps ( from-sta1 act0 -- actstp-lst t | f )

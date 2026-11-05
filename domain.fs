@@ -364,8 +364,8 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
     action-list-push-end            \
 ;
 
-\ Get a sample from an action in a domain.
-: domain-get-sample ( act1 dom0 -- smpl )
+\ Take a sample from an action in a domain.
+: domain-take-sample ( act1 dom0 -- )
      \ Check args.
     assert( tos is-domain? )
     assert( nos is-action? )
@@ -373,7 +373,7 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
     \ Get action sample.
     dup domain-get-current-state    \ act1 dom0 | d-sta
     #2 pick                         \ act1 dom0 | d-sta act1
-    action-get-sample               \ act1 dom0 | smpl
+    action-get-sample               \ act1 dom0 | smpl'
 
     \ Set domain current state.
     dup sample-get-result           \ act1 dom0 | smpl sta
@@ -386,10 +386,9 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
 \    space dup .sample
 \    cr
 
-    nip nip                         \ smpl
+    sample-deallocate               \ act1 dom0
+    2drop                           \
 ;
-
-' domain-get-sample to domain-get-sample-xt
 
 \ Return a action, given a action ID.
 : domain-find-action ( u1 dom0 -- act t | f )
@@ -413,6 +412,29 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
     list-get-item               \ dom0 act
     nip
     true
+;
+
+\ Take an actionstep for a domain.
+: domain-take-actionstep ( actstp1 dom0 -- )
+     \ Check args.
+    assert( tos is-domain? )
+    assert( nos is-actionstep? )
+
+    over actionstep-get-act-inst-id \ actstp1 dom0 act-id
+    over domain-find-action         \ actstp1 dom0, actx t | f
+    invert abort" action not found?"
+
+    \ Get action sample.
+    rot swap                        \ dom0 actstp1 actx
+    action-take-step                \ dom0 smpl'
+
+    \ Set domain current state.
+    dup sample-get-result           \ dom0 smpl' sta-r
+    #2 pick                         \ dom0 smpl' sta-r dom
+    domain-update-current-state     \ dom0 smpl'
+
+    sample-deallocate               \ dom0
+    drop                            \
 ;
 
 : domain-get-number-actions ( dom -- na )
@@ -476,7 +498,7 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
 ;
 
 \ Take a sample of an arbitrary state.
-: domain-get-arbitary-sample ( sta2 act-id1 dom0 -- smpl )
+: domain-take-arbitrary-sample ( sta2 act-id1 dom0 -- )
     \ Check args.
     assert( tos is-domain? )
     assert( 2dup domain-valid-act-id? )
@@ -494,5 +516,5 @@ domain-all-bits-mask-disp   cell+   constant domain-ms-bit-mask-disp    \ A mask
 
     \ Get sample.
     swap                            \ act dom
-    domain-get-sample               \ smpl
+    domain-take-sample              \
 ;

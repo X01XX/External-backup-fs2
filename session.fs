@@ -554,8 +554,8 @@ session-paths-disp              cell+   constant session-sesneed-list-disp      
 
     \ Run action.
     swap                            \ actned1 sess0 act domx
-    domain-get-sample               \ actned1 sess0 smpl
-    2drop drop
+    domain-take-sample              \ actned1 sess0
+    2drop
     true
 ;
 
@@ -969,6 +969,7 @@ session-paths-disp              cell+   constant session-sesneed-list-disp      
     then
 ;
 \ Run a planstep.
+\ Return true if the results were as expected.
 : session-run-planstep ( plnstp1 sess0 -- bool )
     \ Check args.
     assert( tos is-session? )
@@ -981,17 +982,7 @@ session-paths-disp              cell+   constant session-sesneed-list-disp      
     session-find-domain             \ plnstp1 sess0 actstp1, dom t | f
     invert abort" domain not found? "
 
-    \ Look up action instance       \ plnstp1 sess0 actstp1 dom
-    over actionstep-get-act-inst-id \ plnstp1 sess0 actstp1 dom act-id
-    over domain-find-action         \ plnstp1 sess0 actstp1 dom, act t | f
-    invert abort" action not found?"
-
-    \ Run action.
-    swap                            \ plnstp1 sess0 actstp1 act dom
-    domain-get-sample               \ plnstp1 sess0 actstp1 smpl
-    drop
-
-    drop                            \ plnstp1 sess0
+    domain-take-actionstep          \ plnstp1 sess0
 
     \ Check results.
     dup session-get-current-states  \ plnstp1 sess0 ses-cur'
@@ -1350,8 +1341,7 @@ session-paths-disp              cell+   constant session-sesneed-list-disp      
         \ Get sample.
         #3 pick list-get-fourth-item    \ cmp-lst sess0 act-id dom sta
         #2 pick #2 pick                 \ cmp-lst sess0 act-id dom sta act-id dom
-        domain-get-arbitary-sample      \ cmp-lst sess0 act-id dom smpl
-        drop                            \ cmp-lst sess0 act-id dom
+        domain-take-arbitrary-sample    \ cmp-lst sess0 act-id dom
 
         \ Show act.
         domain-find-action              \ cmp-lst sess0, act t | f
@@ -1648,8 +1638,7 @@ session-paths-disp              cell+   constant session-sesneed-list-disp      
         invert abort" action not found?"
 
         tuck swap                       \ cmp-lst sess0 act act dom
-        domain-get-sample               \ cmp-lst sess0 act smpl
-        drop                            \ cmp-lst sess0 act
+        domain-take-sample              \ cmp-lst sess0 act
 
         cr .action cr                   \ cmp-lst sess0
 

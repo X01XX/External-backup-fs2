@@ -244,3 +244,12 @@ sample-initial-disp cell+   constant sample-result-disp     \ Result state.
     sample-get-result
     states-eq?
 ;
+
+: sample-copy ( smpl0 -- reg )
+    \ Check arg.
+    assert( tos is-sample? )
+
+    dup sample-get-result swap  \ sta-r smpl0
+    sample-get-initial          \ sta-r sta-i
+    sample-new                  \ smpl
+;
