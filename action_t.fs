@@ -514,7 +514,6 @@
 
 \ Take an actionstep that produces an unexpected result,
 \ update an existing square.
-\ Success = don't abort.
 : action-test-take-step-1
     \ Init action.
     [ ' noop ] literal
@@ -540,6 +539,9 @@
 
     cr over .action cr
 
+    \ Test result.
+    over action-get-squares list-get-length #2 <> abort" s/b two squares"
+
     \ Deallocate.
     sample-deallocate
     action-deallocate
@@ -553,7 +555,6 @@
 
 \ Take an actionstep that produces an unexpected result,
 \ Create a new square.
-\ Success = don't abort.
 : action-test-take-step-2
     \ Init action.
     [ ' noop ] literal
@@ -579,6 +580,9 @@
 
     cr over .action cr
 
+    \ Test result.
+    over action-get-squares list-get-length #3 <> abort" s/b three squares"
+
     \ Deallocate.
     sample-deallocate
     action-deallocate
@@ -592,7 +596,6 @@
 
 \ Take an actionstep that produces an unexpected result,
 \ don't create a new square, due to the alternate possible result being matched.
-\ Success = don't abort.
 : action-test-take-step-3
     \ Init action.
     [ ' noop ] literal
@@ -626,6 +629,9 @@
 
     cr over .action cr
 
+    \ Test result.
+    over action-get-squares list-get-length #2 <> abort" s/b two squares"
+
     \ Deallocate.
     sample-deallocate
     action-deallocate
@@ -646,7 +652,8 @@
     action-test-anchor-discovery-corners
     action-test-anchor-discovery-clusters
     action-test-calc-resolve-uncertainty-needs
-    \ action-test-take-step-1
-    \ action-test-take-step-2
+    action-test-take-step-1
+    action-test-take-step-2
+    action-test-take-step-3
     cr
 ;
