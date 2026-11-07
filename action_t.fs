@@ -541,8 +541,15 @@
 
     \ Test result.
     over action-get-squares list-get-length #2 <> abort" s/b two squares"
+    s" s0101" state-from-string-a dup       \ actstp act smpl' sta5 sta5
+    #3 pick action-get-squares              \ actstp act smpl' sta5 sta5 sqr-lst
+    square-list-find                        \ actstp act smpl' sta5, sqr5 t | f
+    invert abort" square not found?"
+
+    square-get-pn #2 <> abort" sqr 5 pn not 2?"
 
     \ Deallocate.
+    state-deallocate
     sample-deallocate
     action-deallocate
     actionstep-deallocate

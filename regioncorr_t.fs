@@ -2,13 +2,12 @@
 
 : regioncorr-test-from-string
     s" regc #3 -1 (r100 r0x0x)" list-from-string       \ lst t | f
-    invert abort" regioncorr-test-new: list-from-string: string not parsed"
+    invert abort" regioncorr-test-from-string: list-from-string: string not parsed"
 
     \ Test.
     dup list-get-first-item is-regioncorr? invert abort" list-from-string failed?"
     dup list-get-length 1 <> abort" list len not one?"
     dup list-get-first-item
-    dup is-regioncorr? invert abort" list first element not a regioncorr?"
     dup regioncorr-get-pos-value #3 <> abort" pos value not 3?"
     regioncorr-get-neg-value -1 <> abort" neg value not -1?"
 

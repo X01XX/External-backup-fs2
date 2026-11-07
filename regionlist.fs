@@ -432,7 +432,7 @@
     \ Init return list.
     list-new swap                   \ ret-lst reg-lst0
 
-    dup                             \ ren-lst reg-lst0 reg-lst0
+    dup                             \ ret-lst reg-lst0 reg-lst0
 
     \ For each region.
     foreach                         \ ret-lst reg-lst0 reg-lnk0 regx
@@ -452,11 +452,14 @@
 
         \ Check subtraction results.
         dup list-is-empty?          \ ret-lst reg-lst0 reg-lnk0 regx-parts' bool
-        swap list-deallocate        \ ret-lst reg-lst0 reg-lnk0 bool
+
         if
+            list-deallocate         \ ret-lst reg-lst0 reg-lnk0 bool
         else
-            \ region to list.
-            over link-get-data      \ ret-lst reg-lst0 reg-lnk0 regx
+            region-list-deallocate  \ ret-lst reg-lst0 reg-lnk0
+
+            \ Store region in return list.
+            dup link-get-data       \ ret-lst reg-lst0 reg-lnk0 regx
             #3 pick                 \ ret-lst reg-lst0 reg-lnk0 regx ret-lst
             list-push-struct        \ ret-lst reg-lst0 reg-lnk0
         then
@@ -655,7 +658,7 @@
     drop
 ;
 
-\ Given a list of states and a list of possible region, evaluate for corners and needs.
+\ Given a list of states and a list of possible regions, evaluate for corners and needs.
 : region-list-evaluate-for-corners ( sta-lst1 reg-lst0 -- )
     \ Check args.
     assert( tos is-region-list? )

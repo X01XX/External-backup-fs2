@@ -1027,18 +1027,6 @@ action-groups-disp                      cell+   constant action-function-disp   
 \ * Start corner logic. *
 \ ***********************
 
-\ Calc and set a rate for a corner.
-: ?action-corner-calc-set-rate ( crn1 act0 -- )
-    \ Check args.
-    assert( tos is-action? )
-    assert( nos is-corner? )
-    \ cr ." action-calc-corner-rate: start: " .stack cr
-
-    action-get-possible-regions         \ crn1 pos-lst
-    swap                                \ pos-lst crn1
-    corner-calc-set-rate                \
-;
-
 \ Return true if a corner is confirmed.
 \ This is very strict, while action-corner-possible? is very permissive.
 \ They both require the corner anchor state to be in only one possible region.
@@ -1288,13 +1276,13 @@ action-groups-disp                      cell+   constant action-function-disp   
     corner-list-deallocate              \ act0 cstr-lst'
 
     \ FYI
-    dup list-get-length                 \ act0 cstr-lst' len
-    1 >                                 \ act0 cstr-lst' bool
-    if
-        cr ." Multiple corner clusters found!"
-        dup .corner-cluster-list
-        abort
-    then
+\    dup list-get-length                 \ act0 cstr-lst' len
+\    1 >                                 \ act0 cstr-lst' bool
+\    if
+\        cr ." Multiple corner clusters found!"
+\        dup .corner-cluster-list
+\        abort
+\    then
 
     \ Save clusters.
     swap                                \ cstr-lst' act0
@@ -1409,7 +1397,8 @@ action-groups-disp                      cell+   constant action-function-disp   
             \ Make corner.
             #3 pick                     \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk stax def-lnk
             link-get-data               \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk stax regx
-            corner-new                  \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk crn'
+            corner-new                  \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk, crn' t | f
+            invert abort" corner-new failed?"
             dup                         \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk crn' crn'
             #6 pick                     \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk crn' crn' act0
             action-corner-possible?     \ pre-lst act0 stas-in1 def-lnk stas-in-reg' stas-in-lnk crn' bool

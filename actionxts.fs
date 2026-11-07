@@ -50,10 +50,12 @@
 
     dup state-get-number        \ csta cnum
     dup invert #10 and #10 =    \ csta cnum bool
-    if                          \ 0X0X
-        #1 xor                  \ csta rnum
-    else                        \ 1XXX, XX1X
-        #4 xor                  \ csta rnum
+    over #5 and #5 =            \ csta cnum bool bool
+    or                          \ csta cnum bool
+    if                          \ 0X0X, X1X1, overlap at 5
+        #15 xor                 \ csta rnum
+    else                        \ X01X, 1XX0, XX10, 10XX
+        noop                    \ csta rnum
     then
 
     swap                        \ rnum csta

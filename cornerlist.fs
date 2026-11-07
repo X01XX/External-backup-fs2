@@ -370,3 +370,40 @@
         space .corner-list
     next-item
 ;
+
+\ Return the defining regions implied by a non-empty corner list.
+: corner-list-defining-regions ( crn-lst0 -- reg-lst )
+    \ Check arg.
+    assert( tos is-corner-list? )
+    assert( tos list-is-not-empty? )
+
+    \ Make max region list.
+    dup list-get-first-item                 \ crn-lst0 crn0
+    corner-get-anchor-state                 \ crn-lst0 anc-sta
+    state-get-num-bits                      \ crn-lst0 num-b
+    region-max-x                            \ crn-lst0 max-reg
+    list-new tuck                           \ crn-lst0 pos-regs' max-reg pos-regs'
+    list-push-struct                        \ crn-lst0 pos-regs'
+
+    \ Accumulate the effect of each corner.
+    swap                                    \ pos-regs' crn-lst0
+    foreach                                 \ pos-regs' crn-lnk crnx
+        \ Calc next accumulation.
+        corner-possible-regions             \ pos-regs' crn-lnk crn-regs'
+        dup                                 \ pos-regs' crn-lnk crn-regs' crn-regs'
+        #3 pick                             \ pos-regs' crn-lnk crn-regs' crn-regs' pos-regs'
+        region-list-intersections-nosubs    \ pos-regs' crn-lnk crn-regs' pos-regs-next'
+
+        \ Clean up.
+        swap region-list-deallocate         \ pos-regs' crn-lnk pos-regs-next'
+
+        \ Replace previous accumulation.
+        rot region-list-deallocate          \ crn-lnk pos-regs-next'
+        swap                                \ pos-regs-next' crn-lnk
+    next-item
+                                            \ pos-regs'
+    dup                                     \ pos-regs' pos-regs'
+    region-list-defining-regions            \ pos-regs' def-regs'
+    swap region-list-deallocate             \ def-regs'
+;
+

@@ -196,7 +196,7 @@ list-new to structinfo-list-store
 ' noop  ' noop  ' noop          ' noop                  ' planstep-deallocate   ' .planstep     s" PlanStep"    planstep-mma    planstep-struct-id      structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' noop          ' noop                  ' plan-deallocate       ' .plan         s" Plan"        plan-mma        plan-struct-id          structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' noop          ' noop                  ' path-deallocate       ' .path         s" Path"        path-mma        path-struct-id          structinfo-new structinfo-list-store-push-end
-' noop  ' noop  ' noop          ' corner-from-string    ' corner-deallocate     ' .corner       s" Corner"      corner-mma      corner-struct-id        structinfo-new structinfo-list-store-push-end
+' corner-from-list      ' corner-list-definition?        ' noop             ' noop  ' corner-deallocate     ' .corner       s" Corner"      corner-mma      corner-struct-id        structinfo-new structinfo-list-store-push-end
 ' regioncorr-from-list  ' regioncorr-list-definition?    ' regioncorrs-eq?  ' noop  ' regioncorr-deallocate ' .regioncorr   s" Regioncorr"  regioncorr-mma  regioncorr-struct-id    structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' noop          ' noop                  ' actneed-deallocate       ' .actneed       s" ActNeed"        actneed-mma        actneed-struct-id          structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' noop          ' noop                  ' sesneed-deallocate       ' .sesneed       s" SesNeed"        sesneed-mma        sesneed-struct-id          structinfo-new structinfo-list-store-push-end

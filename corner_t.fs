@@ -1,7 +1,7 @@
 : corner-test-new
-    s" c0Xx1" string-to-stack-a                 \ crn
-
-    \ cr ." crn: " dup .corner cr
+    s" s0101 r0X0X" string-to-stack-a corner-new    \ crn t | f
+    invert abort" corner-new failed?"
+    cr ." crn: " dup .corner cr
 
     \ Test.
     dup corner-get-adjacent-states              \ crn sta-lst
@@ -18,17 +18,17 @@
 ;
 
 : corner-test-states
-    s" s0101 r0XX1" string-to-stack-a corner-new    \ crn
-    \ cr ." crn: " dup .corner cr
+    s" (crn s0101 r0XX1 (s1101 s0100))" corner-from-string  \ crn t | f
+    invert abort" corner-new failed?"
+    cr ." crn: " dup .corner cr
 
-    dup corner-states                               \ crn sta-lst'
-    \ cr ." states: " dup .state-list cr
+    dup corner-get-adjacent-states                          \ crn sta-lst'
+    cr ." adj states: " dup .state-list cr
 
-    dup list-get-length                             \ crn sta-lst' len
-    #3 <> abort" len ne 3?"
+    list-get-length                                         \ crn len
+    #2 <> abort" len ne 2?"
 
     \ Deallocate.
-    state-list-deallocate
     corner-deallocate
 
     \ Check for memory leaks.
@@ -38,10 +38,12 @@
 ;
 
 : corner-test-is-proper-superset?
-    s" s0100 rXXX0" string-to-stack-a corner-new    \ crn1
+    s" (crn s0100 rXXX0 (s0101))" corner-from-string   \ crn1 t | f
+    invert abort" corner-from-string failed?"
     \ cr ." crn1: " dup .corner cr
 
-    s" s0101 r0XX1" string-to-stack-a corner-new    \ crn1 crn2
+    s" (crn s0101 r0XX1 (s1101 s0100))" corner-from-string  \ crn1, crn2 t | f
+    invert abort" corner-from-string failed?"
     \ cr ." crn2: " dup .corner cr
 
     \ Test.
@@ -63,13 +65,14 @@
     \ Check for memory leaks.
     check-project-deallocated
 
-    cr ." corner-test-states - Ok"
+    cr ." corner-test-is-proper-superset? - Ok"
 ;
 
 : corner-test-additional-corners
     \ Set up.
     s" (r00xx r010x rxx1x r1x0x)" list-from-string-a    \ reg-lst
-    s" s0101 r010x" string-to-stack-a corner-new        \ reg-lst crn
+    s" (crn s0101 r010x (s0001 s0111 s1101))" corner-from-string    \ reg-lst, crn t | f
+    invert abort" corner-from-string failed?"
 
     \ Run.
     2dup corner-additional-corners                      \ reg-lst crn, crn-lst t | f
@@ -96,7 +99,8 @@
 : corner-test-calc-set-rate
     \ Set up.
     s" (r00xx r010x rxx1x r1x0x)" list-from-string-a    \ reg-lst
-    s" s0101 r010x" string-to-stack-a corner-new        \ reg-lst crn
+    s" (crn s0101 r010x (s0001 s0111 s1101))" corner-from-string    \ reg-lst, crn t | f
+    invert abort" corner-from-string failed?"
 
     \ Run.
     2dup corner-calc-set-rate                           \ reg-lst crn
@@ -118,10 +122,43 @@
     cr ." corner-test-calc-set-rate - Ok"
 ;
 
+: corner-test-from-string
+    s" (crn s0101 r0X0X (s0111 s1101))" list-from-string       \ lst t | f
+    invert abort" corner-test-from-string: list-from-string: string not parsed"
+
+    \ Test.
+    dup list-get-first-item is-corner? invert abort" list-from-string failed?"
+    dup list-get-length 1 <> abort" list len not one?"
+
+    struct-list-deallocate
+
+    s" (crn s0101 r0X0X (s0111 s1101))" string-to-stack        \ x* t | f
+    invert abort" corner-test-new: string-to-stack: string not parsed"
+
+    \ Test (uses list-from-string).
+    dup is-corner? invert abort" string-to-stack failed?"
+
+    corner-deallocate
+
+    s" (crn s0101 r0X0X (s0111 s1101))" corner-from-string        \ regc t | f
+    invert abort" corner-test-new: corner-from-string: corner not parsed"
+
+    \ Test (uses list-from-string).
+    dup is-corner? invert abort" corner-from-string failed?"
+
+    corner-deallocate
+
+    \ Check for memory leaks.
+    check-project-deallocated
+
+    cr ." corner-test-from-string - Ok"
+;
+
 : corner-tests
     corner-test-new
     corner-test-states
     corner-test-is-proper-superset?
     corner-test-additional-corners
     corner-test-calc-set-rate
+    corner-test-from-string
 ;

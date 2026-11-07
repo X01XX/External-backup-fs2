@@ -134,14 +134,18 @@ corner-region-disp          cell+   constant corner-adjacent-states-disp    \ Al
 ;
 
 \ Create a corner, given a regios and an anchor state.
-: corner-new ( sta1 reg0 -- crn )
+: corner-new ( sta1 reg0 -- crn t | f )
     \ Check args.
     assert( tos is-region? )
     assert( nos is-state? )
     assert( over state-get-num-bits over region-get-num-bits = )
 
     2dup region-superset-of-state?      \ sta1 reg0 bool
-    invert abort" corner-new: region not superset state?"
+    ifnot
+        2drop
+        false
+        exit
+    then
 
     \ Init adjacent state list.
     list-new                            \ sta1 reg0 sta-lst
@@ -160,6 +164,7 @@ corner-region-disp          cell+   constant corner-adjacent-states-disp    \ Al
         #3 pick                         \ sta1 reg0 sta-lst msk-lst' msk-lnk sta' sta-lst
         list-push-struct                \ sta1 reg0 sta-lst msk-lst' msk-lnk
     next-item
+                                        \ sta1 reg0 sta-lst msk-lst'
     mask-list-deallocate                \ sta1 reg0 sta-lst
 
     \ Allocate instance.
@@ -177,6 +182,8 @@ corner-region-disp          cell+   constant corner-adjacent-states-disp    \ Al
 
     \ Set rate.
     0 over corner-set-rate              \ crn
+
+    true
 ;
 
 \ Return a token containing a string representation of a corner.
@@ -187,12 +194,7 @@ corner-region-disp          cell+   constant corner-adjacent-states-disp    \ Al
     s" (" token-new                 \ crn0, tkn t | f
     invert abort" token-new failed"
 
-    over corner-get-region          \ crn0 tkn reg
-    region-string                   \ crn0 tkn c-addr u
-    #2 pick token-concatenate       \ crn0 tkn tkn' bool
-    invert abort" token-concatenate failed"
-
-    s"  anchor: "                   \ crn0 tkn c-addr u
+    s" crn "                        \ crn0 tkn c-addr u
     #2 pick token-concatenate       \ crn0 tkn bool
     invert abort" token-concatenate failed"
 
@@ -201,7 +203,16 @@ corner-region-disp          cell+   constant corner-adjacent-states-disp    \ Al
     #2 pick token-concatenate       \ crn0 tkn tkn' bool
     invert abort" token-concatenate failed"
 
-    s"  AdjExt: "                   \ crn0 tkn c-addr u
+    s"  "                           \ crn0 tkn c-addr u
+    #2 pick token-concatenate       \ crn0 tkn bool
+    invert abort" token-concatenate failed"
+
+    over corner-get-region          \ crn0 tkn reg
+    region-string                   \ crn0 tkn c-addr u
+    #2 pick token-concatenate       \ crn0 tkn tkn' bool
+    invert abort" token-concatenate failed"
+
+    s"  "                           \ crn0 tkn c-addr u
     #2 pick token-concatenate       \ crn0 tkn bool
     invert abort" token-concatenate failed"
 
@@ -237,28 +248,6 @@ corner-region-disp          cell+   constant corner-adjacent-states-disp    \ Al
 
     type
 ;
-
-\ Print a corner.
-\ : .corner ( crn0 -- )
-\    \ Check arg.
-\    assert( tos is-corner? )
-\
-\    ." ("
-\    dup corner-get-region               \ crn0 reg
-\    .region                             \ crn0
-\
-\    space ." anchor: "
-\    dup corner-get-anchor-state         \ crn0 sta
-\    .state                              \ crn0
-\
-\    space ." AE: "
-\    dup corner-get-adjacent-states      \ crn0 ext-sta-lst
-\    .state-list                         \ crn0
-\
-\    ." )"
-\                                        \ crn0
-\    drop
-\ ;
 
 \ Validate a corner.
 \ Recalc if needed.
@@ -406,7 +395,8 @@ corner-region-disp          cell+   constant corner-adjacent-states-disp    \ Al
                     over link-get-data      \ pos-regs1 ret-lst ret-lnk adj-lnk reg-in' stax
                     over                    \ pos-regs1 ret-lst ret-lnk adj-lnk reg-in' stax reg-in'
                     list-get-first-item     \ pos-regs1 ret-lst ret-lnk adj-lnk reg-in' stax regx
-                    corner-new              \ pos-regs1 ret-lst ret-lnk adj-lnk reg-in' crnx
+                    corner-new              \ pos-regs1 ret-lst ret-lnk adj-lnk reg-in', crnx t | f
+                    invert abort" corner-new failed?"
 
                     \ Store corner.
                     #4 pick                 \ pos-regs1 ret-lst ret-lnk adj-lnk reg-in' crnx ret-lst
@@ -455,127 +445,217 @@ corner-region-disp          cell+   constant corner-adjacent-states-disp    \ Al
     corner-set-rate
 ;
 
-\ Return false if a string is not a representation of a corner,
-\
-\ Otherwise, generate a corner from the string.
-\ Valid chars are 0, 1, X, x, and underscore as separator.
-\ All bit positions must be specified.
-\
-\ Like s" c01Xx" corner-from-string
-\ The anchor will be the region state-0, 0110.
-\ X indicates 1 in state-0, 0 in state-1.
-\ x indicates 0 in state-0, 1 in state-1.
-: corner-from-string ( c-addr u --  crn t | f)
+\ Check if a list could be a corner definintion.
+: corner-list-definition? ( lst -- bool )
+    \ Check arg.
+    assert( tos is-list? )
+    \ cr ." corner-list-definition?: start: " dup .struct-list cr
 
-    \ Check length GT 1.
-    dup #2 <
-    if
-        2drop
-        false
+    \ Check list length.
+    dup list-get-length #4 =
+    ifnot
+        drop false
+        \ cr ." corner-list-definition?: exit 1: false" cr
         exit
     then
 
-    \ Check for prefix char.
-    over c@ [char] c <>
-    if
-        2drop
-        false
+    \ Check hint token.
+    dup list-get-first-item             \ lst first
+    is-token?
+    ifnot
+        drop false
+        \ cr ." corner-list-definition?: exit 2: false" cr
         exit
     then
 
-    \ Inc address.
-    swap 1+ swap
+    s" crn"                             \ lst c-addr u
+    #2 pick list-get-first-item         \ lst c-addr u first
+    token-eq-string                     \ lst bool
+    ifnot
+        drop false
+        \ cr ." corner-list-definition?: exit 3: false" cr
+        exit
+    then
 
-    \ Dec len.
-    1-
+    \ Check anchor value.
+    dup list-get-second-item            \ lst second
+    is-state?
+    ifnot
+        drop false
+        \ cr ." corner-list-definition?: exit 4: false" cr
+        exit
+    then
 
-    \ Init character counter.
-    0 swap              \ c-addr cnt u
+    \ Check region.
+    dup list-get-third-item            \ lst third
+    is-region?
+    ifnot
+        drop false
+        \ cr ." corner-list-definition?: exit 5: false" cr
+        exit
+    then
 
-    \ Init state 1, state 0, and do initial value.
-    0 swap              \ c-addr cnt num1 u
-    0 swap              \ c-addr cnt num1 num0 u
-    0                   \ c-addr cnt num1 num0 u 0
+    \ Check anchor is in region. required.
+    dup list-get-second-item            \ lst anc
+    over list-get-third-item            \ lst anc reg
+    region-superset-of-state?           \ lst bool
+    ifnot
+        drop false
+        \ cr ." corner-list-definition?: exit 8: false" cr
+        exit
+    then
 
-    \ For each character...
-    do                  \ c-addr cnt num1 num0
-        \ Get a character.
-        #3 pick         \ c-addr cnt num1 num0 c-addr
-        i +             \ c-addr cnt num1 num0 c-addr+
-        c@              \ c-addr cnt num1 num0 chr
+    \ Checks not strictly required, since the state-list is ignored.
 
-        \ Process character.
-        case
-            [char] 0 of
-                        \ Leave bit positions as 0/0.
-                        \ Update num1
-                        swap 1 lshift
-                        \ Update num0
-                        swap 1 lshift
-                        \ Update char counter.
-                        rot 1+ -rot
-                    endof
-            [char] 1 of
-                        \ Set bit positions to 1/1.
-                        \ Update num1
-                        swap 1 lshift 1+
-                        \ Update num0
-                        swap 1 lshift 1+
-                        \ Update char counter.
-                        rot 1+ -rot
-                    endof
-            [char] X of
-                        \ Set bit positions to 1/0.
-                        \ Update num1
-                        swap 1 lshift
-                        \ Update num0
-                        swap 1 lshift 1+
-                        \ Update char counter.
-                        rot 1+ -rot
-                    endof
-            [char] x of
-                        \ Set bit positions to 0/1.
-                        \ Update num1
-                        swap 1 lshift 1+
-                        \ Update num0
-                        swap 1 lshift
-                        \ Update char counter.
-                        rot 1+ -rot
-                    endof
-            [char] _ of
-                    endof
-            \ Unrecognized character, return false.
+    \ Check state list.
+    dup list-get-fourth-item           \ lst fourth
+    is-state-list?
+    ifnot
+        drop false
+        \ cr ." corner-list-definition?: exit 6: false" cr
+        exit
+    then
 
-            \ Drop stack items.
-            2drop
-            2drop
-            drop
+    dup list-get-fourth-item            \ lst fourth
+    list-is-empty?
+    if
+        drop false
+        \ cr ." corner-list-definition?: exit 7: false" cr
+        exit
+    then
 
-            \ Set return bool.
-            false
+    \ Check number of adjacent states.
+    dup list-get-third-item             \ lst reg
+    region-edge-mask                    \ lst msk'
+    dup mask-count-bits                 \ lst msk' u
+    swap mask-deallocate                \ lst u
+    over list-get-fourth-item           \ lst u sta-lst
+    list-get-length =                   \ lst bool
+    ifnot
+        drop false
+        \ cr ." corner-list-definition?: exit 8: false" cr
+        exit
+    then
 
-            \ Cancel do loop.
-            unloop
+    \ Check adjacent states are not in region.
+    dup list-get-third-item             \ lst reg
+    over list-get-fourth-item           \ lst reg sta-lst
+    state-list-none-in-region?          \ lst bool
+    ifnot
+        drop
+        false
+        \ cr ." corner-list-definition?: exit 9: false" cr
+        exit
+    then
 
-            \ Return.
-            exit
-        endcase
-    loop
+    \ Check adjacencies.
+    dup list-get-second-item            \ lst anc
+    over list-get-fourth-item           \ lst anc sta-lst
+    state-list-all-adjacent-to-state?   \ lst bool
+    ifnot
+        drop
+        false
+        \ cr ." corner-list-definition?: exit 10: false" cr
+        exit
+    then
 
-    \ Create state 1.       \ c-addr cnt num1 num0
-    swap                    \ c-addr cnt num0 num1
-    #2 pick                 \ c-addr cnt num0 num1 cnt
-    state-new               \ c-addr cnt num0 sta1
-
-    \ Create state 0.
-    -rot                    \ c-addr sta1 cnt num0
-    swap                    \ c-addr sta1 num0 cnt
-    state-new               \ c-addr sta1 sta0
-
-    \ Make new corner, return.
-                            \ c-addr sta1 sta0
-    tuck region-new         \ csaddr sta0 reg
-    corner-new              \ c-addr crn
-    nip                     \ crn
+    drop
     true
+    \ cr ." corner-list-definition?: end: true" cr
+;
+
+\ Return a corner from a list.
+: corner-from-list ( lst -- crn t | f)
+    \ Check arg.
+    assert( tos is-list? )
+    \ cr ." corner-from-list: start: " dup .struct-list cr
+
+    dup corner-list-definition?     \ lst bool
+    ifnot
+        drop false exit
+    then
+
+    \ Allocate new corner.
+    dup list-get-second-item        \ lst anc
+    swap list-get-third-item        \ anc reg
+    corner-new                      \ crn t | f
+
+    \ cr ." corner-from-list: end: " over .corner cr
+;
+\ Return a corner from a string.
+\ Like ( regc 1 -2 (rxxxx r1010))
+\ Like ( regc 0 0 (rxxxx r1010))
+: corner-from-string ( str-addr str-n -- crn t | f )
+    \ cr ." corner-from-string: start: " 2dup type cr
+
+    \ Convert string to list.
+    list-from-string-xt execute             \ lst t | f
+    ifnot
+        false
+        \ cr ." corner-from-string: exit 1: false" cr
+        exit
+    then
+
+    dup list-get-length 1 <>
+    if
+        struct-list-deallocate
+        false
+        \ cr ." corner-from-string: exit 2: false" cr
+        exit
+    then
+                                            \ lst
+    dup list-get-first-item                 \ lst itm
+    is-corner?                           \ lst bool
+    if
+        dup list-pop-struct                 \ lst itm
+        invert abort" pop faled?"
+        swap list-deallocate                \ itm
+        true
+    else
+        struct-list-deallocate
+        false
+    then
+    \ cr ." corner-from-string: end: " dup .bool cr
+;
+
+\ Return a corner from a string, or abort.
+: corner-from-string-a ( str-addr str-n -- regc )
+    corner-from-string    \ regc t | f
+    false? abort" corner-from-string failed?"
+;
+
+\ Return a list of possible regions implied by a corner.
+: corner-possible-regions ( crn0 -- reg-lst )
+    \ Check args.
+    assert( tos is-corner? )
+
+    \ Make max region list.
+    dup corner-get-anchor-state             \ crn anc-sta
+    dup state-get-num-bits                  \ crn anc-sta num-b
+    region-max-x                            \ crn anc-sta max-reg
+    list-new tuck                           \ crn anc-sta pos-regs' max-reg pos-regs'
+    list-push-struct                        \ crn anc-sta pos-regs'
+
+    \ Calc the effect of each anchor/adjacent-state pair.
+    rot corner-get-adjacent-states          \ anc-sta pos-regs' adj-sta-lst
+
+    foreach                                 \ anc-sta pos-regs' adj-lnk sta-adj
+        \ Calc regions for this pair.
+        #3 pick                             \ anc-sta pos-regs' adj-lnk sta-adj anc-sta
+        state-~a+~b                         \ anc-sta pos-regs' adj-lnk reg-lst'
+
+        \ Intersect regions with accumelated regions.
+        dup                                 \ anc-sta pos-regs' adj-lnk reg-lst' reg-lst'
+        #3 pick                             \ anc-sta pos-regs' adj-lnk reg-lst' reg-lst' pos-regs'
+        region-list-intersections-nosubs    \ anc-sta pos-regs' adj-lnk reg-lst' pos-regs-next'
+
+        \ Clean up.
+        swap region-list-deallocate         \ anc-sta pos-regs' adj-lnk pos-regs-next'
+
+        \ Replace previous list.
+        rot region-list-deallocate          \ anc-sta adj-lnk pos-regs-next'
+        swap                                \ anc-sta pos-regs-next' adj-lnk
+    next-item
+                                            \ anc-sta pos-regs'
+    nip                                     \ pos-regs'
 ;

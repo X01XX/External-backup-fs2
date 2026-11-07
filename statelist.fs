@@ -293,3 +293,44 @@
     dup list-is-empty?              \ dif-lst' bool
     swap state-list-deallocate      \ bool
 ;
+
+\ Return true if all states in a list are adjacent to a given state.
+: state-list-all-adjacent-to-state? ( sta1 sta-lst0 -- bool )
+    \ Check args.
+    assert( tos is-state-list? )
+    assert( nos is-state? )
+
+    foreach                 \ sta1 sta-lnk stax
+        #2 pick             \ sta1 sta-lnk stax sta1
+        states-adjacent?    \ sta1 sta-lnk bool
+        ifnot
+            2drop
+            false
+            exit
+        then
+    next-item
+                            \ sta1
+    drop
+    true
+;
+
+\ Return true if no states in a list are in a given region.
+: state-list-none-in-region? ( reg1 sta-lst0 -- bool )
+    \ Check args.
+    assert( tos is-state-list? )
+    assert( nos is-region? )
+
+    foreach                         \ reg1 sta-lnk stax
+        #2 pick                     \ reg1 sta-lnk stax reg1
+        region-superset-of-state?   \ reg1 sta-lnk bool
+        if
+            2drop
+            false
+            exit
+        then
+    next-item
+                                    \ reg1
+    drop
+    true
+;
+
