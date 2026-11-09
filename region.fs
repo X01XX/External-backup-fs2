@@ -49,12 +49,37 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 
 ' is-region? to is-region?-xt
 
+: sb-region? ( tos -- bool )
+    dup region-mma mma-within-array \ reg0 bool
+    if
+        dup struct-get-id           \ reg0 id
+        ?dup 0=
+        if
+            cr ." sb-region?: Use after deallocation " hex. cr
+            false
+            exit
+        then
+
+        dup region-struct-id =      \ reg0 id bool
+        if
+            2drop
+            true
+        else
+            cr ." sb-region?: Instance id invalid? " hex. space hex. cr
+            false
+        then
+    else                            \ reg0
+        cr ." sb-region?: Invalid address? " hex. cr
+        false
+    then
+;
+
 \ Start accessors.
 
 \ Return the state-0 field from a region instance.
 : region-get-state-0 ( reg0 -- sta0 )
     \ Check arg.
-    assert( tos is-region? )
+    assert( tos sb-region? )
 
     region-state-0-disp +   \ Add offset.
     @                       \ Fetch the field.
@@ -65,7 +90,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 \ Return the state-1 field from a region instance.
 : region-get-state-1 ( reg0 -- sta1 )
     \ Check arg.
-    assert( tos is-region? )
+    assert( tos sb-region? )
 
     \ Get second state.
     region-state-1-disp +   \ Add offset.
@@ -75,7 +100,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 \ Set the state-0 field from a region instance, use only in this file.
 : _region-set-state-0 ( sta1 reg0 -- )
     \ Check arg.
-    assert( tos is-region? )
+    assert( tos sb-region? )
     assert( nos is-state? )
 
     region-state-0-disp +   \ Add offset.
@@ -85,7 +110,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 \ Set the state-1 field from a region instance, use only in this file.
 : _region-set-state-1 ( sta1 reg0 -- )
     \ Check arg.
-    assert( tos is-region? )
+    assert( tos sb-region? )
     assert( nos is-state? )
 
     region-state-1-disp +   \ Add offset.
@@ -120,7 +145,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 \ Return the number of bits used for a region.
 : region-get-num-bits ( reg0 -- nb )
     \ Check arg.
-    assert( tos is-region? )
+    assert( tos sb-region? )
 
     region-get-state-0          \ sta
     state-get-num-bits       \ nb
@@ -130,7 +155,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 \ The result should be used, or stored, before pad is used again.
 : region-string ( reg0 -- c-addr u )
     \ Check arg.
-    assert( tos is-region? )
+    assert( tos sb-region? )
 
     pad dup rot                     \ p-addr c-addr reg0
 
@@ -193,7 +218,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 \ Return a token containing a string representation of a region.
 : region-token ( reg0 -- tkn )
     \ Check arg.
-    assert( tos is-region? )
+    assert( tos sb-region? )
 
     region-string                   \ c-addr u
     token-new                       \ tkn t | f
@@ -203,7 +228,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 \ Print a region.
 : .region ( reg0 -- )
     \ Check arg.
-    assert( tos is-region? )
+    assert( tos sb-region? )
 
     \ Put mask string into pad.
     region-string       \ tkn'
@@ -215,20 +240,34 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 
 \ Deallocate a region.
 : region-deallocate ( reg0 -- )
-    \ Check arg.
-    assert( tos is-region? )
+    \ Check if tos is a valid instance.
+    dup region-mma mma-within-array  \ reg0 bool
+    ifnot
+        cr ." region-deallocate: Deallocation of an invalid address? " dup hex. cr abort
+    then
 
-    dup struct-get-use-count      \ reg0 count
-    dup 0< abort" region-deallocate: Invalid use count"
+    \ Check if instance is already deallocated.
+    dup get-first-word              \ reg0, id t | f
+    invert abort" region-deallocate: get-first-word failed?"
+
+    0=                              \ reg0 bool
+    if
+        cr ." region-deallocate: Double deallocation of " dup hex. cr abort
+    then
+
+    \ Check instance use count.
+    dup struct-get-use-count        \ reg0 count
+    dup 0<
+    if
+        cr ." region-deallocate: Invalid use count" cr abort
+    then
 
     #2 <
     if
-        \ Deallocate states.
+        \ Deallocate instance.
         dup region-get-state-0 state-deallocate
         dup region-get-state-1 state-deallocate
-
-        \ Deallocate instance.
-        region-mma mma-deallocate
+        region-mma mma-deallocate2
     else
         struct-dec-use-count
     then
@@ -363,7 +402,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 \ Return a region's x mask.
 : region-calc-x-mask ( reg0 -- x-msk' )
     \ Check arg.
-    assert( tos is-region? )
+    assert( tos sb-region? )
 
     \ Get states.
     dup  region-get-state-0     \ reg0 sta-0
@@ -376,7 +415,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 \ Return a region's zeros mask.
 : region-calc-0-mask ( reg0 -- 0-msk' )
     \ Check arg.
-    assert( tos is-region? )
+    assert( tos sb-region? )
 
     \ Get states.
     dup  region-get-state-0     \ reg0 sta-0
@@ -399,7 +438,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 \ Return a region's ones mask.
 : region-calc-1-mask ( reg0 -- 1-msk' )
     \ Check arg.
-    assert( tos is-region? )
+    assert( tos sb-region? )
 
     \ Get states.
     dup  region-get-state-0     \ reg0 sta-0
@@ -412,7 +451,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 \ Return the two states that make a region.
 : region-get-states ( reg0 -- sta1 sta0 )
     \ Check arg.
-    assert( tos is-region? )
+    assert( tos sb-region? )
 
     \ Calc result.
     dup region-get-state-1  \ reg0 sta1
@@ -423,7 +462,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 \ Return true if a region uses a given state.
 : region-uses-state? ( sta1 reg0 -- bool )
     \ Check args.
-    assert( tos is-region? )
+    assert( tos sb-region? )
     assert( nos is-state? )
     assert( over state-get-num-bits over region-get-num-bits = )
 
@@ -445,7 +484,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 \ Mask will usually have a single bit, called from region-subtract.
 : region-x-to-0 ( to-0-msk reg0 -- reg )
     \ Check args.
-    assert( tos is-region? )
+    assert( tos sb-region? )
     assert( nos is-mask? )
     assert( over mask-get-num-bits over region-get-num-bits = )
 
@@ -466,7 +505,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 \ Mask will usually have a single bit, called from region-subtract.
 : region-x-to-1 ( to-1-msk reg0 -- reg )
     \ Check args.
-    assert( tos is-region? )
+    assert( tos sb-region? )
     assert( nos is-mask? )
     assert( over mask-get-num-bits over region-get-num-bits = )
 
@@ -483,7 +522,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 \ trits that are 0, or 1.
 : region-edge-mask ( reg0 -- msk )
     \ Check arg.
-    assert( tos is-region? )
+    assert( tos sb-region? )
 
     \ Calc result.
     region-calc-x-mask      \ x-msk'
@@ -495,8 +534,8 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 
 : region-xor ( reg1 reg0 -- msk )
     \ Check args.
-    assert( tos is-region? )
-    assert( nos is-region? )
+    assert( tos sb-region? )
+    assert( nos sb-region? )
 
     \ Get mask of trit positions that are not X in either region.
     over region-edge-mask           \ reg1 reg0 e1-msk'
@@ -519,7 +558,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 
 : region-xor-state-to-mask ( sta1 reg0 -- msk )
     \ Check args.
-    assert( tos is-region? )
+    assert( tos sb-region? )
     assert( nos is-state? )
 
     \ Get region state-0 dif-mask.
@@ -544,8 +583,8 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 \ Return true if two regions have a different number of bits.
 : regions-dif-num-bits? ( reg1 reg0 -- flag )
     \ Check args.
-    assert( tos is-region? )
-    assert( nos is-region? )
+    assert( tos sb-region? )
+    assert( nos sb-region? )
 
     region-get-num-bits  \ reg1 nb0
     swap                 \ nb0 reg1
@@ -556,8 +595,8 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 \ Return true if two regions have the same number of bits.
 : regions-same-num-bits? ( reg1 reg0 -- flag )
     \ Check args.
-    assert( tos is-region? )
-    assert( nos is-region? )
+    assert( tos sb-region? )
+    assert( nos sb-region? )
 
     region-get-num-bits  \ reg1 nb0
     swap                 \ nb0 reg1
@@ -569,8 +608,8 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 \ trits are 0 and 1.
 : regions-intersect? ( reg1 reg0 -- flag )
     \ Check args.
-    assert( tos is-region? )
-    assert( nos is-region? )
+    assert( tos sb-region? )
+    assert( nos sb-region? )
     assert( 2dup regions-same-num-bits? )
     \ cr ." regions-intersect? start: "
     \ cr ." regions-intersect?: reg1: " over .region space ." reg0: " dup .region cr
@@ -608,7 +647,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 \ Return the highest state in a region.
 : region-high-state ( reg0 -- n )
     \ Check arg.
-    assert( tos is-region? )
+    assert( tos sb-region? )
 
     dup  region-get-state-0    \ reg0 sta0
     swap region-get-state-1    \ sta0 sta1
@@ -618,7 +657,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 \ Return the lowest state in a region.
 : region-low-state ( reg0 -- n )
     \ Check arg.
-    assert( tos is-region? )
+    assert( tos sb-region? )
 
     dup  region-get-state-0    \ reg0 sta0
     swap region-get-state-1    \ sta0 sta1
@@ -628,7 +667,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 \ Return the region high state and low state.
 : region-high-low ( reg0 -- high low )
     \ Check arg.
-    assert( tos is-region? )
+    assert( tos sb-region? )
 
     \ Calc result.
     dup region-high-state   \ reg0 high
@@ -640,8 +679,8 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 \ for intersection before calling this.
 : region-intersection ( reg1 reg0 -- reg t | f )
     \ Check args.
-    assert( tos is-region? )
-    assert( nos is-region? )
+    assert( tos sb-region? )
+    assert( nos sb-region? )
     assert( 2dup regions-same-num-bits? )
     \ cr ." region-intersection: start" cr
 
@@ -684,8 +723,8 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 \ Return true if two regions are equal.
 : regions-eq? ( reg1 reg0 -- flag )
     \ Check args.
-    assert( tos is-region? )
-    assert( nos is-region? )
+    assert( tos sb-region? )
+    assert( nos sb-region? )
     assert( 2dup regions-same-num-bits? )
 
     \ Check address.
@@ -719,8 +758,8 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 \ Return true if a TOS region is a superset of the NOS region.
 : region-superset? ( reg1 reg-sup -- flag )
     \ Check args.
-    assert( tos is-region? )
-    assert( nos is-region? )
+    assert( tos sb-region? )
+    assert( nos sb-region? )
     assert( 2dup regions-same-num-bits? )
     \ cr ." region-superset?: start" cr
 
@@ -743,7 +782,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 \ Return true if a TOS region is a superset of the NOS state.
 : region-superset-of-state? ( sta1 reg0 -- flag )
     \ Check args.
-    assert( tos is-region? )
+    assert( tos sb-region? )
     assert( nos is-state? )
     assert( over state-get-num-bits over region-get-num-bits = )
 
@@ -777,7 +816,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 \ Return the number of bits distance between a region and a state.
 : region-dist-state ( sta1 reg0 -- u )
     \ Check args.
-    assert( tos is-region? )
+    assert( tos sb-region? )
     assert( nos is-state? )
     assert( over state-get-num-bits over region-get-num-bits = )
 
@@ -807,8 +846,8 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 \ Return true if a TOS region is a subset of the NOS region.
 : region-subset? ( reg1 reg-sub -- flag )
     \ Check args.
-    assert( tos is-region? )
-    assert( nos is-region? )
+    assert( tos sb-region? )
+    assert( nos sb-region? )
     assert( 2dup regions-same-num-bits? )
 
     2dup regions-intersect?         \ reg1 reg-sub flag
@@ -842,7 +881,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 \ Return the union of a region and a state.
 : region-union-state ( sta1 reg0 -- reg )
     \ Check args.
-    assert( tos is-region? )
+    assert( tos sb-region? )
     assert( nos is-state? )
     assert( over state-get-num-bits over region-get-num-bits = )
 
@@ -864,7 +903,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 
 : region-states-adjacent? ( reg0 -- bool )
     \ Check arg.
-    assert( tos is-region? )
+    assert( tos sb-region? )
 
     region-get-states       \ sta1 st0
     states-adjacent?
@@ -873,7 +912,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 \ Return true if a region has exactly one edge bit.
 : region-only-one-edge? ( reg0 -- bool )
     \ Check arg.
-    assert( tos is-region? )
+    assert( tos sb-region? )
 
     region-edge-mask        \ msk'
     dup                     \ msk' msk'
@@ -885,7 +924,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 \ Return true if a region is all X.
 : region-all-x? ( reg0 -- bool )
     \ Check arg.
-    assert( tos is-region? )
+    assert( tos sb-region? )
 
     region-edge-mask        \ msk'
     dup                     \ msk' msk'
@@ -897,8 +936,8 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 \ Return true if two regions are a prorer intersection.
 : region-proper-intersection? ( reg1 reg0 -- bool )
     \ Check args.
-    assert( tos is-region? )
-    assert( nos is-region? )
+    assert( tos sb-region? )
+    assert( nos sb-region? )
 
     2dup regions-intersect?     \ reg1 reg0 bool
     ifnot
@@ -921,8 +960,8 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 \ Return true if neither region is a superset of the other.
 : regions-neither-superset? ( reg1 reg0 -- bool )
     \ Check args.
-    assert( tos is-region? )
-    assert( nos is-region? )
+    assert( tos sb-region? )
+    assert( nos sb-region? )
     \ cr ." regions-neither-superset?: start" cr
 
     2dup region-superset?       \ reg1 reg0 bool
@@ -941,8 +980,8 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 \ Return the proper intersection of two regions.
 : region-proper-intersection ( reg1 reg0 -- reg t | f )
     \ Check args.
-    assert( tos is-region? )
-    assert( nos is-region? )
+    assert( tos sb-region? )
+    assert( nos sb-region? )
     \ cr ." region-proper-intersection: start" cr
 
     2dup regions-neither-superset?  \ reg1 reg0 bool
@@ -960,8 +999,8 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 \ Return the number of corresponding trits that are 0 and 1, between two regions.
 : region-distance ( reg1 reg0 -- u )
     \ Check args.
-    assert( tos is-region? )
-    assert( nos is-region? )
+    assert( tos sb-region? )
+    assert( nos sb-region? )
 
     region-xor              \ msk
     dup mask-num-bits-set   \ msk nb
@@ -972,7 +1011,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 \ farthest from the state.
 : region-far-state ( sta1 reg0 -- sta-far )
     \ Check args.
-    assert( tos is-region? )
+    assert( tos sb-region? )
     assert( nos is-state? )
     assert( 2dup region-superset-of-state? )
 
@@ -986,7 +1025,7 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 
 : region-copy ( reg0 -- reg )
     \ Check arg.
-    assert( tos is-region? )
+    assert( tos sb-region? )
 
     dup region-get-state-1 swap \ sta1 reg0
     region-get-state-0          \ sta1 sta0

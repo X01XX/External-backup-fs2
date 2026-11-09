@@ -52,7 +52,7 @@
 : region-list-push ( reg1 reg-lst0 -- )
     \ Check args.
     assert( tos is-region-list? )
-    assert( nos is-region? )
+    assert( nos sb-region? )
 
     list-push-struct
 ;
@@ -61,7 +61,7 @@
 : region-list-push-end ( reg1 reg-lst0 -- )
     \ Check args.
     assert( tos is-region-list? )
-    assert( nos is-region? )
+    assert( nos sb-region? )
 
     list-push-end-struct
 ;
@@ -130,7 +130,7 @@
 : region-list-remove-subset ( reg1 reg-lst0 -- bool )
     \ Check args.
     assert( tos is-region-list? )
-    assert( nos is-region? )
+    assert( nos sb-region? )
 
     [ ' region-subset? ] literal        \ reg1 reg-lst0  xt
     -rot                                \ xt reg1 reg-lst0
@@ -150,7 +150,7 @@
 : region-list-push-nosubs ( reg1 reg-lst0 -- flag )
     \ Check args.
     assert( tos is-region-list? )
-    assert( nos is-region? )
+    assert( nos sb-region? )
 
     \ Return if any region in the list is a superset of reg1.
     2dup                                    \ reg1 reg-lst0 reg1 reg-lst0
@@ -181,7 +181,7 @@
 : region-list-push-nodups ( reg1 reg-lst0 -- flag )
     \ Check args.
     assert( tos is-region-list? )
-    assert( nos is-region? )
+    assert( nos sb-region? )
 
     \ Return if any region in the list is a superset of reg1.
     2dup                                    \ reg1 reg-lst0 reg1 reg-lst0
@@ -263,7 +263,7 @@
 : region-list-copy-except ( reg1 reg-lst0 -- lst )
     \ Check args.
     assert( tos is-region-list? )
-    assert( nos is-region? )
+    assert( nos sb-region? )
 
     \ Init return list.
     list-new                        \ reg1 reg-lst0 ret-lst
@@ -293,7 +293,7 @@
 : region-list-subtract-region ( reg1 reg-lst0 -- lst )
     \ Check args.egion-list-state-in-region
     assert( tos is-region-list? )
-    assert( nos is-region? )
+    assert( nos sb-region? )
 
     \ Init return list.
     list-new -rot                           \ ret-lst reg1 reg-lst0
@@ -720,7 +720,7 @@
 : region-list-remove-superset ( reg1 reg-lst0 -- bool )
     \ Check args.
     assert( tos is-region-list? )
-    assert( nos is-region? )
+    assert( nos sb-region? )
 
     [ ' region-superset? ] literal      \ reg1 reg-lst0  xt
     -rot                                \ xt reg1 reg-lst0
@@ -740,7 +740,7 @@
 : region-list-push-nosups ( reg1 reg-lnk0 -- flag )
     \ Check args.
     assert( tos is-region-list? )
-    assert( nos is-region? )
+    assert( nos sb-region? )
 
     \ Return if any region in the list is a superset of reg1.
     2dup                                    \ reg1 reg-lnk0 reg1 reg-lnk0
@@ -769,7 +769,7 @@
 : region-list-member? ( reg1 reg-lst0 -- flag )
     \ Check args.
     assert( tos is-region-list? )
-    assert( nos is-region? )
+    assert( nos sb-region? )
 
     [ ' regions-eq? ] literal -rot list-member?
 ;
@@ -811,7 +811,7 @@
 : region-list-supersets-of  ( reg1 reg-lst0 -- reg-lst )
     \ Check args.
     assert( tos is-region-list? )
-    assert( nos is-region? )
+    assert( nos sb-region? )
 
     [ ' region-superset? ] literal  \ reg1 reg-lst0 xt
     -rot                            \ xt reg1 reg-lst0
@@ -859,7 +859,7 @@
 : region-list-any-subset-of? ( reg1 list0 -- bool )
     \ Check args.
     assert( tos is-region-list? )
-    assert( nos is-region? )
+    assert( nos sb-region? )
 
     [ ' region-subset? ] literal -rot list-member?
 ;
@@ -869,7 +869,7 @@
 : region-list-remove ( reg1 reg-lst0 -- )
 \ Check args.
     assert( tos is-region-list? )
-    assert( nos is-region? )
+    assert( nos sb-region? )
     \ cr ." region-list-remove: " over .region space ." from: " dup .region-list cr
 
     [ ' regions-eq? ] literal -rot  \ xt reg1 reg-lst0
@@ -892,7 +892,7 @@
 : region-list-any-superset-of? ( reg1 list0 -- flag )
     \ Check args.
     assert( tos is-region-list? )
-    assert( nos is-region? )
+    assert( nos sb-region? )
 
     [ ' region-superset? ] literal -rot list-member?
 ;
@@ -901,7 +901,7 @@
 : region-list-any-intersection? ( reg1 list0 -- flag )
     \ Check args.
     assert( tos is-region-list? )
-    assert( nos is-region? )
+    assert( nos sb-region? )
 
     [ ' regions-intersect? ] literal -rot list-member?
 ;
@@ -1231,4 +1231,69 @@
                                 \  reg-lnk0
     drop
     true
+;
+
+\ Return true if all regions have adjacent states.
+: region-list-all-have-adjacent-states? ( reg-lst -- bool )
+    \ Check arg.
+    assert( tos is-region-list? )
+
+    foreach                 \ reg-lnk regx
+        region-get-states   \ reg-lnk sta1 sta0
+        states-adjacent?    \ reg-lnk bool
+        ifnot
+            \ Return false.
+            drop
+            false
+            exit
+        then
+    next-item
+
+    \ Return true.
+    true
+;
+
+\ Return true if a list of regions with adjacent, dissimilar-valued, states,
+\ predicts a given list of defining-valued regions.
+: region-list-pairs-predict-defining-regions? ( def-lst1 pr-lst0 -- bool )
+    \ Check args.
+    assert( tos is-region-list? )
+    assert( tos list-is-not-empty? )
+    assert( nos is-region-list? )
+    assert( tos list-is-not-empty? )
+
+    \ Init calculated possible regions list.
+    list-new                                \ def-lst1 pr-lst pos-lst'
+    over list-get-first-item                \ def-lst1 pr-lst pos-lst' regx
+    region-get-num-bits                     \ def-lst1 pr-lst pos-lst' nb
+    region-max-x                            \ def-lst1 pr-lst pos-lst' reg-max
+    over list-push-struct                   \ def-lst1 pr-lst pos-lst'
+    swap                                    \ def-lst1 pos-lst' pr-lst
+
+    foreach                                 \ def-lst1 pos-lst' pr-lnk prx
+        \ Calc regions implied by pair.
+        region-get-states                   \ def-lst1 pos-lst' pr-lnk sta1 sta0
+        state-~a+~b-xt execute              \ def-lst1 pos-lst' pr-lnk tmp-lst'
+        dup                                 \ def-lst1 pos-lst' pr-lnk tmp-lst' tmp-lst'
+        #3 pick                             \ def-lst1 pos-lst' pr-lnk tmp-lst' tmp-lst' pos-lst'
+        region-list-intersections-nosubs    \ def-lst1 pos-lst' pr-lnk tmp-lst' pos-lst-next'
+        swap region-list-deallocate         \ def-lst1 pos-lst' pr-lnk pos-lst-next'
+
+        \ Replace accumulated regions.
+        rot                                 \ def-lst1 pr-lnk pos-lst-next' pos-lst'
+        region-list-deallocate              \ def-lst1 pr-lnk pos-lst-next'
+        swap                                \ def-lst1 pos-lst-next' pr-lnk
+    next-item
+                                            \ def-lst1 pos-lst'
+
+    \ Get calculated defining regions.
+    dup                                     \ def-lst1 pos-lst' pos-lst'
+    region-list-defining-regions            \ def-lst1 pos-lst' clc-def-lst'
+    swap region-list-deallocate             \ def-lst1 clc-def-lst'
+
+    \ Check if the lists are equal.
+    \ cr ." def1: " over .region-list space ." calc: " dup .region-list cr
+    2dup region-lists-eq?                   \ def-lst1 clc-def-lst' bool
+    swap region-list-deallocate             \ def-lst1 bool
+    nip                                     \ bool
 ;

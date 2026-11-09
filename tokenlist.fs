@@ -18,7 +18,7 @@
 
     list-get-links      \ tos-lnk
     link-get-data       \ data
-    is-token?           \ bool
+    sb-token?           \ bool
 ;
 
 \ Deallocate a token list.

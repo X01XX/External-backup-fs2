@@ -650,6 +650,41 @@
     cr ." action-test-take-step-3 - Ok"
 ;
 
+: action-test-corner-calc
+    \ Init action.
+    [ ' noop ] literal
+    s" rXXXX 0" string-to-stack-a
+    action-new                                                      \ act
+
+    \ Init corner list.
+    s" ((crn s1101 rX1X1 (s1100 s1001))(crn s0111 rX1X1 (s0110 s0011))(crn s1100 r1XX0 (s1101 s0100))(crn s0011 rX01X (s0001 s0111))(crn s0110 rXX10 (s0111 s0100))(crn s0001 r0X0X (s0011 s1001))(crn s0100 r0X0X (s0110 s1100))(crn s1001 r10XX (s1101 s0001)))"
+    region-list-from-string-a   \ act crn-lst'
+
+    cr s" corners: " #2 pick .corner-list-prefix cr
+
+    \ Init defining region list.
+    s" (r1XX0 r10XX rX1X1 rX01X rXX10 r0X0X)" region-list-from-string-a \ act crn-lst' df-lst'
+
+    cr ." Defining regs: " dup .region-list cr
+
+    \ Get lists of defining regions and their corners.
+
+    \ Get regions with only one corner, and those with GT one corner.
+
+    \ Calc defining regions from regions with only one corner.
+
+
+    \ Deallocate.
+    region-list-deallocate
+    corner-list-deallocate
+    action-deallocate
+
+    \ Check for memory leaks.
+    check-project-deallocated
+
+    cr ." action-test-corner-calc - Ok"
+;
+
 : action-tests
     action-test-new
     action-test-add-sample
@@ -662,5 +697,6 @@
     action-test-take-step-1
     action-test-take-step-2
     action-test-take-step-3
+    \ action-test-corner-calc
     cr
 ;

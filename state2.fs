@@ -32,6 +32,7 @@
     \ Check arg.
     assert( tos is-state? )
     assert( nos is-state? )
+    assert( 2dup states-eq? invert )
 
     \ Get state 0 complement.
     state-complement            \ sta1 reg-lst0'
@@ -48,6 +49,8 @@
     swap region-list-deallocate \ reg-lst0' ret-lst
     swap region-list-deallocate \ ret-lst
 ;
+
+' state-~a+~b to state-~a+~b-xt
 
 \ Return regions implied from a corner,
 \ a state and a list of dissimilar states. ( sta0 ( sta1 sta2 ... ))

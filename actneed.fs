@@ -153,7 +153,7 @@ actneed-target-disp    cell+   constant actneed-info-disp       \ Zero, or a Tok
     assert( nos is-valid-inst-id? )
     assert( 3os is-actneed-type? )
     assert( 4os is-state? )
-    assert( 5os 0= if true else 5os is-token? then )
+    assert( 5os 0= if true else 5os sb-token? then )
 
     \ Allocate instance.
     actneed-struct-id actneed-mma

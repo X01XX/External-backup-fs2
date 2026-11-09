@@ -146,6 +146,7 @@
     \ Test (uses list-from-string).
     dup is-corner? invert abort" corner-from-string failed?"
 
+    \ Deallocate.
     corner-deallocate
 
     \ Check for memory leaks.

@@ -27,7 +27,7 @@ token-header-disp cell+ constant token-string-disp
     dup token-mma mma-is-item? \ addr bool
     if
         struct-get-id           \ id
-        token-struct-id =              \ bool
+        token-struct-id =       \ bool
     else
         drop
         false                   \ f
@@ -36,12 +36,37 @@ token-header-disp cell+ constant token-string-disp
 
 ' is-token? to is-token?-xt
 
+: sb-token? ( tos -- bool )
+    dup token-mma mma-within-array  \ tkn0 bool
+    if
+        dup struct-get-id           \ tkn0 id
+        ?dup 0=
+        if
+            cr ." sb-token?: Use after deallocation " hex. cr
+            false
+            exit
+        then
+
+        dup token-struct-id =       \ tkn0 id bool
+        if
+            2drop
+            true
+        else
+            cr ." sb-token?: Instance id invalid? " hex. space hex. cr
+            false
+        then
+    else                            \ tkn0
+        cr ." sb-token?: Invalid address? " hex. cr
+        false
+    then
+;
+
 \ Start accessors.
 
 \ Get token data cell.
 : token-get-string ( tkn -- c-addr u )
     \ Check arg.
-    assert( tos is-token? )
+    assert( tos sb-token? )
 
     token-string-disp + string@
 ;
@@ -49,7 +74,7 @@ token-header-disp cell+ constant token-string-disp
 \ Copy a token string to the pad and leave string on stack.
 : token-string-to-pad ( tkn -- c-addr u )
     \ Check arg.
-    assert( tos is-token? )
+    assert( tos sb-token? )
 
     token-get-string        \ c-addr u
     pad string!             \
@@ -59,7 +84,7 @@ token-header-disp cell+ constant token-string-disp
 \ Set token data cell.
 : token-set-string ( c-addr u tkn -- )
     \ Check args.
-    assert( tos is-token? )
+    assert( tos sb-token? )
 
     token-string-disp + string!
 ;
@@ -128,7 +153,7 @@ token-header-disp cell+ constant token-string-disp
 \ Print a token struct.
 : .token ( tkn -- )
     \ Check arg.
-    assert( tos is-token? )
+    assert( tos sb-token? )
 
     token-get-string type
 ;
@@ -136,7 +161,7 @@ token-header-disp cell+ constant token-string-disp
 \ Print a token struct instance.
 : .token-with-parens ( tkn -- )
     \ Check arg.
-    assert( tos is-token? )
+    assert( tos sb-token? )
 
     [char] " emit
     token-get-string type
@@ -146,8 +171,8 @@ token-header-disp cell+ constant token-string-disp
 \ Return true if two tokens are equal.
 : tokens-eq? ( tkn1 tkn2 -- flag )
     \ Check args.
-    assert( tos is-token? )
-    assert( nos is-token? )
+    assert( tos sb-token? )
+    assert( nos sb-token? )
 
     token-get-string        \ tkn1 c-addr2 u2
     rot                     \ c-addr2 u2 tkn1
@@ -158,7 +183,7 @@ token-header-disp cell+ constant token-string-disp
 \ Return true if a token is equal to a string.
 : token-eq-string ( c-addr u tkn0 -- flag )
     \ Check args.
-    assert( tos is-token? )
+    assert( tos sb-token? )
 
     token-get-string        \ c-addr u c-addr u
     str=                    \ flag
@@ -166,30 +191,41 @@ token-header-disp cell+ constant token-string-disp
 
 \ Deallocate a token.
 : token-deallocate ( tkn0 -- )
-    \ Check arg.
-    assert( tos is-token? )
+    \ Check if tos is a valid instance.
+    dup token-mma mma-within-array  \ tkn0 bool
+    ifnot
+        cr ." token-deallocate: Deallocation of an invalid address? " dup hex. cr abort
+    then
 
-    dup struct-get-use-count    \ tkn count
-    dup 0< abort" token-deallocate: Invalid use count"
+    \ Check if instance is already deallocated.
+    dup get-first-word              \ tkn0, id t | f
+    invert abort" token-deallocate: get-first-word failed?"
 
+    0=                              \ tkn0 bool
+    if
+        cr ." token-deallocate: Double deallocation of " dup hex. cr abort
+    then
+
+    \ Check instance use count.
+    dup struct-get-use-count        \ tkn count
     dup 0<
     if
-        ." token-deallocate: Invalid use count" abort
+        cr ." token-deallocate: Invalid use count" cr abort
+    then
+
+    #2 <
+    if
+        \ Deallocate instance.
+        token-mma mma-deallocate2
     else
-        #2 <
-        if
-            0 over token-string-disp + !    \ Clear string field first cell.
-            token-mma mma-deallocate        \ Deallocate instance.
-        else
-            struct-dec-use-count
-        then
+        struct-dec-use-count
     then
 ;
 
 \ Concatenate an a string to the end of a token's existing string.
 : token-concatenate ( c-addr n tkn0 -- t | f )
     \ Check arg.
-    assert( tos is-token? )
+    assert( tos sb-token? )
     assert( nos #256 < )
     assert( nos -1 > )
 
