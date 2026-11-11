@@ -40,38 +40,3 @@
     then
 ;
 
-\ Print a actionstep-list
-: .actionstep-list ( actstp-lst0 -- )
-    \ Check arg.
-    assert( tos is-actionstep-list? )
-
-    [ ' .actionstep ] literal swap .list
-;
-
-: .actionstep-list-prefix ( c-addr u list0 -- )
-    \ Check arg.
-    assert( tos is-actionstep-list? )
-    cr
-    rot                 \ u list0 c-addr
-    #2 pick             \ u list0 c-addr u
-    type                \ u list0
-
-    dup list-is-empty?
-    if
-        ." None"
-        2drop
-        exit
-    then
-
-    foreach             \ u lnk grpx
-        .actionstep
-
-        link-get-next
-        dup 0<> if
-            over cr spaces
-        then
-    repeat
-                        \ u
-    drop
-    cr
-;

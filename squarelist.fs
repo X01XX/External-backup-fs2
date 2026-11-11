@@ -40,39 +40,6 @@
     then
 ;
 
-\ Print a square-list
-: .square-list ( list0 -- )
-    \ Check arg.
-    assert( tos is-square-list? )
-
-    [ ' .square ] literal swap .list
-;
-
-: .square-list-prefix ( c-addr u list0 -- )
-    \ Check arg.
-    assert( tos is-square-list? )
-    cr
-    rot                 \ u list0 c-addr
-    #2 pick             \ u list0 c-addr u
-    type                \ u list0
-
-    list-get-links      \ u lnk
-
-    begin
-        ?dup
-    while
-        dup link-get-data .square
-
-        link-get-next
-        dup 0<> if
-            over cr spaces
-        then
-    repeat
-                        \ u
-    drop
-    cr
-;
-
 \ Print square list states.
 : .square-list-states ( sqr-lst -- )
     \ Check arg.

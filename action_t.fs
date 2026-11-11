@@ -298,7 +298,7 @@
     2dup swap                               \ act sta1 sta1 act
     action-calc-anchor-discovery-needs      \ act sta', ned-lst' bool
     if
-        cr s" Needs: " #2 pick .actneed-list-prefix cr
+        cr s" Needs: " #2 pick .struct-list-prefix cr
 
         \ Test needs.
         s" s0111" state-from-string-a dup   \ act sta' ned-lst' stax' stax'
@@ -379,7 +379,7 @@
     2dup swap                               \ act sta' sta' act
     action-calc-anchor-discovery-needs      \ act sta', ned-lst' bool
     if
-        cr s" Needs: " #2 pick .actneed-list-prefix cr
+        cr s" Needs: " #2 pick .struct-list-prefix cr
 
         \ Test needs.
         s" s1100" state-from-string-a dup   \ act sta' ned-lst' stax' stax'
@@ -445,7 +445,7 @@
     s" s1100" state-from-string-a swap          \ sta act
     2dup action-calc-resolve-uncertainty-needs  \ sta act, ned-lst' t | f
     if
-        cr ." needs: " dup .actneed-list cr
+        cr ." needs: " dup .struct-list cr
 
         \ Test needs.
         dup list-get-length #2 <> abort" needs len ne 2?"
@@ -478,7 +478,7 @@
 
     2dup action-calc-resolve-uncertainty-needs  \ sta act, ned-lst' t | f
     if
-        cr ." needs: " dup .actneed-list cr
+        cr ." needs: " dup .struct-list cr
 
         \ Test needs.
         dup list-get-length #2 <> abort" needs len ne 2?"
@@ -650,7 +650,7 @@
     cr ." action-test-take-step-3 - Ok"
 ;
 
-: action-test-corner-calc
+: action-test-corner-cluster-calc
     \ Init action.
     [ ' noop ] literal
     s" rXXXX 0" string-to-stack-a
@@ -658,9 +658,9 @@
 
     \ Init corner list.
     s" ((crn s1101 rX1X1 (s1100 s1001))(crn s0111 rX1X1 (s0110 s0011))(crn s1100 r1XX0 (s1101 s0100))(crn s0011 rX01X (s0001 s0111))(crn s0110 rXX10 (s0111 s0100))(crn s0001 r0X0X (s0011 s1001))(crn s0100 r0X0X (s0110 s1100))(crn s1001 r10XX (s1101 s0001)))"
-    region-list-from-string-a   \ act crn-lst'
+    list-from-string-a   \ act crn-lst'
 
-    cr s" corners: " #2 pick .corner-list-prefix cr
+    cr s" corners: " #2 pick .struct-list-prefix cr
 
     \ Init defining region list.
     s" (r1XX0 r10XX rX1X1 rX01X rXX10 r0X0X)" region-list-from-string-a \ act crn-lst' df-lst'
@@ -668,13 +668,63 @@
     cr ." Defining regs: " dup .region-list cr
 
     \ Get lists of defining regions and their corners.
+    list-new                            \ act crn-lst' df-lst' reg-crns-lst
+    over                                \ act crn-lst' df-lst' reg-crns-lst df-lst'
+    foreach                             \ act crn-lst' df-lst' reg-crns-lst df-lnk def-regx
+        \ Start list of corners.
+        list-new                        \ act crn-lst' df-lst' reg-crns-lst df-lnk def-regx def-crn-lst'
+        #5 pick                         \ act crn-lst' df-lst' reg-crns-lst df-lnk def-regx def-crn-lst' crn-lst'
+        foreach                         \ act crn-lst' df-lst' reg-crns-lst df-lnk def-regx def-crn-lst' crn-lnk crnx
+            corner-get-anchor-state     \ act crn-lst' df-lst' reg-crns-lst df-lnk def-regx def-crn-lst' crn-lnk crnx-sta
+            #3 pick                     \ act crn-lst' df-lst' reg-crns-lst df-lnk def-regx def-crn-lst' crn-lnk crnx-sta def-regx
+            region-superset-of-state?   \ act crn-lst' df-lst' reg-crns-lst df-lnk def-regx def-crn-lst' crn-lnk bool
+            if
+                dup link-get-data       \ act crn-lst' df-lst' reg-crns-lst df-lnk def-regx def-crn-lst' crn-lnk crnx
+                #2 pick                 \ act crn-lst' df-lst' reg-crns-lst df-lnk def-regx def-crn-lst' crn-lnk crnx def-crn-lst'
+                list-push-struct        \ act crn-lst' df-lst' reg-crns-lst df-lnk def-regx def-crn-lst' crn-lnk
+            then
+        next-item
+                                        \ act crn-lst' df-lst' reg-crns-lst df-lnk def-regx def-crn-lst'
+        list-new                        \ act crn-lst' df-lst' reg-crns-lst df-lnk def-regx def-crn-lst' def-crns'
+        tuck list-push-struct           \ act crn-lst' df-lst' reg-crns-lst df-lnk def-regx def-crns'
+        tuck list-push-struct           \ act crn-lst' df-lst' reg-crns-lst df-lnk def-crns'
+        \ cr ." one def reg: " dup .struct-list cr
+        #2 pick                         \ act crn-lst' df-lst' reg-crns-lst df-lnk def-crns'reg-crns-lst
+        list-push-struct                \ act crn-lst' df-lst' reg-crns-lst df-lnk
+    next-item
+                                        \ act crn-lst' df-lst' reg-crns'
+
+    s" def crns: " #2 pick .struct-list-prefix cr
 
     \ Get regions with only one corner, and those with GT one corner.
+    list-new list-new                   \ act crn-lst' df-lst' reg-crns' reg-crns-1' reg-crns-gt1'
+    #2 pick                             \ act crn-lst' df-lst' reg-crns' reg-crns-1' reg-crns-gt1' reg-crns'
+    foreach                             \ act crn-lst' df-lst' reg-crns' reg-crns-1' reg-crns-gt1' reg-crns-lnk reg-crnx
+        dup list-get-second-item list-get-length 1 =    \ ... bool
+        if
+            #3 pick list-push-struct    \ act crn-lst' df-lst' reg-crns' reg-crns-1' reg-crns-gt1' reg-crns-lnk
+        else
+            #2 pick list-push-struct    \ act crn-lst' df-lst' reg-crns' reg-crns-1' reg-crns-gt1' reg-crns-lnk
+        then
+    next-item
+                                        \ act crn-lst' df-lst' reg-crns' reg-crns-1' reg-crns-gt1'
+    cr s" def crn:  " #3 pick .struct-list-prefix cr
+    cr s" duf crns: " #2 pick .struct-list-prefix cr
 
-    \ Calc defining regions from regions with only one corner.
+    \ For each defining region with more that one corner,
+    \   For each corner
+    \       if all of the adjacent, dissimilar, states are an anchor of another corner
+    \           Those corners force the existance of the current corner.
+    \       else
+    \           see if the corner is required.  Remove it, calc the expected defining regions, compare to the given defining regions.
+    \       then
 
+    \ Check for multiple clusters?
 
     \ Deallocate.
+    struct-list-deallocate
+    struct-list-deallocate
+    struct-list-deallocate
     region-list-deallocate
     corner-list-deallocate
     action-deallocate
@@ -682,7 +732,7 @@
     \ Check for memory leaks.
     check-project-deallocated
 
-    cr ." action-test-corner-calc - Ok"
+    cr ." action-test-corner-cluster-calc - Ok"
 ;
 
 : action-tests
@@ -697,6 +747,6 @@
     action-test-take-step-1
     action-test-take-step-2
     action-test-take-step-3
-    \ action-test-corner-calc
+    \ action-test-corner-cluster-calc
     cr
 ;

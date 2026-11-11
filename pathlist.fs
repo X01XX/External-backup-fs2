@@ -39,40 +39,4 @@
     then
 ;
 
-\ Print a path-list
-: .path-list ( pth-lst0 -- )
-    \ Check arg.
-    assert( tos is-path-list? )
-
-    [ ' .path ] literal swap .list
-;
-
-\ Print a path list one line at a time, aligned with a given prefix.
-: .path-list-prefix ( c-addr u pth-lst0 -- )
-    \ Check arg.
-    assert( tos is-path-list? )
-    cr
-    rot                 \ u pth-lst0 c-addr
-    #2 pick             \ u pth-lst0 c-addr u
-    type                \ u pth-lst0
-
-    dup list-is-empty?
-    if
-        ." None"
-        2drop
-        exit
-    then
-
-    foreach             \ u lnk pthx
-        .path
-
-        link-get-next
-        dup 0<> if
-            cr over spaces
-        then
-    repeat
-                        \ u
-    drop
-    cr
-;
 

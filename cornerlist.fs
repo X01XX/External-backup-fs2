@@ -61,76 +61,6 @@
     then
 ;
 
-\ Print a corner list.
-: .corner-list ( crn-lst0 -- )
-    \ Check arg.
-    assert( tos is-corner-list? )
-    ." ("
-    foreach                 \ crn-lnk crnx
-        .corner
-
-        link-get-next       \ crn-lnk
-        dup 0<> if space then
-    repeat
-    ." )"
-;
-
-: .corner-list-prefix ( c-addr u list0 -- )
-    \ Check arg.
-    assert( tos is-corner-list? )
-    cr
-    rot                 \ u list0 c-addr
-    #2 pick             \ u list0 c-addr u
-    type                \ u list0
-
-    dup list-is-empty?
-    if
-        ." None"
-        2drop
-        exit
-    then
-
-    foreach             \ u lnk crnx
-        .corner
-
-        link-get-next
-        dup 0<> if
-            over cr spaces
-        then
-    repeat
-                        \ u
-    drop
-;
-
-: .corner-clusters-prefix ( c-addr u list0 -- )
-    \ Check arg.
-    assert( tos is-corner-lol? )
-    cr
-    rot                 \ u list0 c-addr
-    #2 pick             \ u list0 c-addr u
-    type                \ u list0
-
-    dup list-is-empty?
-    if
-        ." None"
-        2drop
-        exit
-    then
-
-    ." ("
-    foreach             \ u lnk crn-lst
-        .corner-list
-
-        link-get-next
-        dup 0<> if
-            over cr spaces
-        then
-    repeat
-                        \ u
-    drop
-    ." )"
-;
-
 \ Return true if a corner's region matches a given region.
 : corner-region-eq? ( reg1 crn0 -- bool )
     \ Check arg.
@@ -360,15 +290,6 @@
         corner-calc-set-rate    \ pos-lst1 crn-lnk
     next-item
     drop
-;
-
-: .corner-cluster-list ( clstr-lst0 -- )
-    \ Check arg.
-    assert( tos is-list? )
-
-    foreach
-        space .corner-list
-    next-item
 ;
 
 \ Return the defining regions implied by a non-empty corner list.

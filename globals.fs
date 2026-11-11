@@ -48,6 +48,10 @@ display-debug-status
     structinfo-list-store-print-struct-list-xt execute
 ;
 
+: .struct-list-prefix ( c-addr u lst -- )
+    structinfo-list-store-print-struct-list-prefix-xt execute
+;
+
 : .memory-use ( -- )
     structinfo-list-store-.memory-use-xt execute
 ;

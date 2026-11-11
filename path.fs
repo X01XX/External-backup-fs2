@@ -114,10 +114,10 @@ path-avoid-list-disp    cell+   constant path-traverse-list-disp    \ A regionco
     ." ( pth "
     cr #2 spaces ." avoid:    "
     dup path-get-avoid-list
-    .regioncorr-list
+    .struct-list
     cr #2 spaces ." traverse: "
     path-get-traverse-list
-    .regioncorr-list
+    .struct-list
     ." )"
 ;
 

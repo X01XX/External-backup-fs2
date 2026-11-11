@@ -38,25 +38,25 @@ token-header-disp cell+ constant token-string-disp
 
 : sb-token? ( tos -- bool )
     dup token-mma mma-within-array  \ tkn0 bool
-    if
-        dup struct-get-id           \ tkn0 id
-        ?dup 0=
-        if
-            cr ." sb-token?: Use after deallocation " hex. cr
-            false
-            exit
-        then
-
-        dup token-struct-id =       \ tkn0 id bool
-        if
-            2drop
-            true
-        else
-            cr ." sb-token?: Instance id invalid? " hex. space hex. cr
-            false
-        then
-    else                            \ tkn0
+    ifnot
         cr ." sb-token?: Invalid address? " hex. cr
+        false
+    then
+
+    dup struct-get-id           \ tkn0 id
+    ?dup 0=
+    if
+        cr ." sb-token?: Use after deallocation " hex. cr
+        false
+        exit
+    then
+
+    dup token-struct-id =       \ tkn0 id bool
+    if
+        2drop
+        true
+    else
+        cr ." sb-token?: Instance id invalid? " hex. space hex. cr
         false
     then
 ;

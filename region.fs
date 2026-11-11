@@ -51,25 +51,26 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
 
 : sb-region? ( tos -- bool )
     dup region-mma mma-within-array \ reg0 bool
-    if
-        dup struct-get-id           \ reg0 id
-        ?dup 0=
-        if
-            cr ." sb-region?: Use after deallocation " hex. cr
-            false
-            exit
-        then
-
-        dup region-struct-id =      \ reg0 id bool
-        if
-            2drop
-            true
-        else
-            cr ." sb-region?: Instance id invalid? " hex. space hex. cr
-            false
-        then
-    else                            \ reg0
+    ifnot
         cr ." sb-region?: Invalid address? " hex. cr
+        false
+        exit
+    then
+
+    dup struct-get-id           \ reg0 id
+    ?dup 0=
+    if
+        cr ." sb-region?: Use after deallocation " hex. cr
+        false
+        exit
+    then
+
+    dup region-struct-id =      \ reg0 id bool
+    if
+        2drop
+        true
+    else
+        cr ." sb-region?: Instance id invalid? " hex. space hex. cr
         false
     then
 ;

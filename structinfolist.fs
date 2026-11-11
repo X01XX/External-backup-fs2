@@ -466,25 +466,84 @@
     while
         dup link-get-data               \ lst-link data
 
-        dup get-structinfo              \ lst-link data, snf t | f
-        if                              \ lst-link data snf
-            \ Print a struct instance.
-            structinfo-get-print-xt     \ lst-link data xt
-            execute                     \ lst-link
+        dup is-list?
+        if
+            recurse
 
             link-get-next
             dup 0<> if space then
-        else                            \ lst-link data
-            \ Print a number.
-            .
+        else
+            dup get-structinfo              \ lst-link data, snf t | f
+            if                              \ lst-link data snf
+                \ Print a struct instance.
+                structinfo-get-print-xt     \ lst-link data xt
+                execute                     \ lst-link
 
-            link-get-next
+                link-get-next
+                dup 0<> if space then
+            else                            \ lst-link data
+                \ Print a number.
+                .
+
+                link-get-next
+            then
         then
     repeat
     ." )"                               \
 ;
 
 ' structinfo-list-store-print-struct-list to structinfo-list-store-print-struct-list-xt
+
+\ Print a list of structures, aligned with a prefix.
+: structinfo-list-store-print-struct-list-prefix ( c-addr u lst0 -- )
+    \ Check args.
+    assert( tos is-list? )
+
+    cr
+    rot                 \ u lst0 c-addr
+    #2 pick             \ u lst0 c-addr u
+    type                \ u lst0
+
+    dup list-is-empty?
+    if
+        ." None"
+        2drop
+        exit
+    then
+
+    list-get-links                      \ u lst-link
+    begin
+        ?dup
+    while
+        dup link-get-data               \ u lst-link data
+
+        dup is-list?
+        if
+            structinfo-list-store-print-struct-list
+        else
+            dup get-structinfo              \ u lst-link data, snf t | f
+            if                              \ u lst-link data snf
+                \ Print a struct instance.
+                structinfo-get-print-xt     \ u lst-link data xt
+                execute                     \ u lst-link
+            else                            \ u lst-link data
+                \ Print a number.
+                .
+            then
+        then
+        link-get-next
+
+        dup 0<>                             \ u lst-lnk bool
+        if
+            cr over spaces
+        then
+    repeat
+                                            \ u
+    drop
+    cr
+;
+
+' structinfo-list-store-print-struct-list-prefix to structinfo-list-store-print-struct-list-prefix-xt
 
 \ Deallocate any struct instance.
 \ Do nothing to a non-struct.

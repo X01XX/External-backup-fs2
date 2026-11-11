@@ -107,8 +107,6 @@
 
 ' xtabort value regioncorr-get-list-xt
 
-' xtabort value .regioncorr-list-xt
-
 ' xtabort value .regioncorr-xt
 
 
@@ -117,6 +115,8 @@
 ' xtabort value structinfo-list-store-.memory-use-xt
 
 ' xtabort value structinfo-list-store-print-struct-list-xt
+
+' xtabort value structinfo-list-store-print-struct-list-prefix-xt
 
 ' xtabort value structinfo-list-store-struct-list-deallocate-xt
 
@@ -152,31 +152,7 @@
 
 ' xtabort value is-struct?-xt
 
-' xtabort value is-intregcs?-xt
-
-' xtabort value intregcs-get-regioncorrs-xt
-
-' xtabort value .intregcs-xt
-
-' xtabort value intregcs-new-xt
-
-' xtabort value .intregcs-list-prefix-xt
-
-' xtabort value intregcs-list-deallocate-xt
-
-' xtabort value intregcs-list-regioncorr-in-xt
-
-' xtabort value .intregcs-list-xt
-
-' xtabort value intregcss-share-regioncorr?-xt
-
-' xtabort value intregcss-shared-regioncorr-xt
-
-' xtabort value intregcs-get-length-xt
-
 ' xtabort value is-token?-xt
-
-' xtabort value is-regcints?-xt
 
 ' xtabort value is-pathstep?-xt
 
@@ -203,8 +179,6 @@
 ' xtabort value state-new-xt
 
 ' xtabort value regioncorr-new-xt
-
-' xtabort value .mask-list-xt
 
 ' xtabort value mask-list-deallocate-xt
 

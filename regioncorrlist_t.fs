@@ -6,7 +6,7 @@
     dup regioncorr-list-split-by-intersections             \ regc-lst0, regc-lst t | f
     invert abort" split failed?"
 
-    cr ." intersections: " dup .regioncorr-list cr
+    cr ." intersections: " dup .struct-list cr
 
     \ Test.
     s" ( regc #3  #-3 (r0101 r00101)) ( regc 1  -1 (r0X0X r00x00)) ( regc 1  -1 (r0X0X r0000x)) ( regc 1  -1 (r0X00 r00x0x)) ( regc 1  -1 (r000X r00x0x)) ( regc #2  #-2 (rx1x1 r0x111)) ( regc #2 #-2 (rx1x1 r011x1)) ( regc #2 #-2 (rx111 r0x1x1)) ( regc #2 #-2 (r11x1 r0x1x1))"
@@ -28,12 +28,12 @@
 : regioncorr-list-test-split-by-intersections2
     s" (regc 1 -1 (rxxxx)) (regc #2 -#2 (rxxx1)) (regc #3 #-3 (rx1x1)) (regc #4 #-4 (rx1x1))" list-from-string-a
 
-    s" start: " #2 pick .regioncorr-list-prefix cr
+    s" start: " #2 pick .struct-list-prefix cr
 
     dup regioncorr-list-split-by-intersections             \ regc-lst0, regc-lst t | f
     invert abort" split failed?"
 
-    cr s" intersections: " #2 pick .regioncorr-list-prefix cr
+    cr s" intersections: " #2 pick .struct-list-prefix cr
 
     \ Test.
     s" ( regc #7  #-7 (rX1X1)) ( regc #3 #-3 (rX0X1)) ( regc 1 -1 (rxxx0))"
@@ -52,40 +52,6 @@
     cr ." regioncorr-list-test-split-by-intersections2 - Ok"
 ;
 
-\ Get the complement of a regc, 5, find intersections, and count
-\ the number of intersections of each fragment.
-\ A fragment intersection of gt 2 fragments may be useful.
-\
-\ In the complement 5 case, any start->goal,
-\ where the start, and goal, are not equal, and not 5,
-\ can be start->goal within a complement region,
-\ or start->A->goal.
-\
-\ Create a lst of regionints.
-: regioncorr-list-test-map-routes
-    \ Calc complement list.
-    s" (( regc 0  0 (r0101)) ( regc 0 0 (r1111)))" list-from-string-a
-
-    dup regioncorr-list-complement
-    cr s" Complements: " #2 pick .regioncorr-list-prefix
-
-    dup regioncorr-list-map-routes  \ avoid-lst comp-lst ?
-
-    \ Display.
-\    s" regcorrints: " #2 pick .regioncorrint-list-prefix
-
-    \ Test.
-
-    \ Deallocate.
-    regioncorr-list-deallocate
-    regioncorr-list-deallocate
-
-    \ Check for memory leaks.
-    check-project-deallocated
-
-    cr ." regioncorr-list-test-map-routes - Ok"
-;
-
 : regioncorr-list-test-find-path
     s" ( regc 0  0 (r0101)) ( regc 0  0 (r1111))" list-from-string-a    \ regcl-avd'
     s" ( regc 0  0 (rxxxx))" list-from-string-a                         \ regcl-avd' regcl-max'
@@ -93,7 +59,7 @@
     swap regioncorr-list-deallocate                                     \ regcl-avd' regcl-trv'
     swap regioncorr-list-deallocate                                     \ regcl-trv'
 
-    cr ." Regions to traverse: " dup .regioncorr-list cr
+    cr ." Regions to traverse: " dup .struct-list cr
 
     \ Make stac-to, stac-from.
     s" (stac (s1101)) (stac (s0111))" string-to-stack-a \ regcl-trv' stac-t' stac-f'
@@ -103,7 +69,7 @@
     #4 pick                                     \ regcl-trv' stac-t' stac-f' stac-t' stac-f' regcl-trv'
     regioncorr-list-find-path                   \ regcl-trv' stac-t' stac-f', sta-lst t | f
     if
-        cr ." Path found: " dup .statecorr-list cr
+        cr ." Path found: " dup .struct-list cr
         dup list-get-length #4 <> abort" path len ne 4?"
         statecorr-list-deallocate
         statecorr-deallocate

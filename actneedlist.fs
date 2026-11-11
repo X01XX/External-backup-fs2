@@ -40,66 +40,6 @@
     then
 ;
 
-\ Print a actneed-list
-: .actneed-list ( aned-lst0 -- )
-    \ Check args.
-    assert( tos is-actneed-list? )
-
-    \ Init counter
-    0 swap                  \ cnt aned-lst0
-
-    \ Scan actneeds
-    list-get-links          \ cnt aned-lnk
-    begin
-        ?dup
-    while
-        dup link-get-data   \ cnt aned-lnk ned
-
-        \ Print actneed and count.
-        cr
-        #2 pick #3 dec.r
-        space
-        .actneed
-
-        \ Update count.
-        swap 1+ swap
-
-        link-get-next       \ cnt aned-lnk
-    repeat
-    cr
-                            \ cnt
-    drop
-;
-
-\ Print a actneed list one line at a time, aligned with a given prefix.
-: .actneed-list-prefix ( c-addr u stac-lst0 -- )
-    \ Check arg.
-    assert( tos is-actneed-list? )
-    cr
-    rot                 \ u stac-lst0 c-addr
-    #2 pick             \ u stac-lst0 c-addr u
-    type                \ u stac-lst0
-
-    dup list-is-empty?
-    if
-        ." None"
-        2drop
-        exit
-    then
-
-    foreach             \ u lnk grpx
-        .actneed
-
-        link-get-next
-        dup 0<> if
-            over cr spaces
-        then
-    repeat
-                        \ u
-    drop
-    cr
-;
-
 \ Push a actneed to a actneed-list, unless it is already in the list.
 : actneed-list-push ( ned1 list0 -- )
     \ Check args.

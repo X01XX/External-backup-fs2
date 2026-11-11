@@ -85,7 +85,7 @@ maskcorr-header-disp    cell+       constant maskcorr-list-disp   \ Mask list co
 
     ." ( mskc "
     maskcorr-get-list               \ lst
-    .mask-list
+    .struct-list
     ." )"
 ;
 

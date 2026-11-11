@@ -246,7 +246,7 @@ session-paths-disp              cell+   constant session-sesneed-list-disp      
 
     \ Check if no valued regioncorrs.
     dup session-get-valued-regioncorrs      \ sess0 regc-lst
-    \ cr ." _session-process-valued-regioncorrs: start: " dup .regioncorr-list cr
+    \ cr ." _session-process-valued-regioncorrs: start: " dup .struct-list cr
 
     list-get-length                         \ sess0 num
     0= if
@@ -265,7 +265,7 @@ session-paths-disp              cell+   constant session-sesneed-list-disp      
     regioncorr-list-split-by-intersections  \ sess0, spl-lst' t | f
     invert abort" split failed?"
 
-    cr s" fragments: " #2 pick .regioncorr-list-prefix cr
+    cr s" fragments: " #2 pick .struct-list-prefix cr
 
 \ Save fragments?
 
@@ -315,7 +315,7 @@ session-paths-disp              cell+   constant session-sesneed-list-disp      
         #3 pick                             \ sess0 spl-lst' val-lst' avoid-lol' val-lnk neg-lst' neg-lst' avoid-lol'
         regioncorr-list-append-nodups       \ sess0 spl-lst' val-lst' avoid-lol' val-lnk neg-lst'
         regioncorr-list-deallocate          \ sess0 spl-lst' val-lst' avoid-lol' val-lnk
-        \ cr ." avoid list: " over .regioncorr-list cr
+        \ cr ." avoid list: " over .struct-list cr
         over list-copy-struct               \ sess0 spl-lst' val-lst' avoid-lol' val-lnk avoid-lst2'
 
         \ Calc regions to traverse.
@@ -402,7 +402,7 @@ session-paths-disp              cell+   constant session-sesneed-list-disp      
 
     s" Valued Regioncorrs: "
     #2 pick session-get-valued-regioncorrs
-    .regioncorr-list-prefix
+    .struct-list-prefix
 
     dup session-get-paths
     dup list-get-length
@@ -1808,8 +1808,9 @@ session-paths-disp              cell+   constant session-sesneed-list-disp      
         cr ." Needs: No needs found" cr
         drop
     else
-        cr s" Needs:" rot .sesneed-list-prefix  \ sess0 ned-lst
-        ." Press Enter to randomly choose a need."
+        \ cr s" Needs:" rot .sesneed-list-prefix  \ sess0 ned-lst
+        cr s" Needs:" rot .struct-list-prefix  \ sess0 ned-lst
+        cr ." Press Enter to randomly choose a need."
         cr ." dn <number> - Specify a particular need."
         cr
     then

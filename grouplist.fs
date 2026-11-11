@@ -40,46 +40,6 @@
     then
 ;
 
-\ Print a group list.
-: .group-list ( grp-lst0 -- )
-    \ Check arg.
-    assert( tos is-group-list? )
-
-    ." ("
-    foreach                 \ grp-lnk grpx
-        cr #8 spaces .group
-    next-item
-    ." )"
-;
-
-: .group-list-prefix ( c-addr u list0 -- )
-    \ Check arg.
-    assert( tos is-group-list? )
-    cr
-    rot                 \ u list0 c-addr
-    #2 pick             \ u list0 c-addr u
-    type                \ u list0
-
-    dup list-is-empty?
-    if
-        ." None"
-        2drop
-        exit
-    then
-
-    foreach             \ u lnk grpx
-        .group
-
-        link-get-next
-        dup 0<> if
-            over cr spaces
-        then
-    repeat
-                        \ u
-    drop
-    cr
-;
-
 \ Return a list of groups a state should be in.
 : group-list-superset-of-state ( sta1 grp-lst0 -- grp-lst t | f )
     \ Check args.

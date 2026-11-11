@@ -581,7 +581,7 @@ action-groups-disp                      cell+   constant action-function-disp   
 
     cr dup .action-parent-inst-id space dup .action-inst-id
     cr
-    s"     Squares:              " #2 pick action-get-squares .square-list-prefix
+    s"     Squares:              " #2 pick action-get-squares .struct-list-prefix
     cr
     #4 spaces ." Adjacent pairs:       " dup action-get-adj-pairs
     dup list-is-empty?
@@ -626,11 +626,11 @@ action-groups-disp                      cell+   constant action-function-disp   
     then
     cr
     cr
-    s"     Corners:              " #2 pick action-get-corners .corner-list-prefix
+    s"     Corners:              " #2 pick action-get-corners .struct-list-prefix
     cr
-    s"     Corner clusters:      " #2 pick action-get-corner-clusters .corner-clusters-prefix
+    s"     Corner clusters:      " #2 pick action-get-corner-clusters .struct-list-prefix
     cr
-    s"     Groups:               " #2 pick action-get-groups .group-list-prefix
+    s"     Groups:               " #2 pick action-get-groups .struct-list-prefix
     drop
     cr
 ;
@@ -2955,14 +2955,14 @@ action-groups-disp                      cell+   constant action-function-disp   
                 cr #3 pick .action cr
                 invert abort" action-get-needs: pnc squares between non-adjacent, dissimilar, squares?"
             then
-            \ cr ." non-pnc squares: " dup .square-list cr
+            \ cr ." non-pnc squares: " dup .struct-list cr
 
             swap square-list-deallocate \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-non-lst'
 
             \ Get squares with highest number of samples.
             dup square-list-max-samples \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-non-lst', sqr-max-lst' t | f
             invert abort" max samples failed?"
-            \ cr ." max num samples squares: " dup .square-list cr
+            \ cr ." max num samples squares: " dup .struct-list cr
 
             swap square-list-deallocate \ ret-lst cur-sta1 act0 nadj-lnk regx sqr-max-lst'
 

@@ -94,7 +94,7 @@
 
     2dup regioncorr-subtract            \ regc1 regc0 regc-lst
 
-    space ." = " dup .regioncorr-list cr
+    space ." = " dup .struct-list cr
 
     \ Test.
     s" ( regc 1 #-4 (rx1x1 r0x111)) ( regc 1 #-4 (rx1x1 r011x1)) ( regc 1  #-4 (rx111 r0x1x1)) ( regc 1  #-4 (r11x1 r0x1x1))"

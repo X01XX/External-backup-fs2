@@ -117,19 +117,6 @@
     true
 ;
 
-\ Print a regioncorr list.
-: .regioncorr-list ( regc-lst0 -- )
-    \ Check arg.
-    assert( tos is-regioncorr-list? )
-    ." ("
-    foreach                 \ regc-lnk regcx
-        .regioncorr
-        link-get-next
-        dup 0> if space then
-    repeat
-    ." )"
-;
-
 \ Return a TOS regioncorr-list minus the NOS regioncorr.
 : regioncorr-list-subtract-regioncorr ( regc1 regc-lst0 -- ret-lst )
     \ Check args.
@@ -176,7 +163,7 @@
     next-item
                                                 \ ret-lst regc1
     drop                                        \ ret-lst
-    \ cr ." regioncorr-list-subtract-regioncorr: end: " dup .regioncorr-list cr
+    \ cr ." regioncorr-list-subtract-regioncorr: end: " dup .struct-list cr
 ;
 
 \ Return a copy of a regioncorr-list.
@@ -199,7 +186,7 @@
     \ Check args.
     assert( tos is-regioncorr-list? )
     assert( nos is-regioncorr-list? )
-    \ cr ." regioncorr-list-subtract: start: " dup .regioncorr-list space ." - " over .regioncorr-list cr
+    \ cr ." regioncorr-list-subtract: start: " dup .struct-list space ." - " over .struct-list cr
 
     \ Make a list that way be returned empty, or deallocated.
     regioncorr-list-copy                    \ regc-lst1 ret-lst
@@ -216,7 +203,7 @@
         regioncorr-list-deallocate          \ ret-lst-new regc-lnk1
     next-item
                                             \ ret-lst
-    \ cr ." regioncorr-list-subtract: end : " dup .regioncorr-list cr
+    \ cr ." regioncorr-list-subtract: end : " dup .struct-list cr
 ;
 
 \ Return a list of intersections of any two regioncorrs in a list.
@@ -277,35 +264,6 @@
     repeat
                                     \ regc-lst0
     drop
-;
-
-\ Print a regioncorr list one line at a time, aligned with a given prefix.
-: .regioncorr-list-prefix ( c-addr u regc-lst0 -- )
-    \ Check arg.
-    assert( tos is-regioncorr-list? )
-    cr
-    rot                 \ u regc-lst0 c-addr
-    #2 pick             \ u regc-lst0 c-addr u
-    type                \ u regc-lst0
-
-    dup list-is-empty?
-    if
-        ." None"
-        2drop
-        exit
-    then
-
-    foreach             \ u lnk grpx
-        .regioncorr
-
-        link-get-next
-        dup 0<> if
-            over cr spaces
-        then
-    repeat
-                        \ u
-    drop
-    cr
 ;
 
 : regioncorr-list-set-regioncorr-rates ( regc1 regc-lst0 -- )
@@ -373,7 +331,7 @@
         \ cr ." regioncorr-list-split-by-intersections: exit 1" cr
         exit
     then
-    \ cr ." first pass: " dup .regioncorr-list cr
+    \ cr ." first pass: " dup .struct-list cr
 
     \ Init return list.
     list-new -rot                                   \ regc-lst0  ret-lst regc-lst0 int-regcs'
@@ -381,7 +339,7 @@
     \ Get arg regions minus intersections.
     2dup swap                                       \ regc-lst0  ret-lst regc-lst0 int-regcs' int-regcs' regc-lst0
     regioncorr-list-subtract                        \ regc-lst0  ret-lst regc-lst0 int-regcs' remc-lst'
-    \ cr ." remainders: " dup .regioncorr-list cr
+    \ cr ." remainders: " dup .struct-list cr
 
     \ Add remainders to the return list.
     dup #4 pick                                     \ regc-lst0  ret-lst regc-lst0 int-regcs' remc-lst' remc-lst' ret-lst
@@ -423,8 +381,6 @@
         then
     again
 ;
-
-' .regioncorr-list to .regioncorr-list-xt
 
 \ Return true if two regioncorr lists are equal.
 : regioncorr-lists-eq? ( regc-lst1 regc-lst0 -- bool )
@@ -593,119 +549,6 @@
     next-item
                                     \ ret-lst regc1
     drop
-;
-
-\ Given a regioncorr-list find the best list of intregcss
-\ that cover all regioncorrs.
-\ A one element result means that anywhere is reachable from anywhere.
-: regioncorr-list-map-routes ( regc-comp-lst0 -- regci-lol )
-    \ Check arg.
-    cr ." regioncorr-list-map-routes: start" cr
-    assert( tos is-regioncorr-list? )
-
-    dup regioncorr-list-split-by-intersections  \ regc-comp-lst1 regc-int-lst
-    invert abort" split failed?"
-
-    cr s" Intersections: " #2 pick .regioncorr-list-prefix cr
-
-    \ Init intregcs list
-    list-new                                    \ regc-comp-lst1 regc-int-lst regci-lst
-
-    \ Create intregcss.
-    over                                        \ regc-comp-lst1 regc-int-lst regci-lst regc-int-lst
-    foreach                                     \ regc-comp-lst1 regc-int-lst regci-lst regc-int-lnk regc-intx
-        \ cr ." int: " dup .regioncorr
-
-        dup                                     \ regc-comp-lst1 regc-int-lst regci-lst regc-int-lnk regc-intx regc-intx
-        #5 pick                                 \ regc-comp-lst1 regc-int-lst regci-lst regc-int-lnk regc-intx regc-intx regc-comp-lst1
-        regioncorr-list-supersets-of            \ regc-comp-lst1 regc-int-lst regci-lst regc-int-lnk regc-intx sups-lst
-
-        \ space ." sups: " dup .regioncorr-list cr
-
-        dup list-get-length                     \ regc-comp-lst1 regc-int-lst regci-lst regc-int-lnk regc-intx sups-lst len
-        1 >
-        if
-            swap intregcs-new-xt execute        \ regc-comp-lst1 regc-int-lst regci-lst regc-int-lnk, regci t | f
-            ifnot
-                cr ." intregcs-new failed?"
-                abort
-            then
-            \ cr ." intregcs-regioncorrs-map-routes: " dup .intregcs cr
-            #2 pick list-push-end-struct
-        else
-            regioncorr-list-deallocate
-            drop
-        then
-    next-item
-                                                \ regc-comp-lst1 regc-int-lst regci-lst
-    \ Display.
-    s" regcorrints: " #2 pick .intregcs-list-prefix-xt execute
-
-    \ Find links between any two intregcss.
-    dup list-get-links                              \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1
-    begin
-        ?dup
-    while
-        dup link-get-next                           \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2
-        begin
-            ?dup
-        while
-            over link-get-data                      \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regci1
-            over link-get-data                      \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regci1 regci2
-
-            intregcss-shared-regioncorr-xt          \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regci1 regci2 xt
-            execute                                 \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst'
-            dup list-is-empty?                      \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst' bool
-            if
-                list-deallocate
-            else
-                #2 pick link-get-data               \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst' regci1
-                intregcs-get-length-xt execute \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst' len1
-                #2 pick link-get-data               \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst' len1 regci2
-                intregcs-get-length-xt execute \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst' len1 len2
-                min                                 \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst' min
-                over list-get-length                \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst' min len
-                =
-                if
-                    \ Skip if all regioncorrs of one intregcs intersect.
-                    regioncorr-list-deallocate              \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2
-                else
-                    #2 pick link-get-data               \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst' regci1
-                    #2 pick link-get-data               \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst' regci1 regci2
-                    cr ." regc: " .intregcs-xt execute
-                    cr ." and   " .intregcs-xt execute
-                    cr ." at:   " dup .regioncorr-list  \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst'
-                    #2 pick link-get-data               \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst' regc1
-                    intregcs-get-regioncorrs-xt execute \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst' lst1
-                    #2 pick link-get-data               \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst' lst1 regc2
-                    intregcs-get-regioncorrs-xt execute \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst' lst1 lst2
-                    [ ' = ] literal -rot                \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 xt regc-lst' lst1 lst2
-                    list-union-struct                   \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst' regc-lst2'
-                    cr ." agg:  " dup .regioncorr-list space dup list-get-length dec.
-                    cr
-                    regioncorr-list-deallocate          \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2 regc-lst'
-                    regioncorr-list-deallocate          \ regc-comp-lst1 regc-int-lst regci-lst regci-lnk1 regci-lnk2
-                then
-            then
-        next-item
-    next-item
-
-    \ Find intersections for each complement regioncorr.
-\    #2 pick                                     \ regc-comp-lst1 regc-int-lst regci-lst regc-comp-lst1
-\    foreach                                     \ regc-comp-lst1 regc-int-lst regci-lst regc-comp-lnk1 regc-compx
-\        cr ." Checking complement: " dup .regioncorr cr
-\        #2 pick                                 \ regc-comp-lst1 regc-int-lst regci-lst regc-comp-lnk1 regc-compx regci-ls
-\        intregcs-list-regioncorr-in-xt          \ regc-comp-lst1 regc-int-lst regci-lst regc-comp-lnk1 regc-compx regci-lst xt
-\        execute                                 \ regc-comp-lst1 regc-int-lst regci-lst regc-comp-lnk1 regci-lst2
-\        cr s"    regci's: " #2 pick .intregcs-list-prefix-xt execute
-\        intregcs-list-deallocate-xt execute
-\    next-item
-
-    \ Deallocate.
-    intregcs-list-deallocate-xt execute
-    regioncorr-list-deallocate
-    drop
-    cr ." regioncorr-list-map-routes: end" cr
 ;
 
 \ Return the number of items in tos that are not in nos.
@@ -877,7 +720,7 @@
     assert( tos is-regioncorr-list? )
     assert( nos is-statecorr?-xt execute )
     assert( 3os is-statecorr?-xt execute )
-    \ cr ." regioncorrlist-neither-stac-in?: " cr #2 pick .statecorr cr over .statecorr cr dup .regioncorr-list cr
+    \ cr ." regioncorrlist-neither-stac-in?: " cr #2 pick .statecorr cr over .statecorr cr dup .struct-list cr
 
     2dup regioncorr-list-stac-in?   \ stac2 stac1 regc-lst0 bool
     if
@@ -916,7 +759,7 @@
     \ Check args.
     assert( tos is-regioncorr-list? )
     assert( nos is-regioncorr-list? )
-    \ cr ." regioncorr-list-intersections: start: " over .regioncorr-list space dup .regioncorr-list cr
+    \ cr ." regioncorr-list-intersections: start: " over .struct-list space dup .struct-list cr
 
     \ Init return list.
     list-new -rot                           \ ret-lst regc-lst1 regc-lst0
@@ -939,7 +782,7 @@
     next-item
                                             \ ret-lst regc-lst1
     drop
-    \ cr ." regioncorr-list-intersections: end: " dup .regioncorr-list cr
+    \ cr ." regioncorr-list-intersections: end: " dup .struct-list cr
 ;
 
 \ Return the minimum distance of a regioncorr to a statecorr.
@@ -1011,7 +854,7 @@
     2dup                                        \ stac-t stac-f regcl-trv | stac-f regcl-trv
     regioncorr-list-supersets-of-statecorr      \ stac-t stac-f regcl-trv | regcl-sup'
 
-    \ cr ." regioncorrs " #2 pick .statecorr space ." is in: " dup .regioncorr-list cr
+    \ cr ." regioncorrs " #2 pick .statecorr space ." is in: " dup .struct-list cr
 
     \ Get min distance to stac-to.
     #3 pick                                     \ stac-t stac-f regcl-trv | regcl-sup' stac-t
@@ -1037,7 +880,7 @@
     regioncorr-list-distance-statecorr-eq       \ stac-t stac-f regcl-trv | regcl-sup' cur-min regcl-sup''
     rot regioncorr-list-deallocate              \ stac-t stac-f regcl-trv | cur-min regcl-sup''
 
-    \ cr ." regioncorrs " #3 pick .statecorr space ." is in, closest to : " #4 pick .statecorr space ." = " dup .regioncorr-list cr
+    \ cr ." regioncorrs " #3 pick .statecorr space ." is in, closest to : " #4 pick .statecorr space ." = " dup .struct-list cr
 
     \ Subtract stac-from superset regioncorrs, closest to stac-to, from traverse regcs.
     [ ' = ] literal                             \ stac-t stac-f regcl-trv | cur-min regcl-sup' xt
@@ -1045,14 +888,14 @@
     #2 pick                                     \ stac-t stac-f regcl-trv | cur-min regcl-sup' xt regcl-trv regcl-sup'
     list-difference-struct                      \ stac-t stac-f regcl-trv | cur-min regcl-sup' regcl-dif'
 
-    \ cr ." Other regioncorrs: " dup .regioncorr-list cr
+    \ cr ." Other regioncorrs: " dup .struct-list cr
 
     \ Get regcs in regcl-dif that intersect with regcl-sup.
     dup                                         \ stac-t stac-f regcl-trv | cur-min regcl-sup' regcl-dif' regcl-dif'
     #2 pick                                     \ stac-t stac-f regcl-trv | cur-min regcl-sup' regcl-dif' regcl-dif' regcl-sup'
     regioncorr-list-intersections               \ stac-t stac-f regcl-trv | cur-min regcl-sup' regcl-dif' regcl-int'
 
-    \ cr ." Intersectors of : " #2 pick .regioncorr-list space ." = " dup .regioncorr-list cr
+    \ cr ." Intersectors of : " #2 pick .struct-list space ." = " dup .struct-list cr
 
     \ Find min distance between regioncorrs in regcl-int and stac-t.
     \ Minimum distance may be zero.
@@ -1079,7 +922,7 @@
     regioncorr-list-distance-statecorr-eq       \ stac-t stac-f regcl-trv | cur-min regcl-sup' regcl-dif' regcl-int' regcl-int''
     swap regioncorr-list-deallocate             \ stac-t stac-f regcl-trv | cur-min regcl-sup' regcl-dif' regcl-int''
 
-    \ cr ." Min dist intersectors: " dup .regioncorr-list cr
+    \ cr ." Min dist intersectors: " dup .struct-list cr
 
     \ Choose one randomly.
     dup list-get-length random                  \ stac-t stac-f regcl-trv | cur-min regcl-sup' regcl-dif' regcl-int' inx
@@ -1165,7 +1008,7 @@
     assert( tos is-regioncorr-list? )
     assert( nos is-statecorr? )
     \ cr ." regioncorr-list-rate-statecorr: "
-    \ cr 5 spaces ." regcl: " dup .regioncorr-list
+    \ cr 5 spaces ." regcl: " dup .struct-list
     \ cr 5 spaces ." stac:  " over .statecorr cr
 
     0 integer-new swap                      \ stac1 val-int' regc-lst0

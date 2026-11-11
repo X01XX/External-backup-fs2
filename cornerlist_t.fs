@@ -55,7 +55,7 @@
     swap                                        \ reg-lst crn-lst reg-lst crnx
     corner-additional-corners                   \ reg-lst crn-lst, crn-lst t | f
     if
-        cr ." addl corners found: " dup .corner-list cr
+        cr ." addl corners found: " dup .struct-list cr
     else
         cr ." NO addl corners found: " cr abort
     then
@@ -79,14 +79,14 @@
 
 \    s" ((crn s0011 rX01X (s0001 s0111)) (crn s0001 r0X0X (s0011 s1001)) (crn s0111 rX1X1 (s0110 s0011)) (crn s1001 r10XX (s1101 s0001)) (crn s0110 rXX10 (s0111 s0100)))"
 \    list-from-string-a                  \ crn-lst'
-\    cr ." crn lst: " dup .corner-list cr
+\    cr ." crn lst: " dup .struct-list cr
 \
 \    dup corner-list-defining-regions    \ crn-lst' reg-lst1'
 \    cr ." def regs1: " dup .region-list cr
 
 \    s" ((crn s1101 rX1X1 (s1100 s1001)) (crn s1100 r1XX0 (s1101 s0100)) (crn s1001 r10XX (s1101 s0001)) (crn s0100 r0X0X (s0110 s1100)) (crn s0110 rXX10 (s0111 s0100)))"
 \    list-from-string-a                  \ crn-lst' reg-lst1' crn-lst'
-\    cr ." crn lst: " dup .corner-list cr
+\    cr ." crn lst: " dup .struct-list cr
 \
 \    dup corner-list-defining-regions    \ crn-lst' reg-lst1' crn-lst' reg-lst2'
 \    cr ." def regs2: " dup .region-list cr
@@ -103,7 +103,7 @@
 
     s" ((crn s0011 rX01X (s0001 s0111)) (crn s1100 r1XX0 (s1101 s0100)) (crn s1001 r10XX (s1101 s0001)) (crn s0110 rXX10 (s0111 s0100)))"
     list-from-string-a                  \ crn-lst'
-    cr ." crn lst: " dup .corner-list cr
+    cr ." crn lst: " dup .struct-list cr
 
     dup corner-list-defining-regions    \ crn-lst' reg-lst1'
     cr ." def regs: " dup .region-list cr
