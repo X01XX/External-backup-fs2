@@ -13,7 +13,7 @@
 regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region list corresponding, in bits used, to the session domain list.
 
 
-0 value regioncorr-mma \ Storage for region mma instance.
+0 value regioncorr-mma \ Storage for regioncorr mma instance.
 
 \ Init regioncorr mma, return an address of allocated memory.
 : regioncorr-mma-init ( num-items -- ) \ sets regioncorr-mma.
@@ -178,7 +178,7 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
     tuck _regioncorr-set-pos-value      \ regc
 ;
 
-\ Print a region-list corresponding to the session domain list.
+\ Print a regioncorr instance.
 : .regioncorr ( regc0 -- )
     \ Check arg.
     assert( tos is-regioncorr? )

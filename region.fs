@@ -581,6 +581,26 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     nip                             \ sta-both-msk
 ;
 
+\ Return a region with bits changed by mask.
+: region-xor-mask ( msk1 reg0 -- reg )
+    \ Check args.
+    assert( tos sb-region? )
+    assert( nos is-mask? )
+
+    \ Calc new state-1.
+    over                    \ msk1 reg0 msk1
+    over region-get-state-1 \ msk1 reg0 msk1 sta-1
+    state-xor-mask          \ msk1 reg0 sta-1'
+    -rot                    \ sta-1' msk1 reg0
+
+    \ Calc new state-0.
+    region-get-state-0      \ sta-1' msk1 sta-0
+    state-xor-mask          \ sta-1' sta-0'
+
+    \ Return.
+    region-new              \ reg
+;
+
 \ Return true if two regions have a different number of bits.
 : regions-dif-num-bits? ( reg1 reg0 -- flag )
     \ Check args.
@@ -1031,4 +1051,44 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     dup region-get-state-1 swap \ sta1 reg0
     region-get-state-0          \ sta1 sta0
     region-new                  \ reg
+;
+
+\ Return true if two regions are adjacent.
+: regions-adjacent? ( reg1 reg0 -- bool )
+    \ Check args.
+    assert( tos sb-region? )
+    assert( nos sb-region? )
+
+    region-distance     \ u
+    1 =
+;
+
+\ Given one state in a region, return the other.
+: region-other-state ( sta1 reg0 -- sta )
+    \ Check args.
+    assert( tos is-region? )
+    assert( nos is-state? )
+
+    region-get-states   \ sta1 sta-x sta-y
+
+    rot                 \ sta-x sta-y sta1
+
+    2dup states-eq?     \ sta-x sta-y sta1 bool-y
+    swap                \ sta-x sta-y bool-y sta1
+    #3 pick             \ sta-x sta-y bool-y sta1 sta-x
+    states-eq?          \ sta-x sta-y bool-y bool-x
+
+    if                  \ x =
+        if              \ y =
+            cr ." Both states match?" cr abort
+        else            \ y <>
+            nip         \ sta-y
+        then
+    else                \ x <>
+        if              \ y =
+            drop        \ sta-x
+        else            \ y <>
+            cr ." region does not use state?" abort
+        then
+    then
 ;

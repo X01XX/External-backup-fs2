@@ -10,7 +10,7 @@
 path-header-disp        cell+   constant path-avoid-list-disp       \ A regioncorr-list that should be avoided.
 path-avoid-list-disp    cell+   constant path-traverse-list-disp    \ A regioncorrr- list of regions that can be traversed through.
                                                                     \ That is the maximum-X regioncorr minus the avoid list.
-0 value path-mma \ Storage for state mma instance.
+0 value path-mma \ Storage for path mma instance.
 
 \ Init path mma, return an address of allocated memory.
 : path-mma-init ( num-items -- ) \ sets path-mma.
@@ -106,7 +106,7 @@ path-avoid-list-disp    cell+   constant path-traverse-list-disp    \ A regionco
     tuck _path-set-avoid-list      \ pthx
 ;
 
-\ Print a state-list corresponding to the session domain list.
+\ Print a path instance.
 : .path ( pth0 -- )
     \ Check arg.
     assert( tos is-path? )

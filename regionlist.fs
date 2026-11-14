@@ -1297,3 +1297,29 @@
     swap region-list-deallocate             \ def-lst1 bool
     nip                                     \ bool
 ;
+
+\ Return a list af states combined into regions with a given state.
+: region-list-states-connected-to ( sta1 reg-lst0 -- sta-lst )
+    \ Check args.
+    assert( tos is-region-list? )
+    assert( nos is-state? )
+
+    \ Init return list.
+    list-new -rot               \ sta-lst sta1 reg-lst0
+
+    foreach                     \ sta-lst sta1 reg-lnk regx
+        #2 pick swap            \ sta-lst sta1 reg-lnk sta1 regx
+        region-uses-state?      \ sta-lst sta1 reg-lnk bool
+        if
+            \ Get other state.
+            2dup link-get-data  \ sta-lst sta1 reg-lnk sta1 regx
+            region-other-state  \ sta-lst sta1 reg-lnk stax
+
+            \ Store other state.
+            #3 pick             \ sta-lst sta1 reg-lnk stax sta-lst
+            list-push-struct    \ sta-lst sta1 reg-lnk
+        then
+    next-item
+                                \ sta-lst sta1
+    drop
+;

@@ -334,3 +334,39 @@
     true
 ;
 
+\ Return true if a state is in a state-list.
+: state-list-state-in? ( sta1 sta-lst -- bool )
+    \ Check args.
+    assert( tos is-state-list? )
+    assert( nos is-state? )
+
+    [ ' states-eq? ] literal    \ sta1 sta-lst xt
+    -rot                        \ xt sta1 sta-lst
+    list-member?                \ bool
+;
+
+\ Append nos state-list to the tos state-list end, no duplicates.
+: state-list-append-end-nodups (  sta-lst1  sta-lst0 -- )
+    \ Check args.
+    assert( tos is-state-list? )
+    assert( nos is-state-list? )
+
+    swap                        \  sta-lst0 sta-lst1
+    list-get-links              \  sta-lst0 sta-lnk1
+    begin
+        ?dup
+    while
+        dup link-get-data       \  sta-lst0 sta-lnk1 stax
+        #2 pick                 \  sta-lst0 sta-lnk1 stax sta-lst0
+        state-list-state-in?    \  sta-lst0 sta-lnk1 bool
+        ifnot
+            dup link-get-data   \  sta-lst0 sta-lnk1 stax
+            #2 pick             \  sta-lst0 sta-lnk1 stax sta-lst0
+            state-list-push-end \  sta-lst0 sta-lnk1 bool
+        then
+
+        link-get-next
+    repeat
+                                \  sta-lst0
+    drop
+;

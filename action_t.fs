@@ -650,83 +650,105 @@
     cr ." action-test-take-step-3 - Ok"
 ;
 
+: action-calc-regions-from-dis-pairs ( pr-lst1 act0 -- reg-lst )
+    list-new                                \ pr-lst1 act0 def-regs
+    over action-get-num-bits                \ pr-lst1 act0 def-regs nb
+    region-max-x                            \ pr-lst1 act0 def-regs reg-max
+    over list-push-struct                   \ pr-lst1 act0 def-regs
+
+    rot                                     \ act0 def-regs pr-lst1
+
+    foreach                                 \ act0 def-regs pr-lnk regx
+        region-get-states                   \ act0 def-regs pr-lnk sta1 sta1
+        state-~a+~b                         \ act0 def-regs pr-lnk reg-lst'
+        dup                                 \ act0 def-regs pr-lnk reg-lst' reg-lst'
+        #3 pick                             \ act0 def-regs pr-lnk reg-lst' reg-lst' def-regs
+        region-list-intersections-nosubs    \ act0 def-regs pr-lnk reg-lst' def-regs2
+
+        \ Clean up.
+        swap region-list-deallocate         \ act0 def-regs pr-lnk def-regs2
+        rot region-list-deallocate          \ act0 pr-lnk def-regs2
+        swap                                \ act0 def-regs2 pr-lnk
+    next-item
+                                            \ act0 def-regs
+    nip                                     \ def-regs
+;
+
 : action-test-corner-cluster-calc
     \ Init action.
     [ ' noop ] literal
     s" rXXXX 0" string-to-stack-a
     action-new                                                      \ act
 
-    \ Init corner list.
-    s" ((crn s1101 rX1X1 (s1100 s1001))(crn s0111 rX1X1 (s0110 s0011))(crn s1100 r1XX0 (s1101 s0100))(crn s0011 rX01X (s0001 s0111))(crn s0110 rXX10 (s0111 s0100))(crn s0001 r0X0X (s0011 s1001))(crn s0100 r0X0X (s0110 s1100))(crn s1001 r10XX (s1101 s0001)))"
-    list-from-string-a   \ act crn-lst'
+    \ Init adjacent, dissimilar, pair list.
+    s" (rx100 r01x0 r1x01 rX001 r00x1 r011x r0x11 r110x r1X11)"
+    list-from-string-a                  \ act' pr-lst'
+    cr ." pairs: " dup .struct-list cr
 
-    cr s" corners: " #2 pick .struct-list-prefix cr
+    \ Calc regions from pairs.
+    2dup swap                           \ act' pr-lst' pr-lst1 act'
+    action-calc-regions-from-dis-pairs  \ act' pr-lst' reg-lst1'
+    cr ." Pair regions: " dup .region-list cr
 
-    \ Init defining region list.
-    s" (r1XX0 r10XX rX1X1 rX01X rXX10 r0X0X)" region-list-from-string-a \ act crn-lst' df-lst'
+    \ Get defining regions.
+    dup region-list-defining-regions    \ act' pr-lst' reg-lst1' def-regs'
+    cr ." Defining regions: " dup .region-list cr
 
-    cr ." Defining regs: " dup .region-list cr
+    \ Init state cluster list.
+    list-new                            \ act' pr-lst' reg-lst1' def-regs' sta-ctstrs'
 
-    \ Get lists of defining regions and their corners.
-    list-new                            \ act crn-lst' df-lst' reg-crns-lst
-    over                                \ act crn-lst' df-lst' reg-crns-lst df-lst'
-    foreach                             \ act crn-lst' df-lst' reg-crns-lst df-lnk def-regx
-        \ Start list of corners.
-        list-new                        \ act crn-lst' df-lst' reg-crns-lst df-lnk def-regx def-crn-lst'
-        #5 pick                         \ act crn-lst' df-lst' reg-crns-lst df-lnk def-regx def-crn-lst' crn-lst'
-        foreach                         \ act crn-lst' df-lst' reg-crns-lst df-lnk def-regx def-crn-lst' crn-lnk crnx
-            corner-get-anchor-state     \ act crn-lst' df-lst' reg-crns-lst df-lnk def-regx def-crn-lst' crn-lnk crnx-sta
-            #3 pick                     \ act crn-lst' df-lst' reg-crns-lst df-lnk def-regx def-crn-lst' crn-lnk crnx-sta def-regx
-            region-superset-of-state?   \ act crn-lst' df-lst' reg-crns-lst df-lnk def-regx def-crn-lst' crn-lnk bool
-            if
-                dup link-get-data       \ act crn-lst' df-lst' reg-crns-lst df-lnk def-regx def-crn-lst' crn-lnk crnx
-                #2 pick                 \ act crn-lst' df-lst' reg-crns-lst df-lnk def-regx def-crn-lst' crn-lnk crnx def-crn-lst'
-                list-push-struct        \ act crn-lst' df-lst' reg-crns-lst df-lnk def-regx def-crn-lst' crn-lnk
-            then
+    \ Get states list.
+    #3 pick region-list-states          \ act' pr-lst' reg-lst1' def-regs' sta-ctstrs' sta-lst'
+    cr ." states: " dup .struct-list cr
+
+
+    begin
+        dup list-is-not-empty?
+    while
+        \ Choose a random state to start a state list.
+        dup list-get-length                 \ act' pr-lst' reg-lst1' def-regs' sta-ctstrs' sta-lst' u
+        random                              \ act' pr-lst' reg-lst1' def-regs' sta-ctstrs' sta-lst' inx
+        over list-get-item                  \ act' pr-lst' reg-lst1' def-regs' sta-ctstrs' sta-lst' sta
+        list-new tuck list-push-struct      \ act' pr-lst' reg-lst1' def-regs' sta-ctstrs' sta-lst' sta-clstr'
+
+        \ Find states connected to states, using the pair list.
+        \ The list grows as new states are added to the end, increasing the number of loop cycles.
+        dup                                 \ act' pr-lst' reg-lst1' def-regs' sta-ctstrs' sta-lst' sta-clstr' sta-clstr'
+        foreach                             \ act' pr-lst' reg-lst1' def-regs' sta-ctstrs' sta-lst' sta-clstr' sta-clstr-lnk stax
+            #7 pick                         \ act' pr-lst' reg-lst1' def-regs' sta-ctstrs' sta-lst' sta-clstr' sta-clstr-lnk stax pr-lst'
+            region-list-states-connected-to \ act' pr-lst' reg-lst1' def-regs' sta-ctstrs' sta-lst' sta-clstr' sta-clstr-lnk sta-lst2'
+
+            \ Add states to list, no dups.
+            dup                             \ act' pr-lst' reg-lst1' def-regs' sta-ctstrs' sta-lst' sta-clstr' sta-clstr-lnk sta-lst2' sta-lst2'
+            #3 pick                         \ act' pr-lst' reg-lst1' def-regs' sta-ctstrs' sta-lst' sta-clstr' sta-clstr-lnk sta-lst2' sta-lst2' sta-clstr'
+            state-list-append-end-nodups    \ act' pr-lst' reg-lst1' def-regs' sta-ctstrs' sta-lst' sta-clstr' sta-clstr-lnk sta-lst2'
+            state-list-deallocate           \ act' pr-lst' reg-lst1' def-regs' sta-ctstrs' sta-lst' sta-clstr' sta-clstr-lnk
         next-item
-                                        \ act crn-lst' df-lst' reg-crns-lst df-lnk def-regx def-crn-lst'
-        list-new                        \ act crn-lst' df-lst' reg-crns-lst df-lnk def-regx def-crn-lst' def-crns'
-        tuck list-push-struct           \ act crn-lst' df-lst' reg-crns-lst df-lnk def-regx def-crns'
-        tuck list-push-struct           \ act crn-lst' df-lst' reg-crns-lst df-lnk def-crns'
-        \ cr ." one def reg: " dup .struct-list cr
-        #2 pick                         \ act crn-lst' df-lst' reg-crns-lst df-lnk def-crns'reg-crns-lst
-        list-push-struct                \ act crn-lst' df-lst' reg-crns-lst df-lnk
-    next-item
-                                        \ act crn-lst' df-lst' reg-crns'
+                                        \ act' pr-lst' reg-lst1' def-regs' sta-ctstrs' sta-lst' sta-clstr'
 
-    s" def crns: " #2 pick .struct-list-prefix cr
+        \ Get states not collected, for the next loop cycle.
+        [ ' states-eq? ] literal            \ act' pr-lst' reg-lst1' def-regs' sta-ctstrs' sta-lst' sta-clstr' xt
+        #2 pick #2 pick                     \ act' pr-lst' reg-lst1' def-regs' sta-ctstrs' sta-lst' sta-clstr' xt sta-lst' sta-clstr'
+        list-difference-struct              \ act' pr-lst' reg-lst1' def-regs' sta-ctstrs' sta-lst' sta-clstr' sta-dif'
 
-    \ Get regions with only one corner, and those with GT one corner.
-    list-new list-new                   \ act crn-lst' df-lst' reg-crns' reg-crns-1' reg-crns-gt1'
-    #2 pick                             \ act crn-lst' df-lst' reg-crns' reg-crns-1' reg-crns-gt1' reg-crns'
-    foreach                             \ act crn-lst' df-lst' reg-crns' reg-crns-1' reg-crns-gt1' reg-crns-lnk reg-crnx
-        dup list-get-second-item list-get-length 1 =    \ ... bool
-        if
-            #3 pick list-push-struct    \ act crn-lst' df-lst' reg-crns' reg-crns-1' reg-crns-gt1' reg-crns-lnk
-        else
-            #2 pick list-push-struct    \ act crn-lst' df-lst' reg-crns' reg-crns-1' reg-crns-gt1' reg-crns-lnk
-        then
-    next-item
-                                        \ act crn-lst' df-lst' reg-crns' reg-crns-1' reg-crns-gt1'
-    cr s" def crn:  " #3 pick .struct-list-prefix cr
-    cr s" duf crns: " #2 pick .struct-list-prefix cr
+        \ Store the state cluster.
+        swap                                \ act' pr-lst' reg-lst1' def-regs' sta-ctstrs' sta-lst' sta-dif' sta-clstr'
+        #3 pick                             \ act' pr-lst' reg-lst1' def-regs' sta-ctstrs' sta-lst' sta-dif' sta-clstr' sta-clstrs'
+        list-push-struct                    \ act' pr-lst' reg-lst1' def-regs' sta-ctstrs' sta-lst' sta-dif'
 
-    \ For each defining region with more that one corner,
-    \   For each corner
-    \       if all of the adjacent, dissimilar, states are an anchor of another corner
-    \           Those corners force the existance of the current corner.
-    \       else
-    \           see if the corner is required.  Remove it, calc the expected defining regions, compare to the given defining regions.
-    \       then
+        \ Make new state list to parse out more clusters.
+        swap state-list-deallocate          \ act' pr-lst' reg-lst1' def-regs' sta-ctstrs' sta-dif'
+    repeat
 
-    \ Check for multiple clusters?
+
+    cr ." state clusters: " over .struct-list cr
 
     \ Deallocate.
-    struct-list-deallocate
-    struct-list-deallocate
+    state-list-deallocate
     struct-list-deallocate
     region-list-deallocate
-    corner-list-deallocate
+    region-list-deallocate
+    region-list-deallocate
     action-deallocate
 
     \ Check for memory leaks.

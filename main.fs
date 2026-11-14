@@ -27,9 +27,11 @@
 \ Integer ( Rate in fs1 )   sesneed ( RuleStore in fs1 )
 \ 41719                     23173
 \
-\ * Not used in fs1.
+\ DefPart   DefRegParts
+\ 17317     41737
 \
 \ Struct ids not yet used:
+\
 \
 \ ID     In fs1
 \ 31973, Changes.

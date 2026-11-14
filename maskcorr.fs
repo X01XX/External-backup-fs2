@@ -10,7 +10,7 @@
 0                                   constant maskcorr-header-disp \ 16-bits [0] struct id [1] use count
 maskcorr-header-disp    cell+       constant maskcorr-list-disp   \ Mask list corresponding, in bits used, to the session domain list.
 
-0 value maskcorr-mma    \ Storage for mask mma instance.
+0 value maskcorr-mma    \ Storage for maskcorr mma instance.
 
 \ Init maskcorr mma, return an address of allocated memory.
 : maskcorr-mma-init ( num-items -- )    \ sets maskcorr-mma.
@@ -78,7 +78,7 @@ maskcorr-header-disp    cell+       constant maskcorr-list-disp   \ Mask list co
 
 ;
 
-\ Print a mask-list corresponding to the session domain list.
+\ Print a maskcorr instance.
 : .maskcorr ( mskc0 -- )
     \ Check arg.
     assert( tos is-maskcorr? )

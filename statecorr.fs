@@ -11,7 +11,7 @@
 0                                   constant statecorr-header-disp \ 16-bits [0] struct id [1] use count
 statecorr-header-disp    cell+      constant statecorr-list-disp   \ State list corresponding, in bits used, to the session domain list.
 
-0 value statecorr-mma \ Storage for state mma instance.
+0 value statecorr-mma \ Storage for statecorr mma instance.
 
 \ Init statecorr mma, return an address of allocated memory.
 : statecorr-mma-init ( num-items -- ) \ sets statecorr-mma.
