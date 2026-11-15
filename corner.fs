@@ -116,7 +116,7 @@ corner-region-disp          cell+   constant corner-adjacent-states-disp    \ Al
 : corner-set-rate ( rt crn0 -- )
     \ Check args.
     assert( tos is-corner? )
-    assert( nos 0 >= )
+    assert( nos 0>= )
     assert( nos [ 1 cells #8 * ] literal < )
 
     4c!

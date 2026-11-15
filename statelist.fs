@@ -370,3 +370,38 @@
                                 \  sta-lst0
     drop
 ;
+
+\ Return a list of adjacent pair regions from a state list.
+: state-list-to-pair-list ( sta-lst0 -- pr-lst )
+    \ Check arg.
+    assert( tos is-state-list? )
+
+    \ Itit return list.
+    list-new swap                   \ pr-lst sta-lst0
+
+    foreach                         \ pr-lst sta-lnk sta-x
+
+        over link-get-next          \ pr-lst sta-lnk sta-x sta-lnk-nxt
+        begin
+            ?dup
+        while
+            dup link-get-data       \ pr-lst sta-lnk sta-x sta-lnk-nxt sta-n
+            #2 pick                 \ pr-lst sta-lnk sta-x sta-lnk-nxt sta-n sta-x
+            states-adjacent?        \ pr-lst sta-lnk sta-x sta-lnk-nxt bool
+            if
+                \ Make region.
+                dup link-get-data       \ pr-lst sta-lnk sta-x sta-lnk-nxt sta-n
+                #2 pick                 \ pr-lst sta-lnk sta-x sta-lnk-nxt sta-n sta-x
+                region-new-xt execute   \ pr-lst sta-lnk sta-x sta-lnk-nxt reg-x
+
+                \ Store region.
+                #4 pick                 \ pr-lst sta-lnk sta-x sta-lnk-nxt reg-x pr-lst
+                list-push-struct        \ pr-lst sta-lnk sta-x sta-lnk-nxt
+            then
+
+            link-get-next
+        repeat
+
+        drop                    \ pr-lst sta-lnk
+    next-item
+;

@@ -143,6 +143,8 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     \ cr ." region-new: " dup hex. cr
 ;
 
+' region-new to region-new-xt
+
 \ Return the number of bits used for a region.
 : region-get-num-bits ( reg0 -- nb )
     \ Check arg.

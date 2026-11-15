@@ -79,7 +79,7 @@
     \ Test results.
     dup action-get-adj-pairs list-get-length #2 <> abort" invalid number of adj pairs"
     dup action-get-adj-regions list-get-length #5 <> abort" invalid number of adj regions"
-    dup action-get-nadj-pairs list-get-length 0 <> abort" invalid number of nadj pairs"
+    dup action-get-nadj-pairs list-get-length 0<> abort" invalid number of nadj pairs"
     dup action-get-nadj-regions list-get-length 1 <> abort" invalid number of nadj regions"
     dup action-get-states-in-one-region list-get-length #3 <> abort" invalid number of states in one region"
     dup action-get-defining-regions list-get-length #3 <> abort" invalid number of defining regions"
@@ -650,6 +650,7 @@
     cr ." action-test-take-step-3 - Ok"
 ;
 
+\ Return ~a + ~b regions from a pair list.
 : action-calc-regions-from-dis-pairs ( pr-lst1 act0 -- reg-lst )
     list-new                                \ pr-lst1 act0 def-regs
     over action-get-num-bits                \ pr-lst1 act0 def-regs nb
@@ -674,6 +675,60 @@
     nip                                     \ def-regs
 ;
 
+\ Return the defining regions from the intersection of a list of region lists.
+: action-intersect-lol-regions ( regs-lol1 act0 -- def-regs )
+    \ Check args.
+    assert( tos is-action? )
+    assert( nos is-list? )
+
+    \ Init work list.
+    dup action-get-max-region               \ regs-lol1 act0 max-reg
+    list-new tuck list-push-struct          \ regs-lol1 act0 wrk-lst'
+
+    rot                                     \ act0 wrk-lst' regs-lol1
+    foreach                                 \ act0 wrk-lst' regs-lol1-lnk reg-lst-x
+        #2 pick                             \ act0 wrk-lst' regs-lol1-lnk reg-lst-x wrk-lst'
+        region-list-intersections-nosubs    \ act0 wrk-lst' regs-lol1-lnk wrk-lst-nxt'
+        rot region-list-deallocate          \ act0 regs-lol1-lnk wrk-lst2'
+        swap                                \ act0 wrk-lst-nxt' regs-lol1-lnk
+    next-item
+                                            \ act0 wrk-lst'
+    dup region-list-defining-regions        \ act0 wrk-lst' def-regs'
+    swap region-list-deallocate             \ act0 def-regs'
+    nip                                     \ def-regs'
+;
+
+
+\ Calc possible regions for each pair cluster, keep correspondence to list position.
+: action-pair-clusters-to-possible-region-clusters ( pr-lol1 act0 -- reg-lol )
+    \ Check args.
+    assert( tos is-action? )
+    assert( nos is-list? )
+
+    \ Init result list.
+    list-new                                \ pr-lol1 act0 pos-reg-clstrs'
+
+    rot                                     \ act0 pos-reg-clstrs' pr-lol1
+    foreach                                 \ act0 pos-reg-clstrs' pr-lol-lnk pr-lst-x
+        \ Calc possible regions for current pair cluster.
+        #3 pick                             \ act0 pos-reg-clstrs' pr-lol-lnk pr-lst-x act0
+        action-calc-regions-from-dis-pairs  \ act0 pos-reg-clstrs' pr-lol-lnk pos-regs'
+
+        \ Store cluster.
+        #2 pick                             \ act0 pos-reg-clstrs' pr-lol-lnk pos-regs' pos-reg-clstrs'
+        list-push-end-struct                \ act0 pos-reg-clstrs' pr-lol-lnk
+    next-item
+                                            \ act0 pos-reg-clstrs'
+    nip
+;
+
+\ Given a list of defining regions, and a list of incompatible pair clusters, return
+\ a list of incompatible pair clusters that is one shorter, and still
+\ results in the same list of defining pairs.
+: action-shorten-pair-cluster-list ( defining-regions2 pair-lol1 act0 -- pair-lol t | f )
+
+;
+
 : action-test-corner-cluster-calc
     \ Init action.
     [ ' noop ] literal
@@ -683,7 +738,7 @@
     \ Init adjacent, dissimilar, pair list.
     s" (rx100 r01x0 r1x01 rX001 r00x1 r011x r0x11 r110x r1X11)"
     list-from-string-a                  \ act' pr-lst'
-    cr ." pairs: " dup .struct-list cr
+    cr ." Incompatible Pairs: " dup .struct-list cr
 
     \ Calc regions from pairs.
     2dup swap                           \ act' pr-lst' pr-lst1 act'
@@ -695,56 +750,93 @@
     cr ." Defining regions: " dup .region-list cr
 
     \ Init state cluster list.
-    list-new                            \ act' pr-lst' reg-lst1' def-regs' sta-ctstrs'
+    list-new                            \ act' pr-lst' reg-lst1' def-regs' sta-clstrs'
 
     \ Get states list.
-    #3 pick region-list-states          \ act' pr-lst' reg-lst1' def-regs' sta-ctstrs' sta-lst'
-    cr ." states: " dup .struct-list cr
+    #3 pick region-list-states          \ act' pr-lst' reg-lst1' def-regs' sta-clstrs' sta-lst'
+    cr ." States: " dup .struct-list cr
 
 
     begin
         dup list-is-not-empty?
     while
         \ Choose a random state to start a state list.
-        dup list-get-length                 \ act' pr-lst' reg-lst1' def-regs' sta-ctstrs' sta-lst' u
-        random                              \ act' pr-lst' reg-lst1' def-regs' sta-ctstrs' sta-lst' inx
-        over list-get-item                  \ act' pr-lst' reg-lst1' def-regs' sta-ctstrs' sta-lst' sta
-        list-new tuck list-push-struct      \ act' pr-lst' reg-lst1' def-regs' sta-ctstrs' sta-lst' sta-clstr'
+        dup list-get-length                 \ act' pr-lst' reg-lst1' def-regs' sta-clstrs' sta-lst' u
+        random                              \ act' pr-lst' reg-lst1' def-regs' sta-clstrs' sta-lst' inx
+        over list-get-item                  \ act' pr-lst' reg-lst1' def-regs' sta-clstrs' sta-lst' sta
+        list-new tuck list-push-struct      \ act' pr-lst' reg-lst1' def-regs' sta-clstrs' sta-lst' sta-clstr'
 
         \ Find states connected to states, using the pair list.
         \ The list grows as new states are added to the end, increasing the number of loop cycles.
-        dup                                 \ act' pr-lst' reg-lst1' def-regs' sta-ctstrs' sta-lst' sta-clstr' sta-clstr'
-        foreach                             \ act' pr-lst' reg-lst1' def-regs' sta-ctstrs' sta-lst' sta-clstr' sta-clstr-lnk stax
-            #7 pick                         \ act' pr-lst' reg-lst1' def-regs' sta-ctstrs' sta-lst' sta-clstr' sta-clstr-lnk stax pr-lst'
-            region-list-states-connected-to \ act' pr-lst' reg-lst1' def-regs' sta-ctstrs' sta-lst' sta-clstr' sta-clstr-lnk sta-lst2'
+        dup                                 \ act' pr-lst' reg-lst1' def-regs' sta-clstrs' sta-lst' sta-clstr' sta-clstr'
+        foreach                             \ act' pr-lst' reg-lst1' def-regs' sta-clstrs' sta-lst' sta-clstr' sta-clstr-lnk stax
+            #7 pick                         \ act' pr-lst' reg-lst1' def-regs' sta-clstrs' sta-lst' sta-clstr' sta-clstr-lnk stax pr-lst'
+            region-list-states-connected-to \ act' pr-lst' reg-lst1' def-regs' sta-clstrs' sta-lst' sta-clstr' sta-clstr-lnk sta-lst2'
 
             \ Add states to list, no dups.
-            dup                             \ act' pr-lst' reg-lst1' def-regs' sta-ctstrs' sta-lst' sta-clstr' sta-clstr-lnk sta-lst2' sta-lst2'
-            #3 pick                         \ act' pr-lst' reg-lst1' def-regs' sta-ctstrs' sta-lst' sta-clstr' sta-clstr-lnk sta-lst2' sta-lst2' sta-clstr'
-            state-list-append-end-nodups    \ act' pr-lst' reg-lst1' def-regs' sta-ctstrs' sta-lst' sta-clstr' sta-clstr-lnk sta-lst2'
-            state-list-deallocate           \ act' pr-lst' reg-lst1' def-regs' sta-ctstrs' sta-lst' sta-clstr' sta-clstr-lnk
+            dup                             \ act' pr-lst' reg-lst1' def-regs' sta-clstrs' sta-lst' sta-clstr' sta-clstr-lnk sta-lst2' sta-lst2'
+            #3 pick                         \ act' pr-lst' reg-lst1' def-regs' sta-clstrs' sta-lst' sta-clstr' sta-clstr-lnk sta-lst2' sta-lst2' sta-clstr'
+            state-list-append-end-nodups    \ act' pr-lst' reg-lst1' def-regs' sta-clstrs' sta-lst' sta-clstr' sta-clstr-lnk sta-lst2'
+            state-list-deallocate           \ act' pr-lst' reg-lst1' def-regs' sta-clstrs' sta-lst' sta-clstr' sta-clstr-lnk
         next-item
-                                        \ act' pr-lst' reg-lst1' def-regs' sta-ctstrs' sta-lst' sta-clstr'
+                                        \ act' pr-lst' reg-lst1' def-regs' sta-clstrs' sta-lst' sta-clstr'
 
         \ Get states not collected, for the next loop cycle.
-        [ ' states-eq? ] literal            \ act' pr-lst' reg-lst1' def-regs' sta-ctstrs' sta-lst' sta-clstr' xt
-        #2 pick #2 pick                     \ act' pr-lst' reg-lst1' def-regs' sta-ctstrs' sta-lst' sta-clstr' xt sta-lst' sta-clstr'
-        list-difference-struct              \ act' pr-lst' reg-lst1' def-regs' sta-ctstrs' sta-lst' sta-clstr' sta-dif'
+        [ ' states-eq? ] literal            \ act' pr-lst' reg-lst1' def-regs' sta-clstrs' sta-lst' sta-clstr' xt
+        #2 pick #2 pick                     \ act' pr-lst' reg-lst1' def-regs' sta-clstrs' sta-lst' sta-clstr' xt sta-lst' sta-clstr'
+        list-difference-struct              \ act' pr-lst' reg-lst1' def-regs' sta-clstrs' sta-lst' sta-clstr' sta-dif'
 
         \ Store the state cluster.
-        swap                                \ act' pr-lst' reg-lst1' def-regs' sta-ctstrs' sta-lst' sta-dif' sta-clstr'
-        #3 pick                             \ act' pr-lst' reg-lst1' def-regs' sta-ctstrs' sta-lst' sta-dif' sta-clstr' sta-clstrs'
-        list-push-struct                    \ act' pr-lst' reg-lst1' def-regs' sta-ctstrs' sta-lst' sta-dif'
+        swap                                \ act' pr-lst' reg-lst1' def-regs' sta-clstrs' sta-lst' sta-dif' sta-clstr'
+        #3 pick                             \ act' pr-lst' reg-lst1' def-regs' sta-clstrs' sta-lst' sta-dif' sta-clstr' sta-clstrs'
+        list-push-struct                    \ act' pr-lst' reg-lst1' def-regs' sta-clstrs' sta-lst' sta-dif'
 
         \ Make new state list to parse out more clusters.
-        swap state-list-deallocate          \ act' pr-lst' reg-lst1' def-regs' sta-ctstrs' sta-dif'
+        swap state-list-deallocate          \ act' pr-lst' reg-lst1' def-regs' sta-clstrs' sta-dif'
     repeat
 
+    list-deallocate                         \ act' pr-lst' reg-lst1' def-regs' sta-clstrs'
 
-    cr ." state clusters: " over .struct-list cr
+    cr ." State clusters: " dup .struct-list cr
+
+    \ Convert state clusters into adjacent pair clusters.
+
+    \ Init pair clusters list.
+    list-new                                \ act' pr-lst' reg-lst1' def-regs' sta-clstrs' pr-clstrs'
+    over                                    \ act' pr-lst' reg-lst1' def-regs' sta-clstrs' pr-clstrs' sta-clstrs'
+
+    foreach                                 \ act' pr-lst' reg-lst1' def-regs' sta-clstrs' pr-clstrs' sta-clstrs-lnk clstr
+        \ Convert state cluster to pair cluster.
+        state-list-to-pair-list             \ act' pr-lst' reg-lst1' def-regs' sta-clstrs' pr-clstrs' sta-clstrs-lnk prs'
+
+        \ Store pair cluster.
+        #2 pick                             \ act' pr-lst' reg-lst1' def-regs' sta-clstrs' pr-clstrs' sta-clstrs-lnk prs' pr-clstrs'
+        list-push-struct                    \ act' pr-lst' reg-lst1' def-regs' sta-clstrs' pr-clstrs' sta-clstrs-lnk
+    next-item
+                                            \ act' pr-lst' reg-lst1' def-regs' sta-clstrs' pr-clstrs'
+    cr ." Pair clusters: " dup .struct-list cr
+
+    \ Calc possible regions for each pair cluster, keep correspondence to list position.
+
+    \ Init pairdata list.
+    list-new                                \ act' pr-lst' reg-lst1' def-regs' sta-clstrs' pr-clstrs' prdt-lst'
+
+    over                                    \ act' pr-lst' reg-lst1' def-regs' sta-clstrs' pr-clstrs' prdt-lst' pr-clstrs'
+    foreach                                 \ act' pr-lst' reg-lst1' def-regs' sta-clstrs' pr-clstrs' prdt-lst' pr-clstr-lnk clstr-x
+        \ Calc possible regions for current pair cluster.
+        pairdata-new                        \ act' pr-lst' reg-lst1' def-regs' sta-clstrs' pr-clstrs' prdt-lst' pr-clstr-lnk prdt-x'
+
+        \ Store pairdata.
+        #2 pick                             \ act' pr-lst' reg-lst1' def-regs' sta-clstrs' pr-clstrs' prdt-lst' pr-clstr-lnk prdt-x' prdt-lst'
+        list-push-end-struct                \ act' pr-lst' reg-lst1' def-regs' sta-clstrs' pr-clstrs' prdt-lst' pr-clstr-lnk
+    next-item
+                                            \ act' pr-lst' reg-lst1' def-regs' sta-clstrs' pr-clstrs' prdt-lst'
+
+    cr s" Pairdata: " #2 pick .struct-list-prefix cr
 
     \ Deallocate.
-    state-list-deallocate
+    struct-list-deallocate
+    struct-list-deallocate
     struct-list-deallocate
     region-list-deallocate
     region-list-deallocate

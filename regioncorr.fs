@@ -75,7 +75,7 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
 : _regioncorr-set-pos-value ( val regc0 -- )
     \ Check args.
     assert( tos is-regioncorr? )
-    assert( nos 0 >= )
+    assert( nos 0>= )
     assert( nos #256 < )
 
     4c!
@@ -94,7 +94,7 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
 : _regioncorr-set-neg-value ( val regc0 -- )
     \ Check args.
     assert( tos is-regioncorr? )
-    assert( nos 0 <= )
+    assert( nos 0<= )
     assert( nos #-256 > )
 
     swap abs swap       \ val regc0
@@ -126,7 +126,7 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
 \ Skip if the addition results in an invalid value.
 : regioncorr-add-pos-value ( val regc0 -- )
     assert( tos is-regioncorr? )
-    assert( nos 0 >= )
+    assert( nos 0>= )
     assert( nos #256 < )
 
     dup regioncorr-get-pos-value    \ val regc0 pos
@@ -149,7 +149,7 @@ regioncorr-header-disp    cell+     constant regioncorr-list-disp   \ Region lis
 \ Skip if the addition results in an invalid value.
 : regioncorr-add-neg-value ( val regc0 -- )
     assert( tos is-regioncorr? )
-    assert( nos 0 <= )
+    assert( nos 0<= )
     assert( nos #-256 > )
 
     dup regioncorr-get-neg-value    \ val regc0 neg

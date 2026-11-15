@@ -27,15 +27,14 @@
 \ Integer ( Rate in fs1 )   sesneed ( RuleStore in fs1 )
 \ 41719                     23173
 \
-\ DefPart   DefRegParts
-\ 17317     41737
+\ DefPart   DefRegParts PairData ( RuleCorr in fs1 )
+\ 17317     41737       53171
 \
 \ Struct ids not yet used:
 \
 \
 \ ID     In fs1
 \ 31973, Changes.
-\ 53171, RuleCorr
 \ 53173, ChangesCorr
 
 \ Start a clean vocabulary.
@@ -81,6 +80,7 @@ include regionlist.fs
 include region2.fs
 include state2.fs
 include regionlist2.fs
+include pairdata.fs
 
 include sample.fs
 include samplelist.fs
@@ -174,6 +174,7 @@ include randompick_t.fs
 #0020 path-mma-init
 #0100 planstep-mma-init
 #0100 plan-mma-init
+#0050 pairdata-mma-init
 #1010 domain-mma-init
 #0005 session-mma-init
 cr cr
@@ -190,6 +191,7 @@ list-new to structinfo-list-store
 ' noop  ' noop  ' noop   ' noop      ' integer-deallocate       ' .integer         s" Integer"        integer-mma        integer-struct-id          structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' states-eq?    ' state-from-string     ' state-deallocate      ' .state        s" State"       state-mma       state-struct-id         structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' regions-eq?   ' region-from-string    ' region-deallocate     ' .region       s" Region"      region-mma      region-struct-id        structinfo-new structinfo-list-store-push-end
+' noop  ' noop  ' noop          ' noop                  ' pairdata-deallocate   ' .pairdata     s" PairData"    pairdata-mma    pairdata-struct-id      structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' tokens-eq?    ' noop                  ' token-deallocate      ' .token        s" Token"       token-mma       token-struct-id         structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' rules-eq?     ' rule-from-string      ' rule-deallocate       ' .rule         s" Rule"        rule-mma        rule-struct-id          structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' samples-eq?   ' sample-from-string    ' sample-deallocate     ' .sample       s" Sample"      sample-mma      sample-struct-id        structinfo-new structinfo-list-store-push-end

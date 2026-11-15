@@ -72,7 +72,7 @@ session-paths-disp              cell+   constant session-sesneed-list-disp      
 ;
 
 : session-get-step-num ( sess0 -- u )
-\ Check arg.
+    \ Check arg.
     assert( tos is-session? )
 
     session-step-num-disp + \ Add offset.
@@ -81,7 +81,7 @@ session-paths-disp              cell+   constant session-sesneed-list-disp      
 
 : _session-set-step-num ( sess0 -- u )
     session-step-num-disp + \ Add offset.
-    !                       \ Fetch the field.
+    !                       \ Set the field.
 ;
 
 : session-get-max-regions ( sess0 -- regc-lst )  \ Return the max regions list.

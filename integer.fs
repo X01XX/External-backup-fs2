@@ -46,14 +46,14 @@ integer-header-disp  cell+  constant integer-number-disp  \ A number.
     @                       \ Fetch the field.
 ;
 
-\ Return the state-1 field from a integer instance.
+\ Set the number field of an integer instance.
 : integer-set-number ( num1 int0 -- )
     \ Check arg.
     assert( tos is-integer? )
 
     \ Get second state.
     integer-number-disp +   \ Add offset.
-    !                       \ Fetch the field.
+    !                       \ Set the field.
 ;
 
 \ End accessors.

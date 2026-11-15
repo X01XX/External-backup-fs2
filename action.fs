@@ -1171,17 +1171,6 @@ action-groups-disp                      cell+   constant action-function-disp   
     true
 ;
 
-\ Given a corner, generate additional corners that could be
-\ attached to adjacent states that are in other defining regions.
-: ?action-calc-additional-corners ( crn1 act0 -- crn-lst t | f )
-    assert( tos is-action? )
-    assert( nos is-corner? )
-
-    action-get-possible-regions         \ crn1 pos-regs
-    swap                                \ pos-regs crn1
-    corner-additional-corners           \ crn-lst
-;
-
 \ For use with list function, having xt signature is ( item link-data -- flag )
 : corner-test-rate ( val corner -- bool ) corner-get-rate = ;
 
@@ -3114,7 +3103,5 @@ action-groups-disp                      cell+   constant action-function-disp   
     \ Init corner list.
     list-new                    \ pr-lst2 def-lst1 act0 pr-un-lst crn-lst
 
-    rot drop
-    rot drop
-    rot drop
+    cr ." todo" cr abort
 ;

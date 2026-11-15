@@ -1323,3 +1323,32 @@
                                 \ sta-lst sta1
     drop
 ;
+
+\ Return ~a + ~b regions from a non-empty pair list.
+: region-list-calc-possible-regions-from-incompatible-pairs ( pr-lst1 -- reg-lst )
+    \ Check args.
+    assert( tos is-region-list? )
+    assert( tos list-is-not-empty? )
+
+    dup list-get-first-item                 \ pr-lst1 regx
+    region-get-num-bits                     \ pr-lst1 nb
+    region-max-x                            \ pr-lst1 reg-max
+    list-new tuck list-push-struct          \ pr-lst1 pos-regs'
+
+    swap                                    \ pos-regs' pr-lst1
+
+    foreach                                 \ pos-regs' pr-lnk regx
+        region-get-states                   \ pos-regs' pr-lnk sta1 sta0
+        state-~a+~b-xt execute              \ pos-regs' pr-lnk reg-lst'
+        dup                                 \ pos-regs' pr-lnk reg-lst' reg-lst'
+        #3 pick                             \ pos-regs' pr-lnk reg-lst' reg-lst' pos-regs'
+        region-list-intersections-nosubs    \ pos-regs' pr-lnk reg-lst' pos-regs-nxt'
+
+        \ Clean up.
+        swap region-list-deallocate         \ pos-regs' pr-lnk pos-regs-nxt'
+        rot region-list-deallocate          \ pr-lnk pos-regs-nxt'
+        swap                                \ pos-regs-nxt' pr-lnk
+    next-item
+                                            \ pos-regs
+;
+

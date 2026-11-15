@@ -73,6 +73,9 @@
 
 ' xtabort value action-state-confirmed-xt
 
+' xtabort value region-new-xt
+
+
 ' xtabort value action-update-existing-square-xt
 
 ' xtabort value action-add-sample-xt

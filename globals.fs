@@ -33,7 +33,7 @@ display-debug-status
 ;
 
 : is-valid-inst-id? ( n -- bool )
-    dup 0 >= swap #256 < and
+    dup 0>= swap #256 < and
 ;
 
 : is-valid-num-bits? ( n -- bool )
