@@ -834,6 +834,16 @@
 
     cr s" Pairdata: " #2 pick .struct-list-prefix cr
 
+    \ Try removing an unneeded pairdata instance.
+    dup
+    pairdata-list-remove-one-unneeded-instance  \ act' pr-lst' reg-lst1' def-regs' sta-clstrs' pr-clstrs' prdt-lst', prdt-lst2' t | f
+    if
+        cr s" Pairdata: 2: " #2 pick .struct-list-prefix cr
+        struct-list-deallocate
+    else
+        cr ." No unneeded instance found" cr
+    then
+
     \ Deallocate.
     struct-list-deallocate
     struct-list-deallocate

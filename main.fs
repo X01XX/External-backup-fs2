@@ -81,6 +81,7 @@ include region2.fs
 include state2.fs
 include regionlist2.fs
 include pairdata.fs
+include pairdatalist.fs
 
 include sample.fs
 include samplelist.fs
