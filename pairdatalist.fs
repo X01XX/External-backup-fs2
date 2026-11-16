@@ -194,6 +194,32 @@
             exit
         then
 
-        swap struct-list-deallocate                 \ prdt-lst-nxt'
+        swap pairdata-list-deallocate               \ prdt-lst-nxt'
     again
+;
+
+\ Return a corner list given definning regions and adjacent pairs.
+: pairdata-list-to-corner-list ( def-lst1 prdt-lst0 -- crn-lst )
+    \ Check arg.
+    assert( tos is-pairdata-list? )
+    assert( tos list-is-not-empty? )
+    assert( nos is-region-list? )
+    \ cr ." pairdata-list-to-corner-list: start: " .stack cr
+
+    \ Init return list.
+    list-new -rot                               \ ret-lst def-lst1 prdt-lst0
+
+    foreach                                     \ ret-lst def-lst1 prdt-lnk prdt-x
+        \ Get corner list.
+        pairdata-get-pairs                      \ ret-lst def-lst1 prdt-lnk pr-lst
+        #2 pick swap                            \ ret-lst def-lst1 prdt-lnk def-lst' pr-lst
+        region-list-adj-pairs-to-corner-list    \ ret-lst def-lst1 prdt-lnk crn-lst
+
+        \ Store corner list.
+        #3 pick                                 \ ret-lst def-lst1 prdt-lnk crn-lst ret-lst
+        list-push-struct                        \ ret-lst def-lst1 prdt-lnk
+    next-item
+                                                \ ret-lst def-lst1
+    drop
+    \ cr ." pairdata-list-to-corner-list: end: " .stack cr
 ;

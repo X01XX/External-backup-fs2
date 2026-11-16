@@ -200,3 +200,7 @@
 ' xtabort value .region-xt
 
 ' xtabort value state-~a+~b-xt
+
+' xtabort value corner-new-xt
+
+

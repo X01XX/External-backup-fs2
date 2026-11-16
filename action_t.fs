@@ -839,13 +839,27 @@
     pairdata-list-remove-unneeded-instances \ act' pr-lst' reg-lst1' def-regs' sta-clstrs' pr-clstrs' prdt-lst', prdt-lst2' t | f
     if
         cr s" Pairdata: 2: " #2 pick .struct-list-prefix cr
-        struct-list-deallocate
+        swap pairdata-list-deallocate       \ act' pr-lst' reg-lst1' def-regs' sta-clstrs' pr-clstrs' prdt-lst2'
     else
         cr ." No unneeded instance found" cr
     then
 
+    \ Get corner list(s).
+\ cr ." at a: " .stack cr
+    #3 pick                                 \ act' pr-lst' reg-lst1' def-regs' sta-clstrs' pr-clstrs' prdt-lst' def-regs'
+    over                                    \ act' pr-lst' reg-lst1' def-regs' sta-clstrs' pr-clstrs' prdt-lst' def-regs' prdt-lst'
+\ cr ." at b: " .stack cr
+    pairdata-list-to-corner-list            \ act' pr-lst' reg-lst1' def-regs' sta-clstrs' pr-clstrs' prdt-lst' crnclstr-lst'
+\ cr ." at c: " .stack cr
+    dup foreach                             \ act' pr-lst' reg-lst1' def-regs' sta-clstrs' pr-clstrs' prdt-lst' crnclstr-lst' crnclstr-lnk crnclstr-x
+        cr s" Corner cluster: " #2 pick .struct-list-prefix cr
+        drop
+    next-item
+                                            \ act' pr-lst' reg-lst1' def-regs' sta-clstrs' pr-clstrs' prdt-lst' crnclstr-lst'
+\ cr ." at z: " .stack cr
     \ Deallocate.
     struct-list-deallocate
+    pairdata-list-deallocate
     struct-list-deallocate
     struct-list-deallocate
     region-list-deallocate

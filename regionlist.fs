@@ -1352,3 +1352,65 @@
                                             \ pos-regs
 ;
 
+\ Return a list of regions, in a given list, that a given state is in.
+: region-list-regions-state-in ( sta1 reg-lst0 -- reg-lst t | f )
+    \ Check args.
+    assert( tos is-region-list? )
+    assert( nos is-state? )
+
+    \ Init return list.
+    list-new -rot                   \ ret-lst sta1 reg-lst0
+
+    foreach                         \ ret-lst sta1 reg-lnk regx
+        #2 pick swap                \ ret-lst sta1 reg-lnk sta1 regx
+        region-superset-of-state?   \ ret-lst sta1 reg-lnk bool
+        if
+            dup link-get-data       \ ret-lst sta1 reg-lnk reg-x
+            #3 pick                 \ ret-lst sta1 reg-lnk reg-x ret-lst
+            list-push-struct        \ ret-lst sta1 reg-lnk
+        then
+    next-item
+                                    \ ret-lst sta1
+    drop
+    check-list-return
+;
+
+\ Givern adjacent pairs and defining regions,
+\ return uneeded pairs, and corners.
+: region-list-adj-pairs-to-corner-list ( def-lst1 pr-lst0 -- crn-lst )
+    \ Check args.
+    assert( tos is-region-list? )
+    assert( nos is-region-list? )
+    assert( tos region-list-all-have-adjacent-states? )
+    assert( 2dup region-list-pairs-predict-defining-regions? )
+
+    \ Get all states in the pairs.
+    region-list-states                      \ def-lst1 sta-lst'
+
+    \ Init corner list.
+    list-new -rot                           \ crn-lst def-lst1 sta-lst'
+
+    \ Process each state.
+    dup                                     \ crn-lst def-lst1 sta-lst' sta-lst'
+    foreach                                 \ crn-lst def-lst1 sta-lst' sta-lnk sta-x
+        #3 pick                             \ crn-lst def-lst1 sta-lst' sta-lnk sta-x def-lst1
+        region-list-regions-state-in        \ crn-lst def-lst1 sta-lst' sta-lnk, reg-lst t | f
+        if
+            dup list-get-length 1 <>        \ crn-lst def-lst1 sta-lst' sta-lnk reg-lst' bool
+            abort" GT one defining regions?"
+
+            over link-get-data              \ crn-lst def-lst1 sta-lst' sta-lnk reg-lst' sta-x
+            over list-get-first-item        \ crn-lst def-lst1 sta-lst' sta-lnk reg-lst' sta-x reg-x
+            corner-new-xt execute           \ crn-lst def-lst1 sta-lst' sta-lnk reg-lst', crn' t | f
+            invert abort" corner-new failed?"
+
+            #5 pick                         \ crn-lst def-lst1 sta-lst' sta-lnk reg-lst' crn' crn-lst
+            list-push-struct                \ crn-lst def-lst1 sta-lst' sta-lnk reg-lst'
+            region-list-deallocate          \ crn-lst def-lst1 sta-lst' sta-lnk
+        then
+    next-item
+                                        \ crn-lst def-lst1 sta-lst'
+    state-list-deallocate               \ crn-lst def-lst1
+    drop
+\ cr ." at 1: " .stack cr
+;

@@ -186,6 +186,8 @@ corner-region-disp          cell+   constant corner-adjacent-states-disp    \ Al
     true
 ;
 
+' corner-new to corner-new-xt
+
 \ Return a token containing a string representation of a corner.
 : corner-token ( crn0 -- tkn )
     \ Check arg.

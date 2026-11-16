@@ -3087,21 +3087,3 @@ action-groups-disp                      cell+   constant action-function-disp   
     check-list-return
 ;
 
-\ Givern adjacent pairs and defining regions,
-\ return uneeded pairs, and corners.
-: action-adj-pairs-to-corner-list ( pr-lst2 def-lst1 act0 -- pr-un-lst crn-lst )
-    \ Check args.
-    assert( tos is-action? )
-    assert( nos is-region-list? )
-    assert( 3os is-region-list? )
-    assert( 3os region-list-all-have-adjacent-states? )
-    assert( over #3 pick region-list-pairs-predict-defining-regions? )
-
-    \ Init unneeded pair list.
-    list-new                    \ pr-lst2 def-lst1 act0 pr-un-lst
-
-    \ Init corner list.
-    list-new                    \ pr-lst2 def-lst1 act0 pr-un-lst crn-lst
-
-    cr ." todo" cr abort
-;
