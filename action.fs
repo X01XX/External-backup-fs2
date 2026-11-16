@@ -411,7 +411,25 @@ action-groups-disp                      cell+   constant action-function-disp   
     dup action-get-corner-clusters  \ crn-lol1 act0 crn-lol
     -rot                            \ crn-lol crn-lol1 act0
     _action-set-corner-clusters     \ crn-lol
-    corner-lol-deallocate
+
+    dup list-get-length             \ crn-lol len
+    0= if
+        list-deallocate
+    else
+        corner-lol-deallocate
+    then
+;
+
+\ Update the adjacent, incompatible, pairs list of an action instance.
+: _action-update-adj-pairs ( reg-lst1 act0 -- )
+    \ Check args.
+    assert( tos is-action? )
+    assert( nos is-region-list? )
+
+    dup action-get-adj-pairs            \ reg-lst1 act0 pairs
+    -rot                                \ pairs reg-lst1 act0
+    _action-set-adj-pairs               \ pairs
+    region-list-deallocate
 ;
 
 \ Update the defining-regions list of an action instance, use only in this file.
@@ -628,7 +646,12 @@ action-groups-disp                      cell+   constant action-function-disp   
     cr
     s"     Corners:              " #2 pick action-get-corners .struct-list-prefix
     cr
-    s"     Corner clusters:      " #2 pick action-get-corner-clusters .struct-list-prefix
+    dup action-get-corner-clusters list-get-length
+    #2 < if
+        s"     Corner cluster:       " #2 pick action-get-corner-clusters .struct-list-prefix
+    else
+        s"     Corner clusters:      " #2 pick action-get-corner-clusters .struct-list-prefix
+    then
     cr
     s"     Groups:               " #2 pick action-get-groups .struct-list-prefix
     drop
@@ -1174,112 +1197,6 @@ action-groups-disp                      cell+   constant action-function-disp   
 \ For use with list function, having xt signature is ( item link-data -- flag )
 : corner-test-rate ( val corner -- bool ) corner-get-rate = ;
 
-\ Calculate a corner cluster from a rated corner list, and defining regions.
-: action-calc-corner-cluster ( crn-lst1 act0 -- crn-lst t | f)
-    \ Check arg.
-    assert( tos is-action? )
-    assert( nos is-corner-list? )
-    over list-is-empty? if 2drop false exit then
-    \ cr ." action-calc-corner-cluster: start: " .stack cr
-
-    \ Get highest corner rate.
-    [ ' corner-get-rate ] literal       \ crn-lst1 act0 xt
-    #2 pick                             \ crn-lst1 act0 xt crn-lst1
-    list-max-value                      \ crn-lst1 act0 max
-
-    \ Get the first highest ranked corner.
-    [ ' corner-test-rate ] literal      \ crn-lst1 act0 max xt
-    swap                                \ crn-lst1 act0 xt max
-    #3 pick                             \ crn-lst1 act0 xt max crn-lst1
-    list-find                           \ crn-lst1 act0, crnx t | f
-    invert abort" max rated corner not found?"
-
-    \ Get additional corners.
-    over action-get-possible-regions    \ crn-lst1 act0 crnx pos-regs
-    swap                                \ crn-lst1 act0 pos-regs crnx
-    corner-additional-corners           \ crn-lst1 act0, crn-lst t | f
-
-    if
-        nip nip
-        true
-    else
-        2drop
-        false
-    then
-
-    \ cr ." action-calc-corner-cluster: end: " .stack cr
-;
-
-\ Calc corner clusters.
-\ Copy the action corner, and defining region, lists.
-\
-\ Generate one corner cluster after another, until the copied defining
-\ list is empty.
-\
-\ Return a list of corner clusters, that is a list or corner lists.
-: action-calc-corner-clusters ( act0 -- )
-    \ Check arg.
-    assert( tos is-action? )
-    \ cr ." action-calc-corner-clusters: start: " cr
-
-    \ Init cluster list.
-    list-new                                    \ act0 cstr-lst'
-
-    \ Get, copy, and rate, corner list.
-    over action-get-corners                     \ act0 cstr-lst' crn-lst
-    list-copy-struct                            \ act0 cstr-lst' crn-lst'
-
-    \ Rate each corner, the number of adjacent states that are only in one region.
-    #3 pick                                     \ act0 cstr-lst' crn-lst' act0
-    action-get-possible-regions                 \ act0 cstr-lst' crn-lst' pos-regs
-    over                                        \ act0 cstr-lst' crn-lst' pos-regs crn-lst'
-    corner-list-calc-set-rate                   \ act0 cstr-lst' crn-lst'
-
-    begin
-        dup                                     \ act0 cstr-lst' crn-lst' crn-lst'
-        #3 pick                                 \ act0 cstr-lst' crn-lst' crn-lst' act0
-
-        action-calc-corner-cluster              \ act0 cstr-lst' crn-lst', clstr' t | f
-        if                                      \ act0 cstr-lst' crn-lst', clstr'
-            \ Add cluster to cluster list.
-            dup                                 \ act0 cstr-lst' crn-lst' clstr' clstr'
-            #3 pick                             \ act0 cstr-lst' crn-lst' clstr' clstr' cstr-lst'
-            list-push-struct                    \ act0 cstr-lst' crn-lst' clstr'
-
-            \ Remove corners from corner list.
-            foreach                             \ act0 cstr-lst' crn-lst' crn-lnk crnx
-                corner-get-region               \ act0 cstr-lst' crn-lst' crn-lnk regx
-
-                \ Remove corners from corner list.
-                #2 pick                         \ act0 cstr-lst' crn-lst' crn-lnk regx crn-lst'
-                corner-list-remove-by-region    \ act0 cstr-lst' crn-lst' crn-lnk
-            next-item
-                                                \ act0 cstr-lst' crn-lst'
-            false                               \ Do not end the loop.
-        else                                    \ act0 cstr-lst' crn-lst'
-            true                                \ End the loop.
-        then
-    until
-
-    \ Clean up.
-    corner-list-deallocate              \ act0 cstr-lst'
-
-    \ FYI
-\    dup list-get-length                 \ act0 cstr-lst' len
-\    1 >                                 \ act0 cstr-lst' bool
-\    if
-\        cr ." Multiple corner clusters found!"
-\        dup .corner-cluster-list
-\        abort
-\    then
-
-    \ Save clusters.
-    swap                                \ cstr-lst' act0
-    _action-update-corner-clusters
-
-    \ cr ." action-calc-corner-clusters: end: " cr
-;
-
 \ To save memory, scan corners in the corner clusters, insure groups
 \ based on a defining region, start with the square/state of a corner anchor.
 : action-update-groups-from-corner-clusters ( act0 -- )
@@ -1337,8 +1254,7 @@ action-groups-disp                      cell+   constant action-function-disp   
                     drop
                 then
             else
-                cr ." group not found?" cr
-                abort
+                drop                            \ act0 grp-lst crnc-lnk crn-lnk
             then
             \ cr
         next-item
@@ -1349,6 +1265,141 @@ action-groups-disp                      cell+   constant action-function-disp   
     drop
 
     \ cr ." : action-update-groups-from-corner-clusters: end: " .stack cr
+;
+
+\ Process adjacent, incompatible, pairs to set the corner cluster list.
+: action-corner-cluster-calc ( act0 -- )
+    \ Check args.
+    assert( tos is-action? )
+
+    dup action-get-adj-pairs            \ act0 pr-lst
+    dup list-get-length                 \ act0 pr-lst len
+    0= if
+        drop list-new
+        swap _action-update-corner-clusters
+        exit
+    then
+
+    over action-get-adj-regions         \ act0 pr-lst pos-regs
+
+    \ Calc defining regions.
+    dup region-list-defining-regions    \ act0 pr-lst pos-regs def-regs'
+    \ cr ." Defining regions: " dup .region-list cr
+
+    \ Init state cluster list.
+    list-new                            \ act0 pr-lst pos-regs def-regs' sta-clstrs'
+
+    \ Get states list.
+    #3 pick region-list-states          \ act0 pr-lst pos-regs def-regs' sta-clstrs' sta-lst'
+    \ cr ." States: " dup .struct-list cr
+
+    begin
+        dup list-is-not-empty?
+    while
+        \ Choose a random state to start a state list.
+        dup list-get-length                 \ act0 pr-lst pos-regs def-regs' sta-clstrs' sta-lst' u
+        random                              \ act0 pr-lst pos-regs def-regs' sta-clstrs' sta-lst' inx
+        over list-get-item                  \ act0 pr-lst pos-regs def-regs' sta-clstrs' sta-lst' sta
+        list-new tuck list-push-struct      \ act0 pr-lst pos-regs def-regs' sta-clstrs' sta-lst' sta-clstr'
+
+        \ Find states connected to states, using the pair list.
+        \ The list grows as new states are added to the end, increasing the number of loop cycles.
+        dup                                 \ act0 pr-lst pos-regs def-regs' sta-clstrs' sta-lst' sta-clstr' sta-clstr'
+        foreach                             \ act0 pr-lst pos-regs def-regs' sta-clstrs' sta-lst' sta-clstr' sta-clstr-lnk stax
+            #7 pick                         \ act0 pr-lst pos-regs def-regs' sta-clstrs' sta-lst' sta-clstr' sta-clstr-lnk stax pr-lst'
+            region-list-states-connected-to \ act0 pr-lst pos-regs def-regs' sta-clstrs' sta-lst' sta-clstr' sta-clstr-lnk sta-lst2'
+
+            \ Add states to list, no dups.
+            dup                             \ act0 pr-lst pos-regs def-regs' sta-clstrs' sta-lst' sta-clstr' sta-clstr-lnk sta-lst2' sta-lst2'
+            #3 pick                         \ act0 pr-lst pos-regs def-regs' sta-clstrs' sta-lst' sta-clstr' sta-clstr-lnk sta-lst2' sta-lst2' sta-clstr'
+            state-list-append-end-nodups    \ act0 pr-lst pos-regs def-regs' sta-clstrs' sta-lst' sta-clstr' sta-clstr-lnk sta-lst2'
+            state-list-deallocate           \ act0 pr-lst pos-regs def-regs' sta-clstrs' sta-lst' sta-clstr' sta-clstr-lnk
+        next-item
+                                        \ act0 pr-lst pos-regs def-regs' sta-clstrs' sta-lst' sta-clstr'
+
+        \ Get states not collected, for the next loop cycle.
+        [ ' states-eq? ] literal            \ act0 pr-lst pos-regs def-regs' sta-clstrs' sta-lst' sta-clstr' xt
+        #2 pick #2 pick                     \ act0 pr-lst pos-regs def-regs' sta-clstrs' sta-lst' sta-clstr' xt sta-lst' sta-clstr'
+        list-difference-struct              \ act0 pr-lst pos-regs def-regs' sta-clstrs' sta-lst' sta-clstr' sta-dif'
+
+        \ Store the state cluster.
+        swap                                \ act0 pr-lst pos-regs def-regs' sta-clstrs' sta-lst' sta-dif' sta-clstr'
+        #3 pick                             \ act0 pr-lst pos-regs def-regs' sta-clstrs' sta-lst' sta-dif' sta-clstr' sta-clstrs'
+        list-push-struct                    \ act0 pr-lst pos-regs def-regs' sta-clstrs' sta-lst' sta-dif'
+
+        \ Make new state list to parse out more clusters.
+        swap state-list-deallocate          \ act0 pr-lst pos-regs def-regs' sta-clstrs' sta-dif'
+    repeat
+
+    list-deallocate                         \ act0 pr-lst pos-regs def-regs' sta-clstrs'
+
+    \ cr ." State clusters: " dup .struct-list cr
+
+    \ Convert state clusters into adjacent pair clusters.
+
+    \ Init pair clusters list.
+    list-new                                \ act0 pr-lst pos-regs def-regs' sta-clstrs' pr-clstrs'
+    over                                    \ act0 pr-lst pos-regs def-regs' sta-clstrs' pr-clstrs' sta-clstrs'
+
+    foreach                                 \ act0 pr-lst pos-regs def-regs' sta-clstrs' pr-clstrs' sta-clstrs-lnk clstr
+        \ Convert state cluster to pair cluster.
+        state-list-to-pair-list             \ act0 pr-lst pos-regs def-regs' sta-clstrs' pr-clstrs' sta-clstrs-lnk prs'
+
+        \ Store pair cluster.
+        #2 pick                             \ act0 pr-lst pos-regs def-regs' sta-clstrs' pr-clstrs' sta-clstrs-lnk prs' pr-clstrs'
+        list-push-struct                    \ act0 pr-lst pos-regs def-regs' sta-clstrs' pr-clstrs' sta-clstrs-lnk
+    next-item
+                                            \ act0 pr-lst pos-regs def-regs' sta-clstrs' pr-clstrs'
+    \ cr ." Pair clusters: " dup .struct-list cr
+
+    \ Calc possible regions for each pair cluster, keep correspondence to list position.
+
+    \ Init pairdata list.
+    list-new                                \ act0 pr-lst pos-regs def-regs' sta-clstrs' pr-clstrs' prdt-lst'
+
+    over                                    \ act0 pr-lst pos-regs def-regs' sta-clstrs' pr-clstrs' prdt-lst' pr-clstrs'
+    foreach                                 \ act0 pr-lst pos-regs def-regs' sta-clstrs' pr-clstrs' prdt-lst' pr-clstr-lnk clstr-x
+        \ Calc possible regions for current pair cluster.
+        list-copy-struct
+        pairdata-new                        \ act0 pr-lst pos-regs def-regs' sta-clstrs' pr-clstrs' prdt-lst' pr-clstr-lnk prdt-x'
+
+        \ Store pairdata.
+        #2 pick                             \ act0 pr-lst pos-regs def-regs' sta-clstrs' pr-clstrs' prdt-lst' pr-clstr-lnk prdt-x' prdt-lst'
+        list-push-end-struct                \ act0 pr-lst pos-regs def-regs' sta-clstrs' pr-clstrs' prdt-lst' pr-clstr-lnk
+    next-item
+                                            \ act0 pr-lst pos-regs def-regs' sta-clstrs' pr-clstrs' prdt-lst'
+
+    \ cr s" Pairdata: " #2 pick .struct-list-prefix cr
+
+    \ Try removing an unneeded pairdata instance.
+    #3 pick over                            \ act0 pr-lst pos-regs def-regs' sta-clstrs' pr-clstrs' prdt-lst' def-regs' prdt-lst'
+    pairdata-list-remove-unneeded-instances \ act0 pr-lst pos-regs def-regs' sta-clstrs' pr-clstrs' prdt-lst', prdt-lst2' t | f
+    if
+        \ cr s" Pairdata: 2: " #2 pick .struct-list-prefix cr
+        swap pairdata-list-deallocate       \ act0 pr-lst pos-regs def-regs' sta-clstrs' pr-clstrs' prdt-lst2'
+    else
+        \ cr ." No unneeded instance found" cr
+    then
+
+    \ Get corner list(s).
+    #4 pick                                 \ act0 pr-lst pos-regs def-regs' sta-clstrs' pr-clstrs' prdt-lst' pos-regs'
+    over                                    \ act0 pr-lst pos-regs def-regs' sta-clstrs' pr-clstrs' prdt-lst' pos-regs' prdt-lst'
+    pairdata-list-to-corner-list            \ act0 pr-lst pos-regs def-regs' sta-clstrs' pr-clstrs' prdt-lst' crnclstr-lst'
+    \ dup foreach                             \ act0 pr-lst pos-regs def-regs' sta-clstrs' pr-clstrs' prdt-lst' crnclstr-lst' crnclstr-lnk crnclstr-x
+        \ cr s" Corner cluster: " #2 pick .struct-list-prefix cr
+    \    drop
+    \ next-item
+                                            \ act0 pr-lst pos-regs def-regs' sta-clstrs' pr-clstrs' prdt-lst' crnclstr-lst'
+    #7 pick                                 \ act0 pr-lst pos-regs def-regs' sta-clstrs' pr-clstrs' prdt-lst' crnclstr-lst' act0
+    _action-update-corner-clusters          \ act0 pr-lst pos-regs def-regs' sta-clstrs' pr-clstrs' prdt-lst'
+
+    \ Deallocate.
+    pairdata-list-deallocate
+    struct-list-deallocate
+    struct-list-deallocate
+    region-list-deallocate                  \ act0 pr-lst pos-regs
+    2drop
+    drop
 ;
 
 \ Calc corners, from action-defining-regions and
@@ -1366,9 +1417,6 @@ action-groups-disp                      cell+   constant action-function-disp   
     \ Check arg.
     assert( tos is-action? )
     \ cr ." action-calc-corners: start: " cr
-
-    \ Init corner cluster list.
-    list-new over _action-update-corner-clusters
 
     \ Init preliminary corner list.
     list-new swap                       \ pre-lst act0
@@ -1407,7 +1455,7 @@ action-groups-disp                      cell+   constant action-function-disp   
     tuck _action-update-corners         \ act
 
     \ Calc and store corner clusters.
-    action-calc-corner-clusters
+    action-corner-cluster-calc
     \ cr ." action-calc-corners: end: " cr
 ;
 
@@ -2277,7 +2325,8 @@ action-groups-disp                      cell+   constant action-function-disp   
     assert( tos is-action? )
     assert( nos is-actneed-list? )
 
-    action-get-inst-ids     \ ned-lst1 act-id dom-id
+    action-get-inst-ids     \ ned-lst1 act-id dom-id    Corners:              (crn s0110 rXX1X (s0100))
+
     rot                     \ act-id dom-id ned-lst1
 
     foreach                 \ act-id dom-id ned-lnk actnedx
@@ -3087,3 +3136,50 @@ action-groups-disp                      cell+   constant action-function-disp   
     check-list-return
 ;
 
+\ Return ~a + ~b regions from a pair list.
+: action-calc-possible-regions-from-dis-pairs ( pr-lst1 act0 -- reg-lst )
+    list-new                                \ pr-lst1 act0 def-regs
+    over action-get-num-bits                \ pr-lst1 act0 def-regs nb
+    region-max-x                            \ pr-lst1 act0 def-regs reg-max
+    over list-push-struct                   \ pr-lst1 act0 def-regs
+
+    rot                                     \ act0 def-regs pr-lst1
+
+    foreach                                 \ act0 def-regs pr-lnk regx
+        region-get-states                   \ act0 def-regs pr-lnk sta1 sta1
+        state-~a+~b                         \ act0 def-regs pr-lnk reg-lst'
+        dup                                 \ act0 def-regs pr-lnk reg-lst' reg-lst'
+        #3 pick                             \ act0 def-regs pr-lnk reg-lst' reg-lst' def-regs
+        region-list-intersections-nosubs    \ act0 def-regs pr-lnk reg-lst' def-regs2
+
+        \ Clean up.
+        swap region-list-deallocate         \ act0 def-regs pr-lnk def-regs2
+        rot region-list-deallocate          \ act0 pr-lnk def-regs2
+        swap                                \ act0 def-regs2 pr-lnk
+    next-item
+                                            \ act0 def-regs
+    nip                                     \ def-regs
+;
+
+\ Return the defining regions from the intersection of a list of region lists.
+: action-intersect-lol-regions ( regs-lol1 act0 -- def-regs )
+    \ Check args.
+    assert( tos is-action? )
+    assert( nos is-list? )
+
+    \ Init work list.
+    dup action-get-max-region               \ regs-lol1 act0 max-reg
+    list-new tuck list-push-struct          \ regs-lol1 act0 wrk-lst'
+
+    rot                                     \ act0 wrk-lst' regs-lol1
+    foreach                                 \ act0 wrk-lst' regs-lol1-lnk reg-lst-x
+        #2 pick                             \ act0 wrk-lst' regs-lol1-lnk reg-lst-x wrk-lst'
+        region-list-intersections-nosubs    \ act0 wrk-lst' regs-lol1-lnk wrk-lst-nxt'
+        rot region-list-deallocate          \ act0 regs-lol1-lnk wrk-lst2'
+        swap                                \ act0 wrk-lst-nxt' regs-lol1-lnk
+    next-item
+                                            \ act0 wrk-lst'
+    dup region-list-defining-regions        \ act0 wrk-lst' def-regs'
+    swap region-list-deallocate             \ act0 def-regs'
+    nip                                     \ def-regs'
+;

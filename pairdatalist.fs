@@ -113,113 +113,111 @@
 ;
 
 \ Return a copy of a pairdata list, with one less, unneeded, instance.
-: pairdata-list-remove-one-unneeded-instance ( prdt-lst0 -- prdt-lst t | f )
+: pairdata-list-remove-one-unneeded-instance ( def-regs1 prdt-lst0 -- prdt-lst t | f )
     \ Check arg.
     assert( tos is-pairdata-list? )
     assert( tos list-is-not-empty? )
+    assert( nos is-region-list? )
+    assert( nos list-is-not-empty? )
 
     \ Check list length.
-    dup list-get-length                 \ prdt-lst0 len
-    #2 <                                \ prdt-lst0 bool
+    dup list-get-length                 \ def-regs1 prdt-lst0 len
+    #2 <                                \ def-regs1 prdt-lst0 bool
     if
-        drop
+        2drop
         false
         exit
     then
 
-    \ Get base defining regions.
-    dup
-    pairdata-list-defining-regions      \ prdt-lst0 def-regs'
-    swap                                \ def-regs' prdt-lst0
-
     \ Prep for loop.
-    dup list-get-length 0               \ def-regs' prdt-lst0 limit start
+    dup list-get-length 0               \ def-regs1 prdt-lst0 limit start
 
-    do                                  \ def-regs' prdt-lst0
-        i over                          \ def-regs' prdt-lst0 inx prdt-lst0
-        pairdata-list-copy-except-one   \ def-regs' prdt-lst0 prdt-lst'
+    do                                  \ def-regs1 prdt-lst0
+        i over                          \ def-regs1 prdt-lst0 inx prdt-lst0
+        pairdata-list-copy-except-one   \ def-regs1 prdt-lst0 prdt-lst'
         dup
-        pairdata-list-defining-regions  \ def-regs' prdt-lst0 prdt-lst' def-regs2'
-        dup #4 pick                     \ def-regs' prdt-lst0 prdt-lst' def-regs2' def-regs2' def-regs'
-        region-lists-eq?                \ def-regs' prdt-lst0 prdt-lst' def-regs2' bool
+        pairdata-list-defining-regions  \ def-regs1 prdt-lst0 prdt-lst' def-regs2'
+        dup #4 pick                     \ def-regs1 prdt-lst0 prdt-lst' def-regs2' def-regs2' def-regs1
+        region-lists-eq?                \ def-regs1 prdt-lst0 prdt-lst' def-regs2' bool
         if
-            region-list-deallocate      \ def-regs' prdt-lst0 prdt-lst'
-            nip                         \ def-regs' prdt-lst'
-            swap region-list-deallocate \ prdt-lst'
+            region-list-deallocate      \ def-regs1 prdt-lst0 prdt-lst'
+            nip nip                     \ prdt-lst'
             true
             unloop
             exit
         then
 
-        region-list-deallocate          \ def-regs' prdt-lst0 prdt-lst'
-        pairdata-list-deallocate        \ def-regs' prdt-lst0
+        region-list-deallocate          \ def-regs1 prdt-lst0 prdt-lst'
+        pairdata-list-deallocate        \ def-regs1 prdt-lst0
     loop
-                                        \ def-regs' prdt-lst0
-    drop region-list-deallocate
+                                        \ def-regs1 prdt-lst0
+    2drop
     false
 ;
 
 \ Return a copy of a pairdata list, with unneeded instances removed.
-: pairdata-list-remove-unneeded-instances ( prdt-lst0 -- prdt-lst t | f )
+: pairdata-list-remove-unneeded-instances ( def-regs1 prdt-lst0 -- prdt-lst t | f )
     \ Check arg.
     assert( tos is-pairdata-list? )
     assert( tos list-is-not-empty? )
+    assert( nos is-region-list? )
+    assert( nos list-is-not-empty? )
 
     \ Check list length.
-    dup list-get-length                 \ prdt-lst0 len
-    #2 <                                \ prdt-lst0 bool
+    dup list-get-length                 \ def-regs1 prdt-lst0 len
+    #2 <                                \ def-regs1 prdt-lst0 bool
     if
-        drop
+        2drop
         false
         exit
     then
 
     \ Get the first result, to avoid deallocating the passed pairdata instance
     \ in the following loop.
-    dup
-    pairdata-list-remove-one-unneeded-instance      \ prdt-lst0, prdt-lst' t | f
+    2dup
+    pairdata-list-remove-one-unneeded-instance      \ def-regs1 prdt-lst0, prdt-lst' t | f
     ifnot
-        drop
+        2drop
         false
         exit
     then
 
     \ Get the following results.
-    nip                                             \ prdt-lst'
+    nip                                             \ def-regs1 prdt-lst'
     begin
-        dup
-        pairdata-list-remove-one-unneeded-instance  \ prdt-lst', prdt-lst-nxt' t | f
+        2dup
+        pairdata-list-remove-one-unneeded-instance  \ def-regs1 prdt-lst', prdt-lst-nxt' t | f
         ifnot
+            nip                                     \ prdt-lst'
             true
             exit
         then
 
-        swap pairdata-list-deallocate               \ prdt-lst-nxt'
+        swap pairdata-list-deallocate               \ def-regs1 prdt-lst-nxt'
     again
 ;
 
-\ Return a corner list given definning regions and adjacent pairs.
-: pairdata-list-to-corner-list ( def-lst1 prdt-lst0 -- crn-lst )
+\ Return a corner list from a pairdata list.
+: pairdata-list-to-corner-list ( pos-regs1 prdt-lst0 -- crn-lst )
     \ Check arg.
     assert( tos is-pairdata-list? )
     assert( tos list-is-not-empty? )
-    assert( nos is-region-list? )
     \ cr ." pairdata-list-to-corner-list: start: " .stack cr
 
     \ Init return list.
-    list-new -rot                               \ ret-lst def-lst1 prdt-lst0
+    list-new -rot                               \ ret-lst pos-regs1 prdt-lst0
 
-    foreach                                     \ ret-lst def-lst1 prdt-lnk prdt-x
+    foreach                                     \ ret-lst pos-regs1 prdt-lnk prdt-x
         \ Get corner list.
-        pairdata-get-pairs                      \ ret-lst def-lst1 prdt-lnk pr-lst
-        #2 pick swap                            \ ret-lst def-lst1 prdt-lnk def-lst' pr-lst
-        region-list-adj-pairs-to-corner-list    \ ret-lst def-lst1 prdt-lnk crn-lst
+        pairdata-get-pairs                      \ ret-lst pos-regs1 prdt-lnk pr-lst
+        #2 pick swap                            \ ret-lst pos-regs1 prdt-lnk pos-regs1 pr-lst
+        region-list-adj-pairs-to-corner-list    \ ret-lst pos-regs1 prdt-lnk crn-lst
 
         \ Store corner list.
-        #3 pick                                 \ ret-lst def-lst1 prdt-lnk crn-lst ret-lst
-        list-push-struct                        \ ret-lst def-lst1 prdt-lnk
+        #3 pick                                 \ ret-lst pos-regs1 prdt-lnk crn-lst ret-lst
+        list-push-struct                        \ ret-lst pos-regs1 prdt-lnk
     next-item
-                                                \ ret-lst def-lst1
+                                                \ ret-lst pos-regs1
     drop
     \ cr ." pairdata-list-to-corner-list: end: " .stack cr
 ;
