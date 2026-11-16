@@ -736,7 +736,7 @@
     action-new                                                      \ act
 
     \ Init adjacent, dissimilar, pair list.
-    s" (rx100 r01x0 r1x01 rX001 r00x1 r011x r0x11 r110x r1X11)"
+    s" (rx100 r01x0 r1x01 rX001 r00x1 r011x r0x11 r110x r1X11 r00X0)"
     list-from-string-a                  \ act' pr-lst'
     cr ." Incompatible Pairs: " dup .struct-list cr
 
@@ -836,7 +836,7 @@
 
     \ Try removing an unneeded pairdata instance.
     dup
-    pairdata-list-remove-one-unneeded-instance  \ act' pr-lst' reg-lst1' def-regs' sta-clstrs' pr-clstrs' prdt-lst', prdt-lst2' t | f
+    pairdata-list-remove-unneeded-instances \ act' pr-lst' reg-lst1' def-regs' sta-clstrs' pr-clstrs' prdt-lst', prdt-lst2' t | f
     if
         cr s" Pairdata: 2: " #2 pick .struct-list-prefix cr
         struct-list-deallocate

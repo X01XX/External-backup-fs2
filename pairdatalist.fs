@@ -112,7 +112,7 @@
     2drop
 ;
 
-\ Return a pairdata list with one less, unneeded, instance.
+\ Return a copy of a pairdata list, with one less, unneeded, instance.
 : pairdata-list-remove-one-unneeded-instance ( prdt-lst0 -- prdt-lst t | f )
     \ Check arg.
     assert( tos is-pairdata-list? )
@@ -157,4 +157,43 @@
                                         \ def-regs' prdt-lst0
     drop region-list-deallocate
     false
+;
+
+\ Return a copy of a pairdata list, with unneeded instances removed.
+: pairdata-list-remove-unneeded-instances ( prdt-lst0 -- prdt-lst t | f )
+    \ Check arg.
+    assert( tos is-pairdata-list? )
+    assert( tos list-is-not-empty? )
+
+    \ Check list length.
+    dup list-get-length                 \ prdt-lst0 len
+    #2 <                                \ prdt-lst0 bool
+    if
+        drop
+        false
+        exit
+    then
+
+    \ Get the first result, to avoid deallocating the passed pairdata instance
+    \ in the following loop.
+    dup
+    pairdata-list-remove-one-unneeded-instance      \ prdt-lst0, prdt-lst' t | f
+    ifnot
+        drop
+        false
+        exit
+    then
+
+    \ Get the following results.
+    nip                                             \ prdt-lst'
+    begin
+        dup
+        pairdata-list-remove-one-unneeded-instance  \ prdt-lst', prdt-lst-nxt' t | f
+        ifnot
+            true
+            exit
+        then
+
+        swap struct-list-deallocate                 \ prdt-lst-nxt'
+    again
 ;
