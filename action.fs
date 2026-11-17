@@ -2541,16 +2541,16 @@ action-groups-disp                      cell+   constant action-function-disp   
                             #6 pick link-get-data       \ ret-lst crn1 act0 pos-regs ae-lnk regs-in' regs-in-lnk sta-lst' sta-lnk stay tkn' stax
                             state-string                \ ret-lst crn1 act0 pos-regs ae-lnk regs-in' regs-in-lnk sta-lst' sta-lnk stay tkn' c-addr u
                             #2 pick token-concatenate   \ ret-lst crn1 act0 pos-regs ae-lnk regs-in' regs-in-lnk sta-lst' sta-lnk stay tkn' bool
-                            invert abort" token-conatenate failed?"
+                            invert abort" token-concatenate failed?"
 
                             s"  in "                    \ ret-lst crn1 act0 pos-regs ae-lnk regs-in' regs-in-lnk sta-lst' sta-lnk stay tkn' c-addr u
                             #2 pick token-concatenate   \ ret-lst crn1 act0 pos-regs ae-lnk regs-in' regs-in-lnk sta-lst' sta-lnk stay tkn' bool
-                            invert abort" token-conatenate failed?"
+                            invert abort" token-concatenate failed?"
 
                             #4 pick link-get-data       \ ret-lst crn1 act0 pos-regs ae-lnk regs-in' regs-in-lnk sta-lst' sta-lnk stay tkn' regx
                             region-string               \ ret-lst crn1 act0 pos-regs ae-lnk regs-in' regs-in-lnk sta-lst' sta-lnk stay tkn' c-addr u
                             #2 pick token-concatenate   \ ret-lst crn1 act0 pos-regs ae-lnk regs-in' regs-in-lnk sta-lst' sta-lnk stay tkn' bool
-                            invert abort" token-conatenate failed?"
+                            invert abort" token-concatenate failed?"
 
                             \ space dup .token
 
@@ -2641,33 +2641,6 @@ action-groups-disp                      cell+   constant action-function-disp   
     \ cr ." action-regions-squares-incompatible?: end: " dup .bool cr
 ;
 
-\ Return true if a region is covererd by defining regions.
-: action-region-covered-by-defining-regions? ( reg1 act0 -- bool )
-    \ Check args.
-    assert( tos is-action? )
-    assert( nos is-region? )
-
-    action-get-defining-regions         \ reg1 def-regs
-    dup list-is-empty?
-    if
-        2drop
-        false
-        exit
-    then
-
-    swap                                \ def-regs reg1
-    region-subtract-list                \ regs-left'
-
-    dup list-is-empty?                  \ regs-left' bool
-    if
-        list-deallocate
-        true
-    else
-        region-list-deallocate
-        false
-    then
-;
-
 \ Return needs that will decrease possible region uncertainty,
 \ Given the current domain state and an action.
 : action-calc-resolve-uncertainty-needs ( sta1 act0 -- ned-lst t | f)
@@ -2680,18 +2653,17 @@ action-groups-disp                      cell+   constant action-function-disp   
     list-new -rot                           \ ret-lst sta1 act0
     dup action-get-squares                  \ ret-lst sta1 act0 sqr-lst
     over action-get-defining-regions        \ ret-lst sta1 act0 sqr-lst def-regs
-    #2 pick action-get-possible-regions     \ ret-lst sta1 act0 sqr-lst def-regs pos-regs
-    list-get-links                          \ ret-lst sta1 act0 def-regs pos-lnk
+    list-get-links                          \ ret-lst sta1 act0 sqr-lst def-lnk
     begin
         ?dup
     while
-        dup link-get-next                  \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt
+        dup link-get-next                  \ ret-lst sta1 act0 sqr-lst def-lnk lnk-nxt
         begin
             ?dup
         while
-            over link-get-data              \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt pos-reg
-            over link-get-data              \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt pos-reg nxt-reg
-            region-intersection             \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt, reg-int' t | f
+            over link-get-data              \ ret-lst sta1 act0 sqr-lst def-lnk lnk-nxt pos-reg
+            over link-get-data              \ ret-lst sta1 act0 sqr-lst def-lnk lnk-nxt pos-reg nxt-reg
+            region-intersection             \ ret-lst sta1 act0 sqr-lst def-lnk lnk-nxt, reg-int' t | f
             if
                 \ cr ." intersection found: "
                 \ #2 pick link-get-data .region
@@ -2700,100 +2672,96 @@ action-groups-disp                      cell+   constant action-function-disp   
                 \ space ." at: "
                 \ dup .region
 
-                dup #6 pick                 \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' reg-int' act0
-                action-region-covered-by-defining-regions?
+                #2 pick                 \ ret-lst sta1 act0 sqr-lst def-lnk lnk-nxt reg-int' def-lnk
+                link-get-data           \ ret-lst sta1 act0 sqr-lst def-lnk lnk-nxt reg-int' def-reg
 
-                ifnot
-                    #2 pick                 \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' pos-lnk
-                    link-get-data           \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' pos-reg
+                #2 pick                 \ ret-lst sta1 act0 sqr-lst def-lnk lnk-nxt reg-int' def-lnk lnk-nxt
+                link-get-data           \ ret-lst sta1 act0 sqr-lst def-lnk lnk-nxt reg-int' def-reg nxt-reg
 
-                    #2 pick                 \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' pos-lnk lnk-nxt
-                    link-get-data           \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' pos-reg nxt-reg
+                #6 pick                 \ ret-lst sta1 act0 sqr-lst def-lnk lnk-nxt reg-int' def-reg nxt-reg act0
+                action-regions-squares-incompatible?
+                if
+                    \ Make token for need.
+                    dup region-string token-new \ ret-lst sta1 act0 sqr-lst def-lnk lnk-nxt reg-int' tkn
+                    invert abort" token-new failed?"
 
-                    #7 pick                 \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' pos-reg nxt-reg act0
-                    action-regions-squares-incompatible?
-                    if
-                        \ Make token for need.
-                        dup region-string token-new \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn
-                        invert abort" token-new failed?"
+                    s"  intersection of "       \ ret-lst sta1 act0 sqr-lst def-lnk lnk-nxt reg-int' tkn c-addr u
+                    #2 pick token-concatenate   \ ret-lst sta1 act0 sqr-lst def-lnk lnk-nxt reg-int' tkn bool
+                    invert abort" token-concatenate failed?"
 
-                        s"  intersection of "       \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn c-addr u
-                        #2 pick token-concatenate   \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn bool
-                        invert abort" token-conatenate failed?"
+                    #3 pick link-get-data region-string \ ret-lst sta1 act0 sqr-lst def-lnk lnk-nxt reg-int' tkn c-addr u
+                    #2 pick token-concatenate   \ ret-lst sta1 act0 sqr-lst def-lnk lnk-nxt reg-int' tkn bool
+                    invert abort" token-concatenate failed?"
 
-                        #3 pick link-get-data region-string \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn c-addr u
-                        #2 pick token-concatenate   \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn bool
-                        invert abort" token-conatenate failed?"
+                    s"  and "                   \ ret-lst sta1 act0 sqr-lst def-lnk lnk-nxt reg-int' tkn c-addr u
+                    #2 pick token-concatenate   \ ret-lst sta1 act0 sqr-lst def-lnk lnk-nxt reg-int' tkn bool
+                    invert abort" token-concatenate failed?"
 
-                        s"  and "                   \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn c-addr u
-                        #2 pick token-concatenate   \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn bool
-                        invert abort" token-conatenate failed?"
+                    #2 pick link-get-data region-string \ ret-lst sta1 act0 sqr-lst def-lnk lnk-nxt reg-int' tkn c-addr u
+                    #2 pick token-concatenate   \ ret-lst sta1 act0 sqr-lst def-lnk lnk-nxt reg-int' tkn bool
+                    invert abort" token-concatenate failed?"
 
-                        #2 pick link-get-data region-string \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn c-addr u
-                        #2 pick token-concatenate   \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn bool
-                        invert abort" token-conatenate failed?"
-
-                        \ Check for squares, presumably non-pnc, in the intersection.
-                        over                        \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn reg-int'
-                        #7 pick                     \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn reg-int' act0
-                        action-get-squares          \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn reg-int' sqr-lst
-                        square-list-in-region       \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn, sqr-lst' t | f
-                        if                          \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn, sqr-lst'
-                            \ Make need for each square state.
-                            dup                         \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn sqr-lst' sqr-lst'
-                            square-list-max-samples     \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn sqr-lst', sqr-max-lst' t | f
-                            invert abort" no max sample squares found?"
-                            swap square-list-deallocate \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn sqr-max-lst'
-                            dup                         \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn sqr-max-lst' sqr-max-lst'
-                            foreach                     \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn sqr-max-lst' sqr-max-lnk sqrx
-                                \ Make need.
-                                #3 pick swap            \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn sqr-max-lst' sqr-max-lnk tkn sqrx
-                                square-get-state        \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn sqr-max-lst' sqr-max-lnk tkn sta
-                                actneed-type-resunc     \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn sqr-max-lst' sqr-max-lnk tkn sta typ
-                                #11 pick                \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn sqr-max-lst' sqr-max-lnk tkn sta typ act0
-                                action-get-inst-ids     \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn sqr-max-lst' sqr-max-lnk tkn sta typ act-id dom-id
-                                actneed-new             \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn sqr-max-lst' sqr-max-lnk aned
-
-                                \ Store need.
-                                #11 pick                \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn sqr-max-lst' sqr-max-lnk aned ret-lst
-                                list-push-struct        \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn sqr-max-lst' sqr-max-lnk
-                            next-item
-
-                            square-list-deallocate      \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn
-                            drop                        \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int'
-                        else                            \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn
+                    \ Check for squares, presumably non-pnc, in the intersection.
+                    over                        \ ret-lst sta1 act0 sqr-lst def-lnk lnk-nxt reg-int' tkn reg-int'
+                    #6 pick                     \ ret-lst sta1 act0 sqr-lst def-lnk lnk-nxt reg-int' tkn reg-int' act0
+                    action-get-squares          \ ret-lst sta1 act0 sqr-lst def-lnk lnk-nxt reg-int' tkn reg-int' sqr-lst
+                    square-list-in-region       \ ret-lst sta1 act0 sqr-lst def-lnk lnk-nxt reg-int' tkn, sqr-lst' t | f
+                    if                          \ ret-lst sta1 act0 sqr-lst def-lnk lnk-nxt reg-int' tkn, sqr-lst'
+                        \ Make need for each square state.
+                        dup                         \ ret-lst sta1 act0 sqr-lst def-lnk lnk-nxt reg-int' tkn sqr-lst' sqr-lst'
+                        square-list-max-samples     \ ret-lst sta1 act0 sqr-lst def-lnk lnk-nxt reg-int' tkn sqr-lst', sqr-max-lst' t | f
+                        invert abort" no max sample squares found?"
+                        swap square-list-deallocate \ ret-lst sta1 act0 sqr-lst def-lnk lnk-nxt reg-int' tkn sqr-max-lst'
+                        dup                         \ ret-lst sta1 act0 sqr-lst def-lnk lnk-nxt reg-int' tkn sqr-max-lst' sqr-max-lst'
+                        foreach                     \ ret-lst sta1 act0 sqr-lst def-lnk lnk-nxt reg-int' tkn sqr-max-lst' sqr-max-lnk sqrx
                             \ Make need.
-
-                            \ Get state in region, if needed.
-                            #7 pick #2 pick                 \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn sta1 reg-int'
-                            region-superset-of-state?       \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn bool
-                            if
-                                #7 pick state-copy          \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn sta1
-                            else
-                                #7 pick #2 pick swap        \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn reg-int' sta1
-                                state-translate-to-region   \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn sta
-                            then
-
-                            actneed-type-resunc             \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn sta typ
-                            #8 pick action-get-inst-ids     \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' tkn sta typ act-id dom-id
-                            actneed-new                     \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int' aned'
+                            #3 pick swap            \ ret-lst sta1 act0 sqr-lst def-lnk lnk-nxt reg-int' tkn sqr-max-lst' sqr-max-lnk tkn sqrx
+                            square-get-state        \ ret-lst sta1 act0 sqr-lst def-lnk lnk-nxt reg-int' tkn sqr-max-lst' sqr-max-lnk tkn sta
+                            actneed-type-resunc     \ ret-lst sta1 act0 sqr-lst def-lnk lnk-nxt reg-int' tkn sqr-max-lst' sqr-max-lnk tkn sta typ
+                            #10 pick                \ ret-lst sta1 act0 sqr-lst def-lnk lnk-nxt reg-int' tkn sqr-max-lst' sqr-max-lnk tkn sta typ act0
+                            action-get-inst-ids     \ ret-lst sta1 act0 sqr-lst def-lnk lnk-nxt reg-int' tkn sqr-max-lst' sqr-max-lnk tkn sta typ act-id dom-id
+                            actneed-new             \ ret-lst sta1 act0 sqr-lst def-lnk lnk-nxt reg-int' tkn sqr-max-lst' sqr-max-lnk aned
 
                             \ Store need.
-                            #8 pick list-push-struct        \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int'
+                            #10 pick                \ ret-lst sta1 act0 sqr-lst def-lnk lnk-nxt reg-int' tkn sqr-max-lst' sqr-max-lnk aned ret-lst
+                            list-push-struct        \ ret-lst sta1 act0 sqr-lst def-lnk lnk-nxt reg-int' tkn sqr-max-lst' sqr-max-lnk
+                        next-item
+
+                        square-list-deallocate      \ ret-lst sta1 act0 sqr-lst def-lnk lnk-nxt reg-int' tkn
+                        drop                        \ ret-lst sta1 act0 sqr-lst def-lnk lnk-nxt reg-int'
+                    else                            \ ret-lst sta1 act0 sqr-lst def-lnk lnk-nxt reg-int' tkn
+                        \ Make need.
+
+                        \ Get state in region, if needed.
+                        #6 pick #2 pick                 \ ret-lst sta1 act0 sqr-lst def-lnk lnk-nxt reg-int' tkn sta1 reg-int'
+                        region-superset-of-state?       \ ret-lst sta1 act0 sqr-lst def-lnk lnk-nxt reg-int' tkn bool
+                        if
+                            #6 pick state-copy          \ ret-lst sta1 act0 sqr-lst def-lnk lnk-nxt reg-int' tkn sta1
+                        else
+                            #6 pick #2 pick swap        \ ret-lst sta1 act0 sqr-lst def-lnk lnk-nxt reg-int' tkn reg-int' sta1
+                            state-translate-to-region   \ ret-lst sta1 act0 sqr-lst def-lnk lnk-nxt reg-int' tkn sta
                         then
+
+                        actneed-type-resunc             \ ret-lst sta1 act0 sqr-lst def-lnk lnk-nxt reg-int' tkn sta typ
+                        #7 pick action-get-inst-ids     \ ret-lst sta1 act0 sqr-lst def-lnk lnk-nxt reg-int' tkn sta typ act-id dom-id
+                        actneed-new                     \ ret-lst sta1 act0 sqr-lst def-lnk lnk-nxt reg-int' aned'
+
+                        \ Store need.
+                        #7 pick list-push-struct        \ ret-lst sta1 act0 sqr-lst def-lnk lnk-nxt reg-int'
                     then
-                                                        \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk lnk-nxt reg-int'
+                else
+                    \ cr ." regions compatible" cr
                 then
+                                                        \ ret-lst sta1 act0 sqr-lst def-lnk lnk-nxt reg-int'
                 region-deallocate
-                \ cr
             then
             link-get-next
         repeat
-                                            \ ret-lst sta1 act0 sqr-lst def-regs pos-lnk
+                                            \ ret-lst sta1 act0 sqr-lst def-lnk
         link-get-next
     repeat
-                                            \ ret-lst sta1 act0 sqr-lst def-regs
-    2drop 2drop                             \ ret-lst
+                                            \ ret-lst sta1 act0 sqr-lst
+    2drop drop                              \ ret-lst
 
     check-list-return
     \ cr ." action-calc-resolve-uncertainty-needs: end" cr
@@ -2862,9 +2830,6 @@ action-groups-disp                      cell+   constant action-function-disp   
 
     \ Init return list.
     list-new -rot                   \ ret-lst cur-sta1 act0
-
-    \ Check intersection of possible regions.
-    \ dup action-check-pos-regions
 
     \ Check if the state is in any group.
     2dup action-get-groups          \ ret-lst cur-sta1 act0 cur-sta1 grp-lst

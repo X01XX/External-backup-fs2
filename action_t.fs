@@ -419,24 +419,24 @@
     s" rXXXX 0" string-to-stack-a
     action-new                              \ act
 
-    \ Add 5->5
-    s" s0101->s0101" sample-from-string-a   \ act smpl
+    \ Add 1->1
+    s" s0001->s0001" sample-from-string-a   \ act smpl
     over action-add-sample drop             \ act bool
 
-    \ Add 6->6
-    s" s0110->s0110" sample-from-string-a   \ act smpl
+    \ Add 7->7
+    s" s0111->s0111" sample-from-string-a   \ act smpl
     over action-add-sample drop             \ act bool
 
-    cr dup .action cr
-
-    \ Add 5->4
-    s" s0101->s0100" sample-from-string-a   \ act smpl
+    \ Add 3->A
+    s" s0011->s1010" sample-from-string-a   \ act smpl
     over action-add-sample drop             \ act bool
 
-    cr dup .action cr
+    \ Add 6->F
+    s" s0110->s1111" sample-from-string-a   \ act smpl
+    over action-add-sample drop             \ act bool
 
-    \ Add 6->E
-    s" s0110->s1110" sample-from-string-a   \ act smpl
+    \ Add 9->0
+    s" s1001->s0000" sample-from-string-a   \ act smpl
     over action-add-sample drop             \ act bool
 
     cr dup .action cr
@@ -450,51 +450,18 @@
         \ Test needs.
         dup list-get-length #2 <> abort" needs len ne 2?"
 
-        s" s1100" state-from-string-a dup   \ act sta' ned-lst' stax' stax'
+        s" s1101" state-from-string-a dup   \ act sta' ned-lst' stax' stax'
         actneed-type-resunc                 \ act sta' ned-lst' stax' stax' typ
         #3 pick                             \ act sta' ned-lst' stax' stax' typ ned-lst'
         actneed-list-contains               \ act sta' ned-lst' stax' bool
-        invert abort" actneed list does not contain need for s1100?"
+        invert abort" actneed list does not contain need for s1101?"
         state-deallocate                    \ act sta' ned-lst'
 
-        s" s1111" state-from-string-a dup   \ act sta' ned-lst' stax' stax'
+        s" s0100" state-from-string-a dup   \ act sta' ned-lst' stax' stax'
         actneed-type-resunc                 \ act sta' ned-lst' stax' stax' typ
         #3 pick                             \ act sta' ned-lst' stax' stax' typ ned-lst'
         actneed-list-contains               \ act sta' ned-lst' stax' bool
-        invert abort" actneed list does not contain need for s1111?"
-        state-deallocate                    \ act sta' ned-lst'
-
-        actneed-list-deallocate
-    else
-        cr ." no needs found" cr abort
-    then
-
-    \ Add a single-sample B->B to XX11.
-    \ Add B->B
-    s" s1011->s1011" sample-from-string-a   \ sta  act smpl
-    over action-add-sample drop             \ sta act bool
-
-    cr dup .action cr
-
-    2dup action-calc-resolve-uncertainty-needs  \ sta act, ned-lst' t | f
-    if
-        cr ." needs: " dup .struct-list cr
-
-        \ Test needs.
-        dup list-get-length #2 <> abort" needs len ne 2?"
-
-        s" s1100" state-from-string-a dup   \ act sta' ned-lst' stax' stax'
-        actneed-type-resunc                 \ act sta' ned-lst' stax' stax' typ
-        #3 pick                             \ act sta' ned-lst' stax' stax' typ ned-lst'
-        actneed-list-contains               \ act sta' ned-lst' stax' bool
-        invert abort" actneed list does not contain need for s1100?"
-        state-deallocate                    \ act sta' ned-lst'
-
-        s" s1011" state-from-string-a dup   \ act sta' ned-lst' stax' stax'
-        actneed-type-resunc                 \ act sta' ned-lst' stax' stax' typ
-        #3 pick                             \ act sta' ned-lst' stax' stax' typ ned-lst'
-        actneed-list-contains               \ act sta' ned-lst' stax' bool
-        invert abort" actneed list does not contain need for s1011?"
+        invert abort" actneed list does not contain need for s0100?"
         state-deallocate                    \ act sta' ned-lst'
 
         actneed-list-deallocate
@@ -705,16 +672,21 @@
     action-calc-possible-regions-from-dis-pairs     \ act' pr-lst' pos-regs'
     cr ." Possible regions: " dup .region-list cr
 
+    dup region-list-defining-regions
+    cr ." Defining regions: " dup .region-list cr
+    region-list-deallocate
+
     #2 pick _action-update-adj-regions              \ act' pr-lst'
     over _action-update-adj-pairs                   \ act'
 
     dup action-corner-cluster-calc                  \ act'
     dup action-get-corner-clusters                  \ act' crnclstrs
 
+    cr s" Corner Clusters: " #2 pick .struct-list-prefix cr
+
     \ Test cluster list.
     dup list-get-length #2 <> abort" not two clusters?"
-
-    cr s" Corner Clusters: " rot .struct-list-prefix cr
+    drop
 
     action-deallocate
 
@@ -722,6 +694,60 @@
     check-project-deallocated
 
     cr ." action-test-corner-cluster-calc2 - Ok"
+;
+
+: action-test-corner-cluster-calc3
+    \ Init action.
+    [ ' noop ] literal
+    s" rXXXX 0" string-to-stack-a
+    action-new                                                      \ act
+
+    \ Add 1->1
+    s" s0001->s0001" sample-from-string-a   \ act smpl
+    over action-add-sample drop             \ act bool
+
+    \ Add 7->7
+    s" s0111->s0111" sample-from-string-a   \ act smpl
+    over action-add-sample drop             \ act bool
+
+    \ Add 3->A
+    s" s0011->s1010" sample-from-string-a   \ act smpl
+    over action-add-sample drop             \ act bool
+
+    \ Add 6->F
+    s" s0110->s1111" sample-from-string-a   \ act smpl
+    over action-add-sample drop             \ act bool
+
+    \ Add 9->0
+    s" s1001->s0000" sample-from-string-a   \ act smpl
+    over action-add-sample drop             \ act bool
+
+    dup .action
+
+    s" s0101" state-from-string-a               \ act' sta'
+    dup                                         \ act' sta' sta'
+    #2 pick action-calc-resolve-uncertainty-needs   \ act' sta' ned-lst' t | f
+    if
+        cr s" Needs: " #2 pick .struct-list-prefix cr
+        struct-list-deallocate
+    else
+        cr ." Needs: None" cr
+    then
+
+    \ State would normally be kept alive by storage in a domain.
+    dup is-state?
+    if
+        state-deallocate
+    else
+        drop
+    then
+
+    action-deallocate
+
+    \ Check for memory leaks.
+    check-project-deallocated
+
+    cr ." action-test-corner-cluster-calc3 - Ok"
 ;
 
 : action-tests
@@ -738,5 +764,6 @@
     action-test-take-step-3
     action-test-corner-cluster-calc
     action-test-corner-cluster-calc2
+    action-test-corner-cluster-calc3
     cr
 ;
