@@ -775,13 +775,40 @@ action-groups-disp                      cell+   constant action-function-disp   
     group-list-find             \ grp t | f
 ;
 
-\ Return true if a region, in the possible regions list, can be used as a group.
-\ This does not check the compatibility of the squares in the group.
-: action-valid-group-region2? ( reg1 act0 -- bool )
+\ Return true if a region is covererd by defining regions.
+: action-region-covered-by-defining-regions? ( reg1 act0 -- bool )
     \ Check args.
     assert( tos is-action? )
     assert( nos is-region? )
-    \ cr ." action-valid-group-region2? start" cr
+
+    action-get-defining-regions         \ reg1 def-regs
+    dup list-is-empty?
+    if
+        2drop
+        false
+        exit
+    then
+
+    swap                                \ def-regs reg1
+    region-subtract-list                \ regs-left'
+
+    dup list-is-empty?                  \ regs-left' bool
+    if
+        list-deallocate
+        true
+    else
+        region-list-deallocate
+        false
+    then
+;
+
+\ Return true if a region, in the possible regions list, can be used as a group.
+\ This does not check the compatibility of the squares in the group.
+: action-possible-region-can-be-group? ( reg1 act0 -- bool )
+    \ Check args.
+    assert( tos is-action? )
+    assert( nos is-region? )
+    \ cr ." action-possible-region-can-be-group? start" cr
 
     \ Check if reg1 is in the defining regions list.
     [ ' regions-eq? ] literal       \ reg1 act0 xt
@@ -794,34 +821,17 @@ action-groups-disp                      cell+   constant action-function-disp   
         exit
     then
 
-    \ Check if reg1 minus the defining regions is empty.
-    list-new                            \ reg1 act0 reg1-lst'
-    #2 pick                             \ reg1 act0 reg1-lst' reg1
-    over list-push                      \ reg1 act0 reg1-lst' ( reg1 use count unchanged )
-    over action-get-defining-regions    \ reg1 act0 reg1-lst' def-regs
-    over region-list-subtract           \ reg1 act0 reg1-lst' rem-lst'
-
-    dup list-is-empty?
-    if
-        list-deallocate                 \ reg1 act0 reg1-lst'
-        list-deallocate                 \ reg1 act0
-        2drop
-        false
-    else
-        region-list-deallocate          \ reg1 act0 reg1-lst'
-        list-deallocate                 \ reg1 act0
-        2drop
-        true
-    then
+    action-region-covered-by-defining-regions?  \ bool
+    invert
 ;
 
 \ Return true if a region can be used as a group.
 \ This does not check the compatibility of the squares in the group.
-: action-valid-group-region? ( reg1 act0 -- bool )
+: action-region-can-be-group? ( reg1 act0 -- bool )
     \ Check args.
     assert( tos is-action? )
     assert( nos is-region? )
-    \ cr ." action-valid-group-region? start" cr
+    \ cr ." action-region-can-be-group? start" cr
 
     \ Check if region is in the possible regions list.
     [ ' regions-eq? ] literal       \ reg1 act0 xt
@@ -834,7 +844,48 @@ action-groups-disp                      cell+   constant action-function-disp   
         exit
     then
 
-    action-valid-group-region2?     \ bool
+    action-possible-region-can-be-group?     \ bool
+;
+
+\ Return true if a region is in the defining regions list.
+: action-region-in-defining-regions-list? ( reg1 act0 -- bool )
+    \ Check args.
+    assert( tos is-action? )
+    assert( nos is-region? )
+
+    action-get-defining-regions         \ reg1 def-regs
+
+    [ ' regions-eq? ] literal -rot      \ xt reg1 def-regs
+
+    list-member?
+;
+
+\ Return true if a region is in the possible regions list.
+: action-region-in-possible-regions-list? ( reg1 act0 -- bool )
+    \ Check args.
+    assert( tos is-action? )
+    assert( nos is-region? )
+
+    action-get-possible-regions         \ reg1 pos-regs
+
+    [ ' regions-eq? ] literal -rot      \ xt reg1 pos-regs
+
+    list-member?
+;
+
+\ Return true if a region is in the group list.
+: action-region-in-group-list? ( reg1 act0 -- bool )
+    \ Check args.
+    assert( tos is-action? )
+    assert( nos is-region? )
+
+    action-find-group       \ grp t | f
+    if
+        drop
+        true
+    else
+        false
+    then
 ;
 
 \ Scan the group list to delete groups that have a region
@@ -853,8 +904,8 @@ action-groups-disp                      cell+   constant action-function-disp   
     foreach                             \ act0 del-grps grp-lnk grpx
         group-get-region                \ act0 del-grps grp-lnk regx
         #3 pick                         \ act0 del-grps grp-lnk regx act0
-        action-valid-group-region?      \ act0 del-grps grp-lnk bool
-        ifnot
+        action-region-can-be-group?     \ act0 del-grps grp-lnk bool
+        if
             dup link-get-data           \ act0 del-grps grp-lnk grpx
             #2 pick                     \ act0 del-grps grp-lnk grpx del-grps
             list-push-struct            \ act0 del-grps grp-lnk
@@ -961,9 +1012,9 @@ action-groups-disp                      cell+   constant action-function-disp   
         #2 pick                         \ act0 grp-lst pos-lnk pos-reg grp-lst
         group-list-member?              \ act0 grp-lst pos-lnk bool
         ifnot
-            dup link-get-data           \ act0 grp-lst pos-lnk pos-reg
-            #3 pick                     \ act0 grp-lst pos-lnk pos-reg act0
-            action-valid-group-region2? \ act0 grp-lst pos-lnk bool
+            dup link-get-data                       \ act0 grp-lst pos-lnk pos-reg
+            #3 pick                                 \ act0 grp-lst pos-lnk pos-reg act0
+            action-possible-region-can-be-group?    \ act0 grp-lst pos-lnk bool
             if
                 \ Get squares in region.
                 dup link-get-data           \ act0 grp-lst pos-lnk pos-reg
@@ -2770,7 +2821,7 @@ action-groups-disp                      cell+   constant action-function-disp   
 \ Check corners for anchor discovery needs.
 \ That is check squares adjacent to an anchor,
 \ that are in more than one possible regions.
-: action-calc-anchor-discovery-needs ( sta1 act0 -- actned-lst t | f )
+: ?action-calc-anchor-discovery-needs ( sta1 act0 -- actned-lst t | f )
     \ Check args.
     assert( tos is-action? )
     assert( nos is-state? )
@@ -2847,6 +2898,87 @@ action-groups-disp                      cell+   constant action-function-disp   
     then
                                     \ ret-lst cur-sta1 act0
 
+    #2 pick list-is-not-empty?
+    if
+        2drop
+        true
+        exit
+    then
+
+    \ Check adjacent dissimilar pairs for confirmation need.
+    dup action-get-adj-pairs        \ ret-lst cur-sta1 act0 nadj-lst
+    foreach                         \ ret-lst cur-sta1 act0 nadj-lnk regx
+        \ Get square from state zero.
+        dup region-get-state-0 dup  \ ret-lst cur-sta1 act0 nadj-lnk regx sta-0 sta-0
+        #4 pick                     \ ret-lst cur-sta1 act0 nadj-lnk regx sta-0 sta-0 act0
+        action-find-square          \ ret-lst cur-sta1 act0 nadj-lnk regx sta-0, sqrx t | f
+        invert abort" square find failed?"
+
+        \ Check if not pnc.
+        square-get-pnc              \ ret-lst cur-sta1 act0 nadj-lnk regx sta-0 bool
+        if
+            drop                    \ ret-lst cur-sta1 act0 nadj-lnk regx
+        else
+            \ Make need.
+            over region-token swap  \ ret-lst cur-sta1 act0 nadj-lnk regx tkn sta-0
+            actneed-type-cls        \ ret-lst cur-sta1 act0 nadj-lnk regx tkn sta-0 typ
+            #5 pick                 \ ret-lst cur-sta1 act0 nadj-lnk regx tkn sta-0 typ act0
+                action-make-need-dis    \ ret-lst cur-sta1 act0 nadj-lnk regx actned
+
+            \ Store need.
+            #5 pick                 \ ret-lst cur-sta1 act0 nadj-lnk regx actned ret-lst
+            list-push-struct        \ ret-lst cur-sta1 act0 nadj-lnk regx
+        then
+
+        \ Get square from state one.
+        dup region-get-state-1 dup  \ ret-lst cur-sta1 act0 nadj-lnk regx sta-1 sta-1
+        #4 pick                     \ ret-lst cur-sta1 act0 nadj-lnk regx sta-1 sta-1 act0
+        action-find-square          \ ret-lst cur-sta1 act0 nadj-lnk regx sta-1, sqrx t | f
+        invert abort" square find failed?"
+
+        \ Check if not pnc.
+        square-get-pnc              \ ret-lst cur-sta1 act0 nadj-lnk regx sta-1 bool
+        if
+            2drop                   \ ret-lst cur-sta1 act0 nadj-lnk
+        else
+            \ Make need.
+            swap region-token swap  \ ret-lst cur-sta1 act0 nadj-lnk tkn sta-1
+            actneed-type-cls        \ ret-lst cur-sta1 act0 nadj-lnk tkn sta-1 typ
+            #4 pick                 \ ret-lst cur-sta1 act0 nadj-lnk tkn sta-1 typ act0
+            action-make-need-dis    \ ret-lst cur-sta1 act0 nadj-lnk actned
+
+            \ Store need.
+            #4 pick                 \ ret-lst cur-sta1 act0 nadj-lnk actned ret-lst
+            list-push-struct        \ ret-lst cur-sta1 act0 nadj-lnk
+        then
+    next-item
+
+    #2 pick list-is-not-empty?
+    if
+        2drop
+        true
+        exit
+    then
+
+    \ Check for dissimilar defining regions intersections.
+    2dup action-calc-resolve-uncertainty-needs  \ ret-lst cur-sta1 act0, ned-lst' t | f
+    if
+        dup                                     \ ret-lst cur-sta1 act0 ned-lst' ned-lst'
+        #4 pick                                 \ ret-lst cur-sta1 act0 ned-lst' ned-lst' ret-lst
+        list-append-struct                      \ ret-lst cur-sta1 act0 ned-lst'
+        actneed-list-deallocate                 \ ret-lst cur-sta1 act0
+        2drop                                   \ ret-lst
+        true
+        exit
+    then
+
+    #2 pick list-is-not-empty?
+    if
+        2drop
+        true
+        exit
+    then
+
     \ Check non-adjacent dissimilar pairs for confirmation need.
     dup action-get-nadj-pairs       \ ret-lst cur-sta1 act0 nadj-lst
     foreach                         \ ret-lst cur-sta1 act0 nadj-lnk regx
@@ -2899,17 +3031,6 @@ action-groups-disp                      cell+   constant action-function-disp   
     #2 pick list-is-not-empty?
     if
         2drop
-        true
-        exit
-    then
-
-    2dup action-calc-resolve-uncertainty-needs  \ ret-lst cur-sta1 act0, ned-lst' t | f
-    if
-        dup                                     \ ret-lst cur-sta1 act0 ned-lst' ned-lst'
-        #4 pick                                 \ ret-lst cur-sta1 act0 ned-lst' ned-lst' ret-lst
-        list-append-struct                      \ ret-lst cur-sta1 act0 ned-lst'
-        actneed-list-deallocate                 \ ret-lst cur-sta1 act0
-        2drop                                   \ ret-lst
         true
         exit
     then
@@ -2998,61 +3119,6 @@ action-groups-disp                      cell+   constant action-function-disp   
         exit
     then
 
-    \ Check adjacent dissimilar pairs for confirmation need.
-    dup action-get-adj-pairs        \ ret-lst cur-sta1 act0 nadj-lst
-    foreach                         \ ret-lst cur-sta1 act0 nadj-lnk regx
-        \ Get square from state zero.
-        dup region-get-state-0 dup  \ ret-lst cur-sta1 act0 nadj-lnk regx sta-0 sta-0
-        #4 pick                     \ ret-lst cur-sta1 act0 nadj-lnk regx sta-0 sta-0 act0
-        action-find-square          \ ret-lst cur-sta1 act0 nadj-lnk regx sta-0, sqrx t | f
-        invert abort" square find failed?"
-
-        \ Check if not pnc.
-        square-get-pnc              \ ret-lst cur-sta1 act0 nadj-lnk regx sta-0 bool
-        if
-            drop                    \ ret-lst cur-sta1 act0 nadj-lnk regx
-        else
-            \ Make need.
-            over region-token swap  \ ret-lst cur-sta1 act0 nadj-lnk regx tkn sta-0
-            actneed-type-cls        \ ret-lst cur-sta1 act0 nadj-lnk regx tkn sta-0 typ
-            #5 pick                 \ ret-lst cur-sta1 act0 nadj-lnk regx tkn sta-0 typ act0
-                action-make-need-dis    \ ret-lst cur-sta1 act0 nadj-lnk regx actned
-
-            \ Store need.
-            #5 pick                 \ ret-lst cur-sta1 act0 nadj-lnk regx actned ret-lst
-            list-push-struct        \ ret-lst cur-sta1 act0 nadj-lnk regx
-        then
-
-        \ Get square from state one.
-        dup region-get-state-1 dup  \ ret-lst cur-sta1 act0 nadj-lnk regx sta-1 sta-1
-        #4 pick                     \ ret-lst cur-sta1 act0 nadj-lnk regx sta-1 sta-1 act0
-        action-find-square          \ ret-lst cur-sta1 act0 nadj-lnk regx sta-1, sqrx t | f
-        invert abort" square find failed?"
-
-        \ Check if not pnc.
-        square-get-pnc              \ ret-lst cur-sta1 act0 nadj-lnk regx sta-1 bool
-        if
-            2drop                   \ ret-lst cur-sta1 act0 nadj-lnk
-        else
-            \ Make need.
-            swap region-token swap  \ ret-lst cur-sta1 act0 nadj-lnk tkn sta-1
-            actneed-type-cls        \ ret-lst cur-sta1 act0 nadj-lnk tkn sta-1 typ
-            #4 pick                 \ ret-lst cur-sta1 act0 nadj-lnk tkn sta-1 typ act0
-            action-make-need-dis    \ ret-lst cur-sta1 act0 nadj-lnk actned
-
-            \ Store need.
-            #4 pick                 \ ret-lst cur-sta1 act0 nadj-lnk actned ret-lst
-            list-push-struct        \ ret-lst cur-sta1 act0 nadj-lnk
-        then
-    next-item
-                                    \ ret-lst cur-sta1 act0
-    #2 pick list-is-not-empty?
-    if
-        2drop
-        true
-        exit
-    then
-
     \ Get more needs, per defining, non-pnc, group.
     \ Filling out defining groups can sometimes remove possible regions.
     dup action-get-defining-regions \ ret-lst cur-sta1 act0 def-lst
@@ -3079,21 +3145,21 @@ action-groups-disp                      cell+   constant action-function-disp   
     next-item
                                     \ ret-lst cur-sta1 act0
 
-    #2 pick list-is-not-empty?
-    if
-        2drop
-        true
-        exit
-    then
+\    #2 pick list-is-not-empty?
+\    if
+\        2drop
+\        true
+\        exit
+\    then
 
     \ Get anchor discovery needs.
-    2dup action-calc-anchor-discovery-needs         \ ret-lst cur-sta1 act0, ned-lst' t | f
-    if
-        dup #4 pick                                 \ ret-lst cur-sta1 act0 ned-lst' ned-lst' ret-lst
-        list-append-struct                          \ ret-lst cur-sta1 act0 ned-lst'
-        actneed-list-deallocate                     \ ret-lst cur-sta1 act0
-    then
-
+\    2dup action-calc-anchor-discovery-needs         \ ret-lst cur-sta1 act0, ned-lst' t | f
+\    if
+\        dup #4 pick                                 \ ret-lst cur-sta1 act0 ned-lst' ned-lst' ret-lst
+\        list-append-struct                          \ ret-lst cur-sta1 act0 ned-lst'
+\        actneed-list-deallocate                     \ ret-lst cur-sta1 act0
+\    then
+\
     2drop                                           \ ret-lst
 
    \ cr ." action needs found: " dup list-get-length dec. cr

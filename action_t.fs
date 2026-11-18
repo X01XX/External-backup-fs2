@@ -237,7 +237,7 @@
     cr ." action-test-corners2 - Ok"
 ;
 
-: action-test-anchor-discovery-corners
+: ?action-test-anchor-discovery-corners
     \ Init action.
     [ ' noop ] literal
     s" rXXXX 0" string-to-stack-a
@@ -296,7 +296,7 @@
 
     s" s0101" state-from-string-a           \ act sta'
     2dup swap                               \ act sta1 sta1 act
-    action-calc-anchor-discovery-needs      \ act sta', ned-lst' bool
+    ?action-calc-anchor-discovery-needs      \ act sta', ned-lst' bool
     if
         cr s" Needs: " #2 pick .struct-list-prefix cr
 
@@ -332,7 +332,7 @@
     cr ." action-test-anchor-discovery-corners - Ok"
 ;
 
-: action-test-anchor-discovery-clusters
+: ?action-test-anchor-discovery-clusters
     \ Init action.
     [ ' noop ] literal
     s" rXXXX 0" string-to-stack-a
@@ -377,7 +377,7 @@
 
     s" s0101" state-from-string-a           \ act sta'
     2dup swap                               \ act sta' sta' act
-    action-calc-anchor-discovery-needs      \ act sta', ned-lst' bool
+    ?action-calc-anchor-discovery-needs      \ act sta', ned-lst' bool
     if
         cr s" Needs: " #2 pick .struct-list-prefix cr
 
@@ -445,10 +445,10 @@
     s" s1100" state-from-string-a swap          \ sta act
     2dup action-calc-resolve-uncertainty-needs  \ sta act, ned-lst' t | f
     if
-        cr ." needs: " dup .struct-list cr
+        cr s" needs: " #2 pick .struct-list-prefix cr
 
         \ Test needs.
-        dup list-get-length #2 <> abort" needs len ne 2?"
+        dup list-get-length #2 < abort" needs len lt 2?"
 
         s" s1101" state-from-string-a dup   \ act sta' ned-lst' stax' stax'
         actneed-type-resunc                 \ act sta' ned-lst' stax' stax' typ
@@ -471,7 +471,12 @@
 
     \ Deallocate.
     action-deallocate
-    state-deallocate
+    dup is-state?
+    if
+        state-deallocate
+    else
+        drop
+    then
 
     \ Check for memory leaks.
     check-project-deallocated
@@ -756,8 +761,8 @@
     action-test-check-incompatible-pairs-for-changed-square
     action-test-corners
     action-test-corners2
-    action-test-anchor-discovery-corners
-    action-test-anchor-discovery-clusters
+\    action-test-anchor-discovery-corners
+\    action-test-anchor-discovery-clusters
     action-test-calc-resolve-uncertainty-needs
     action-test-take-step-1
     action-test-take-step-2

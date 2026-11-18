@@ -211,11 +211,12 @@
         \ Get corner list.
         pairdata-get-pairs                      \ ret-lst pos-regs1 prdt-lnk pr-lst
         #2 pick swap                            \ ret-lst pos-regs1 prdt-lnk pos-regs1 pr-lst
-        region-list-adj-pairs-to-corner-list    \ ret-lst pos-regs1 prdt-lnk crn-lst
-
-        \ Store corner list.
-        #3 pick                                 \ ret-lst pos-regs1 prdt-lnk crn-lst ret-lst
-        list-push-struct                        \ ret-lst pos-regs1 prdt-lnk
+        region-list-adj-pairs-to-corner-list    \ ret-lst pos-regs1 prdt-lnk, crn-lst t | f
+        if
+            \ Store corner list.
+            #3 pick                             \ ret-lst pos-regs1 prdt-lnk crn-lst ret-lst
+            list-push-struct                    \ ret-lst pos-regs1 prdt-lnk
+        then
     next-item
                                                 \ ret-lst pos-regs1
     drop

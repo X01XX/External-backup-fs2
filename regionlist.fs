@@ -1376,8 +1376,10 @@
 ;
 
 \ Given adjacent, incompatible, pairs and possible regions,
-\ return uneeded pairs, and corners.
-: region-list-adj-pairs-to-corner-list ( pos-lst1 pr-lst0 -- crn-lst )
+\ return corners.
+\ If both states of an incompatible pair are in GT 1 possible region,
+\ false will be returned.
+: region-list-adj-pairs-to-corner-list ( pos-lst1 pr-lst0 -- crn-lst t | f )
     \ Check args.
     assert( tos is-region-list? )
     assert( nos is-region-list? )
@@ -1411,4 +1413,6 @@
                                             \ crn-lst pos-lst1 sta-lst'
     state-list-deallocate                   \ crn-lst pos-lst1
     drop
+
+    check-list-return
 ;
