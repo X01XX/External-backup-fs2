@@ -201,7 +201,7 @@
 ;
 
 \ Return a list of region intersections with a region-list, no subsets.
-: region-list-intersections-nosubs ( reg-lst1 reg-lst0 -- reg-lst)
+: region-list-intersections-nosubs ( reg-lst1 reg-lst0 -- reg-lst )
     \ Check args.
     assert( tos is-region-list? )
     assert( nos is-region-list? )
@@ -1204,6 +1204,67 @@
     drop
 ;
 
+\ Return a list of ( region non-overlapped-parts ).
+: region-list-defining-region-parts-per-region ( reg-lst0 -- def-lst )
+    \ Check arg.
+    assert( tos is-region-list? )
+
+    \ Init return list.
+    list-new swap                               \ ret-lst reg-lst0
+    dup                                         \ ret-lst reg-lst0 reg-lst0
+
+    foreach                                     \ ret-lst reg-lst0 reg-lnk regx
+
+        \ Init temp list.
+        list-new swap                           \ ret-lst reg-lst0 reg-lnk tmp-lst' regx
+
+        \ Create target list.
+        2dup swap                               \ ret-lst reg-lst0 reg-lnk tmp-lst' regx regx tmp-lst'
+        list-push-struct                        \ ret-lst reg-lst0 reg-lnk tmp-lst' regx
+        swap                                    \ ret-lst reg-lst0 reg-lnk regx tmp-lst'
+
+        \ Subtract all regions, except itself.
+        #3 pick                                 \ ret-lst reg-lst0 reg-lnk regx tmp-lst' reg-lst0
+
+        foreach                                 \ ret-lst reg-lst0 reg-lnk regx tmp-lst' reg-lnk regy
+
+            #3 pick                             \ ret-lst reg-lst0 reg-lnk regx tmp-lst' reg-lnk regy regx
+            <>                                  \ ret-lst reg-lst0 reg-lnk regx tmp-lst' reg-lnk bool
+            if
+                \ Region is not the target region.
+                dup link-get-data               \ ret-lst reg-lst0 reg-lnk regx tmp-lst' reg-lnk regy
+                #2 pick                         \ ret-lst reg-lst0 reg-lnk regx tmp-lst' reg-lnk regy tmp-lst'
+                region-list-any-intersection?   \ ret-lst reg-lst0 reg-lnk regx tmp-lst' reg-lnk bool
+
+                if
+                    \ There is a reason to subtract.
+                    dup link-get-data           \ ret-lst reg-lst0 reg-lnk regx tmp-lst' reg-lnk regy
+                    #2 pick                     \ ret-lst reg-lst0 reg-lnk regx tmp-lst' reg-lnk regy tmp-lst'
+                    region-list-subtract-region \ ret-lst reg-lst0 reg-lnk regx tmp-lst' reg-lnk rslt-lst'
+
+                    \ Replace the temp list with the new result.
+                    rot                         \ ret-lst reg-lst0 reg-lnk regx reg-lnk rslt-lst' tmp-lst'
+                    region-list-deallocate      \ ret-lst reg-lst0 reg-lnk regx reg-lnk rslt-lst'
+                    swap                        \ ret-lst reg-lst0 reg-lnk regx rslt-lst' reg-lnk
+                then
+
+            then
+
+        next-item
+                                                \ ret-lst reg-lst0 reg-lnk regx tmp-lst'
+
+        \ Build list item.
+        list-new                                \ ret-lst reg-lst0 reg-lnk regx tmp-lst' itm-lst'
+        tuck list-push-struct                   \ ret-lst reg-lst0 reg-lnk regx itm-lst'
+        tuck list-push-struct                   \ ret-lst reg-lst0 reg-lnk itm-lst'
+
+        \ Store item.
+        #3 pick                                 \ ret-lst reg-lst0 reg-lnk itm-lst' ret-lst
+        list-push-struct                        \ ret-lst reg-lst0 reg-lnk
+    next-item
+    drop
+;
+
 \ Return true if regionslist corresponding regions are equal.
 : region-lists-corr-eq? ( reg-lst1 reg-lst0 -- bool )
     \ Check args.
@@ -1412,6 +1473,39 @@
     next-item
                                             \ crn-lst pos-lst1 sta-lst'
     state-list-deallocate                   \ crn-lst pos-lst1
+    drop
+
+    check-list-return
+;
+
+\ Return congruent regions from adjacent region pairs between twe region lists.
+: region-list-congruent-regions ( reg-lst1 reg-lst0 -- reg-lst t | f )
+    \ Check args.
+    assert( tos is-region-list? )
+    assert( nos is-region-list? )
+
+    \ Init return list.
+    list-new -rot                               \ ret-lst reg-lst1 reg-lst0
+    foreach                                     \ ret-lst reg-lst1 reg-lnk0 reg0
+        #2 pick                                 \ ret-lst reg-lst1 reg-lnk0 reg0 reg-lst1
+        foreach                                 \ ret-lst reg-lst1 reg-lnk0 reg0x reg-lnk reg1x
+            #2 pick regions-adjacent?           \ ret-lst reg-lst1 reg-lnk0 reg0x reg-lnk bool
+            if
+                \ Get congruent intersection.
+                dup link-get-data               \ ret-lst reg-lst1 reg-lnk0 reg0x reg-lnk reg1x
+                #2 pick                         \ ret-lst reg-lst1 reg-lnk0 reg0x reg-lnk reg1x reg0x
+                region-congruent-intersection   \ ret-lst reg-lst1 reg-lnk0 reg0x reg-lnk, regxy t | f
+                invert abort" congruent intersection failed?"
+
+                \ Store congruent intersection.
+                #5 pick                         \ ret-lst reg-lst1 reg-lnk0 reg0x reg-lnk regxy ret-lst
+                list-push-struct                \ ret-lst reg-lst1 reg-lnk0 reg0x reg-lnk
+            then
+        next-item
+                                        \ ret-lst reg-lst1 reg-lnk0 reg0
+        drop                            \ ret-lst reg-lst1 reg-lnk0
+    next-item
+                                        \ ret-lst reg-lst1
     drop
 
     check-list-return

@@ -1094,3 +1094,53 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
         then
     then
 ;
+
+\ Return a mask of region x bits.
+: region-x-mask ( reg0 -- msk )
+    \ Check arg.
+    assert( tos is-region? )
+
+    region-get-states   \ sta1 sta0
+    state-xor-to-mask   \ msk
+;
+
+\ Return the congruent intersection of two regions.
+: region-congruent-intersection ( reg1 reg0 -- reg t | f )
+    \ Check args.
+    assert( tos is-region? )
+    assert( nos is-region? )
+
+    2dup regions-adjacent?      \ reg1 reg0 bool
+    ifnot
+        2drop
+        false
+        exit
+    then
+
+    \ Get high and low state of reg0
+    region-high-low         \ reg1 reg0high' reg0low'
+
+    \ Get high and low state of reg1
+    rot                     \ reg0high' reg0low' reg1
+    region-high-low         \ reg0high' reg0low' reg1high' reg1low'
+
+    \ Group high/low states.
+    rot                     \ reg0high' reg1high' reg1low' reg0low'
+
+    \ Calc lowest state.
+    2dup                    \ reg0high' reg1high' reg1low' reg0low' reg1low' reg0low'
+    state-or                \ reg0high' reg1high' reg1low' reg0low' low2'
+    swap state-deallocate   \ reg0high' reg1high' reg1low' low2'
+    swap state-deallocate   \ reg0high' reg1high' low2'
+
+    \ Calc highest state.
+    -rot                    \ reg-low2' reg0high' reg1high'
+    2dup                    \ reg-low2' reg0high' reg1high' reg0high' reg1high'
+    state-and               \ reg-low2' reg0high' reg1high' high2'
+    swap state-deallocate   \ reg-low2' reg0high' high2'
+    swap state-deallocate   \ reg-low2' high2'
+
+    \ Make new region, return.
+    region-new
+    true
+;

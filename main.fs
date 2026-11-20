@@ -129,6 +129,8 @@ include domainlist.fs
 
 include session.fs
 
+include anyxofn.fs
+
 include mask_t.fs
 include state_t.fs
 include statelist_t.fs

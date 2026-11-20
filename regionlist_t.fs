@@ -3,7 +3,7 @@
 : region-list-test-defining-regions
 
     \ Init region-list to max region.
-    s" (rXXXX)" list-from-string-a      \ reg-lst'
+    s" (rXXXX)" region-list-from-string-a      \ reg-lst'
 
     \ Calc one pair.
     s" s0101" state-from-string-a       \ reg-lst' sta5'
@@ -64,7 +64,7 @@
     list-new                            \ sta-lst'
 
     \ Init region-list to max region.
-    s" (rXXXX)" list-from-string-a      \ sta-lst' reg-lst'
+    s" (rXXXX)" region-list-from-string-a      \ sta-lst' reg-lst'
 
     \ Calc one pair.
     s" s0101" state-from-string-a       \ sta-lst' reg-lst' sta5'
@@ -134,7 +134,7 @@
 ;
 
 : region-list-test-proper-intersections
-    s" (rx10x r1x0x rxxx1 r0xxx)" list-from-string-a    \ reg-lst'
+    s" (rx10x r1x0x rxxx1 r0xxx)" region-list-from-string-a    \ reg-lst'
 
     dup region-list-proper-intersections                \ reg-lst', reg-ints' t | f
     invert abort" no intersections?"
@@ -169,7 +169,7 @@
 ;
 
 : region-list-test-split-by-intersections
-    s" (rx10x r1x0x rxxx1 r0xxx)" list-from-string-a        \ reg-lst'
+    s" (rx10x r1x0x rxxx1 r0xxx)" region-list-from-string-a        \ reg-lst'
 
     dup region-list-split-by-intersections          \ reg-lst', reg-ints' t | f
     invert abort" no intersections?"
@@ -213,7 +213,7 @@
 ;
 
 : region-list-test-split-by-intersections2
-    s" (rxxxx rxxx1 rx1x1)" list-from-string-a      \ reg-lst'
+    s" (rxxxx rxxx1 rx1x1)" region-list-from-string-a      \ reg-lst'
 
     dup region-list-split-by-intersections          \ reg-lst', reg-ints' t | f
     invert abort" no intersections?"
@@ -257,7 +257,7 @@
 ;
 
 : region-list-test-defining-region-parts
-    s" (rx10x r1x0x rxxx1 r0xxx)" list-from-string-a    \ reg-lst'
+    s" (rx10x r1x0x rxxx1 r0xxx)" region-list-from-string-a    \ reg-lst'
 
     dup region-list-defining-region-parts               \ reg-lst' def-regs'
     cr cr ." defining parts of: " over .region-list space ." are: " dup .region-list cr cr
@@ -279,6 +279,97 @@
 
     cr ." region-list-test-defining-region-parts - Ok"
 ;
+
+: region-list-test-adjacent-defining-parts
+    s" (r0x0x rx1x1 r10xx rxx10 r1xx0 rx01x)" region-list-from-string-a     \ pos-lst'
+    cr ." pos-regs: " dup .region-list cr
+
+    dup region-list-defining-regions                                        \ pos-lst' def-regs'
+    cr ." def-regs: " dup .region-list cr
+
+    over region-list-defining-region-parts-per-region                       \ pos-lst' def-regs' def-prts'
+    cr s" def prts: " #2 pick .struct-list-prefix cr
+
+    \ Init congruent adjacent regions.
+    list-new                                        \ pos-lst' def-regs' def-prts' cngr-regs'
+
+    \ Check each possible pair for adjacency,
+    \ if so, check adjacency of defining parts.
+    over                                            \ pos-lst' def-regs' def-prts' cngr-regs' def-prts'
+    foreach                                         \ pos-lst' def-regs' def-prts' cngr-regs' def-prts-lnk def-prts-x
+        \ Compare current region with all following regions.
+        over link-get-next                          \ pos-lst' def-regs' def-prts' cngr-regs' def-prts-lnk def-prts-x def-prts-lnk-nxt
+        begin
+            ?dup
+        while
+            dup link-get-data list-get-first-item   \ pos-lst' def-regs' def-prts' cngr-regs' def-prts-lnk def-prts-x def-prts-lnk-nxt reg-n
+            #2 pick list-get-first-item             \ pos-lst' def-regs' def-prts' cngr-regs' def-prts-lnk def-prts-x def-prts-lnk-nxt reg-n reg-x
+            regions-adjacent?                       \ pos-lst' def-regs' def-prts' cngr-regs' def-prts-lnk def-prts-x def-prts-lnk-nxt bool
+
+            if
+                dup link-get-data                   \ pos-lst' def-regs' def-prts' cngr-regs' def-prts-lnk def-prts-x def-prts-lnk-nxt def-prts-n
+
+                cr #2 pick list-get-first-item .region space ." adjacent to " dup list-get-first-item .region
+
+                dup list-get-second-item            \ pos-lst' def-regs' def-prts' cngr-regs' def-prts-lnk def-prts-x def-prts-lnk-nxt def-prts-n regs-n
+                space ." check " dup .region-list
+                #3 pick list-get-second-item        \ pos-lst' def-regs' def-prts' cngr-regs' def-prts-lnk def-prts-x def-prts-lnk-nxt def-prts-n regs-n regsx
+                space ." and " dup .region-list
+                region-list-congruent-regions       \ pos-lst' def-regs' def-prts' cngr-regs' def-prts-lnk def-prts-x def-prts-lnk-nxt def-prts-n, cngr-regs2' t | f
+                if
+                    space ." congruent " dup .region-list
+                    dup                             \ pos-lst' def-regs' def-prts' cngr-regs' def-prts-lnk def-prts-x def-prts-lnk-nxt def-prts-n cngr-regs2' cngr-regs2'
+                    #6 pick                         \ pos-lst' def-regs' def-prts' cngr-regs' def-prts-lnk def-prts-x def-prts-lnk-nxt def-prts-n cngr-regs2' cngr-regs2' cngr-regs'
+                    region-list-append-nosubs       \ pos-lst' def-regs' def-prts' cngr-regs' def-prts-lnk def-prts-x def-prts-lnk-nxt def-prts-n cngr-regs2'
+                    region-list-deallocate          \ pos-lst' def-regs' def-prts' cngr-regs' def-prts-lnk def-prts-x def-prts-lnk-nxt def-prts-n
+                    cr
+                else
+                    cr
+                then
+                drop                                \ pos-lst' def-regs' def-prts' cngr-regs' def-prts-lnk def-prts-x def-prts-lnk-nxt
+            then
+
+            link-get-next
+        repeat
+                                                    \ pos-lst' def-regs' def-prts' cngr-regs' def-prts-lnk def-prts-x
+        drop                                        \ pos-lst' def-regs' def-prts' cngr-regs' def-prts-lnk
+    next-item
+                                                    \ pos-lst' def-regs' def-prts' cngr-regs'
+    \ cr ." cngrs: " dup .region-list cr
+
+    \ Collect congruent regions per defining regions.
+
+    \ Init list.
+    list-new -rot                                   \ pos-lst' def-regs' def-cnrgrs' def-prts' cngr-regs'
+    #3 pick                                         \ pos-lst' def-regs' def-cnrgrs' def-prts' cngr-regs' def-regs'
+    foreach                                         \ pos-lst' def-regs' def-cnrgrs' def-prts' cngr-regs' def-lnk dregx
+        #2 pick                                     \ pos-lst' def-regs' def-cnrgrs' def-prts' cngr-regs' def-lnk dregx cngr-regs'
+        [ ' regions-intersect? ] literal -rot       \ pos-lst' def-regs' def-cnrgrs' def-prts' cngr-regs' def-lnk xt dregx cngr-regs'
+        list-find-all-struct                        \ pos-lst' def-regs' def-cnrgrs' def-prts' cngr-regs' def-lnk int-regs'
+
+        \ Save region, int regs.
+        list-new tuck list-push-struct              \ pos-lst' def-regs' def-cnrgrs' def-prts' cngr-regs' def-lnk reg-cngrs'
+        over link-get-data                          \ pos-lst' def-regs' def-cnrgrs' def-prts' cngr-regs' def-lnk reg-cngrs' dregx
+        over list-push-struct                       \ pos-lst' def-regs' def-cnrgrs' def-prts' cngr-regs' def-lnk reg-cngrs'
+        #4 pick list-push-struct                    \ pos-lst' def-regs' def-cnrgrs' def-prts' cngr-regs' def-lnk
+    next-item
+                                                    \ pos-lst' def-regs' def-cnrgrs' def-prts' cngr-regs'
+
+    cr s" def reg / crngs: " #4 pick .struct-list-prefix cr
+
+    \ Clean up.
+    region-list-deallocate                          \ pos-lst' def-regs' def-cnrgrs' def-prts'
+    struct-list-deallocate                          \ pos-lst' def-regs' def-cnrgrs'
+    struct-list-deallocate                          \ pos-lst' def-regs'
+    region-list-deallocate                          \ pos-lst'
+    region-list-deallocate
+
+    \ Check for memory leaks.
+    check-project-deallocated
+
+    cr ." region-list-test-adjacent-defining-parts - Ok"
+;
+
 
 : region-list-tests
     region-list-test-defining-regions

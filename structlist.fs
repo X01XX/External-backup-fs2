@@ -196,10 +196,10 @@
     then
 
     \ Check elements.
-    foreach                         \ xt sct-lst1 lnk regx
-        #3 pick swap                \ xt sct-lst1 lnk xt regx
+    foreach                         \ xt sct-lst1 lnk itmx
+        #3 pick swap                \ xt sct-lst1 lnk xt itmx
 
-        #3 pick                     \ xt sct-lst1 lnk xt regx sct-lst1
+        #3 pick                     \ xt sct-lst1 lnk xt itmx sct-lst1
         list-member?                \ xt sct-lst1 lnk bool
         if
         else
