@@ -27,8 +27,8 @@
 \ Integer ( Rate in fs1 )   sesneed ( RuleStore in fs1 )
 \ 41719                     23173
 \
-\ DefPart   DefRegParts PairData ( RuleCorr in fs1 )
-\ 17317     41737       53171
+\ CornerTemplate    DefRegCTs   PairData ( RuleCorr in fs1 )
+\ 17317             41737       53171
 \
 \ Struct ids not yet used:
 \
@@ -131,6 +131,9 @@ include session.fs
 
 include anyxofn.fs
 
+include cornertemplate.fs
+include defregcts.fs
+
 include mask_t.fs
 include state_t.fs
 include statelist_t.fs
@@ -180,6 +183,9 @@ include randompick_t.fs
 #0050 pairdata-mma-init
 #1010 domain-mma-init
 #0005 session-mma-init
+#0100 cornertemplate-mma-init
+#0050 defregcts-mma-init
+
 cr cr
 
 \ Init structinfo list.
@@ -213,6 +219,9 @@ list-new to structinfo-list-store
 ' maskcorr-from-list  ' maskcorr-list-definition?    ' maskcorrs-eq? ' noop  ' maskcorr-deallocate ' .maskcorr   s" MaskCorr"  maskcorr-mma  maskcorr-struct-id structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' noop          ' noop                  ' domain-deallocate     ' .domain       s" Domain"      domain-mma      domain-struct-id        structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' noop          ' noop                  ' session-deallocate    ' .session      s" Session"     session-mma     session-struct-id       structinfo-new structinfo-list-store-push-end
+
+' noop  ' noop  ' noop          ' noop                  ' cornertemplate-deallocate    ' .cornertemplate      s" CornerTemplate"     cornertemplate-mma     cornertemplate-struct-id       structinfo-new structinfo-list-store-push-end
+' noop  ' noop  ' noop          ' noop                  ' defregcts-deallocate    ' .defregcts      s" DefRegCts"     defregcts-mma     defregcts-struct-id       structinfo-new structinfo-list-store-push-end
 
 : main
     \ Make valued-regioncorrs list.

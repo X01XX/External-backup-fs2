@@ -405,3 +405,33 @@
         drop                    \ pr-lst sta-lnk
     next-item
 ;
+
+\ Calc a list of (state (regions-state-in)).
+: state-list-regions-states-in ( reg-lst1 sta-lst0 -- ret-lst t | f )
+    \ Check args.
+    assert( tos is-state-list? )
+    assert( nos is-region-list?-xt execute )
+
+    \ Init return list.
+    list-new -rot                       \ ret-lst reg-lst1 sta-lst0
+
+    foreach                             \ ret-lst reg-lst1 sta-lnk0 sta0
+        #2 pick                         \ ret-lst reg-lst1 sta-lnk0 sta0 reg-lst1
+        region-list-regions-state-in-xt
+        execute                         \ ret-lst reg-lst1 sta-lnk0, regs-sta-in t | f
+        if
+            \ Init sub-list
+            list-new                    \ ret-lst reg-lst1 sta-lnk0 regs-sta-in sub-lst
+            tuck list-push-struct       \ ret-lst reg-lst1 sta-lnk0 sub-lst
+            over link-get-data          \ ret-lst reg-lst1 sta-lnk0 sub-lst stax
+            over list-push-struct       \ ret-lst reg-lst1 sta-lnk0 sub-lst
+
+            \ Add sub-list to return list.
+            #3 pick                     \ ret-lst reg-lst1 sta-lnk0 sub-lst ret-lst
+            list-push-struct            \ ret-lst reg-lst1 sta-lnk0
+        then
+    next-item
+                                        \ ret-lst reg-lst1
+    drop
+    check-list-return
+;

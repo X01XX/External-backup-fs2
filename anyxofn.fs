@@ -15,7 +15,7 @@
     next-item
 ;
 
-\ Return a list of all x combinations of n items in a list.
+\ Return a list of all x combinations of n struct instances in a list.
 : any-x-of-n ( num1 lst0 -- lol )
     \ Check args.
     assert( tos is-list? )
@@ -38,7 +38,7 @@
     \ Init return list.
     list-new -rot               \ ret-lst num1 lst0
 
-    \ Allow list to be deallocated in the loop's first cycle.
+    \ Allow list to be popped, deallocated.
     list-copy-struct            \ ret-lst num1 lst'
 
     \ Set up start and limit for loop.
@@ -50,8 +50,6 @@
         dup list-pop-struct     \ ret-lst num1 lst', item0 t | f
         invert abort" pop failed?"
 
-        \ cr ." item: " dup .state space ." cdr: " over .state-list cr
-
         #2 pick #2 pick         \ ret-lst num1 lst' item0 num1 lst'
         recurse                 \ ret-lst num1 lst' item0 lol'
 
@@ -61,7 +59,6 @@
             list-push-struct    \ ret-lst num1 lst' item0 lol' lol-lnk
         next-item
 
-        \ cr ." lol: " dup .struct-list cr
         dup #5 pick             \ ret-lst num1 lst' item0 lol' lol' ret-lst
         list-append-struct      \ ret-lst num1 lst' item0 lol'
         struct-list-deallocate

@@ -1104,6 +1104,16 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     state-xor-to-mask   \ msk
 ;
 
+\ Return the number of edges of a region.
+: region-number-edges ( reg0 -- num )
+    \ Check arg.
+    assert( tos is-region? )
+
+    region-edge-mask        \ edg-msk'
+    dup mask-count-bits     \ edg-msk' u
+    swap mask-deallocate    \ u
+;
+
 \ Return the congruent intersection of two regions.
 : region-congruent-intersection ( reg1 reg0 -- reg t | f )
     \ Check args.

@@ -203,5 +203,9 @@
 
 ' xtabort value corner-new-xt
 
+' xtabort value is-region-list?-xt
+
+' xtabort value region-list-regions-state-in-xt
+
 
 
