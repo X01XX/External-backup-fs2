@@ -96,24 +96,6 @@
     type
 ;
 
-\ Push a state to a state-list.
-: state-list-push ( reg1 list0 -- )
-    \ Check args.
-    assert( tos is-state-list? )
-    assert( nos is-state? )
-
-    list-push-struct
-;
-
-\ Push a state to the end of a state-list.
-: state-list-push-end ( reg1 list0 -- )
-    \ Check args.
-    assert( tos is-state-list? )
-    assert( nos is-state? )
-
-    list-push-end-struct
-;
-
 \ Return a state-list from a string.
 : state-list-from-string ( c-addr u -- reg-lst t | f )
     list-from-string-xt execute \ lst t | f
@@ -267,7 +249,7 @@
     while
         dup link-get-data   \ lst0 link regx
         #2 pick             \ lst0 link regx lst0
-        state-list-push     \ lst0 link
+        list-push-struct    \ lst0 link
 
         link-get-next
     repeat
@@ -360,9 +342,9 @@
         #2 pick                 \  sta-lst0 sta-lnk1 stax sta-lst0
         state-list-state-in?    \  sta-lst0 sta-lnk1 bool
         ifnot
-            dup link-get-data   \  sta-lst0 sta-lnk1 stax
-            #2 pick             \  sta-lst0 sta-lnk1 stax sta-lst0
-            state-list-push-end \  sta-lst0 sta-lnk1 bool
+            dup link-get-data       \  sta-lst0 sta-lnk1 stax
+            #2 pick                 \  sta-lst0 sta-lnk1 stax sta-lst0
+            list-push-end-struct    \  sta-lst0 sta-lnk1 bool
         then
 
         link-get-next

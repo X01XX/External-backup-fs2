@@ -1387,7 +1387,8 @@ list-header-disp    cell+   constant list-links-disp
     true
 ;
 
-\ Code to check a list, return false if empty, else return the list and true.
+\ Check a list, return false if empty, else return the list and true.
+\ Returning an empty list would require the caller to deallocate it.
 : check-list-return ( lst0 -- lst0 t | f )
     dup list-is-empty?       \ ret-lst bool
     if

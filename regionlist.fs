@@ -1369,7 +1369,7 @@
     nip                                     \ bool
 ;
 
-\ Return a list af states combined into regions with a given state.
+\ Return a list of states combined into regions with a given state.
 : region-list-states-connected-to ( sta1 reg-lst0 -- sta-lst )
     \ Check args.
     assert( tos is-region-list? )

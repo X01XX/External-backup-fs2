@@ -1,6 +1,10 @@
 
-\ Implement a struct, and functions, for a cornertemplate, which may
+\ Implement a struct, and functions, for a corner template, which may
 \ be a superset of an actual corner.
+\
+\ With two partial corner clusters, one could be chosen to
+\ fill out a corner template cluster, replacing the two partial corner clusters
+\ with one complete corner cluster.
 
 #17317 constant cornertemplate-struct-id
     #3 constant cornertemplate-struct-number-cells
@@ -152,4 +156,73 @@ cornertemplate-intersection-disp    cell+   constant cornertemplate-regions-disp
     else
         struct-dec-use-count
     then
+;
+
+\ Deallocate a cornertemplate list.
+: cornertemplate-list-deallocate ( crntmpl-lst -- )
+    dup struct-get-use-count                    \ crntmpl-lst uc
+    #2 < if
+        [ ' cornertemplate-deallocate ] literal over     \ crntmpl-lst xt crntmpl-lst
+        list-apply                              \ Deallocate cornertemplate instances in the list.
+
+        list-deallocate                         \ Deallocate list and links.
+    else
+        struct-dec-use-count
+    then
+;
+
+\ Return a list of cornerteplates connected to a given cornertemplate,
+\ by having adjacent intersections.
+: cornertemplate-list-connections ( crntmpl1 crntmpl-lst0 -- crntmpl-lst t | f )
+    \ Check args.
+    assert( tos is-cornertemplate-list? )
+    assert( nos is-cornertemplate? )
+
+    \ Init return list.
+    list-new -rot                       \ crntmpl-lst crntmpl1 crntmpl-lst0
+
+    foreach                             \ crntmpl-lst crntmpl1 crntmpl-lnk crntmpl-x
+        cornertemplate-get-intersection \ crntmpl-lst crntmpl1 crntmpl-lnk crnint-x
+        #2 pick                         \ crntmpl-lst crntmpl1 crntmpl-lnk crnint-x crntmpl1
+        cornertemplate-get-intersection \ crntmpl-lst crntmpl1 crntmpl-lnk crnint-x crnint1
+        regions-adjacent?               \ crntmpl-lst crntmpl1 crntmpl-lnk bool
+        if
+            \ Get other cornertemplate.
+            dup link-get-data           \ crntmpl-lst crntmpl1 crntmpl-lnk crntmpl-x
+
+            \ Store cornertemplate.
+            #3 pick                     \ crntmpl-lst crntmpl1 crntmpl-lnk crntmpl-x crntmpl-lst
+            list-push-struct            \ crntmpl-lst crntmpl1 crntmpl-lnk
+        then
+    next-item
+                                        \ crntmpl-lst crntmpl1
+    drop
+    check-list-return
+;
+
+\ Append nos cornertemplate list to the tos cornertemplate list end, no duplicates.
+: cornertemplate-list-append-end-noeq (  crntmpl-lst1  crntmpl-lst0 -- )
+    \ Check args.
+    assert( tos is-cornertemplate-list? )
+    assert( nos is-cornertemplate-list? )
+
+    swap                                        \ crntmpl-lst0 crntmpl-lst1
+    list-get-links                              \ crntmpl-lst0 crntmpl-lnk1
+    begin
+        ?dup
+    while
+        [ ' = ] literal                         \ crntmpl-lst0 crntmpl-lnk1 xt
+        over link-get-data                      \ crntmpl-lst0 crntmpl-lnk1 xt crntmplx
+        #3 pick                                 \ crntmpl-lst0 crntmpl-lnk1 xt crntmplx crntmpl-lst0
+        list-member?                            \ crntmpl-lst0 crntmpl-lnk1 bool
+        ifnot
+            dup link-get-data                   \ crntmpl-lst0 crntmpl-lnk1 crntmplx
+            #2 pick                             \ crntmpl-lst0 crntmpl-lnk1 crntmplx crntmpl-lst0
+            list-push-end-struct                \ crntmpl-lst0 crntmpl-lnk1 bool
+        then
+
+        link-get-next
+    repeat
+                                                \  crntmpl-lst0
+    drop
 ;

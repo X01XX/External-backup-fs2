@@ -32,39 +32,43 @@
         exit
     then
 
-    \ Decrement number.
+    \ Decrement number, for n-1 of x.
     swap 1 - swap               \ num1 lst0
 
     \ Init return list.
     list-new -rot               \ ret-lst num1 lst0
 
-    \ Allow list to be popped, deallocated.
+    \ Preserve the passed list, caller to deallocate, deconstructed here.
     list-copy-struct            \ ret-lst num1 lst'
 
     \ Set up start and limit for loop.
+    \ The last x-1 items in the list will not have enough items left to combine to make x items.
     dup list-get-length         \ ret-lst num1 lst' len
     #2 pick - 0                 \ ret-lst num1 lst' limit start
 
-    \ Start loop.
+    \ For each item, combine with ( n-1 ) of x.
     do                          \ ret-lst num1 lst'
+        \ Save first item, get n-1 of x of the following items.
         dup list-pop-struct     \ ret-lst num1 lst', item0 t | f
         invert abort" pop failed?"
 
         #2 pick #2 pick         \ ret-lst num1 lst' item0 num1 lst'
         recurse                 \ ret-lst num1 lst' item0 lol'
 
+        \ Add first item to each n-1 of x.
         dup
         foreach                 \ ret-lst num1 lst' item0 lol' lol-lnk itmx
             #3 pick swap        \ ret-lst num1 lst' item0 lol' lol-lnk item0 itmx
             list-push-struct    \ ret-lst num1 lst' item0 lol' lol-lnk
         next-item
 
+        \ Save n of x lists to return.
         dup #5 pick             \ ret-lst num1 lst' item0 lol' lol' ret-lst
         list-append-struct      \ ret-lst num1 lst' item0 lol'
         struct-list-deallocate
         drop
     loop
-                                \ ret-lst num1 lst'
+                                \ ret-lst num1 lst' ( x-1 items left )
     struct-list-deallocate      \ ret-lst num1
     drop
 ;

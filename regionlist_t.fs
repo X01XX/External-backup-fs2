@@ -72,9 +72,9 @@
     2dup #4 pick                        \ sta-lst' reg-lst' sta5' sta7' sta5' sta7' reg-lst'
     regionlist-cumulative-~a+~b         \ sta-lst' reg-lst' sta5' sta7' reg-lst2'
     swap                                \ sta-lst' reg-lst' sta5' reg-lst2' sta7'
-    #4 pick state-list-push             \ sta-lst' reg-lst' sta5' reg-lst2'
+    #4 pick list-push-struct            \ sta-lst' reg-lst' sta5' reg-lst2'
     swap                                \ sta-lst' reg-lst' reg-lst2' sta5'
-    #3 pick state-list-push             \ sta-lst' reg-lst' reg-lst2'
+    #3 pick list-push-struct            \ sta-lst' reg-lst' reg-lst2'
     swap region-list-deallocate         \ sta-lst' reg-lst2'
     cr ." ~5 + ~7: " dup .region-list
 
@@ -90,9 +90,9 @@
     2dup #4 pick                        \ sta-lst' reg-lst' sta0' sta8' sta0' sta8' reg-lst'
     regionlist-cumulative-~a+~b         \ sta-lst' reg-lst' sta0' sta8' reg-lst2'
     swap                                \ sta-lst' reg-lst' sta0' reg-lst2' sta8'
-    #4 pick state-list-push             \ sta-lst' reg-lst' sta0' reg-lst2'
+    #4 pick list-push-struct            \ sta-lst' reg-lst' sta0' reg-lst2'
     swap                                \ sta-lst' reg-lst' reg-lst2' sta0'
-    #3 pick state-list-push             \ sta-lst' reg-lst' reg-lst2'
+    #3 pick list-push-struct            \ sta-lst' reg-lst' reg-lst2'
     swap region-list-deallocate         \ sta-lst' reg-lst2'
     cr ." (~5 + ~7) & (~0 + ~8): " dup .region-list
 
@@ -116,9 +116,9 @@
 
     \ Add 9, 1.
     s" s1001" state-from-string-a               \ sta-lst' reg-lst' sta9'
-    #2 pick state-list-push                     \ sta-lst' reg-lst'
+    #2 pick list-push-struct                    \ sta-lst' reg-lst'
     s" s0001" state-from-string-a               \ sta-lst' reg-lst' sta1'
-    #2 pick state-list-push                     \ sta-lst' reg-lst'
+    #2 pick list-push-struct                    \ sta-lst' reg-lst'
 
     \ Evaluate.
     2dup region-list-evaluate-for-corners       \ sta-lst' reg-lst'
@@ -426,10 +426,22 @@
         drop
     next-item
                                                     \ def-cnrgrs' cngr-regs' dfrgcts-lst'
-    cr s" def reg cts: " #2 pick .struct-list-prefix
-    struct-list-deallocate
+    cr s" def reg cts: " #2 pick .struct-list-prefix cr
 
-    \ Clean up.
+    dup
+    defregcts-list-cornertemplate-clusters          \ def-cnrgrs' cngr-regs' dfrgcts-lst', crn-clstrs' t | f
+
+    if
+        cr
+        s" Corner template clusters: " #2 pick .struct-list-prefix
+        cr
+        struct-list-deallocate                      \ def-cnrgrs' cngr-regs' dfrgcts-lst'
+    else
+        cr ." no clusters" cr
+    then
+
+    \ Clean up.                                     \ def-cnrgrs' cngr-regs' dfrgcts-lst'
+    struct-list-deallocate                          \ def-cnrgrs' cngr-regs'
     region-list-deallocate                          \ def-cnrgrs'
     struct-list-deallocate
 
