@@ -1335,6 +1335,14 @@ action-groups-disp                      cell+   constant action-function-disp   
 
     \ Calc defining regions.
     dup region-list-defining-regions    \ act0 pr-lst pos-regs def-regs'
+    dup list-get-length                 \ act0 pr-lst pos-regs def-regs' len
+    0= if
+        list-deallocate
+        2drop                           \ act0
+        list-new                        \ act0 lst
+        swap _action-update-corner-clusters
+        exit
+    then
     \ cr ." Defining regions: " dup .region-list cr
 
     \ Init state cluster list.

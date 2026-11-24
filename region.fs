@@ -1154,3 +1154,37 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     region-new
     true
 ;
+
+\ Return a mask of the difference between a region and a state.
+: region-xor-state  ( sta1 reg0 -- msk )
+    \ Check args.
+    assert( tos is-region? )
+    assert( nos is-state? )
+
+    \ Get dif mask for sta1 and region sta0.
+    region-get-states       \ sta1 rsta1 rsta0
+    #2 pick                 \ sta1 rsta1 rsta0 sta1
+    state-xor-to-mask       \ sta1 rsta1 msk0'
+
+    \ Get dif mask for sta1 and region sta1.
+    -rot                    \ msk0' sta1 rsta1
+    state-xor-to-mask       \ msk0' msk1'
+
+    \ Get dif of sta1 and both region states.
+    2dup mask-and           \ msk0' msk1' msk01'
+    swap mask-deallocate    \ msk0' msk01'
+    swap mask-deallocate    \ msk01'
+;
+
+\ Return true if a state is adjacent to a region.
+: region-adjacent-state? ( sta1 reg0 -- bool )
+    \ Check args.
+    assert( tos is-region? )
+    assert( nos is-state? )
+
+    region-xor-state        \ xmsk'
+
+    \ Get adjacent flag.
+    dup mask-only-one-bit?  \ xmsk' bool
+    swap mask-deallocate    \ bool
+;

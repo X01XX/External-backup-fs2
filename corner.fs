@@ -585,8 +585,7 @@ corner-region-disp          cell+   constant corner-adjacent-states-disp    \ Al
     \ cr ." corner-from-list: end: " over .corner cr
 ;
 \ Return a corner from a string.
-\ Like ( regc 1 -2 (rxxxx r1010))
-\ Like ( regc 0 0 (rxxxx r1010))
+\ Like (crn s1101 rX1X1 (s1100 s1001))
 : corner-from-string ( str-addr str-n -- crn t | f )
     \ cr ." corner-from-string: start: " 2dup type cr
 

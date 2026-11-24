@@ -149,6 +149,7 @@ include corner_t.fs
 include maskcorr_t.fs
 \ include need_t.fs
 include cornerlist_t.fs
+include cornertemplate_t.fs
 include squarelist_t.fs
 include action_t.fs
 include group_t.fs
@@ -220,7 +221,7 @@ list-new to structinfo-list-store
 ' noop  ' noop  ' noop          ' noop                  ' domain-deallocate     ' .domain       s" Domain"      domain-mma      domain-struct-id        structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' noop          ' noop                  ' session-deallocate    ' .session      s" Session"     session-mma     session-struct-id       structinfo-new structinfo-list-store-push-end
 
-' noop  ' noop  ' noop          ' noop                  ' cornertemplate-deallocate    ' .cornertemplate      s" CornerTemplate"     cornertemplate-mma     cornertemplate-struct-id       structinfo-new structinfo-list-store-push-end
+' cornertemplate-from-list  ' cornertemplate-list-definition?  ' noop          ' noop                  ' cornertemplate-deallocate    ' .cornertemplate      s" CornerTemplate"     cornertemplate-mma     cornertemplate-struct-id       structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' noop          ' noop                  ' defregcts-deallocate    ' .defregcts      s" DefRegCts"     defregcts-mma     defregcts-struct-id       structinfo-new structinfo-list-store-push-end
 
 : main
@@ -308,6 +309,7 @@ list-new to structinfo-list-store
 
     corner-tests
     corner-list-tests
+    cornertemplate-tests
 \    need-tests
 
     action-tests
