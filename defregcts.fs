@@ -160,6 +160,47 @@ defregcts-region-disp cell+ constant defregcts-cts-disp     \ A list of corner t
     false
 ;
 
+\ Return corner from a state that matches any cornertemplates.
+: defreg-corner-from-state ( sta1 dfregcts -- crn t | f )
+    \ Check args.
+    assert( tos is-defregcts? )
+    assert( nos is-state? )
+
+    2dup defregcts-get-region               \ sta1 cts sta1 reg
+    region-superset-of-state?               \ sta1 cts bool
+    if
+        defregcts-get-region               \ sta1 reg
+        corner-new                         \ crn t | f
+    else
+        2drop
+        false
+    then
+;
+
+\ Return corners from any states that match cornertemplates.
+: defreg-corners-from-state-list ( sta-lst1 dfrgcts -- crn-lst t | f )
+    \ Check args.
+    assert( tos is-defregcts? )
+    assert( nos is-state-list? )
+
+    \ Init return list.
+    list-new -rot                   \ ret-lst sta-lst1 dfrgcts0
+
+    swap                            \ ret-lst dfrgcts0 sta-lst1
+    foreach                         \ ret-lst dfrgcts0 sta-lnk sta-x
+        #2 pick                     \ ret-lst dfrgcts0 sta-lnk sta-x dfrgcts0
+        defreg-corner-from-state    \ ret-lst dfrgcts0 sta-lnk, sta t | f
+        if
+            #3 pick                 \ ret-lst dfrgcts0 sta-lnk sta ret-lst
+            list-push-struct        \ ret-lst dfrgcts0 sta-lnk
+        then
+    next-item
+                                    \ ret-lst dfrgcts0
+    drop
+
+    check-list-return
+;
+
 \ Check TOS for defregcts-list.
 : is-defregcts-list? ( tos -- bool )
     dup is-list?            \ tos bool
@@ -266,7 +307,7 @@ defregcts-region-disp cell+ constant defregcts-cts-disp     \ A list of corner t
 ;
 
 \ Return true if a state list contains anchors for each defregcts in a list.
-: defreg-state-list-contains-all-anchors? ( sta-lst1 dfrgcts-lst0 -- bool )
+: defregcts-list-state-list-contains-all-anchors? ( sta-lst1 dfrgcts-lst0 -- bool )
     \ Check args.
     assert( tos is-defregcts-list? )
     assert( nos is-state-list? )
@@ -283,4 +324,30 @@ defregcts-region-disp cell+ constant defregcts-cts-disp     \ A list of corner t
                                             \ sta-lst1
     drop
     true
+;
+
+\ Return a list of corners, given a state-list, of anchors, and a defrects list.
+: defregcts-list-corners-from-state-list ( sta-lst1 dfrgcts-lst0 -- crn-lst t | f )
+    \ Check args.
+    assert( tos is-defregcts-list? )
+    assert( nos is-state-list? )
+
+    \ Init return list.
+    list-new -rot                           \ ret-lst sta-lst1 dfrgcts-lst0
+
+    foreach                                 \ ret-lst sta-lst1 dfrgcts-lnk dfrgcts-x
+        #2 pick swap                        \ ret-lst sta-lst1 dfrgcts-lnk sta-lst1 dfrgcts-x
+        defreg-corners-from-state-list      \ ret-lst sta-lst1 dfrgcts-lnk, crn-lst' t | f
+        if
+            \ Store the corner.
+            dup                             \ ret-lst sta-lst1 dfrgcts-lnk crn-lst' crn-lst'
+            #4 pick                         \ ret-lst sta-lst1 dfrgcts-lnk crn-lst' crn-lst' ret-lst
+            list-append-struct              \ ret-lst sta-lst1 dfrgcts-lnk cn-lst'
+
+            corner-list-deallocate          \ ret-lst sta-lst1 dfrgcts-lnk
+        then
+    next-item
+                                            \ ret-lst sta-lst1
+    drop
+    check-list-return
 ;

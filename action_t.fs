@@ -756,8 +756,8 @@
 ;
 
 : action-test-adjacent-defining-parts
-    s" (r0x0x rx1x1 r10xx rxx10 r1xx0 rx01x)" region-list-from-string-a     \ pos-lst'
-    \ s" (rxx00 rxx01 rxx11 rxx10)" region-list-from-string-a     \ pos-lst'
+    \ s" (r0x0x rx1x1 r10xx rxx10 r1xx0 rx01x)" region-list-from-string-a     \ pos-lst'
+     s" (rxx00 rxx01 rxx11 rxx10)" region-list-from-string-a     \ pos-lst'
     cr ." pos-regs: " dup .region-list cr
 
     dup region-list-defining-regions                                        \ pos-lst' def-regs'
@@ -921,12 +921,18 @@
         if
             cr ." possible state list: " dup .state-list
 
-            nip                                     \ def-cnrgrs' cngr-regs' dfrgcts-lst' crn-clstrs' sta-lst'
-            dup                                     \ def-cnrgrs' cngr-regs' dfrgcts-lst' crn-clstrs' sta-lst' sta-lst'
-            #3 pick                                 \ def-cnrgrs' cngr-regs' dfrgcts-lst' crn-clstrs' sta-lst' sta-lst' dfrgcts-lst'
-            defreg-state-list-contains-all-anchors? \ def-cnrgrs' cngr-regs' dfrgcts-lst' crn-clstrs' sta-lst' bool
+            nip                                             \ def-cnrgrs' cngr-regs' dfrgcts-lst' crn-clstrs' sta-lst'
+            dup                                             \ def-cnrgrs' cngr-regs' dfrgcts-lst' crn-clstrs' sta-lst' sta-lst'
+            #3 pick                                         \ def-cnrgrs' cngr-regs' dfrgcts-lst' crn-clstrs' sta-lst' sta-lst' dfrgcts-lst'
+            defregcts-list-state-list-contains-all-anchors? \ def-cnrgrs' cngr-regs' dfrgcts-lst' crn-clstrs' sta-lst' bool
             if
                 space ." anchors match defregcts list " cr
+                dup                                     \ def-cnrgrs' cngr-regs' dfrgcts-lst' crn-clstrs' sta-lst' sta-lst'
+                #3 pick                                 \ def-cnrgrs' cngr-regs' dfrgcts-lst' crn-clstrs' sta-lst' sta-lst' dfrgcts-lst'
+                defregcts-list-corners-from-state-list  \ def-cnrgrs' cngr-regs' dfrgcts-lst' crn-clstrs' sta-lst', crn-lst' t | f
+                invert abort" corners from states failed?"
+                cr s" corners: " #2 pick .struct-list-prefix cr
+                struct-list-deallocate
             else
                 space ." anchors do NOT match defregcts list" cr
             then
