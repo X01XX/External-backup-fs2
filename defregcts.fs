@@ -129,6 +129,37 @@ defregcts-region-disp cell+ constant defregcts-cts-disp     \ A list of corner t
     then
 ;
 
+\ Return true if a state could be an anchor for a defregcts.
+: defreg-state-is-anchor? ( sta1 dfrgcts0 -- bool )
+    \ Check args.
+    assert( tos is-defregcts? )
+    assert( nos is-state? )
+
+    defregcts-get-cts                       \ sta1 cts
+    cornertemplate-list-state-is-anchor?    \ bool
+;
+
+\ Return true if a state list contains a state that could be an anchor.
+: defreg-state-list-contains-anchor? ( sta-lst1 dfrgcts0 -- bool )
+    \ Check args.
+    assert( tos is-defregcts? )
+    assert( nos is-state-list? )
+
+    swap                        \ dfrgcts0 sta-lst1
+    foreach                     \ dfrgcts0 sta-lnk sta-x
+        #2 pick                 \ dfrgcts0 sta-lnk sta-x dfrgcts0
+        defreg-state-is-anchor? \ dfrgcts0 sta-lnk bool
+        if
+            2drop
+            true
+            exit
+        then
+    next-item
+                                \ dfrgcts0
+    drop
+    false
+;
+
 \ Check TOS for defregcts-list.
 : is-defregcts-list? ( tos -- bool )
     dup is-list?            \ tos bool
@@ -232,4 +263,24 @@ defregcts-region-disp cell+ constant defregcts-cts-disp     \ A list of corner t
     nip                                     \ crntmpl-clstrs'
 
     check-list-return
+;
+
+\ Return true if a state list contains anchors for each defregcts in a list.
+: defreg-state-list-contains-all-anchors? ( sta-lst1 dfrgcts-lst0 -- bool )
+    \ Check args.
+    assert( tos is-defregcts-list? )
+    assert( nos is-state-list? )
+
+    foreach                                 \ sta-lst1 dfrgcts-lnk dfrgcts-x
+        #2 pick swap                        \ sta-lst1 dfrgcts-lnk sta-lst1 dfrgcts-x
+        defreg-state-list-contains-anchor?  \ sta-lst1 dfrgcts-lnk bool
+        ifnot
+            2drop
+            false
+            exit
+        then
+    next-item
+                                            \ sta-lst1
+    drop
+    true
 ;

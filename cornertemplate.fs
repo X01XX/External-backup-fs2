@@ -460,3 +460,24 @@ cornertemplate-intersection-disp    cell+   constant cornertemplate-regions-disp
     nip
     true
 ;
+
+\ Return true if a state could be an anchor for any cornertemplate in a list.
+: cornertemplate-list-state-is-anchor? ( sta1 crntmpl-lst0 -- bool )
+    \ Check args.
+    assert( tos is-cornertemplate-list? )
+    assert( nos is-state? )
+
+    foreach                             \ sta1 crntmpl-lnk crntmpl-x
+        cornertemplate-get-intersection \ sta1 crntmpl-lnk int-x
+        #2 pick swap                    \ sta1 crntmpl-lnk sta1 int-x
+        region-superset-of-state?       \ sta1 crntmpl-lnk bool
+        if
+            2drop
+            true
+            exit
+        then
+    next-item
+                                        \ sta1
+    drop
+    false
+;

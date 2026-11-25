@@ -757,6 +757,7 @@
 
 : action-test-adjacent-defining-parts
     s" (r0x0x rx1x1 r10xx rxx10 r1xx0 rx01x)" region-list-from-string-a     \ pos-lst'
+    \ s" (rxx00 rxx01 rxx11 rxx10)" region-list-from-string-a     \ pos-lst'
     cr ." pos-regs: " dup .region-list cr
 
     dup region-list-defining-regions                                        \ pos-lst' def-regs'
@@ -912,18 +913,27 @@
         s" Corner template clusters: " #2 pick .struct-list-prefix
         cr
 
-        s" s1001" state-from-string-a               \ def-cnrgrs' cngr-regs' dfrgcts-lst', crn-clstrs' stax
-        over                                        \ def-cnrgrs' cngr-regs' dfrgcts-lst', crn-clstrs' stax crn-clstrs'
-        list-get-first-item                         \ def-cnrgrs' cngr-regs' dfrgcts-lst', crn-clstrs' stax  crn-clstr-f
-        cornertemplate-list-predict-all-states      \ def-cnrgrs' cngr-regs' dfrgcts-lst', crn-clstrs', sta-lst' t | f
+        s" s0100" state-from-string-a               \ def-cnrgrs' cngr-regs' dfrgcts-lst', crn-clstrs' stax
+        dup                                         \ def-cnrgrs' cngr-regs' dfrgcts-lst', crn-clstrs' stax stax
+        #2 pick                                     \ def-cnrgrs' cngr-regs' dfrgcts-lst', crn-clstrs' stax stax crn-clstrs'
+        list-get-first-item                         \ def-cnrgrs' cngr-regs' dfrgcts-lst', crn-clstrs' stax stax crn-clstr-f
+        cornertemplate-list-predict-all-states      \ def-cnrgrs' cngr-regs' dfrgcts-lst', crn-clstrs' stax, sta-lst' t | f
         if
-            cr ." anchors matching cornertemplates: " dup .state-list cr
-            dup list-get-length                     \ def-cnrgrs' cngr-regs' dfrgcts-lst' crn-clstrs' sta-lst' len
-            #2 pick list-get-first-item
-            list-get-length                          \ def-cnrgrs' cngr-regs' dfrgcts-lst' crn-clstrs' sta-lst' len len
-            <> abort" not enough anchors found?"
+            cr ." possible state list: " dup .state-list
+
+            nip                                     \ def-cnrgrs' cngr-regs' dfrgcts-lst' crn-clstrs' sta-lst'
+            dup                                     \ def-cnrgrs' cngr-regs' dfrgcts-lst' crn-clstrs' sta-lst' sta-lst'
+            #3 pick                                 \ def-cnrgrs' cngr-regs' dfrgcts-lst' crn-clstrs' sta-lst' sta-lst' dfrgcts-lst'
+            defreg-state-list-contains-all-anchors? \ def-cnrgrs' cngr-regs' dfrgcts-lst' crn-clstrs' sta-lst' bool
+            if
+                space ." anchors match defregcts list " cr
+            else
+                space ." anchors do NOT match defregcts list" cr
+            then
+
             state-list-deallocate
         else
+            state-deallocate
             cr ." no states found?" cr abort
         then
         struct-list-deallocate                      \ def-cnrgrs' cngr-regs' dfrgcts-lst'
