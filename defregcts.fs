@@ -228,15 +228,16 @@ defregcts-region-disp cell+ constant defregcts-cts-disp     \ A list of corner t
     assert( tos is-defregcts-list? )
 
     \ Make list of all corner templates.
-    list-new                                        \ dfrgcts-lst0 crntmpl-lst'
-    over
-    foreach                                         \ dfrgcts-lst0 crntmpl-lst' dfrgcts-lnk dfrgcts-x
-        defregcts-get-cts                           \ dfrgcts-lst0 crntmpl-lst' dfrgcts-lnk cts-lst
-        #2 pick                                     \ dfrgcts-lst0 crntmpl-lst' dfrgcts-lnk cts-lst crntmpl-lst'
-        list-append-struct                          \ dfrgcts-lst0 crntmpl-lst' dfrgcts-lnk
+    list-new                                        \ dfrgcts-lst0 crntmpl-lst1'
+    swap                                            \ crntmpl-lst1' dfrgcts-lst0
+
+    foreach                                         \ crntmpl-lst1' dfrgcts-lnk dfrgcts-x
+        defregcts-get-cts                           \ crntmpl-lst1' dfrgcts-lnk cts-lst
+        #2 pick                                     \ crntmpl-lst1' dfrgcts-lnk cts-lst crntmpl-lst1'
+        list-append-struct                          \ crntmpl-lst1' dfrgcts-lnk
     next-item
-                                                    \ dfrgcts-lst0 crntmpl-lst'
-    cr s" All cts: " #2 pick .struct-list-prefix cr
+                                                    \ crntmpl-lst1'
+    \ cr s" All cts: " #2 pick .struct-list-prefix cr
 
     \ Check for empty list.
     dup list-is-empty?
@@ -248,60 +249,57 @@ defregcts-region-disp cell+ constant defregcts-cts-disp     \ A list of corner t
     then
 
     \ Init state cluster list.
-    list-new                                \ dfrgcts-lst0 crntmpl-lst1' crntmpl-clstrs'
+    list-new                                \ crntmpl-lst1' crntmpl-clstrs'
+
     \ Pepare corner template list to parse.
-    over list-copy                          \ dfrgcts-lst0 crntmpl-lst1' crntmpl-clstrs' crntmpl-lst2'
+    over list-copy                          \ crntmpl-lst1' crntmpl-clstrs' crntmpl-lst2'
 
     \ Process corner
     begin
         dup list-is-not-empty?
     while
         \ Init cornertemplate cluster list.
-        dup list-pop-struct                 \ dfrgcts-lst0 crntmpl-lst1' crntmpl-clstrs' crntmpl-lst2', crntmtl-f t | f
+        dup list-pop-struct                 \ crntmpl-lst1' crntmpl-clstrs' crntmpl-lst2', crntmtl-f t | f
         invert abort" pop failed?"
 
-        list-new tuck list-push-struct      \ dfrgcts-lst0 crntmpl-lst1' crntmpl-clstrs' crntmpl-lst2' crntmpl-clstr'
+        list-new tuck list-push-struct      \ crntmpl-lst1' crntmpl-clstrs' crntmpl-lst2' crntmpl-clstr'
 
         \ Find cornertemplates connected to cornertemplates, by shared regions.
 
         \ The list grows as new cornertemplates are added to the end, increasing the number of loop cycles.
-        dup                                 \ dfrgcts-lst0 crntmpl-lst1' crntmpl-clstrs' crntmpl-lst2' crntmpl-clstr' crntmpl-clstr'
-        foreach                             \ dfrgcts-lst0 crntmpl-lst1' crntmpl-clstrs' crntmpl-lst2' crntmpl-clstr' crntmpl-clstr-lnk crntmpl-x
-            #5 pick                         \ dfrgcts-lst0 crntmpl-lst1' crntmpl-clstrs' crntmpl-lst2' crntmpl-clstr' crntmpl-clstr-lnk crntmpl-x crntmpl-lst1'
-            cornertemplate-list-connections \ dfrgcts-lst0 crntmpl-lst1' crntmpl-clstrs' crntmpl-lst2' crntmpl-clstr' crntmpl-clstr-lnk, crntmpl-lst3' t | f
+        dup                                 \ crntmpl-lst1' crntmpl-clstrs' crntmpl-lst2' crntmpl-clstr' crntmpl-clstr'
+        foreach                             \ crntmpl-lst1' crntmpl-clstrs' crntmpl-lst2' crntmpl-clstr' crntmpl-clstr-lnk crntmpl-x
+            #5 pick                         \ crntmpl-lst1' crntmpl-clstrs' crntmpl-lst2' crntmpl-clstr' crntmpl-clstr-lnk crntmpl-x crntmpl-lst1'
+            cornertemplate-list-connections \ crntmpl-lst1' crntmpl-clstrs' crntmpl-lst2' crntmpl-clstr' crntmpl-clstr-lnk, crntmpl-lst3' t | f
             if
                 \ Add corner template to corner template cluster list, no dups.
-                dup                                     \ dfrgcts-lst0 crntmpl-lst1' crntmpl-clstrs' crntmpl-lst2' crntmpl-clstr' crntmpl-clstr-lnk crntmpl-lst3' crntmpl-lst3'
-                #3 pick                                 \ dfrgcts-lst0 crntmpl-lst1' crntmpl-clstrs' crntmpl-lst2' crntmpl-clstr' crntmpl-clstr-lnk crntmpl-lst3' crntmpl-lst3' crntmpl-clstr'
-                cornertemplate-list-append-end-noeq     \ dfrgcts-lst0 crntmpl-lst1' crntmpl-clstrs' crntmpl-lst2' crntmpl-clstr' crntmpl-clstr-lnk crntmpl-lst3'
-                cornertemplate-list-deallocate          \ dfrgcts-lst0 crntmpl-lst1' crntmpl-clstrs' crntmpl-lst2' crntmpl-clstr' crntmpl-clstr-lnk
+                dup                                     \ crntmpl-lst1' crntmpl-clstrs' crntmpl-lst2' crntmpl-clstr' crntmpl-clstr-lnk crntmpl-lst3' crntmpl-lst3'
+                #3 pick                                 \ crntmpl-lst1' crntmpl-clstrs' crntmpl-lst2' crntmpl-clstr' crntmpl-clstr-lnk crntmpl-lst3' crntmpl-lst3' crntmpl-clstr'
+                cornertemplate-list-append-end-noeq     \ crntmpl-lst1' crntmpl-clstrs' crntmpl-lst2' crntmpl-clstr' crntmpl-clstr-lnk crntmpl-lst3'
+                cornertemplate-list-deallocate          \ crntmpl-lst1' crntmpl-clstrs' crntmpl-lst2' crntmpl-clstr' crntmpl-clstr-lnk
             then
         next-item
-                                            \ dfrgcts-lst0 crntmpl-lst1' crntmpl-clstrs' crntmpl-lst2' crntmpl-clstr'
+                                            \ crntmpl-lst1' crntmpl-clstrs' crntmpl-lst2' crntmpl-clstr'
 
         \ Get states not collected, for the next loop cycle.
-        [ ' = ] literal                     \ dfrgcts-lst0 crntmpl-lst1' crntmpl-clstrs' crntmpl-lst2' crntmpl-clstr' xt
-        #2 pick #2 pick                     \ dfrgcts-lst0 crntmpl-lst1' crntmpl-clstrs' crntmpl-lst2' crntmpl-clstr' xt crntmpl-lst2' crntmpl-clstr'
-        list-difference-struct              \ dfrgcts-lst0 crntmpl-lst1' crntmpl-clstrs' crntmpl-lst2' crntmpl-clstr' crntmpl-lst-dif'
+        [ ' = ] literal                     \ crntmpl-lst1' crntmpl-clstrs' crntmpl-lst2' crntmpl-clstr' xt
+        #2 pick #2 pick                     \ crntmpl-lst1' crntmpl-clstrs' crntmpl-lst2' crntmpl-clstr' xt crntmpl-lst2' crntmpl-clstr'
+        list-difference-struct              \ crntmpl-lst1' crntmpl-clstrs' crntmpl-lst2' crntmpl-clstr' crntmpl-lst-dif'
 
         \ Store the state cluster.
-        swap                                \ dfrgcts-lst0 crntmpl-lst1' crntmpl-clstrs' crntmpl-lst2' crntmpl-lst-dif' crntmpl-clstr'
-        #3 pick                             \ dfrgcts-lst0 crntmpl-lst1' crntmpl-clstrs' crntmpl-lst2' crntmpl-lst-dif' crntmpl-clstr' crntmpl-clstrs'
-        list-push-struct                    \ dfrgcts-lst0 crntmpl-lst1' crntmpl-clstrs' crntmpl-lst2' crntmpl-lst-dif'
+        swap                                \ crntmpl-lst1' crntmpl-clstrs' crntmpl-lst2' crntmpl-lst-dif' crntmpl-clstr'
+        #3 pick                             \ crntmpl-lst1' crntmpl-clstrs' crntmpl-lst2' crntmpl-lst-dif' crntmpl-clstr' crntmpl-clstrs'
+        list-push-struct                    \ crntmpl-lst1' crntmpl-clstrs' crntmpl-lst2' crntmpl-lst-dif'
 
         \ Make new state list to parse out more clusters.
-        swap cornertemplate-list-deallocate \ dfrgcts-lst0 crntmpl-lst1' crntmpl-clstrs' crntmpl-lst-dif'
-
-                                            \ dfrgcts-lst0 crntmpl-lst' crntmpl-clstrs' crntmpl-lst2'
+        swap cornertemplate-list-deallocate \ crntmpl-lst1' crntmpl-clstrs' crntmpl-lst-dif'
     repeat
 
-    list-deallocate                         \ dfrgcts-lst0 crntmpl-lst' crntmpl-clstrs'
+    list-deallocate                         \ crntmpl-lst1' crntmpl-clstrs'
 
     \ cr ." Corner template clusters: " dup .struct-list cr
 
-
-    swap cornertemplate-list-deallocate     \ dfrgcts-lst0 crntmpl-clstrs'
-    nip                                     \ crntmpl-clstrs'
+    swap cornertemplate-list-deallocate     \ crntmpl-clstrs1'
 
     check-list-return
 ;

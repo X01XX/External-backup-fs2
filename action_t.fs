@@ -755,16 +755,33 @@
     cr ." action-test-corner-cluster-calc3 - Ok"
 ;
 
+\ From possible regions:
+\
+\   Calc defining regions.
+\
+\   Calc defining parts of defining regions.
+\
+\   Calc congruent intersections of adjacent defining parts of adjacent defining regions, areas
+\        where adjacent pairs of dissimilar anchors might exist.
+\        Where more than one pair may exist, the congruent region has more than one X-bit, that
+\        pair has yet to be chosen.
+\
+\ Using a state from an existing incompatible pair, in only one region, choose the following states
+\ from the congruent intersections, to form corners that describe the defining regions.
+\
+\ In cases where the defining regions were calculated by chance, non-optimal samples, the
+\ corners will suggest a more optimal set of samples, some of which may need to be sampled.
+\
 : action-test-adjacent-defining-parts
     \ s" (r0x0x rx1x1 r10xx rxx10 r1xx0 rx01x)" region-list-from-string-a     \ pos-lst'
      s" (rxx00 rxx01 rxx11 rxx10)" region-list-from-string-a     \ pos-lst'
-    cr ." pos-regs: " dup .region-list cr
+    cr cr ." pos-regs: " dup .region-list cr
 
     dup region-list-defining-regions                                        \ pos-lst' def-regs'
-    cr ." def-regs: " dup .region-list cr
+    cr ." def-regs: " dup .region-list
 
     over region-list-defining-region-parts-per-region                       \ pos-lst' def-regs' def-prts'
-    cr s" def prts: " #2 pick .struct-list-prefix cr
+    cr s" def reg def prts: " #2 pick .struct-list-prefix
 
     \ Clean up.
     rot region-list-deallocate                                              \ def-regs' def-prts'
@@ -788,22 +805,22 @@
             if
                 dup link-get-data                   \ def-regs' def-prts' cngr-regs' def-prts-lnk def-prts-x def-prts-lnk-nxt def-prts-n
 
-                cr #2 pick list-get-first-item .region space ." adjacent to " dup list-get-first-item .region
+                \ cr #2 pick list-get-first-item .region space ." adjacent to " dup list-get-first-item .region
 
                 dup list-get-second-item            \ def-regs' def-prts' cngr-regs' def-prts-lnk def-prts-x def-prts-lnk-nxt def-prts-n regs-n
-                space ." check " dup .region-list
+                \ space ." check " dup .region-list
                 #3 pick list-get-second-item        \ def-regs' def-prts' cngr-regs' def-prts-lnk def-prts-x def-prts-lnk-nxt def-prts-n regs-n regsx
-                space ." and " dup .region-list
+                \ space ." and " dup .region-list
                 region-list-congruent-regions       \ def-regs' def-prts' cngr-regs' def-prts-lnk def-prts-x def-prts-lnk-nxt def-prts-n, cngr-regs2' t | f
                 if
-                    space ." congruent " dup .region-list
+                    \ space ." congruent " dup .region-list
                     dup                             \ def-regs' def-prts' cngr-regs' def-prts-lnk def-prts-x def-prts-lnk-nxt def-prts-n cngr-regs2' cngr-regs2'
                     #6 pick                         \ def-regs' def-prts' cngr-regs' def-prts-lnk def-prts-x def-prts-lnk-nxt def-prts-n cngr-regs2' cngr-regs2' cngr-regs'
                     region-list-append-nosubs       \ def-regs' def-prts' cngr-regs' def-prts-lnk def-prts-x def-prts-lnk-nxt def-prts-n cngr-regs2'
                     region-list-deallocate          \ def-regs' def-prts' cngr-regs' def-prts-lnk def-prts-x def-prts-lnk-nxt def-prts-n
-                    cr
+                    \ cr
                 else
-                    cr
+                    \ cr
                 then
                 drop                                \ def-regs' def-prts' cngr-regs' def-prts-lnk def-prts-x def-prts-lnk-nxt
             then
@@ -822,66 +839,66 @@
     \ Collect congruent regions per defining regions.
 
     \ Init list.
-    list-new swap                                   \ def-cnrgrs' cngr-regs'
-    #2 pick                                         \ def-cnrgrs' cngr-regs' def-regs'
-    foreach                                         \ def-cnrgrs' cngr-regs' def-lnk dregx
-        #2 pick                                     \ def-cnrgrs' cngr-regs' def-lnk dregx cngr-regs'
-        [ ' regions-intersect? ] literal -rot       \ def-cnrgrs' cngr-regs' def-lnk xt dregx cngr-regs'
-        list-find-all-struct                        \ def-cnrgrs' cngr-regs' def-lnk int-regs'
+    list-new swap                                   \ def-prts' def-cnrgrs' cngr-regs'
+    #2 pick                                         \ def-prts' def-cnrgrs' cngr-regs' def-regs'
+    foreach                                         \ def-prts' def-cnrgrs' cngr-regs' def-lnk dregx
+        #2 pick                                     \ def-prts' def-cnrgrs' cngr-regs' def-lnk dregx cngr-regs'
+        [ ' regions-intersect? ] literal -rot       \ def-prts' def-cnrgrs' cngr-regs' def-lnk xt dregx cngr-regs'
+        list-find-all-struct                        \ def-prts' def-cnrgrs' cngr-regs' def-lnk int-regs'
 
         \ Save region, int regs.
-        list-new tuck list-push-struct              \ def-cnrgrs' cngr-regs' def-lnk reg-cngrs'
-        over link-get-data                          \ def-cnrgrs' cngr-regs' def-lnk reg-cngrs' dregx
-        over list-push-struct                       \ def-cnrgrs' cngr-regs' def-lnk reg-cngrs'
-        #3 pick list-push-struct                    \ def-cnrgrs' cngr-regs' def-lnk
+        list-new tuck list-push-struct              \ def-prts' def-cnrgrs' cngr-regs' def-lnk reg-cngrs'
+        over link-get-data                          \ def-prts' def-cnrgrs' cngr-regs' def-lnk reg-cngrs' dregx
+        over list-push-struct                       \ def-prts' def-cnrgrs' cngr-regs' def-lnk reg-cngrs'
+        #3 pick list-push-struct                    \ def-prts' def-cnrgrs' cngr-regs' def-lnk
     next-item
-                                                    \ def-cnrgrs' cngr-regs'
-
-    cr s" def reg / crngs: " #4 pick .struct-list-prefix cr
-
+                                                    \ def-prts' def-cnrgrs' cngr-regs'
     \ Clean up.
-    rot region-list-deallocate                      \ def-cnrgrs' cngr-regs'
+    region-list-deallocate                          \ def-prts' def-cnrgrs'
+    swap region-list-deallocate                     \ def-cnrgrs'
+
+    cr s" def reg / congr ints: " #2 pick .struct-list-prefix
 
     \ Collect defining regions and their corner templates.
 
     \ Init defregcts list.
-    list-new                                        \ def-cnrgrs' cngr-regs' dfrgcts-lst'
-    #2 pick                                         \ def-cnrgrs'  cngr-regs' dfrgcts-lst' def-cnrgrs'
-    foreach                                         \ def-cnrgrs'  cngr-regs' dfrgcts-lst' def-cnrgrs-lnk def-cngrsx
-        cr ." def-cngrsx: " dup .struct-list
-        dup list-get-first-item space .region
-        dup list-get-first-item region-number-edges space ." edgs " dec.
+    list-new                                        \ def-cnrgrs' dfrgcts-lst'
+    over                                            \ def-cnrgrs' dfrgcts-lst' def-cnrgrs'
+    foreach                                         \ def-cnrgrs' dfrgcts-lst' def-cnrgrs-lnk def-cngrsx
+        \ cr ." def-cngrsx: " dup .struct-list
+        \ dup list-get-first-item space .region
+        \ dup list-get-first-item region-number-edges space ." edgs " dec.
 
         dup list-get-first-item region-number-edges
-        over list-get-second-item list-get-length   \ ...  dfrgcts-lst' def-cnrgrs-lnk def-cngrsx nedgs len
-        over <                                      \ ...  dfrgcts-lst' def-cnrgrs-lnk def-cngrsx nedgs bool
+        over list-get-second-item list-get-length   \ def-cnrgrs' dfrgcts-lst' def-cnrgrs-lnk def-cngrsx nedgs len
+        over <                                      \ def-cnrgrs' dfrgcts-lst' def-cnrgrs-lnk def-cngrsx nedgs bool
         if
-            drop                                    \ ...  dfrgcts-lst' def-cnrgrs-lnk def-cngrsx
+            drop                                    \ def-cnrgrs' dfrgcts-lst' def-cnrgrs-lnk def-cngrsx
         else
-            over list-get-second-item               \ ...  dfrgcts-lst' def-cnrgrs-lnk def-cngrsx nedgs cngrsx
-            any-x-of-n                              \ ...  dfrgcts-lst' def-cnrgrs-lnk def-cngrsx crgrsx-lol'
-            dup .struct-list
-            cr
+            over list-get-second-item               \ def-cnrgrs' dfrgcts-lst' def-cnrgrs-lnk def-cngrsx nedgs cngrsx
+            any-x-of-n                              \ def-cnrgrs' dfrgcts-lst' def-cnrgrs-lnk def-cngrsx crgrsx-lol'
+            \ dup .struct-list
+            \ cr
 
             \ Check each combination of congruent intersections for a common intersection.
 
             \ Init corner template list.
-            list-new                                \ ...  dfrgcts-lst' def-cnrgrs-lnk def-cngrsx crgrsx-lol' ct-lst'
+            list-new                                \ def-cnrgrs' dfrgcts-lst' def-cnrgrs-lnk def-cngrsx crgrsx-lol' ct-lst'
             over
-            foreach                                 \ ...  dfrgcts-lst' def-cnrgrs-lnk def-cngrsx crgrsx-lol' ct-lst' crgrs-lnk crgrsx
-                region-list-common-intersection     \ ...  dfrgcts-lst' def-cnrgrs-lnk def-cngrsx crgrsx-lol' ct-lst' crgrs-lnk, reg t | f
+            foreach                                 \ def-cnrgrs' dfrgcts-lst' def-cnrgrs-lnk def-cngrsx crgrsx-lol' ct-lst' crgrs-lnk crgrsx
+                region-list-common-intersection     \ def-cnrgrs' dfrgcts-lst' def-cnrgrs-lnk def-cngrsx crgrsx-lol' ct-lst' crgrs-lnk, reg t | f
                 if
                     \ Make corner template.
-                    over link-get-data swap         \ ...  dfrgcts-lst' def-cnrgrs-lnk def-cngrsx crgrsx-lol' ct-lst' crgrs-lnk crgrsx reg
-                    cornertemplate-new              \ ...  dfrgcts-lst' def-cnrgrs-lnk def-cngrsx crgrsx-lol' ct-lst' crgrs-lnk, ct' t | f
+                    over link-get-data swap         \ def-cnrgrs' dfrgcts-lst' def-cnrgrs-lnk def-cngrsx crgrsx-lol' ct-lst' crgrs-lnk crgrsx reg
+                    cornertemplate-new              \ def-cnrgrs' dfrgcts-lst' def-cnrgrs-lnk def-cngrsx crgrsx-lol' ct-lst' crgrs-lnk, ct' t | f
                     invert abort" cornertemplate-new failed?"
 
                     \ Store corner template.
-                    #2 pick                         \ ...  dfrgcts-lst' def-cnrgrs-lnk def-cngrsx crgrsx-lol' ct-lst' crgrs-lnk ct' ct-lst'
-                    list-push-struct                \ ...  dfrgcts-lst' def-cnrgrs-lnk def-cngrsx crgrsx-lol' ct-lst' crgrs-lnk
+                    #2 pick                         \ def-cnrgrs' dfrgcts-lst' def-cnrgrs-lnk def-cngrsx crgrsx-lol' ct-lst' crgrs-lnk ct' ct-lst'
+                    list-push-struct                \ def-cnrgrs' dfrgcts-lst' def-cnrgrs-lnk def-cngrsx crgrsx-lol' ct-lst' crgrs-lnk
                 then
             next-item
-                                                    \ ...  dfrgcts-lst' def-cnrgrs-lnk def-cngrsx crgrsx-lol' ct-lst'
+                                                    \ def-cnrgrs' dfrgcts-lst' def-cnrgrs-lnk def-cngrsx crgrsx-lol' ct-lst'
             \ cr #12 spaces dup .struct-list cr
 
             \ Check corner template list for the defining region.
@@ -890,66 +907,63 @@
                 list-deallocate
             else
                 \ Make DefRegCts
-                #2 pick                             \ ...  dfrgcts-lst' def-cnrgrs-lnk def-cngrsx crgrsx-lol' ct-lst' def-cngrsx
-                list-get-first-item                 \ ...  dfrgcts-lst' def-cnrgrs-lnk def-cngrsx crgrsx-lol' ct-lst' def-reg
-                defregcts-new                       \ ...  dfrgcts-lst' def-cnrgrs-lnk def-cngrsx crgrsx-lol' dfregctsx
-                cr #12 spaces dup .defregcts cr
-                #4 pick                             \ ...  dfrgcts-lst' def-cnrgrs-lnk def-cngrsx crgrsx-lol' dfregctsx dfrgcts-lst'
-                list-push-struct                    \ ...  dfrgcts-lst' def-cnrgrs-lnk def-cngrsx crgrsx-lol'
+                #2 pick                             \ def-cnrgrs' dfrgcts-lst' def-cnrgrs-lnk def-cngrsx crgrsx-lol' ct-lst' def-cngrsx
+                list-get-first-item                 \ def-cnrgrs' dfrgcts-lst' def-cnrgrs-lnk def-cngrsx crgrsx-lol' ct-lst' def-reg
+                defregcts-new                       \ def-cnrgrs' dfrgcts-lst' def-cnrgrs-lnk def-cngrsx crgrsx-lol' dfregctsx
+                \ cr #12 spaces dup .defregcts cr
+                #4 pick                             \ def-cnrgrs' dfrgcts-lst' def-cnrgrs-lnk def-cngrsx crgrsx-lol' dfregctsx dfrgcts-lst'
+                list-push-struct                    \ def-cnrgrs' dfrgcts-lst' def-cnrgrs-lnk def-cngrsx crgrsx-lol'
             then
         then
-        struct-list-deallocate                      \ ...  dfrgcts-lst' def-cnrgrs-lnk def-cngrsx
-                                                    \ ...  dfrgcts-lst' def-cnrgrs-lnk def-cngrsx
+        struct-list-deallocate                      \ def-cnrgrs' dfrgcts-lst' def-cnrgrs-lnk def-cngrsx
+                                                    \ def-cnrgrs' dfrgcts-lst' def-cnrgrs-lnk def-cngrsx
         drop
     next-item
-                                                    \ def-cnrgrs' cngr-regs' dfrgcts-lst'
-    cr s" def reg cts: " #2 pick .struct-list-prefix cr
+                                                    \ def-cnrgrs' dfrgcts-lst'
+    cr s" def reg cts: " #2 pick .struct-list-prefix
 
     dup
-    defregcts-list-cornertemplate-clusters          \ def-cnrgrs' cngr-regs' dfrgcts-lst', crn-clstrs' t | f
+    defregcts-list-cornertemplate-clusters          \ def-cnrgrs' dfrgcts-lst', crn-clstrs' t | f
 
     if
-        cr
-        s" Corner template clusters: " #2 pick .struct-list-prefix
-        cr
+        cr s" Corner template clusters: " #2 pick .struct-list-prefix
 
-        s" s0100" state-from-string-a               \ def-cnrgrs' cngr-regs' dfrgcts-lst', crn-clstrs' stax
-        dup                                         \ def-cnrgrs' cngr-regs' dfrgcts-lst', crn-clstrs' stax stax
-        #2 pick                                     \ def-cnrgrs' cngr-regs' dfrgcts-lst', crn-clstrs' stax stax crn-clstrs'
-        list-get-first-item                         \ def-cnrgrs' cngr-regs' dfrgcts-lst', crn-clstrs' stax stax crn-clstr-f
-        cornertemplate-list-predict-all-states      \ def-cnrgrs' cngr-regs' dfrgcts-lst', crn-clstrs' stax, sta-lst' t | f
+        s" s0100" state-from-string-a               \ def-cnrgrs' dfrgcts-lst', crn-clstrs' stax
+        dup                                         \ def-cnrgrs' dfrgcts-lst', crn-clstrs' stax stax
+        #2 pick                                     \ def-cnrgrs' dfrgcts-lst', crn-clstrs' stax stax crn-clstrs'
+        list-get-first-item                         \ def-cnrgrs' dfrgcts-lst', crn-clstrs' stax stax crn-clstr-f
+        cornertemplate-list-predict-all-states      \ def-cnrgrs' dfrgcts-lst', crn-clstrs' stax, sta-lst' t | f
         if
-            cr ." possible state list: " dup .state-list
+            cr ." Possible state list from: " dup list-get-first-item .state space ." across corners is: " dup .state-list
 
-            nip                                             \ def-cnrgrs' cngr-regs' dfrgcts-lst' crn-clstrs' sta-lst'
-            dup                                             \ def-cnrgrs' cngr-regs' dfrgcts-lst' crn-clstrs' sta-lst' sta-lst'
-            #3 pick                                         \ def-cnrgrs' cngr-regs' dfrgcts-lst' crn-clstrs' sta-lst' sta-lst' dfrgcts-lst'
-            defregcts-list-state-list-contains-all-anchors? \ def-cnrgrs' cngr-regs' dfrgcts-lst' crn-clstrs' sta-lst' bool
+            nip                                             \ def-cnrgrs' dfrgcts-lst' crn-clstrs' sta-lst'
+            dup                                             \ def-cnrgrs' dfrgcts-lst' crn-clstrs' sta-lst' sta-lst'
+            #3 pick                                         \ def-cnrgrs' dfrgcts-lst' crn-clstrs' sta-lst' sta-lst' dfrgcts-lst'
+            defregcts-list-state-list-contains-all-anchors? \ def-cnrgrs' dfrgcts-lst' crn-clstrs' sta-lst' bool
             if
-                space ." anchors match defregcts list " cr
-                dup                                     \ def-cnrgrs' cngr-regs' dfrgcts-lst' crn-clstrs' sta-lst' sta-lst'
-                #3 pick                                 \ def-cnrgrs' cngr-regs' dfrgcts-lst' crn-clstrs' sta-lst' sta-lst' dfrgcts-lst'
-                defregcts-list-corners-from-state-list  \ def-cnrgrs' cngr-regs' dfrgcts-lst' crn-clstrs' sta-lst', crn-lst' t | f
+                space ." anchors match defregcts list "
+                dup                                     \ def-cnrgrs' dfrgcts-lst' crn-clstrs' sta-lst' sta-lst'
+                #3 pick                                 \ def-cnrgrs' dfrgcts-lst' crn-clstrs' sta-lst' sta-lst' dfrgcts-lst'
+                defregcts-list-corners-from-state-list  \ def-cnrgrs' dfrgcts-lst' crn-clstrs' sta-lst', crn-lst' t | f
                 invert abort" corners from states failed?"
-                cr s" corners: " #2 pick .struct-list-prefix cr
-                struct-list-deallocate
+                cr s" All corners: " #2 pick .struct-list-prefix
+                struct-list-deallocate                  \ def-cnrgrs' dfrgcts-lst' crn-clstrs' sta-lst'
             else
-                space ." anchors do NOT match defregcts list" cr
+                space ." anchors do NOT match defregcts list"
             then
 
-            state-list-deallocate
+            state-list-deallocate                       \ def-cnrgrs' dfrgcts-lst' crn-clstrs'
         else
-            state-deallocate
+            state-deallocate                            \ def-cnrgrs' dfrgcts-lst' crn-clstrs'
             cr ." no states found?" cr abort
         then
-        struct-list-deallocate                      \ def-cnrgrs' cngr-regs' dfrgcts-lst'
+        struct-list-deallocate                          \ def-cnrgrs' dfrgcts-lst'
     else
-        cr ." no clusters" cr
+        cr ." no clusters"
     then
 
-    \ Clean up.                                     \ def-cnrgrs' cngr-regs' dfrgcts-lst'
-    struct-list-deallocate                          \ def-cnrgrs' cngr-regs'
-    region-list-deallocate                          \ def-cnrgrs'
+    \ Clean up.                                         \ def-cnrgrs' dfrgcts-lst'
+    struct-list-deallocate                              \ def-cnrgrs'
     struct-list-deallocate
 
     \ Check for memory leaks.

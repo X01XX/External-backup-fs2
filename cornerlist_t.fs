@@ -74,33 +74,6 @@
 ;
 
 : corner-list-test-defining-regions
-    \ Possible regions:     (r1XX0 r10XX r111X rX0X0 rX01X r0X0X rX1X1 rXX10)
-    \ Defining regions:     (r10XX r0X0X rXX10 rX01X r1XX0 rX1X1)
-
-\    s" ((crn s0011 rX01X (s0001 s0111)) (crn s0001 r0X0X (s0011 s1001)) (crn s0111 rX1X1 (s0110 s0011)) (crn s1001 r10XX (s1101 s0001)) (crn s0110 rXX10 (s0111 s0100)))"
-\    list-from-string-a                  \ crn-lst'
-\    cr ." crn lst: " dup .struct-list cr
-\
-\    dup corner-list-defining-regions    \ crn-lst' reg-lst1'
-\    cr ." def regs1: " dup .region-list cr
-
-\    s" ((crn s1101 rX1X1 (s1100 s1001)) (crn s1100 r1XX0 (s1101 s0100)) (crn s1001 r10XX (s1101 s0001)) (crn s0100 r0X0X (s0110 s1100)) (crn s0110 rXX10 (s0111 s0100)))"
-\    list-from-string-a                  \ crn-lst' reg-lst1' crn-lst'
-\    cr ." crn lst: " dup .struct-list cr
-\
-\    dup corner-list-defining-regions    \ crn-lst' reg-lst1' crn-lst' reg-lst2'
-\    cr ." def regs2: " dup .region-list cr
-
-\    [ ' regions-eq? ] literal           \ crn-lst' reg-lst1' crn-lst' reg-lst2' xt
-\    #3 pick #2 pick                     \ crn-lst' reg-lst1' crn-lst' reg-lst2' xt reg-lst1' reg-lst2'
-\    list-difference-struct              \ crn-lst' reg-lst1' crn-lst' reg-lst2' reg-lst3'
-\    cr ." dif regs 1-2: " dup .region-list cr
-
-\    [ ' regions-eq? ] literal           \ crn-lst' reg-lst1' crn-lst' reg-lst2' reg-lst3' xt
-\    #2 pick #5 pick                     \ crn-lst' reg-lst1' crn-lst' reg-lst2' reg-lst3' xt reg-lst2' reg-lst1'
-\    list-difference-struct              \ crn-lst' reg-lst1' crn-lst' reg-lst2' reg-lst3' reg-lst4'
-\    cr ." dif regs 2-1: " dup .region-list cr
-
     s" ((crn s0011 rX01X (s0001 s0111)) (crn s1100 r1XX0 (s1101 s0100)) (crn s1001 r10XX (s1101 s0001)) (crn s0110 rXX10 (s0111 s0100)))"
     list-from-string-a                  \ crn-lst'
     cr ." crn lst: " dup .struct-list cr
