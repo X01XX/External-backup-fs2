@@ -264,7 +264,7 @@
     2dup swap action-add-sample drop        \ act smpl
     2dup swap action-add-sample drop        \ act smpl
     2dup swap action-add-sample drop        \ act smpl
-    over action-add-sample drop             \ act bool
+    over action-add-sample drop             \ act
 
     \ Add D->D
     s" s1101->s1101" sample-from-string-a   \ act smpl
@@ -345,7 +345,7 @@
     2dup swap action-add-sample drop        \ act smpl
     2dup swap action-add-sample drop        \ act smpl
     2dup swap action-add-sample drop        \ act smpl
-    over action-add-sample drop             \ act bool
+    over action-add-sample drop             \ act
 
     \ Add D->D
     s" s1101->s1101" sample-from-string-a   \ act smpl
@@ -421,23 +421,23 @@
 
     \ Add 1->1
     s" s0001->s0001" sample-from-string-a   \ act smpl
-    over action-add-sample drop             \ act bool
+    over action-add-sample drop             \ act
 
     \ Add 7->7
     s" s0111->s0111" sample-from-string-a   \ act smpl
-    over action-add-sample drop             \ act bool
+    over action-add-sample drop             \ act
 
     \ Add 3->A
     s" s0011->s1010" sample-from-string-a   \ act smpl
-    over action-add-sample drop             \ act bool
+    over action-add-sample drop             \ act
 
     \ Add 6->F
     s" s0110->s1111" sample-from-string-a   \ act smpl
-    over action-add-sample drop             \ act bool
+    over action-add-sample drop             \ act
 
     \ Add 9->0
     s" s1001->s0000" sample-from-string-a   \ act smpl
-    over action-add-sample drop             \ act bool
+    over action-add-sample drop             \ act
 
     cr dup .action cr
 
@@ -494,11 +494,11 @@
 
     \ Add 5->4
     s" s0101->s0100" sample-from-string-a   \ act smpl
-    over action-add-sample drop             \ act bool
+    over action-add-sample drop             \ act
 
     \ Add 6->7
     s" s0110->s0111" sample-from-string-a   \ act smpl
-    over action-add-sample drop             \ act bool
+    over action-add-sample drop             \ act
 
     cr dup .action cr
 
@@ -542,11 +542,11 @@
 
     \ Add 5->4
     s" s0101->s0100" sample-from-string-a   \ act smpl
-    over action-add-sample drop             \ act bool
+    over action-add-sample drop             \ act
 
     \ Add 6->7
     s" s0110->s0111" sample-from-string-a   \ act smpl
-    over action-add-sample drop             \ act bool
+    over action-add-sample drop             \ act
 
     cr dup .action cr
 
@@ -583,19 +583,19 @@
 
     \ Add 5->4
     s" s0101->s0100" sample-from-string-a   \ act smpl
-    over action-add-sample drop             \ act bool
+    over action-add-sample drop             \ act
 
     \ Add 5->5
     s" s0101->s0101" sample-from-string-a   \ act smpl
-    over action-add-sample drop             \ act bool
+    over action-add-sample drop             \ act
 
     \ Add 6->7
     s" s0110->s0111" sample-from-string-a   \ act smpl
-    over action-add-sample drop             \ act bool
+    over action-add-sample drop             \ act
 
     \ Add 6->6
     s" s0110->s0110" sample-from-string-a   \ act smpl
-    over action-add-sample drop             \ act bool
+    over action-add-sample drop             \ act
 
     cr dup .action cr
 
@@ -709,23 +709,23 @@
 
     \ Add 1->1
     s" s0001->s0001" sample-from-string-a   \ act smpl
-    over action-add-sample drop             \ act bool
+    over action-add-sample drop             \ act
 
     \ Add 7->7
     s" s0111->s0111" sample-from-string-a   \ act smpl
-    over action-add-sample drop             \ act bool
+    over action-add-sample drop             \ act
 
     \ Add 3->A
     s" s0011->s1010" sample-from-string-a   \ act smpl
-    over action-add-sample drop             \ act bool
+    over action-add-sample drop             \ act
 
     \ Add 6->F
     s" s0110->s1111" sample-from-string-a   \ act smpl
-    over action-add-sample drop             \ act bool
+    over action-add-sample drop             \ act
 
     \ Add 9->0
     s" s1001->s0000" sample-from-string-a   \ act smpl
-    over action-add-sample drop             \ act bool
+    over action-add-sample drop             \ act
 
     dup .action
 
@@ -780,7 +780,8 @@
     dup region-list-defining-regions                                        \ pos-lst' def-regs'
     cr ." def-regs: " dup .region-list
 
-    over region-list-defining-region-parts-per-region                       \ pos-lst' def-regs' def-prts'
+    over region-list-defining-region-parts-per-region                       \ pos-lst' def-regs', def-prts' t | f
+    invert abort" no defining parts?"
     cr s" def reg def prts: " #2 pick .struct-list-prefix
 
     \ Clean up.
@@ -948,6 +949,7 @@
                 invert abort" corners from states failed?"
                 cr s" All corners: " #2 pick .struct-list-prefix
                 struct-list-deallocate                  \ def-cnrgrs' dfrgcts-lst' crn-clstrs' sta-lst'
+                cr ." at 2: " cr
             else
                 space ." anchors do NOT match defregcts list"
             then
@@ -957,19 +959,103 @@
             state-deallocate                            \ def-cnrgrs' dfrgcts-lst' crn-clstrs'
             cr ." no states found?" cr abort
         then
-        struct-list-deallocate                          \ def-cnrgrs' dfrgcts-lst'
+        cr ." at 3: " cr
+        list-deallocate-recursive                          \ def-cnrgrs' dfrgcts-lst'
     else
         cr ." no clusters"
     then
 
     \ Clean up.                                         \ def-cnrgrs' dfrgcts-lst'
+    cr ." at 4: " .stack cr
     struct-list-deallocate                              \ def-cnrgrs'
+    cr ." at 5: " cr
     struct-list-deallocate
+    cr ." at 6: " cr
 
     \ Check for memory leaks.
     check-project-deallocated
 
     cr ." action-test-adjacent-defining-parts - Ok"
+;
+
+: action-test-calc-minimum-corners
+    \ Init action.
+    [ ' noop ] literal
+    s" rXXXX 0" string-to-stack-a
+    action-new                                                      \ act
+
+    \ Add 0->0
+    s" s0000->s0000" sample-from-string-a   \ act smpl
+    over action-add-sample drop             \ act
+
+    \ Form XX00.
+
+    \ Add 1->E
+    s" s0001->s1110" sample-from-string-a   \ act smpl
+    over action-add-sample drop             \ act
+
+    \ Add 2->D
+    s" s0010->s1101" sample-from-string-a   \ act smpl
+    over action-add-sample drop             \ act
+
+    \ Form XX01.
+
+    \ Add 5->A
+    s" s0101->s1010" sample-from-string-a   \ act smpl
+    over action-add-sample drop             \ act
+
+    \ Add 4->4
+    s" s0100->s0100" sample-from-string-a   \ act smpl
+    over action-add-sample drop             \ act
+
+    \ Add 7->7
+    s" s0111->s0111" sample-from-string-a   \ act smpl
+    over action-add-sample drop             \ act
+
+    \ Form XX11.
+
+    \ Add F->F
+    s" s1111->s1111" sample-from-string-a   \ act smpl
+    over action-add-sample drop             \ act
+
+    \ Add D->2
+    s" s1101->s0010" sample-from-string-a   \ act smpl
+    over action-add-sample drop             \ act
+
+    \ Add E->1
+    s" s1110->s0001" sample-from-string-a   \ act smpl
+    over action-add-sample drop             \ act
+
+    \ Form XX10.
+
+    \ Add A->5
+    s" s1010->s0101" sample-from-string-a   \ act smpl
+    over action-add-sample drop             \ act
+
+    \ Add B->B
+    s" s1011->s1011" sample-from-string-a   \ act smpl
+    over action-add-sample drop             \ act
+
+    \ Add 8->8
+    s" s1000->s1000" sample-from-string-a   \ act smpl
+    over action-add-sample drop             \ act
+
+    dup .action
+
+    \ Run function.
+    dup action-calc-minimum-corners         \ crn-clstrs t | f
+    if
+        cr s" result: " #2 pick .struct-list-prefix cr
+        struct-list-deallocate
+    then
+
+    \ Deallocate.
+    action-deallocate
+
+    \ Check for memory leaks.
+    check-project-deallocated
+
+    cr ." action-test-corner-cluster-calc3 - Ok"
 ;
 
 : action-tests

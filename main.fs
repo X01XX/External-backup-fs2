@@ -15,27 +15,25 @@
 \ Group     RegionCorr  Mask*   State*
 \ 43717,    47317       61719   61717
 \
-\ Corner  StructInfo Path ( PathStep in fs1 )
+\ Corner  StructInfo Path
 \ 53719,  53731      53197
 \
-\ Token StateCorr*  MaskcCorr ( PlanCorr in fs1 )
+\ Token StateCorr*  MaskcCorr
 \ 59797 61979       53717
 \
 \ Plan  ActionStep* PlanStep
 \ 37379 61379       37171
 \
-\ Integer ( Rate in fs1 )   sesneed ( RuleStore in fs1 )
+\ Integer ( Rate in fs1 )   SesNeed
 \ 41719                     23173
 \
-\ CornerTemplate    DefRegCTs   PairData ( RuleCorr in fs1 )
+\ CornerTemplate    DefRegCTs   PairData
 \ 17317             41737       53171
 \
+\ DefRegDefParts    DefRegCongParts
+\ 31973             53173
+\
 \ Struct ids not yet used:
-\
-\
-\ ID     In fs1
-\ 31973, Changes.
-\ 53173, ChangesCorr
 
 \ Start a clean vocabulary.
 cr ." Starting vocabulary UES." cr
@@ -105,6 +103,7 @@ include structinfo.fs
 include structinfolist.fs
 include stackprint.fs
 include list2.fs
+include anyxofn.fs
 
 include square.fs
 include squarelist.fs
@@ -119,6 +118,11 @@ include planstep.fs
 include plansteplist.fs
 include plan.fs
 
+include cornertemplate.fs
+include defregcts.fs
+include defregdefparts.fs
+include defregcongparts.fs
+
 include actionxts.fs
 include action.fs
 
@@ -128,11 +132,6 @@ include domain.fs
 include domainlist.fs
 
 include session.fs
-
-include anyxofn.fs
-
-include cornertemplate.fs
-include defregcts.fs
 
 include mask_t.fs
 include state_t.fs
@@ -151,6 +150,7 @@ include maskcorr_t.fs
 include cornerlist_t.fs
 include cornertemplate_t.fs
 include squarelist_t.fs
+
 include action_t.fs
 include group_t.fs
 include domain_t.fs
@@ -186,6 +186,8 @@ include randompick_t.fs
 #0005 session-mma-init
 #0100 cornertemplate-mma-init
 #0050 defregcts-mma-init
+#0050 defregdefparts-mma-init
+#0050 defregcongparts-mma-init
 
 cr cr
 
@@ -223,6 +225,8 @@ list-new to structinfo-list-store
 
 ' cornertemplate-from-list  ' cornertemplate-list-definition?  ' noop          ' noop                  ' cornertemplate-deallocate    ' .cornertemplate      s" CornerTemplate"     cornertemplate-mma     cornertemplate-struct-id       structinfo-new structinfo-list-store-push-end
 ' noop  ' noop  ' noop          ' noop                  ' defregcts-deallocate    ' .defregcts      s" DefRegCts"     defregcts-mma     defregcts-struct-id       structinfo-new structinfo-list-store-push-end
+' noop  ' noop  ' noop          ' noop                  ' defregdefparts-deallocate    ' .defregdefparts      s" DefRegDefParts"     defregdefparts-mma     defregdefparts-struct-id       structinfo-new structinfo-list-store-push-end
+' noop  ' noop  ' noop          ' noop                  ' defregcongparts-deallocate    ' .defregcongparts      s" DefRegCongParts"     defregcongparts-mma     defregcongparts-struct-id       structinfo-new structinfo-list-store-push-end
 
 : main
     \ Make valued-regioncorrs list.
@@ -251,7 +255,6 @@ list-new to structinfo-list-store
     begin
     while
                                                         \ sess
-
         \ Print header.
         cr ." ***************************"
         cr ." Step: " dup session-get-step-num dec.

@@ -1114,8 +1114,16 @@ region-state-0-disp cell+   constant region-state-1-disp  \ Second state.
     swap mask-deallocate    \ u
 ;
 
-\ Return the congruent intersection of two regions.
-\ Like an intersection, X/1,1/X->1, X/0,0/X->0, but, oddly, if no intersection, 0/1,1/0->X.
+\ Return the congruent intersection of two regions that are adjacent.
+\ The intersection logic has a odd result when bit positions do not intersect.
+\
+\   1X11
+\ & X110
+\ = 111X
+\
+\   6
+\ F E -> F E
+\ B
 : region-congruent-intersection ( reg1 reg0 -- reg t | f )
     \ Check args.
     assert( tos is-region? )

@@ -1214,8 +1214,8 @@
     drop
 ;
 
-\ Return a list of ( region non-overlapped-parts ).
-: region-list-defining-region-parts-per-region ( reg-lst0 -- def-lst )
+\ Return a list of [ region, list of [ non-overlapped-parts]], if any.
+: region-list-defining-region-parts-per-region ( reg-lst0 -- def-lst t | f )
     \ Check arg.
     assert( tos is-region-list? )
 
@@ -1262,17 +1262,24 @@
 
         next-item
                                                 \ ret-lst reg-lst0 reg-lnk regx tmp-lst'
+        dup list-is-empty?
+        if
+            list-deallocate
+            drop
+        else
+            \ Build list item.
+            list-new                                \ ret-lst reg-lst0 reg-lnk regx tmp-lst' itm-lst'
+            tuck list-push-struct                   \ ret-lst reg-lst0 reg-lnk regx itm-lst'
+            tuck list-push-struct                   \ ret-lst reg-lst0 reg-lnk itm-lst'
 
-        \ Build list item.
-        list-new                                \ ret-lst reg-lst0 reg-lnk regx tmp-lst' itm-lst'
-        tuck list-push-struct                   \ ret-lst reg-lst0 reg-lnk regx itm-lst'
-        tuck list-push-struct                   \ ret-lst reg-lst0 reg-lnk itm-lst'
-
-        \ Store item.
-        #3 pick                                 \ ret-lst reg-lst0 reg-lnk itm-lst' ret-lst
-        list-push-struct                        \ ret-lst reg-lst0 reg-lnk
+            \ Store item.
+            #3 pick                                 \ ret-lst reg-lst0 reg-lnk itm-lst' ret-lst
+            list-push-struct                        \ ret-lst reg-lst0 reg-lnk
+        then
     next-item
+                                                \ ret-lst reg-lst0
     drop
+    check-list-return
 ;
 
 \ Return true if regionslist corresponding regions are equal.

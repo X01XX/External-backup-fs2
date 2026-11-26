@@ -3222,3 +3222,88 @@ action-groups-disp                      cell+   constant action-function-disp   
     swap region-list-deallocate             \ act0 def-regs'
     nip                                     \ def-regs'
 ;
+
+\ Return a list of defining parts, per defining region.
+: action-defining-region-parts-per-region ( act0 -- defregdefparts-lst t | f )
+    \ Check args.
+    assert( tos is-action? )
+
+    action-get-defining-regions                 \ def-lst
+
+    \ Init return list.
+    list-new swap                               \ ret-lst def-lst
+    dup                                         \ ret-lst def-lst def-lst
+
+    foreach                                     \ ret-lst def-lst reg-lnk regx
+
+        \ Init temp list.
+        list-new swap                           \ ret-lst def-lst reg-lnk tmp-lst' regx
+
+        \ Create target list.
+        2dup swap                               \ ret-lst def-lst reg-lnk tmp-lst' regx regx tmp-lst'
+        list-push-struct                        \ ret-lst def-lst reg-lnk tmp-lst' regx
+        swap                                    \ ret-lst def-lst reg-lnk regx tmp-lst'
+
+        \ Subtract all regions, except itself.
+        #3 pick                                 \ ret-lst def-lst reg-lnk regx tmp-lst' def-lst
+
+        foreach                                 \ ret-lst def-lst reg-lnk regx tmp-lst' reg-lnk regy
+
+            #3 pick                             \ ret-lst def-lst reg-lnk regx tmp-lst' reg-lnk regy regx
+            <>                                  \ ret-lst def-lst reg-lnk regx tmp-lst' reg-lnk bool
+            if
+                \ Region is not the target region.
+                dup link-get-data               \ ret-lst def-lst reg-lnk regx tmp-lst' reg-lnk regy
+                #2 pick                         \ ret-lst def-lst reg-lnk regx tmp-lst' reg-lnk regy tmp-lst'
+                region-list-any-intersection?   \ ret-lst def-lst reg-lnk regx tmp-lst' reg-lnk bool
+
+                if
+                    \ There is a reason to subtract.
+                    dup link-get-data           \ ret-lst def-lst reg-lnk regx tmp-lst' reg-lnk regy
+                    #2 pick                     \ ret-lst def-lst reg-lnk regx tmp-lst' reg-lnk regy tmp-lst'
+                    region-list-subtract-region \ ret-lst def-lst reg-lnk regx tmp-lst' reg-lnk rslt-lst'
+
+                    \ Replace the temp list with the new result.
+                    rot                         \ ret-lst def-lst reg-lnk regx reg-lnk rslt-lst' tmp-lst'
+                    region-list-deallocate      \ ret-lst def-lst reg-lnk regx reg-lnk rslt-lst'
+                    swap                        \ ret-lst def-lst reg-lnk regx rslt-lst' reg-lnk
+                then
+
+            then
+
+        next-item
+                                                \ ret-lst def-lst reg-lnk regx tmp-lst'
+        dup list-is-empty?
+        if
+            list-deallocate
+            drop
+        else
+            \ Build list item.
+            swap defregdefparts-new             \ ret-lst def-lst reg-lnk dfrgprts
+
+            \ Store item.
+            #3 pick                             \ ret-lst def-lst reg-lnk dfrgprts ret-lst
+            list-push-struct                    \ ret-lst def-lst reg-lnk
+        then
+    next-item
+                                                \ ret-lst def-lst
+    drop
+    check-list-return
+;
+
+: action-calc-minimum-corners ( act0 -- crn-clstrs t | f )
+    \ Check args.
+    assert( tos is-action? )
+
+    dup action-defining-region-parts-per-region                             \ act0, defregdefparts-lst t | f
+    ifnot
+        drop
+        false
+        exit
+    then
+
+    \ cr s" def reg def prts: " #2 pick .struct-list-prefix
+
+    nip
+    true
+;

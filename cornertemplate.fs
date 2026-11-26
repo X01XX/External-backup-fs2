@@ -176,6 +176,10 @@ cornertemplate-intersection-disp    cell+   constant cornertemplate-regions-disp
 
 \ Deallocate a cornertemplate list.
 : cornertemplate-list-deallocate ( crntmpl-lst -- )
+cr ." at 1: " .stack cr
+    \ Check arg.
+    assert( tos is-cornertemplate-list? )
+
     dup struct-get-use-count                    \ crntmpl-lst uc
     #2 < if
         [ ' cornertemplate-deallocate ] literal over     \ crntmpl-lst xt crntmpl-lst

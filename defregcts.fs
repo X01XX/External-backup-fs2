@@ -116,11 +116,11 @@ defregcts-region-disp cell+ constant defregcts-cts-disp     \ A list of corner t
     #2 <
     if
         \ Deallocate fields.
-        dup defregcts-get-region        \ defregcts0 defregcts-lst
+        dup defregcts-get-region        \ defregcts0 reg
         region-deallocate
 
-        dup defregcts-get-cts           \ defregcts0 defregcts-lst
-        struct-list-deallocate
+        dup defregcts-get-cts           \ defregcts0 ct-lst
+        cornertemplate-list-deallocate
 
         \ Deallocate instance.
         defregcts-mma mma-deallocate
