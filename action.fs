@@ -3291,40 +3291,85 @@ action-groups-disp                      cell+   constant action-function-disp   
     check-list-return
 ;
 
-: action-get-possible-corners-for-cornertemplate-list ( crntmpl-lst1 act0 -- crn-lst t | f )
+\ Return a list of lists of possible anchor states.
+: action-get-possible-corners-from-cornertemplate-list ( crntmpl-lst1 act0 -- crn-lst t | f )
     \ Check args.
     assert( tos is-action? )
     assert( nos is-cornertemplate-list? )
 
+    \ Save ref to action.
+    tuck                                                \ act0 crntmpl-lst1 act0
+
+    \ Init corner list-of-lists.
+    list-new -rot                                       \ act0 sta-lol' crntmpl-lst1 act0
+
     \ Get list of states to try starting an anchor list.
-    action-get-adj-pairs region-list-states             \ crntmpl-lst1 sta-lst'
+    action-get-adj-pairs region-list-states             \ act0 sta-lol' crntmpl-lst1 sta-lst'
 
-    dup                                                 \ crntmpl-lst1 sta-lst' sta-lst'
-    foreach                                             \ crntmpl-lst1 sta-lst' sta-lnk sta-x
-        #3 pick                                         \ crntmpl-lst1 sta-lst' sta-lnk sta-x crntmpl-lst1
-        cornertemplate-list-predict-all-states          \ crntmpl-lst1 sta-lst' sta-lnk, sta-lst' t | f
-        if
-            cr ." sta set found: " dup .state-list cr
-            dup                                         \ crntmpl-lst1 sta-lst' sta-lnk sta-lst' sta-lst'
-            #4 pick                                     \ crntmpl-lst1 sta-lst' sta-lnk sta-lst' sta-lst' crntmpl-lst1
-            cornertemplate-list-corners-from-states     \ crntmpl-lst1 sta-lst' sta-lnk sta-lst', crn-lst' t | f
+    dup                                                 \ act0 sta-lol'  crntmpl-lst1 sta-lst' sta-lst'
+    foreach                                             \ act0 sta-lol' crntmpl-lst1 sta-lst' sta-lnk sta-x
+        \ Check if the state is already used in an anchor list.
+        [ ' states-eq? ] literal swap                   \ act0 sta-lol' crntmpl-lst1 sta-lst' sta-lnk xt sta-x
+        #5 pick                                         \ act0 sta-lol' crntmpl-lst1 sta-lst' sta-lnk xt sta-x sta-lol'
+        list-member-recursive?                          \ act0 sta-lol' crntmpl-lst1 sta-lst' sta-lnk bool
+        ifnot
+            dup link-get-data                           \ act0 sta-lol' crntmpl-lst1 sta-lst' sta-lnk xt sta-x
+
+            #3 pick                                     \ act0 sta-lol' crntmpl-lst1 sta-lst' sta-lnk sta-x crntmpl-lst1
+            cornertemplate-list-predict-all-states      \ act0 sta-lol' crntmpl-lst1 sta-lst' sta-lnk, sta-lst2' t | f
             if
-                cr ." corners found: " dup .struct-list cr
-                swap state-list-deallocate              \ crntmpl-lst1 sta-lst' sta-lnk crn-lst'
-                nip
-                swap state-list-deallocate              \ crntmpl-lst1 crn-lst'
-                nip
-                true
-                exit
+                cr ." sta set found: " dup .state-list cr
+                #4 pick                                 \ act0 sta-lol' crntmpl-lst1 sta-lst' sta-lnk sta-lst2' sta-lol'
+                list-push-struct                        \ act0 sta-lol' crntmpl-lst1 sta-lst' sta-lnk
             then
-
-            state-list-deallocate
         then
     next-item
-                                                        \ crntmpl-lst1 sta-lst'
-    state-list-deallocate                           \ crntmpl-lst1
-    drop                                            \
-    false
+                                                        \ act0 sta-lol' crntmpl-lst1 sta-lst'
+    state-list-deallocate                               \ act0 sta-lol' crntmpl-lst1
+
+                                                        \ act0 sta-lol' crntmpl-lst1
+
+    cr ." state lists: "  dup .struct-list cr
+
+    \ Find max number states already sampled, for any state list.
+    0                                                   \ act0 sta-lol' crntmpl-lst1 max-smpld
+    #2 pick                                             \ act0 sta-lol' crntmpl-lst1 max-smpld sta-lol'
+    foreach                                             \ act0 sta-lol' crntmpl-lst1 max-smpld sta-lol-lnk sta-lst-x
+        cr ." sta lst: " dup .state-list
+        #5 pick action-get-squares                      \ act0 sta-lol' crntmpl-lst1 max-smpld sta-lol-lnk sta-lst-x sqr-lst
+        square-list-number-states-in                    \ act0 sta-lol' crntmpl-lst1 max-smpld sta-lol-lnk num
+        space dup dec. cr
+        rot                                             \ act0 sta-lol' crntmpl-lst1 sta-lol-lnk num max-smpld
+        max swap                                        \ act0 sta-lol' crntmpl-lst1 max-smpld sta-lol-lnk
+    next-item
+                                                        \ act0 sta-lol' crntmpl-lst1 max-smpld
+    cr ." max num: " dup dec. cr
+
+    \ Find first state list with the max number of states already sampled,
+    \ and return a corner list.
+    #2 pick                                             \ act0 sta-lol' crntmpl-lst1 max-smpld sta-lol'
+    foreach                                             \ act0 sta-lol' crntmpl-lst1 max-smpld sta-lol-lnk sta-lst-x
+        #5 pick action-get-squares                      \ act0 sta-lol' crntmpl-lst1 max-smpld sta-lol-lnk sta-lst-x sqr-lst
+        square-list-number-states-in                    \ act0 sta-lol' crntmpl-lst1 max-smpld sta-lol-lnk num
+        #2 pick =                                       \ act0 sta-lol' crntmpl-lst1 max-smpld sta-lol-lnk bool
+        if
+            dup link-get-data                           \ act0 sta-lol' crntmpl-lst1 max-smpld sta-lol-lnk sta-lst-x
+            cr ." selected: " dup .state-list cr
+            #3 pick                                     \ act0 sta-lol' crntmpl-lst1 max-smpld sta-lol-lnk sta-lst-x crntmpl-lst1
+            cornertemplate-list-corners-from-states     \ act0 sta-lol' crntmpl-lst1 max-smpld sta-lol-lnk, crn-lst t | f
+            invert abort" no corners?"
+
+            cr ." corners found: " dup .struct-list cr
+            2nip                                        \ act0 sta-lol' sta-lol-lnk crn-lst
+            nip                                         \ act0 sta-lol' crn-lst
+            swap struct-list-deallocate                 \ act0 crn-lst
+            nip                                         \ crn-lst
+            true
+            exit
+        then
+    next-item
+
+    cr ." unexpected drop-through?" cr abort
 ;
 
 : action-calc-minimum-corners ( act0 -- crn-clstrs t | f )
@@ -3394,7 +3439,7 @@ action-groups-disp                      cell+   constant action-function-disp   
 
         \ Test incompatible pair states.
         #5 pick                                                     \ act0 crntmpl-clstrs' crnclstr-lst' crntmpl-clstrs-lnk crtnmpl-lst-x act0
-        action-get-possible-corners-for-cornertemplate-list         \ act0 crntmpl-clstrs' crnclstr-lst' crntmpl-clstrs-lnk, crn-lst' t | f
+        action-get-possible-corners-from-cornertemplate-list        \ act0 crntmpl-clstrs' crnclstr-lst' crntmpl-clstrs-lnk, crn-lst' t | f
         if
             #2 pick                                                 \ act0 crntmpl-clstrs' crnclstr-lst' crntmpl-clstrs-lnk crn-lst' crnclstr-lst'
             list-push-struct                                        \ act0 crntmpl-clstrs' crnclstr-lst' crntmpl-clstrs-lnk

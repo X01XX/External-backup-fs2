@@ -660,3 +660,23 @@ corner-region-disp          cell+   constant corner-adjacent-states-disp    \ Al
                                             \ anc-sta pos-regs'
     nip                                     \ pos-regs'
 ;
+
+\ Return true if two corners are equal.
+: corners-eq? ( crn1 crn0 -- flag )
+    \ Check args.
+    assert( tos is-corner? )
+    assert( nos is-corner? )
+
+    over corner-get-anchor-state    \ crn1 crn0 anc1
+    over corner-get-anchor-state    \ crn1 crn0 anc1 anc0
+    states-eq?                      \ crn1 crn0 bool
+    ifnot
+        2drop
+        false
+        exit
+    then
+
+    corner-get-region       \ crn1 reg0
+    swap corner-get-region  \ reg0 reg1
+    regions-eq?
+;

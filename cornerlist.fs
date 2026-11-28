@@ -328,3 +328,36 @@
     swap region-list-deallocate             \ def-regs'
 ;
 
+\ Return true if two corner-lists are equal.
+: corner-lists-eq? ( reg-lst1 reg-lst0 -- bool )
+    \ Check args.
+    assert( tos is-corner-list? )
+    assert( nos is-corner-list? )
+
+    \ Check list lengths.
+    over list-get-length
+    over list-get-length                \ crn-lst1 crn-lst0 len1 len0
+    <>
+    if
+        2drop
+        false
+        exit
+    then
+
+    \  Check list contents.
+    foreach                             \ crn-lst1 lnk0 crnx
+        \ Check if its in the other list.
+        [ ' corners-eq? ] literal swap  \ crn-lst1 lnk0 xt crnx
+        #3 pick                         \ crn-lst1 lnk0 xt crnx lst1
+        list-member?                    \ crn-lst1 lnk0 flag
+
+        ifnot
+            2drop
+            false
+            exit
+        then
+    next-item
+                                        \ crn-lst1
+    drop
+    true
+;

@@ -169,14 +169,14 @@ token-header-disp cell+ constant token-string-disp
 ;
 
 \ Return true if two tokens are equal.
-: tokens-eq? ( tkn1 tkn2 -- flag )
+: tokens-eq? ( tkn1 tkn0 -- flag )
     \ Check args.
     assert( tos sb-token? )
     assert( nos sb-token? )
 
-    token-get-string        \ tkn1 c-addr2 u2
-    rot                     \ c-addr2 u2 tkn1
-    token-get-string        \ c-addr2 u2 c-addr1 u1
+    token-get-string        \ tkn1 c-addr0 u0
+    rot                     \ c-addr0 u0 tkn1
+    token-get-string        \ c-addr0 u0 c-addr1 u1
     str=                    \ result
 ;
 

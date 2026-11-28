@@ -86,7 +86,6 @@
 
     \ Test.
     s" ((s0110 s0101 s0100) (s0110 s0101 s0011) (s0110 s0100 s0011) (s0101 s0100 s0011))" list-from-string-a \ sta-lst' sta-lol 'sta-lol-tst'
-    [ ' state-lists-eq? ] literal           \ sta-lst' sta-lol 'sta-lol-tst' xt
     #2 pick #2 pick struct-lists-eq?        \ sta-lst' sta-lol 'sta-lol-tst' bool
     invert abort" unexpected result?"
 

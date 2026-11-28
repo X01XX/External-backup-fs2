@@ -818,6 +818,10 @@
     s" s1110->s0001" sample-from-string-a   \ act smpl
     over action-add-sample drop             \ act
 
+    \ Add C->C
+    s" s1100->s1100" sample-from-string-a   \ act smpl
+    over action-add-sample drop             \ act
+
     \ Form XX10.
 
     \ Add A->5
@@ -837,47 +841,20 @@
     \ Run function.
     dup action-calc-minimum-corners         \ crn-clstrs' t | f
     if
-        cr s" result: " #2 pick .struct-list-prefix cr
+        cr ." result: " dup .struct-list cr
 
         \ Check there are four corners.
         dup list-get-length #1 <> abort" not one corner cluster?"
-        dup list-get-first-item list-get-length $4 <> abort" sot 4 corners?"
+        dup list-get-first-item list-get-length #4 <> abort" not 4 corners?"
 
-        \ Init comparison mask.
-        s" m1100" mask-from-string-a        \ crn-clstrs' msk1'
+        \ Init expected corners.
+        s" (((crn s1100 rXX00 (s1101 s1110)) (crn s1110 rXX10 (s1111 s1100)) (crn s1101 rXX01 (s1100 s1111)) (crn s1111 rXX11 (s1110 s1101))))" list-from-string-a    \ crn-clstrs' crn-clstrs-tst'
 
-        \ Check the left-most two bits of all corners are the same.
-        over list-get-first-item            \ crn-clstrs' msk1' crn-clstr'
-        foreach                             \ crn-clstrs' msk1' crn-clstr-lnk crn-x
-            corner-get-anchor-state         \ crn-clstrs' msk1' crn-clstr-lnk sta-x
+        [ ' corner-lists-eq? ] literal      \ crn-clstrs' crn-clstrs-tst' xt
+        #2 pick #2 pick struct-lists-eq?    \ crn-clstrs' crn-clstrs-tst' bool
+        invert abort" unexpected results?"
 
-            \ Check all next corners.
-            over link-get-next              \ crn-clstrs' msk1' crn-clstr-lnk sta-x crn-clstr-lnk-nxt
-            begin
-                ?dup
-            while
-                \ Get mask of difference of twe corner anchor states.
-                dup link-get-data           \ crn-clstrs' msk1' crn-clstr-lnk sta-x crn-clstr-lnk-nxt crn-y
-                corner-get-anchor-state     \ crn-clstrs' msk1' crn-clstr-lnk sta-x crn-clstr-lnk-nxt sta-y
-                #2 pick                     \ crn-clstrs' msk1' crn-clstr-lnk sta-x crn-clstr-lnk-nxt sta-y sta-x
-                state-xor-to-mask           \ crn-clstrs' msk1' crn-clstr-lnk sta-x crn-clstr-lnk-nxt msk2'
-
-                \ Check mask.
-                dup                         \ crn-clstrs' msk1' crn-clstr-lnk sta-x crn-clstr-lnk-nxt msk2' msk2'
-                #5 pick                     \ crn-clstrs' msk1' crn-clstr-lnk sta-x crn-clstr-lnk-nxt msk2' msk2' msk1'
-                mask-and                    \ crn-clstrs' msk1' crn-clstr-lnk sta-x crn-clstr-lnk-nxt msk2' msk3'
-                dup mask-is-zero?
-                ifnot
-                    cr ." non-zero mask?" cr abort
-                then
-                mask-deallocate             \ crn-clstrs' msk1' crn-clstr-lnk sta-x crn-clstr-lnk-nxt msk2'
-                mask-deallocate             \ crn-clstrs' msk1' crn-clstr-lnk sta-x crn-clstr-lnk-nxt
-            next-item
-                                            \ crn-clstrs' msk1' crn-clstr-lnk sta-x
-            drop                            \ crn-clstrs' msk1' crn-clstr-lnk
-        next-item
-                                            \ crn-clstrs' msk1'
-        mask-deallocate
+        struct-list-deallocate
         struct-list-deallocate
     then
 

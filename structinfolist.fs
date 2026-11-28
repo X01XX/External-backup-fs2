@@ -503,6 +503,7 @@
     rot                 \ u lst0 c-addr
     #2 pick             \ u lst0 c-addr u
     type                \ u lst0
+    ." ("
 
     dup list-is-empty?
     if
@@ -535,11 +536,12 @@
 
         dup 0<>                             \ u lst-lnk bool
         if
-            cr over spaces
+            cr over 1+ spaces
         then
     repeat
                                             \ u
     drop
+    ." )"
     cr
 ;
 

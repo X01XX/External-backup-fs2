@@ -883,6 +883,30 @@
     drop
 ;
 
+\ Return the number of states from a list that have corresponding squares
+\ in the square list.
+: square-list-number-states-in ( sta-lst1 sqr-lst0 -- num )
+    \ Check args.
+    assert( tos is-square-list? )
+    assert( nos is-state-list? )
+
+    \ Init counter
+    0                           \ sta-lst1 sqr-lst0 cnt
+
+    \ Foreach state in the state list ...
+    rot                         \ qr-lst0 cnt sta-lst1
+    foreach                     \ sqr-lst0 cnt sta-lnk sta-x
+        #3 pick                 \ sqr-lst0 cnt sta-lnk sta-x sqr-lst0
+        square-list-find        \ sqr-lst0 cnt sta-lnk, sqr t | f
+        if
+            drop                \ sqr-lst0 cnt sta-lnk
+            swap 1+ swap
+        then
+    next-item
+                                \ sqr-lst0 cnt
+    nip
+;
+
 \ Remove squares matching a given list of states.
 \ Return the number of squares removed.
 : square-list-remove-matching-squares ( sta-lst1 sqr-lst0 -- num )

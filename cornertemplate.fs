@@ -449,7 +449,7 @@ cornertemplate-intersection-disp    cell+   constant cornertemplate-regions-disp
     list-new                \ crntmpl-lst0 sta1 sta-lst
     tuck list-push-struct   \ crntmpl-lst0 sta-lst
 
-    \ Fill list with additional potention anchors.
+    \ Fill list with additional potential anchors.
     dup
     foreach                                         \ crntmpl-lst0 sta-lst sta-lnk stax
         #3 pick                                     \ crntmpl-lst0 sta-lst sta-lnk stax crntmpl-lst0
