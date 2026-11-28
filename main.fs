@@ -120,8 +120,8 @@ include plan.fs
 
 include cornertemplate.fs
 include defregcts.fs
-include defregdefparts.fs
 include defregcongparts.fs
+include defregdefparts.fs
 
 include actionxts.fs
 include action.fs

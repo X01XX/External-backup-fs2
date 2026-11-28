@@ -3291,18 +3291,118 @@ action-groups-disp                      cell+   constant action-function-disp   
     check-list-return
 ;
 
-: action-calc-minimum-corners ( act0 -- crn-clstrs t | f )
+: action-get-possible-corners-for-cornertemplate-list ( crntmpl-lst1 act0 -- crn-lst t | f )
     \ Check args.
     assert( tos is-action? )
+    assert( nos is-cornertemplate-list? )
 
-    dup action-defining-region-parts-per-region                             \ act0, defregdefparts-lst t | f
+    \ Get list of states to try starting an anchor list.
+    action-get-adj-pairs region-list-states             \ crntmpl-lst1 sta-lst'
+
+    dup                                                 \ crntmpl-lst1 sta-lst' sta-lst'
+    foreach                                             \ crntmpl-lst1 sta-lst' sta-lnk sta-x
+        #3 pick                                         \ crntmpl-lst1 sta-lst' sta-lnk sta-x crntmpl-lst1
+        cornertemplate-list-predict-all-states          \ crntmpl-lst1 sta-lst' sta-lnk, sta-lst' t | f
+        if
+            cr ." sta set found: " dup .state-list cr
+            dup                                         \ crntmpl-lst1 sta-lst' sta-lnk sta-lst' sta-lst'
+            #4 pick                                     \ crntmpl-lst1 sta-lst' sta-lnk sta-lst' sta-lst' crntmpl-lst1
+            cornertemplate-list-corners-from-states     \ crntmpl-lst1 sta-lst' sta-lnk sta-lst', crn-lst' t | f
+            if
+                cr ." corners found: " dup .struct-list cr
+                swap state-list-deallocate              \ crntmpl-lst1 sta-lst' sta-lnk crn-lst'
+                nip
+                swap state-list-deallocate              \ crntmpl-lst1 crn-lst'
+                nip
+                true
+                exit
+            then
+
+            state-list-deallocate
+        then
+    next-item
+                                                        \ crntmpl-lst1 sta-lst'
+    state-list-deallocate                           \ crntmpl-lst1
+    drop                                            \
+    false
+;
+
+: action-calc-minimum-corners ( act0 -- crn-clstrs t | f )
+    \ Check arg.
+    assert( tos is-action? )
+
+    dup action-get-adj-pairs list-is-empty? if drop false exit then
+    dup action-get-defining-regions list-is-empty? if drop false exit then
+    dup action-get-defining-regions list-get-length #2 < if drop false exit then
+
+    dup action-defining-region-parts-per-region                     \ act0, defregdefparts-lst' t | f
     ifnot
         drop
         false
         exit
     then
 
-    \ cr s" def reg def prts: " #2 pick .struct-list-prefix
+    cr s" def reg def prts: " #2 pick .struct-list-prefix
+
+    dup defregdefparts-list-to-defreg-cong-parts-list               \ act0 defregdefparts-lst', defregcongparts-lst' t | f
+    ifnot
+        struct-list-deallocate
+        drop
+        false
+        exit
+    then
+
+    cr s" def reg cong prts: " #2 pick .struct-list-prefix
+
+    dup defregcongparts-list-to-defregcts-list                      \ act0 defregdefparts-lst', defregcongparts-lst', defregcts-lst' t | f
+    ifnot
+        struct-list-deallocate
+        struct-list-deallocate
+        drop
+        false
+        exit
+    then
+
+    cr s" def reg cts: " #2 pick .struct-list-prefix
+
+    dup
+    defregcts-list-cornertemplate-clusters                          \ act0 defregdefparts-lst', defregcongparts-lst', defregcts-lst', crntmpl-clstrs' t | f
+    ifnot
+        struct-list-deallocate
+        struct-list-deallocate
+        struct-list-deallocate
+        drop
+        false
+        exit
+    then
+
+    cr s" Corner template clusters: " #2 pick .struct-list-prefix
+
+    swap struct-list-deallocate                                     \ act0 defregcongparts-lst' defregcts-lst' crntmpl-clstrs'
+    swap struct-list-deallocate                                     \ act0 defregcongparts-lst' crntmpl-clstrs'
+    swap struct-list-deallocate                                     \ act0 crntmpl-clstrs'
+
+    \ Develop corner cluster from incompatible pair states and cornertemplate list.
+
+    \ Init corner cluster list.
+    list-new                                                        \ act0 crntmpl-clstrs' crnclstr-lst'
+
+    over                                                            \ act0 crntmpl-clstrs' crnclstr-lst' crntmpl-clstrs'
+    foreach                                                         \ act0 crntmpl-clstrs' crnclstr-lst' crntmpl-clstrs-lnk crtnmpl-lst-x
+    cr .stack cr
+        cr ." process cornertemplates: " dup .cornertemplate-list cr
+
+        \ Test incompatible pair states.
+        #5 pick                                                     \ act0 crntmpl-clstrs' crnclstr-lst' crntmpl-clstrs-lnk crtnmpl-lst-x act0
+        action-get-possible-corners-for-cornertemplate-list         \ act0 crntmpl-clstrs' crnclstr-lst' crntmpl-clstrs-lnk, crn-lst' t | f
+        if
+            #2 pick                                                 \ act0 crntmpl-clstrs' crnclstr-lst' crntmpl-clstrs-lnk crn-lst' crnclstr-lst'
+            list-push-struct                                        \ act0 crntmpl-clstrs' crnclstr-lst' crntmpl-clstrs-lnk
+        then
+    next-item
+                                                                    \ act0 defregcts-lst' crnclstr-lst'
+
+    swap struct-list-deallocate                                     \ act0 crnclstr-lst'
 
     nip
     true

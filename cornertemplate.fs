@@ -176,7 +176,6 @@ cornertemplate-intersection-disp    cell+   constant cornertemplate-regions-disp
 
 \ Deallocate a cornertemplate list.
 : cornertemplate-list-deallocate ( crntmpl-lst -- )
-cr ." at 1: " .stack cr
     \ Check arg.
     assert( tos is-cornertemplate-list? )
 
@@ -461,6 +460,7 @@ cr ." at 1: " .stack cr
         state-list-deallocate                       \ crntmpl-lst0 sta-lst sta-lnk
     next-item
                             \ crntmpl-lst0 sta-lst
+    cr ." cornertemplate-list-predict-all-states: todo: verify all states cover all templates" cr
     nip
     true
 ;
@@ -486,3 +486,80 @@ cr ." at 1: " .stack cr
     false
 ;
 
+\ Print a cornertemplate-list
+: .cornertemplate-list ( ct-lst0 -- )
+    \ Check arg.
+    assert( tos is-cornertemplate-list? )
+
+    [ ' .cornertemplate ] literal swap .list
+;
+
+\ Return corner from a state that is a subset of a cornertemplate region.
+: cornertemplate-corner-from-state ( sta1 crntmpl0 -- crn t | f )
+    \ Check args.
+    assert( tos is-cornertemplate? )
+    assert( nos is-state? )
+
+    2dup cornertemplate-get-intersection    \ sta1 crntmpl0 sta1 reg
+    region-superset-of-state?               \ sta1 crntmpl0 bool
+    if
+        cornertemplate-get-intersection     \ sta1 reg
+        corner-new                          \ crn t | f
+    else
+        2drop
+        false
+    then
+;
+
+\ Returna corner list from a state list and a corner template.
+: cornertemplate-corners-from-states ( sta-lst1 crntmpl0 -- crn-lst t | f )
+    \ Check args.
+    assert( tos is-cornertemplate? )
+    assert( nos is-state-list? )
+
+    \ Init return list.
+    list-new -rot                           \ ret-lst sta-lst1 crntmpl0
+
+    swap                                    \ ret-lst crntmpl0 sta-lst1
+    foreach                                 \ ret-lst crntmpl0 sta-lnk sta-x
+        #2 pick                             \ ret-lst crntmpl0 sta-lnk sta-x crntmpl0
+        cornertemplate-corner-from-state    \ ret-lst crntmpl0 sta-lnk, crn t | f
+        if
+            #3 pick                         \ ret-lst crntmpl0 sta-lnk crn ret-lst
+            list-push-struct                \ ret-lst crntmpl0 sta-lnk
+        then
+    next-item
+                                            \ ret-lst crntmpl0
+    drop
+
+    check-list-return
+;
+
+: cornertemplate-list-corners-from-states ( sta-lst1 crntmpl-lst0 -- crn-lst t | f )
+    \ Check args.
+    assert( tos is-cornertemplate-list? )
+    assert( nos is-state-list? )
+
+    \ Init return list.
+    list-new -rot                               \ ret-lst sta-lst1 crntmpl-lst0
+
+    foreach                                     \ ret-lst sta-lst1 crntmpl-lnk crntmpl-x
+        #2 pick swap                            \ ret-lst sta-lst1 crntmpl-lnk sta-lst1 crntmpl-x
+        cornertemplate-corners-from-states      \ ret-lst sta-lst1 crntmpl-lnk, crn-lst' t | f
+        if
+            \ Store the corners.
+            dup                                 \ ret-lst sta-lst1 crntmpl-lnk crn-lst' crn-lst'
+            #4 pick                             \ ret-lst sta-lst1 crntmpl-lnk crn-lst' crn-lst' ret-lst
+            list-append-struct                  \ ret-lst sta-lst1 crntmpl-lnk cn-lst'
+
+            corner-list-deallocate              \ ret-lst sta-lst1 crntmpl-lnk
+        else
+            2drop drop
+            false
+            exit
+        then
+    next-item
+                                                \ ret-lst sta-lst1
+    drop
+    check-list-return
+;

@@ -24,6 +24,7 @@
     dup 0<
     abort" use count cannot be negative."
 
+    \ cr over hex. ." dec use count changed from " dup dec. space dup 1 - dec. cr
     1-
     swap struct-set-use-count
 ;
@@ -31,6 +32,7 @@
 \ Increment struct use count.
 : struct-inc-use-count ( struct-addr -- )
     dup struct-get-use-count      \ struct-addr use-count
+    \ cr over hex. ." inc use count changed from " dup dec. space dup 1 + dec. cr
     1+
     swap struct-set-use-count
 ;

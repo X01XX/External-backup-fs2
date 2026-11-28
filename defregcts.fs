@@ -109,6 +109,7 @@ defregcts-region-disp cell+ constant defregcts-cts-disp     \ A list of corner t
 : defregcts-deallocate ( defregcts0 -- )
     \ Check arg.
     assert( tos is-defregcts? )
+    \ cr ." defregcts-deallocate: "  cr
 
     dup struct-get-use-count            \ defregcts0 count
     dup 0< abort" invalid use count"
@@ -178,7 +179,7 @@ defregcts-region-disp cell+ constant defregcts-cts-disp     \ A list of corner t
 ;
 
 \ Return corners from any states that match cornertemplates.
-: defreg-corners-from-state-list ( sta-lst1 dfrgcts -- crn-lst t | f )
+: defreg-corners-from-state-list ( sta-lst1 dfrgcts0 -- crn-lst t | f )
     \ Check args.
     assert( tos is-defregcts? )
     assert( nos is-state-list? )
@@ -189,9 +190,9 @@ defregcts-region-disp cell+ constant defregcts-cts-disp     \ A list of corner t
     swap                            \ ret-lst dfrgcts0 sta-lst1
     foreach                         \ ret-lst dfrgcts0 sta-lnk sta-x
         #2 pick                     \ ret-lst dfrgcts0 sta-lnk sta-x dfrgcts0
-        defreg-corner-from-state    \ ret-lst dfrgcts0 sta-lnk, sta t | f
+        defreg-corner-from-state    \ ret-lst dfrgcts0 sta-lnk, crn t | f
         if
-            #3 pick                 \ ret-lst dfrgcts0 sta-lnk sta ret-lst
+            #3 pick                 \ ret-lst dfrgcts0 sta-lnk crn ret-lst
             list-push-struct        \ ret-lst dfrgcts0 sta-lnk
         then
     next-item
@@ -226,6 +227,7 @@ defregcts-region-disp cell+ constant defregcts-cts-disp     \ A list of corner t
 : defregcts-list-cornertemplate-clusters ( dfrgcts-lst0 -- cts-lol t | f)
     \ Check arg.
     assert( tos is-defregcts-list? )
+    cr ." defregcts-list-cornertemplate-clusters: start" cr
 
     \ Make list of all corner templates.
     list-new                                        \ dfrgcts-lst0 crntmpl-lst1'
@@ -236,6 +238,7 @@ defregcts-region-disp cell+ constant defregcts-cts-disp     \ A list of corner t
         #2 pick                                     \ crntmpl-lst1' dfrgcts-lnk cts-lst crntmpl-lst1'
         list-append-struct                          \ crntmpl-lst1' dfrgcts-lnk
     next-item
+
                                                     \ crntmpl-lst1'
     \ cr s" All cts: " #2 pick .struct-list-prefix cr
 
@@ -252,7 +255,7 @@ defregcts-region-disp cell+ constant defregcts-cts-disp     \ A list of corner t
     list-new                                \ crntmpl-lst1' crntmpl-clstrs'
 
     \ Pepare corner template list to parse.
-    over list-copy                          \ crntmpl-lst1' crntmpl-clstrs' crntmpl-lst2'
+    over list-copy-struct                   \ crntmpl-lst1' crntmpl-clstrs' crntmpl-lst2'
 
     \ Process corner
     begin
@@ -272,6 +275,7 @@ defregcts-region-disp cell+ constant defregcts-cts-disp     \ A list of corner t
             #5 pick                         \ crntmpl-lst1' crntmpl-clstrs' crntmpl-lst2' crntmpl-clstr' crntmpl-clstr-lnk crntmpl-x crntmpl-lst1'
             cornertemplate-list-connections \ crntmpl-lst1' crntmpl-clstrs' crntmpl-lst2' crntmpl-clstr' crntmpl-clstr-lnk, crntmpl-lst3' t | f
             if
+
                 \ Add corner template to corner template cluster list, no dups.
                 dup                                     \ crntmpl-lst1' crntmpl-clstrs' crntmpl-lst2' crntmpl-clstr' crntmpl-clstr-lnk crntmpl-lst3' crntmpl-lst3'
                 #3 pick                                 \ crntmpl-lst1' crntmpl-clstrs' crntmpl-lst2' crntmpl-clstr' crntmpl-clstr-lnk crntmpl-lst3' crntmpl-lst3' crntmpl-clstr'
@@ -294,12 +298,12 @@ defregcts-region-disp cell+ constant defregcts-cts-disp     \ A list of corner t
         \ Make new state list to parse out more clusters.
         swap cornertemplate-list-deallocate \ crntmpl-lst1' crntmpl-clstrs' crntmpl-lst-dif'
     repeat
-
+                                            \ crntmpl-lst1' crntmpl-clstrs' crntmpl-lst-dif' ( empty )
     list-deallocate                         \ crntmpl-lst1' crntmpl-clstrs'
 
-    \ cr ." Corner template clusters: " dup .struct-list cr
-
     swap cornertemplate-list-deallocate     \ crntmpl-clstrs1'
+
+    \ cr ." Corner template clusters: end: " dup .struct-list cr
 
     check-list-return
 ;

@@ -210,7 +210,7 @@ list-header-disp    cell+   constant list-links-disp
     \ Check arg.
     assert( tos is-list? )
 
-    ." (List: " dup hex. ." uc: " dup struct-get-use-count dec.
+    cr ." (List: " dup hex. ." uc: " dup struct-get-use-count dec.
 
     list-get-links              \ lst-link
     begin

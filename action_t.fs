@@ -832,7 +832,7 @@
         drop                                        \ def-regs' def-prts' cngr-regs' def-prts-lnk
     next-item
                                                     \ def-regs' def-prts' cngr-regs'
-    \ cr ." cngrs: " dup .region-list cr
+    cr ." cngrs: " dup .region-list cr
 
     \ Clean up.
     swap struct-list-deallocate                     \ def-prts' cngr-regs'
@@ -949,7 +949,6 @@
                 invert abort" corners from states failed?"
                 cr s" All corners: " #2 pick .struct-list-prefix
                 struct-list-deallocate                  \ def-cnrgrs' dfrgcts-lst' crn-clstrs' sta-lst'
-                cr ." at 2: " cr
             else
                 space ." anchors do NOT match defregcts list"
             then
@@ -959,18 +958,14 @@
             state-deallocate                            \ def-cnrgrs' dfrgcts-lst' crn-clstrs'
             cr ." no states found?" cr abort
         then
-        cr ." at 3: " cr
-        list-deallocate-recursive                          \ def-cnrgrs' dfrgcts-lst'
+        struct-list-deallocate                          \ def-cnrgrs' dfrgcts-lst'
     else
         cr ." no clusters"
     then
 
     \ Clean up.                                         \ def-cnrgrs' dfrgcts-lst'
-    cr ." at 4: " .stack cr
     struct-list-deallocate                              \ def-cnrgrs'
-    cr ." at 5: " cr
     struct-list-deallocate
-    cr ." at 6: " cr
 
     \ Check for memory leaks.
     check-project-deallocated
@@ -1055,7 +1050,7 @@
     \ Check for memory leaks.
     check-project-deallocated
 
-    cr ." action-test-corner-cluster-calc3 - Ok"
+    cr ." action-test-calc-minimum-corners - Ok"
 ;
 
 : action-tests

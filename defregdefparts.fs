@@ -150,3 +150,89 @@ defregdefparts-region-disp  cell+   constant defregdefparts-parts-disp   \ A lis
     is-defregdefparts?      \ bool
 ;
 
+\ Return a defregcongparts list from a defregdefparts list.
+: defregdefparts-list-to-defreg-cong-parts-list ( dfrgprts-lst0 -- dfrgcgprts-lst t | f )
+    \ Check args.
+    assert( tos is-defregdefparts-list? )
+
+\ def-regs: (rxx10 rxx11 rxx01 rxx00)
+\
+\ def reg def prts: (rxx10 (rxx10))
+\                  (rxx11 (rxx11))
+\                  (rxx01 (rxx01))
+\                  (rxx00 (rxx00))
+
+    \ Init congruent regions list.
+    list-new                                        \ dfrgprts-lst0 cngrs-regs'
+
+    \ Check each possible pair for adjacency,
+    \ if so, check adjacency of defining parts.
+    over                                            \ dfrgprts-lst0 cngrs-regs' dfrgprts-lst0
+    foreach                                         \ dfrgprts-lst0 cngrs-regs' dfrgprts-lnk dfrgprts-x
+        \ Compare current region with all following regions.
+        defregdefparts-get-region                   \ dfrgprts-lst0 cngrs-regs' dfrgprts-lnk reg-x
+        over link-get-next                          \ dfrgprts-lst0 cngrs-regs' dfrgprts-lnk reg-x dfrgprts-lnk-nxt
+        begin
+            ?dup
+        while
+            dup link-get-data                       \ dfrgprts-lst0 cngrs-regs' dfrgprts-lnk reg-x dfrgprts-lnk-nxt dfrgprts-y
+            defregdefparts-get-region               \ dfrgprts-lst0 cngrs-regs' dfrgprts-lnk reg-x dfrgprts-lnk-nxt reg-y
+            #2 pick                                 \ dfrgprts-lst0 cngrs-regs' dfrgprts-lnk reg-x dfrgprts-lnk-nxt reg-y reg-x
+            regions-adjacent?                       \ dfrgprts-lst0 cngrs-regs' dfrgprts-lnk reg-x dfrgprts-lnk-nxt bool
+            if
+                #2 pick                             \ dfrgprts-lst0 cngrs-regs' dfrgprts-lnk reg-x dfrgprts-lnk-nxt dfrgprts-lnk
+                link-get-data                       \ dfrgprts-lst0 cngrs-regs' dfrgprts-lnk reg-x dfrgprts-lnk-nxt dfrgprts-y
+                defregdefparts-get-parts            \ dfrgprts-lst0 cngrs-regs' dfrgprts-lnk reg-x dfrgprts-lnk-nxt prts-x
+
+                over link-get-data                  \ dfrgprts-lst0 cngrs-regs' dfrgprts-lnk reg-x dfrgprts-lnk-nxt prts-x dfrgprts-y
+                defregdefparts-get-parts            \ dfrgprts-lst0 cngrs-regs' dfrgprts-lnk reg-x dfrgprts-lnk-nxt prts-x prts-y
+                region-list-congruent-regions       \ dfrgprts-lst0 cngrs-regs' dfrgprts-lnk reg-x dfrgprts-lnk-nxt, cngrs-regs2' t | f
+                if
+                    dup                             \ dfrgprts-lst0 cngrs-regs' dfrgprts-lnk reg-x dfrgprts-lnk-nxt cngrs-regs2' cngrs-regs2'
+                    #5 pick                         \ dfrgprts-lst0 cngrs-regs' dfrgprts-lnk reg-x dfrgprts-lnk-nxt cngrs-regs2' cngrs-regs2' cngrs-regs'
+                    region-list-append-nosubs       \ dfrgprts-lst0 cngrs-regs' dfrgprts-lnk reg-x dfrgprts-lnk-nxt cngrs-regs2'
+                    region-list-deallocate          \ dfrgprts-lst0 cngrs-regs' dfrgprts-lnk reg-x dfrgprts-lnk-nxt
+                then
+            then
+
+            link-get-next
+        repeat
+                                                    \ dfrgprts-lst0 cngrs-regs' dfrgprts-lnk reg-x
+        drop
+    next-item
+                                                    \ dfrgprts-lst0 cngrs-regs'
+
+    cr ." cngrs: " dup .region-list cr
+
+    \ Collect congruent regions per defining regions.
+
+    \ Init list.
+    list-new swap                                   \ dfrgprts-lst0 def-cnrgrs' cngr-regs'
+    #2 pick                                         \ dfrgprts-lst0 def-cnrgrs' cngr-regs' dfrgprts-lst0
+    foreach                                         \ dfrgprts-lst0 def-cnrgrs' cngr-regs' dfrgprts-lnk defrgprts-x
+        defregdefparts-get-region                   \ dfrgprts-lst0 def-cnrgrs' cngr-regs' dfrgprts-lnk dreg-x
+        #2 pick                                     \ dfrgprts-lst0 def-cnrgrs' cngr-regs' def-lnk dreg-x cngr-regs'
+        [ ' regions-intersect? ] literal -rot       \ dfrgprts-lst0 def-cnrgrs' cngr-regs' def-lnk xt dreg-x cngr-regs'
+        list-find-all-struct                        \ dfrgprts-lst0 def-cnrgrs' cngr-regs' def-lnk int-regs'
+
+        dup list-is-empty?
+        if
+            list-deallocate                         \ dfrgprts-lst0 def-cnrgrs' cngr-regs' def-lnk
+        else
+            \ Save region, int regs.
+            over link-get-data                      \ dfrgprts-lst0 def-cnrgrs' cngr-regs' def-lnk int-regs' defrgprts-X
+            defregdefparts-get-region               \ dfrgprts-lst0 def-cnrgrs' cngr-regs' def-lnk int-regs' dregx
+            defregcongparts-new                     \ dfrgprts-lst0 def-cnrgrs' cngr-regs' def-lnk def-cngrs-x'
+            #3 pick                                 \ dfrgprts-lst0 def-cnrgrs' cngr-regs' def-lnk def-cngrs-x' def-cnrgrs'
+            list-push-struct                        \ dfrgprts-lst0 def-cnrgrs' cngr-regs' def-lnk
+        then
+    next-item
+                                                    \ dfrgprts-lst0 def-cnrgrs' cngr-regs'
+    \ Clean up.
+    region-list-deallocate                          \ dfrgprts-lst0 def-cnrgrs'
+    nip                                             \ def-cnrgrs'
+
+    cr s" def reg / congr ints: " #2 pick .struct-list-prefix
+    check-list-return
+;
+
