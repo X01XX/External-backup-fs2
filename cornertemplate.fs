@@ -459,8 +459,23 @@ cornertemplate-intersection-disp    cell+   constant cornertemplate-regions-disp
         state-list-append-end-nodups                \ crntmpl-lst0 sta-lst sta-lnk sta-lst2'
         state-list-deallocate                       \ crntmpl-lst0 sta-lst sta-lnk
     next-item
-                            \ crntmpl-lst0 sta-lst
-    cr ." cornertemplate-list-predict-all-states: todo: verify all states cover all templates" cr
+                                                    \ crntmpl-lst0 sta-lst
+
+    \ Verify all states cover all templates.
+    over
+    foreach                                         \ crntmpl-lst0 sta-lst crntmpl-lnk crntmpl
+        cornertemplate-get-intersection             \ crntmpl-lst0 sta-lst crntmpl-lnk reg
+        #2 pick                                     \ crntmpl-lst0 sta-lst crntmpl-lnk reg sta-lst
+        state-list-none-in-region?                  \ crntmpl-lst0 sta-lst crntmpl-lnk bool
+        if
+            drop                                    \ crntmpl-lst0 sta-lst
+            state-list-deallocate                   \ crntmpl-lst0
+            drop
+            false
+            exit
+        then
+    next-item
+
     nip
     true
 ;
